@@ -1,0 +1,28 @@
+{{ define "main" }}
+
+{{ $posts := where site.RegularPages "Type" "posts" }}
+{{ $years := slice }}
+{{ range $posts }}
+  {{ $year := .Date.Format "2006" }}
+  {{ if not (in $years $year) }}
+    {{ $years = $years | append $year }}
+  {{ end }}
+{{ end }}
+
+{{ range $years }}
+  {{ $year := . }}
+  <h2 class="archive-year">{{ $year }}</h2>
+  <section class="post-list">
+    {{ range $posts }}
+      {{ if eq (.Date.Format "2006") $year }}
+        <a class="post-row" href="{{ .Permalink }}">
+          <span class="post-row-title">{{ .Title }}</span>
+          <span class="post-row-date">{{ .Date.Format "01-02" }}</span>
+        </a>
+      {{ end }}
+    {{ end }}
+  </section>
+{{ else }}
+  <p class="empty-tip">还没有文章。</p>
+{{ end }}
+{{ end }}

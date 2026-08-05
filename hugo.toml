@@ -1,0 +1,103 @@
+baseURL = "https://hulatu.com/"
+locale = "zh-CN"
+title = "胡拉图说"
+enableRobotsTXT = true
+copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
+
+[paginate]
+  pagerSize = 10
+  
+[imaging]
+  quality = 75
+  resampleFilter = "Lanczos"
+  
+[minify]
+  disableXML = true
+  minifyOutput = true
+  
+[permalinks]
+  posts = "/posts/:year/:month/:day/:slug/"
+
+[params]
+  description = "总得留下点什么吧！"
+  author = "胡拉图"
+  since = "2025"
+  github = "https://github.com/hulatu"
+  email = "flyhulatu@gmail.com"
+  avatar = "/images/avatar.png"
+  
+[params.assets]
+  favicon = "/favicon.png"
+  favicon16x16 = "/favicon.png"
+  favicon32x32 = "/favicon.png"
+  apple_touch_icon = "/apple-touch-icon.png"
+  safari_pinned_tab = "/safari-pinned-tab.svg"
+   
+[params.giscus]
+  enabled = true
+  repo = "hulatu/hulatu"
+  repoId = "R_kgDOTApIwg"
+  category = "Announcements"
+  categoryId = "DIC_kwDOTApIws4DCXd5"
+  mapping = "pathname"
+  strict = false
+  reactions = true
+  emitMetadata = false
+  inputPosition = "top"
+  lang = "zh-CN"
+  theme = "preferred_color_scheme"
+
+
+# 首页额外输出 SearchIndex（用于 Fuse.js 客户端搜索）
+[outputFormats.SearchIndex]
+  mediaType = "application/json"
+  baseName = "search-index"
+  isPlainText = true
+  notAlternative = true
+
+[outputs]
+  home = ["HTML", "RSS", "SearchIndex"]
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 4
+  [markup.highlight]
+    noClasses = false     
+
+[menu]
+  [[menu.main]]
+    name = "关于"
+    url = "/about/"
+    weight = 1
+  [[menu.main]]
+    name = "归档"
+    url = "/archive/"
+    weight = 2
+  [[menu.main]]
+    name = "分类"
+    url = "/categories/"
+    weight = 3
+  [[menu.main]]
+    name = "清娱"
+    url = "/media/"
+    weight = 4
+  [[menu.main]]
+    name = "周刊"
+    url = "/weekly/"
+    weight = 5
+  [[menu.main]]
+    name = "留言"
+    url = "/guestbook/"
+    weight = 10
+  [[menu.main]]
+    name = "订阅"
+    url = "/index.xml"
+    weight = 20
+
+[taxonomies]
+  category = "categories"
+  tag = "tags"

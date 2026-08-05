@@ -1,0 +1,17 @@
+{{ define "main" }}
+<h1 class="page-title">{{ .Title }}</h1>
+{{ if .Content }}<div class="page-intro">{{ .Content }}</div>{{ end }}
+
+{{ if .Pages }}
+  <section class="post-list">
+    {{ range .Pages }}
+      <a class="post-row" href="{{ .Permalink }}">
+        <span class="post-row-title">{{ .Title }}</span>
+        <span class="post-row-date">{{ .Date.Format "2006-01-02" }}</span>
+      </a>
+    {{ end }}
+  </section>
+{{ else if not .Content }}
+  <p class="empty-tip">这里还没有内容。</p>
+{{ end }}
+{{ end }}

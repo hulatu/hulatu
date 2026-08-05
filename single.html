@@ -1,0 +1,88 @@
+{{ define "main" }}
+{{ $toc := .TableOfContents}}
+{{ $hasToc := in $toc "<li" }}
+
+<article class="post-single {{ if $hasToc }}has-toc{{ end }}">
+    {{ with .Params.cover }}
+      {{/* 先去掉可能的前导斜杠，让 assets 与 static 用同一套路径约定 */}}
+      {{ $cover := resources.Get (strings.TrimPrefix "/" .) }}
+      {{ if $cover }}
+        {{/* 图在 assets/：走管道，缩到 1200 宽 + 转 webp，体积通常砍到原图 1/5~1/10 */}}
+        {{ $r := $cover.Resize "1200x webp q82" }}
+        <img class="post-cover"
+             src="{{ $r.RelPermalink }}"
+             width="{{ $r.Width }}" height="{{ $r.Height }}"
+             loading="eager" fetchpriority="high" decoding="async"
+             alt="{{ $.Title }}">
+      {{ else }}
+        {{/* 图还在 static/：管道够不着，先直出，但补抢跑属性，至少让 LCP 图优先下载 */}}
+        <img class="post-cover"
+             src="{{ . | relURL }}"
+             loading="eager" fetchpriority="high" decoding="async"
+             alt="{{ $.Title }}">
+      {{ end }}
+    {{ end }}	
+  <header class="post-header">
+    <h1 class="post-title">{{ .Title }}</h1>
+    <div class="post-meta">
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+      {{ with .GetTerms "categories" }}
+        <span class="post-meta-sep">·</span>
+        {{ range . }}<a class="post-cat" href="{{ .Permalink }}">{{ .Title }}</a>{{ end }}
+      {{ end }}
+    </div>
+  </header>
+
+  <div class="post-content">
+    {{ .Content }}
+  </div>
+
+  {{ if $hasToc }}
+  <aside class="post-toc">
+    <!-- <p class="post-toc-title">.webp</p> -->
+    <nav class="post-toc-nav">
+      {{ $toc | safeHTML }}
+    </nav>
+  </aside>
+  {{ end }}
+</article>
+
+<div class="post-nav">
+  {{ with .PrevInSection }}<a href="{{ .Permalink }}">← {{ .Title }}</a>{{ end }}
+  {{ with .NextInSection }}<a href="{{ .Permalink }}">{{ .Title }} →</a>{{ end }}
+</div>
+
+{{ if and (in (slice "posts" "weekly") .Type) site.Params.giscus.repo }}
+<section class="giscus-wrap">
+  <div id="giscus-slot"
+    data-repo="{{ site.Params.giscus.repo }}"
+    data-repo-id="{{ site.Params.giscus.repoId }}"
+    data-category="{{ site.Params.giscus.category }}"
+    data-category-id="{{ site.Params.giscus.categoryId }}"
+    data-mapping="{{ site.Params.giscus.mapping }}"
+    data-strict="0"
+    data-reactions-enabled="{{ site.Params.giscus.reactionsEnabled }}"
+    data-emit-metadata="0"
+    data-input-position="{{ site.Params.giscus.inputPosition }}"
+    data-theme="preferred_color_scheme"
+    data-lang="{{ site.Params.giscus.lang }}"></div>
+  <script>
+  (function () {
+    var slot = document.getElementById('giscus-slot');
+    var io = new IntersectionObserver(function (es) {
+      if (!es[0].isIntersecting) return;
+      var s = document.createElement('script');
+      s.src = 'https://giscus.app/client.js';
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      for (var k in slot.dataset) {
+        s.setAttribute('data-' + k.replace(/([A-Z])/g, '-$1').toLowerCase(), slot.dataset[k]);
+      }
+      slot.appendChild(s);
+      io.disconnect();
+    }, { rootMargin: '300px' });
+    io.observe(slot);
+  })();
+  </script>
+</section>
+{{ end }}{{ end }}

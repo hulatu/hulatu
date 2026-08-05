@@ -1,0 +1,13 @@
+{{ define "main" }}
+<div class="about-page">
+  {{ if site.Params.avatar }}
+    <img class="about-avatar" src="{{ site.Params.avatar | relURL }}" alt="{{ site.Params.author }}">
+  {{ else }}
+    <div class="about-avatar about-avatar-fallback">{{ substr site.Params.author 0 1 }}</div>
+  {{ end }}
+
+  <div class="post-content">
+    {{ .Content }}
+  </div>
+</div>
+{{ end }}
