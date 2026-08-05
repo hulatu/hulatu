@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} - {{ site.Title }}{{ end }}</title>
+  <meta name="description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ site.Params.description }}{{ end }}">
+  <meta name="theme-color" content="#2563eb">
+  {{ with resources.Get "favicon-template.svg" }}
+    {{ $favicon := . | resources.ExecuteAsTemplate "favicon.svg" $ }}
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">  {{ end }}
+    <link rel="stylesheet" href="{{ "css/style.css" | relURL }}">
+    <link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | relURL }}" title="{{ site.Title }}">
+  <!-- 提前读取主题偏好，避免深色模式下出现"白屏闪烁" -->
+  <script>
+    (function () {
+      var saved = localStorage.getItem("theme");
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var theme = saved || (prefersDark ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body>
+  {{ partial "header.html" . }}
+
+  <main class="container">
+    {{ block "main" . }}{{ end }}
+  </main>
+  {{ if .IsHome }}
+    {{ partial "footer.html" . }}
+  {{ end }}
+  {{ partial "search-modal.html" . }}
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
+  <script src="{{ "js/theme.js" | relURL }}"></script>
+  <script src="{{ "js/search.js" | relURL }}" data-search-index="{{ "search-index.json" | relURL }}"></script>
+  <script src="{{ "js/giscus-theme.js" | relURL }}"></script>
+  <script src="{{ "js/toc.js" | relURL }}"></script>
+  <script src="{{ "js/code-copy.js" | relURL }}"></script>
+  <script src="{{ "js/lightbox.js" | relURL }}"></script>
+  <script src="{{ "js/pjax.js" | relURL }}"></script>
+</body>
+</html>
