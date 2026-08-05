@@ -1,0 +1,12 @@
+{{ define "main" }}
+<section class="category-list">
+  {{ range .Pages.ByTitle }}
+    <a class="category-item" href="{{ .Permalink }}">
+      <span>{{ .Title }}</span>
+      <span class="category-count">{{ len .Pages }}</span>
+    </a>
+  {{ else }}
+    <p class="empty-tip">还没有分类。</p>
+  {{ end }}
+</section>
+{{ end }}

@@ -1,0 +1,21 @@
+# Hugo 构建产物与缓存
+public/
+resources/
+.hugo_cache/
+assets/jsconfig.json
+hugo_stats.json
+.hugo_build.lock
+
+# Mac 系统文件
+.DS_Store
+*~
+
+# 编辑器配置（可选，看你是否想跟仓库分享）
+.vscode/
+.idea/
+
+# 本地用 npx/esbuild 压缩 JS 时可能产生
+node_modules/
+
+# 日志
+*.log

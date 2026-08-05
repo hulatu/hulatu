@@ -1,0 +1,23 @@
+{{ define "main" }}
+{{ $posts := where site.RegularPages "Type" "posts" }}
+{{ $paginator := .Paginate $posts }}
+
+<section class="post-list{{ if gt $paginator.TotalPages 1 }} has-pager{{ end }}" style="--page-rows: {{ site.Params.paginate.pageSize }};">
+  {{ range $paginator.Pages }}
+    <a class="post-row" href="{{ .Permalink }}">
+      <span class="post-row-title">{{ .Title }}</span>
+      <span class="post-row-date">{{ .Date.Format "2006-01-02" }}</span>
+    </a>
+  {{ else }}
+    <p class="empty-tip">还没有文章，去 content/posts/ 下新建一篇吧。</p>
+  {{ end }}
+</section>
+
+{{ if gt $paginator.TotalPages 1 }}
+<nav class="pager">
+  <span class="pager-prev">{{ if $paginator.HasPrev }}<a href="{{ $paginator.Prev.URL }}">← 上一页</a>{{ end }}</span>
+  <span class="pager-page">{{ $paginator.PageNumber }} / {{ $paginator.TotalPages }}</span>
+  <span class="pager-next">{{ if $paginator.HasNext }}<a href="{{ $paginator.Next.URL }}">下一页 →</a>{{ end }}</span>
+</nav>
+{{ end }}
+{{ end }}
