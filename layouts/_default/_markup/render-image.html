@@ -1,0 +1,17 @@
+<figure class="article-image">
+
+<a href="{{ .Destination }}">
+<img
+src="{{ .Destination }}"
+alt="{{ .Text }}"
+loading="lazy" decoding="async"
+>
+</a>
+
+{{ if .Text }}
+<figcaption>
+{{ .Text }}
+</figcaption>
+{{ end }}
+
+</figure>

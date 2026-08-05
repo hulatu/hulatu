@@ -24,7 +24,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   since = "2025"
   github = "https://github.com/hulatu"
   email = "flyhulatu@gmail.com"
-  avatar = "/images/avatar.png"
+  avatar = "/images/avatar.webp"
   
 [params.assets]
   favicon = "/favicon.png"
