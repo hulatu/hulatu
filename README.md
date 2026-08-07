@@ -7,9 +7,9 @@
 - **导航栏**：博客名居左；「关于 / 归档 / 订阅 / 分类 / 搜索......」+ 深浅色切换按钮居右，均等间距排列
 - **等宽布局**：导航栏、正文、页脚统一使用同一个容器宽度，视觉更整齐
 - **首页文章列表**：只显示标题和日期（标题居左，日期居右）
-- **真搜索功能**：基于 [Fuse.js](https://www.fusejs.io/) 的客户端模糊搜索，构建时自动生成 `search-index.json`，无需任何后端或第三方服务；搜索按钮和「关于/归档/订阅/分类」排在一起、位于深浅色切换按钮左边，点击或按 `S` 键弹出搜索框
+- **真搜索功能**：基于 [Fuse.js](https://www.fusejs.io/) 的客户端模糊搜索，构建时自动生成 `search-index.json`，无需任何后端或第三方服务；搜索按钮和「关于/归档/订阅/分类」排在一起、位于深浅色切换按钮左边，点击或按 `/` 键弹出搜索框
 - **评论系统**：接入 [giscus](https://giscus.app)（基于 GitHub Discussions），宽度与导航栏/正文保持一致，并且会跟随站点的深浅色切换实时同步主题
-- **网站图标 & 头像**：自动根据博客标题首字生成网站图标（favicon），「关于」页面自动生成作者姓名首字的彩色头像；也支持替换成你自己的图片
+- **网站图标 & 头像**：favicon 等图标放在 `static/` 下，路径在 `hugo.toml` 的 `[params.assets]` 里配置；「关于」页面展示 `params.avatar` 指定的头像，没填则自动显示作者姓名首字
 - **文章封面图**：在文章 front matter 填 `cover` 字段即可，图片显示在文章顶部，宽度与正文容器一致，圆角 10px
 - **文章目录**：有二级以上标题的文章会自动生成目录，悬浮显示在文章容器右侧（屏幕较窄时自动隐藏，不影响阅读）
 - **无刷新导航**：点击站内链接（导航栏、文章列表、翻页等）只会替换正文内容，不会整页刷新，浏览体验更流畅；直接输入网址或分享链接依然是完整页面，SEO 不受影响
@@ -21,21 +21,27 @@
 ## 📁 目录结构
 
 ```
-hugo-blog/
+blog/
 ├── hugo.toml                  # 站点配置文件
 ├── content/
 │   ├── about.md                # 「关于」页面
 │   ├── archive.md              # 「归档」页面
+│   ├── privacy.md              # 「隐私政策」页面
+│   ├── guestbook/              # 「留言」页面
+│   ├── categories/             # 「分类」页面
+│   ├── media/                  # 「书影音」页面
 │   └── posts/                  # 文章都放在这里
 ├── layouts/                    # 页面模板
 │   ├── _default/
 │   ├── partials/                # 导航栏、页脚、搜索弹窗
+│   ├── shortcodes/              # media / media-grid 等短代码
 │   └── index.searchindex.json   # 搜索索引生成模板
 ├── static/
-│   ├── css/style.css           # 全站样式
-│   └── js/                     # 主题切换 & 搜索逻辑
+│   ├── css/style.css            # 全站样式
+│   ├── img/                     # 文章配图
+│   └── js/                      # 主题切换 & 搜索逻辑
 ├── archetypes/posts.md         # 新建文章的默认模板
-└── .github/workflows/hugo.yml  # 自动构建部署工作流
+└── hugo.toml                   # 站点配置
 ```
 
 ## 🚀 本地运行
@@ -102,44 +108,18 @@ giscus 是基于 GitHub Discussions 的免费评论系统，不需要自己搭�
   category = "giscus.app 里选的分类，比如 Announcements"
   categoryId = "giscus.app 给你的 data-category-id"
   mapping = "pathname"
-  reactionsEnabled = "1"
+  reactions = true
   inputPosition = "bottom"
   lang = "zh-CN"
 ```
 
 5. 保存后重新构建，评论区就会出现在每篇文章正文下方（`repo` 留空则不显示评论区，「关于」「归档」等非文章页面也不会显示）。
 
-## 🌐 部署到 GitHub Pages
+## 🌐 部署
 
-本项目已经内置好 GitHub Actions 工作流（`.github/workflows/hugo.yml`），推送代码后会自动构建并发布，**不需要你手动执行任何部署命令**。
-
-### 第一步：创建 GitHub 仓库并推送代码
-
-```bash
-cd hugo-blog
-git init
-git add .
-git commit -m "初始化博客"
-git branch -M main
-git remote add origin https://github.com/<你的用户名>/<仓库名>.git
-git push -u origin main
-```
-
-> 如果仓库名不是 `<你的用户名>.github.io`，后续访问地址会带一个子路径（比如 `https://用户名.github.io/仓库名/`），这也是完全正常的，不影响使用。
-
-### 第二步：开启 GitHub Pages
-
-1. 打开你的 GitHub 仓库页面
-2. 依次点击 **Settings → Pages**
-3. 在 **Build and deployment → Source** 中选择 **GitHub Actions**
-
-### 第三步：等待自动部署
-
-回到仓库的 **Actions** 标签页，可以看到刚才 push 触发的工作流正在运行（首次构建大约 1-2 分钟）。跑完之后，在 **Settings → Pages** 页面顶部就会显示你的博客访问地址。
+本仓库不包含 CI 工作流，部署由你在托管平台（如 GitHub Pages / Cloudflare Pages / Vercel）侧配置：把仓库关联到平台后，每次 `git push` 会自动触发构建发布。
 
 ### 之后如何更新博客
-
-以后每次想发新文章，只需要：
 
 ```bash
 hugo new content/posts/文章名.md
@@ -149,15 +129,15 @@ git commit -m "新增文章：文章标题"
 git push
 ```
 
-push 之后 GitHub Actions 会自动重新构建并发布，通常 1-2 分钟内就能在线上看到更新，全程不需要手动操作服务器。
+push 之后托管平台会自动重新构建并发布，通常几分钟内就能在线上看到更新。
 
 ### 关于 baseURL
 
-`hugo.toml` 里的 `baseURL` 建议直接改成你最终的访问地址（比如 `https://yourname.github.io/` 或你自己绑定的域名），这样生成的链接（RSS、canonical 等）才是正确的。工作流中已经做了自动兼容处理，但手动配置好更保险。
+`hugo.toml` 里的 `baseURL` 建议直接改成你最终的访问地址（比如 `https://yourname.github.io/` 或你自己绑定的域名），这样生成的链接（RSS、canonical 等）才是正确的。
 
 ### 绑定你自己的域名（可选）
 
-既然你已经有域名了，可以在 GitHub Pages 设置里的 **Custom domain** 填入你的域名，然后去你的域名服务商后台，添加一条 **CNAME 记录**（或根域名用 **ALIAS/ANAME** 记录）指向 `<你的用户名>.github.io`，等待 DNS 生效（通常几分钟到几小时）即可，GitHub 会自动帮你签发 HTTPS 证书。
+在托管平台的域名设置里填上你的域名，然后去域名服务商后台把 DNS 指向托管平台提供的地址，等待生效即可；HTTPS 证书一般由托管平台自动签发。
 
 ## 📄 License
 

@@ -6,46 +6,50 @@ description: "读过的书、看过的影像、循环播放的歌。"
 
 只记读完看完的，和真心推荐的。短评求短，感受求真。
 
-## 在读
+## 书籍
 
-{{< media-grid >}}
+{{< books >}}
 
-{{< media type="书"  title="纳瓦尔宝典" creator="Naval" year="2020" rating="9.2" status="在读" >}}
-{{< /media >}}
+{{< book title="纳瓦尔宝典" creator="Naval" year="2020" rating="9.2" >}}
 
-{{< /media-grid >}}
+{{< book cover="/media/motorcycle.webp" title="禅与摩托车维修艺术" creator="罗伯特·M·波西格" year="2011" rating="8.2" >}}
 
-## 已读
+{{< book cover="/media/pig.webp" title="一只特立独行的猪" creator="王小波" year="2017" rating="8.6" >}}
 
-{{< media-grid >}}
-
-{{< media type="书" cover="/media/motorcycle.webp" title="禅与摩托车维修艺术" creator="罗伯特·M·波西格" year="2011" rating="8.2" status="已读" >}}
-{{< /media >}}
-
-{{< media type="书" cover="/media/pig.webp" title="一只特立独行的猪" creator="王小波" year="2017" rating="8.6" status="已读" >}}
-{{< /media >}}
-
-{{< /media-grid >}}
+{{< /books >}}
 
 ## 影视
 
 {{< media-grid >}}
 
 {{< media type="电影" cover="/media/crazy-racing.webp" title="疯狂的赛车" creator="导演：宁浩" year="2009" rating="8.5" status="常看" >}}
-黑色幽默的国产巅峰。
-{{< /media >}}
 
 {{< media type="电影" cover="/media/crazy-stone.webp" title="疯狂的石头" creator="导演：宁浩" year="2006" rating="8.6" status="常看" >}}
-适合重温的喜剧。
-{{< /media >}}
 
 {{< /media-grid >}}
 
 ## 音乐
 
-{{< media-grid >}}
+{{< music-player >}}
 
-{{< media type="音乐"  cover="/media/该死的快乐.webp" title="该死的快乐" creator="王菀之 & 张敬轩" year="2017" status="循环" >}}
-{{< /media >}}
+{{< music-track title="当年情" artist="张国荣" src="/media/music/张国荣-当年情-Live.mp3" >}}
 
-{{< /media-grid >}}
+{{< music-track title="倩女幽魂" artist="张国荣" src="/media/music/倩女幽魂.mp3" >}}
+
+{{< music-track title="Monica (Live)" artist="张国荣" src="/media/music/Monica-Live.mp3" >}}
+
+{{< music-track title="玻璃之情" artist="张国荣" src="/media/music/玻璃之情.mp3" >}}
+
+{{< music-track title="月亮代表我的心" artist="张国荣" src="/media/music/月亮代表我的心.mp3" >}}
+
+{{< music-track title="光辉岁月" artist="Beyond" src="/media/music/光辉岁月.mp3" >}}
+
+{{< music-track title="大鱼（唱片版）" artist="周深" src="/media/music/周深-大鱼-唱片版.mp3" >}}
+
+{{< music-track title="化身孤岛的鲸" artist="周深" src="/media/music/周深-化身孤岛的鲸.mp3" >}}
+
+{{< music-track title="偏偏喜欢你" artist="陈百强" src="/media/music/偏偏喜欢你.mp3" >}}
+
+{{< music-track title="男儿当自强" artist="林子祥" src="/media/music/男儿当自强.mp3" >}}
+
+{{< /music-player >}}
