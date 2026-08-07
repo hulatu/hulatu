@@ -6,7 +6,6 @@
       {{ with $rating }}<span class="media-rating">★ {{ . }}</span>{{ end }}</p>
     <h3 class="media-title">{{ .Get "title" }}</h3>
     <p class="media-creator">{{ .Get "creator" }}{{ with .Get "year" }} · {{ . }}{{ end }}</p>
-    {{ with .Inner }}<div class="media-note">{{ . | markdownify }}</div>{{ end }}
   </div>
   {{ with .Get "status" }}<span class="media-status">{{ . }}</span>{{ end }}
 </div>
