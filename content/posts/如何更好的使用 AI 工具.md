@@ -1,7 +1,8 @@
 ---
 title: "如何更好的使用 AI 工具" 
+categories: ["工具"]
+tags: ["AI", "效率", "工具"]
 date: 2026-01-26T09:59:07+08:00      
-categories: [工具]
 cover: "/img/ai.webp"                  
 slug: How-to-better-use-AI-tools                                                                  
 summary: AI 也可以为我们更好的服务。                             

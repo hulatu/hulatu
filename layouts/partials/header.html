@@ -1,21 +1,41 @@
 <header class="site-header">
   <div class="container nav-container">
-    <a class="site-title" href="{{ "/" | relURL }}">{{ site.Title }}</a>
+    <a class="site-brand" href="{{ "/" | relURL }}" aria-label="{{ site.Title }} 首页">
+      <span class="site-seal" aria-hidden="true">说</span>
+      <span class="site-title">{{ site.Title }}</span>
+    </a>
 
-    <nav class="nav-links" aria-label="主导航">
-      {{ range site.Menus.main }}
-        <a href="{{ .URL | relURL }}">{{ .Name }}</a>
-      {{ end }}
-      <button type="button" class="nav-icon-btn search-trigger" aria-label="打开搜索">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="7"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
+    <div class="nav-right">
+      <nav class="nav-links" id="site-nav" aria-label="主导航">
+        {{ range site.Menus.main }}
+          <a href="{{ .URL | relURL }}">{{ .Name }}</a>
+        {{ end }}
+      </nav>
+
+      <span class="nav-actions">
+        <button type="button" class="nav-icon-btn search-trigger" aria-label="打开搜索" title="搜索">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+
+        <button type="button" class="nav-icon-btn theme-toggle" aria-label="切换深色/浅色模式" title="切换主题">
+          <svg class="theme-icon-dark" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+          </svg>
+          <svg class="theme-icon-light" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5"></circle>
+            <path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"></path>
+          </svg>
+        </button>
+      </span>
+
+      <button type="button" class="nav-burger" id="nav-burger" aria-label="打开菜单" aria-expanded="false" aria-controls="site-nav">
+        <span class="burger-bar"></span>
+        <span class="burger-bar"></span>
+        <span class="burger-bar"></span>
       </button>
-      <button type="button" class="nav-icon-btn theme-toggle" aria-label="切换深色/浅色模式">
-        <span class="theme-icon-dark">🌙</span>
-        <span class="theme-icon-light">☀️</span>
-      </button>
-    </nav>
+    </div>
   </div>
 </header>

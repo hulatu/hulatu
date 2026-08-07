@@ -1,17 +1,25 @@
+{{- $w := "" -}}
+{{- $h := "" -}}
+{{- $rel := strings.TrimPrefix "/" .Destination -}}
+{{- if and (not (hasPrefix .Destination "http")) (fileExists (printf "static/%s" $rel)) -}}
+  {{- with imageConfig (printf "static/%s" $rel) -}}
+    {{- $w = .Width -}}
+    {{- $h = .Height -}}
+  {{- end -}}
+{{- end -}}
 <figure class="article-image">
-
-<a href="{{ .Destination }}">
-<img
-src="{{ .Destination }}"
-alt="{{ .Text }}"
-loading="lazy" decoding="async"
->
-</a>
-
-{{ if .Text }}
-<figcaption>
-{{ .Text }}
-</figcaption>
-{{ end }}
-
+  <a href="{{ .Destination }}">
+    <img
+      src="{{ .Destination }}"
+      alt="{{ .Text }}"
+      loading="lazy" decoding="async"
+      {{ with $w }}width="{{ . }}"{{ end }}
+      {{ with $h }}height="{{ . }}"{{ end }}
+    >
+  </a>
+  {{ if .Text }}
+  <figcaption>
+    {{ .Text }}
+  </figcaption>
+  {{ end }}
 </figure>

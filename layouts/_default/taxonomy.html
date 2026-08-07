@@ -1,9 +1,10 @@
 {{ define "main" }}
-<section class="category-list">
+<h1 class="page-title">{{ .Title }}</h1>
+<section class="category-grid">
   {{ range .Pages.ByTitle }}
-    <a class="category-item" href="{{ .Permalink }}">
-      <span>{{ .Title }}</span>
-      <span class="category-count">{{ len .Pages }}</span>
+    <a class="category-card" href="{{ .Permalink }}">
+      <span class="category-card-name">{{ .Title }}</span>
+      <span class="category-card-count">{{ len .Pages }}</span>
     </a>
   {{ else }}
     <p class="empty-tip">还没有分类。</p>

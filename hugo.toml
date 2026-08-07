@@ -4,8 +4,8 @@ title = "胡拉图说"
 enableRobotsTXT = true
 copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 
-[paginate]
-  pagerSize = 10
+[pagination]
+  pagerSize = 5
   
 [imaging]
   quality = 75
@@ -55,8 +55,34 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   isPlainText = true
   notAlternative = true
 
+# 轻量文章索引（首页随机按钮使用，仅点击时拉取）
+[outputFormats.PostIndex]
+  mediaType = "application/json"
+  baseName = "post-index"
+  isPlainText = true
+  notAlternative = true
+
+# 替代订阅格式：Atom / JSON Feed（仅全站首页输出）
+[outputFormats.AtomFeed]
+  mediaType = "application/atom+xml"
+  baseName = "atom"
+  isPlainText = true
+  notAlternative = true
+
+[outputFormats.JsonFeed]
+  mediaType = "application/feed+json"
+  baseName = "feed"
+  isPlainText = true
+  notAlternative = true
+
+[mediaTypes]
+  [mediaTypes."application/atom+xml"]
+    suffixes = ["xml"]
+  [mediaTypes."application/feed+json"]
+    suffixes = ["json"]
+
 [outputs]
-  home = ["HTML", "RSS", "SearchIndex"]
+  home = ["HTML", "RSS", "SearchIndex", "PostIndex", "AtomFeed", "JsonFeed"]
 
 [markup]
   [markup.goldmark]
@@ -84,11 +110,15 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   [[menu.main]]
     name = "清娱"
     url = "/media/"
-    weight = 4
+    weight = 6
   [[menu.main]]
     name = "周刊"
     url = "/weekly/"
     weight = 5
+  [[menu.main]]
+    name = "标签"
+    url = "/tags/"
+    weight = 4
   [[menu.main]]
     name = "留言"
     url = "/guestbook/"
@@ -101,3 +131,22 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 [taxonomies]
   category = "categories"
   tag = "tags"
+
+[related]
+  threshold = 80
+  includeNewer = true
+  toLower = true
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+  [[related.indices]]
+    name = "categories"
+    weight = 80
+  [[related.indices]]
+    name = "date"
+    weight = 10
+
+# 隐私友好的轻量统计（默认关闭；填入地址即启用）
+# analytics.umami = "https://你的实例/script.js"
+# analytics.umamiId = "网站ID"
+# analytics.plausible = "你的域名"

@@ -5,10 +5,7 @@
 {{ if .Pages }}
   <section class="post-list">
     {{ range .Pages }}
-      <a class="post-row" href="{{ .Permalink }}">
-        <span class="post-row-title">{{ .Title }}</span>
-        <span class="post-row-date">{{ .Date.Format "2006-01-02" }}</span>
-      </a>
+      {{ partial "post-row.html" . }}
     {{ end }}
   </section>
 {{ else if not .Content }}
