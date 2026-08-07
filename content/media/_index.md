@@ -32,24 +32,24 @@ description: "读过的书、看过的影像、循环播放的歌。"
 
 {{< music-player >}}
 
-{{< music-track title="当年情" artist="张国荣" src="/media/music/张国荣-当年情-Live.mp3" >}}
+{{< music-track title="之乎者也" artist="罗大佑" src="/media/music/之乎者也-罗大佑.mp3" >}}
 
-{{< music-track title="倩女幽魂" artist="张国荣" src="/media/music/倩女幽魂.mp3" >}}
+{{< music-track title="你在何地" artist="张国荣" src="/media/music/你在何地-Live-张国荣.mp3" >}}
 
-{{< music-track title="Monica (Live)" artist="张国荣" src="/media/music/Monica-Live.mp3" >}}
+{{< music-track title="关不上的窗" artist="周传雄" src="/media/music/关不上的窗-周传雄.mp3" >}}
 
-{{< music-track title="玻璃之情" artist="张国荣" src="/media/music/玻璃之情.mp3" >}}
+{{< music-track title="寂寞有害" artist="张国荣" src="/media/music/寂寞有害-Live-张国荣.mp3" >}}
 
-{{< music-track title="月亮代表我的心" artist="张国荣" src="/media/music/月亮代表我的心.mp3" >}}
+{{< music-track title="我不知道" artist="梁博" src="/media/music/我不知道-梁博.mp3" >}}
 
-{{< music-track title="光辉岁月" artist="Beyond" src="/media/music/光辉岁月.mp3" >}}
+{{< music-track title="曾经是情侣" artist="梁博" src="/media/music/曾经是情侣-Live-梁博.mp3" >}}
 
-{{< music-track title="大鱼（唱片版）" artist="周深" src="/media/music/周深-大鱼-唱片版.mp3" >}}
+{{< music-track title="现象七十二变" artist="罗大佑" src="/media/music/现象七十二变-罗大佑.mp3" >}}
 
-{{< music-track title="化身孤岛的鲸" artist="周深" src="/media/music/周深-化身孤岛的鲸.mp3" >}}
+{{< music-track title="白鸽" artist="伍佰" src="/media/music/白鸽-Live-伍佰.mp3" >}}
 
-{{< music-track title="偏偏喜欢你" artist="陈百强" src="/media/music/偏偏喜欢你.mp3" >}}
+{{< music-track title="该死的快乐" artist="张敬轩 & 王菀之" src="/media/music/该死的快乐-Live-张敬轩-王菀之.mp3" >}}
 
-{{< music-track title="男儿当自强" artist="林子祥" src="/media/music/男儿当自强.mp3" >}}
+{{< music-track title="追" artist="张国荣" src="/media/music/追-Live-张国荣.mp3" >}}
 
 {{< /music-player >}}
