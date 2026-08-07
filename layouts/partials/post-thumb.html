@@ -1,0 +1,20 @@
+{{- $src := "" -}}
+{{- with .Params.cover -}}
+  {{- if hasPrefix . "/img/" -}}
+    {{- $name := path.Base . -}}
+    {{- if fileExists (printf "static/img/thumbs/%s" $name) -}}
+      {{- $src = printf "/img/thumbs/%s" $name -}}
+    {{- else -}}
+      {{- $src = . -}}
+    {{- end -}}
+  {{- else -}}
+    {{- $src = . -}}
+  {{- end -}}
+{{- end -}}
+{{- if $src -}}
+  <span class="post-thumb">
+    <img src="{{ $src | relURL }}" alt="" width="220" height="220" loading="lazy" decoding="async">
+  </span>
+{{- else -}}
+  <span class="post-thumb post-thumb-fallback" aria-hidden="true">{{ substr .Title 0 1 }}</span>
+{{- end -}}

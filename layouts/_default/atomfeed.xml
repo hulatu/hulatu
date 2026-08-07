@@ -1,0 +1,24 @@
+{{- $pages := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\"?>" | safeHTML }}
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{{ site.Title }}</title>
+  <subtitle>{{ site.Params.description }}</subtitle>
+  <link href="{{ site.BaseURL }}"/>
+  <link rel="self" href="{{ site.BaseURL }}atom.xml"/>
+  <id>{{ site.BaseURL }}</id>
+  <updated>{{ now.Format "2006-01-02T15:04:05Z07:00" }}</updated>
+  <author>
+    <name>{{ site.Params.author }}</name>
+  </author>
+  {{ range $pages }}
+  <entry>
+    <title>{{ .Title }}</title>
+    <link href="{{ .Permalink }}"/>
+    <id>{{ .Permalink }}</id>
+    <published>{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}</published>
+    <updated>{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}</updated>
+    <summary>{{ .Summary | plainify }}</summary>
+    <content type="html">{{ .Content | htmlEscape }}</content>
+  </entry>
+  {{ end }}
+</feed>

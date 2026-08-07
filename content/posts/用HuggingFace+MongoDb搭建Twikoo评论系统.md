@@ -1,11 +1,13 @@
 ---
 title: 用HuggingFace+MongoDb搭建Twikoo评论系统
+categories: ["博客", "工具"]
+tags: ["Hugo", "Twikoo", "评论系统", "部署"]
 date: 2026-01-26T10:19:41+08:00  
 slug: "Set-up-Twikoo-comment-system"  
 summary: “缺少评论系统的博客，总觉得缺少点灵魂。“  
 draft: false  
 comments: true  
----  
+---
 
 如果你想有一个个人网站，市面上有很多搭建教程，我就先不写了，基于 **Hexo、Hugo、WordPress、VuePress……**这些平台都可以，挑选一款喜欢的主题，比如我的主题是 hugo-PaperMod，然后就可以开始搭建了，把网站放在 GitHub 的仓库里。
 

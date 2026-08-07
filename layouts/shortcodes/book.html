@@ -1,8 +1,7 @@
-<div class="book-row">
-  {{ with .Get "cover" }}<img class="book-cover" src="{{ . | relURL }}" alt="{{ $.Get "title" }}" loading="lazy">{{ end }}
-  <div class="book-body">
-    <span class="book-title">{{ .Get "title" }}</span>
-    <span class="book-meta">{{ .Get "creator" }}{{ with .Get "year" }} · {{ . }}{{ end }}</span>
-  </div>
-  {{ with .Get "rating" }}<span class="book-rating">★ {{ . }}</span>{{ end }}
-</div>
+<figure class="media-card">
+  {{ with .Get "cover" }}<img class="media-cover" src="{{ . | relURL }}" alt="{{ $.Get "title" }}" loading="lazy" decoding="async">{{ end }}
+  <figcaption class="media-body">
+    <p class="media-title">{{ .Get "title" }}</p>
+    {{ with .Get "creator" }}<p class="media-creator">{{ . }}</p>{{ end }}
+  </figcaption>
+</figure>

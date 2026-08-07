@@ -1,11 +1,7 @@
-{{- $rating := .Get "rating" | default "" -}}
-<div class="media-card{{ with .Get "status" }} m-{{ . }}{{ end }}">
+<figure class="media-card">
   {{ with .Get "cover" }}<img class="media-cover" src="{{ . | relURL }}" alt="{{ $.Get "title" }}" loading="lazy">{{ end }}
-  <div class="media-body">
-    <p class="media-kind">{{ .Get "type" | default "书" }}
-      {{ with $rating }}<span class="media-rating">★ {{ . }}</span>{{ end }}</p>
-    <h3 class="media-title">{{ .Get "title" }}</h3>
-    <p class="media-creator">{{ .Get "creator" }}{{ with .Get "year" }} · {{ . }}{{ end }}</p>
-  </div>
-  {{ with .Get "status" }}<span class="media-status">{{ . }}</span>{{ end }}
-</div>
+  <figcaption class="media-body">
+    <p class="media-title">{{ .Get "title" }}</p>
+    {{ with .Get "creator" }}<p class="media-creator">{{ . }}</p>{{ end }}
+  </figcaption>
+</figure>

@@ -16,8 +16,12 @@ layout: "about"
 博客搭建基于 Hugo 框架、自己写的博客主题。简单、轻量、加载迅速。
 
 ## 订阅
-[RSS](https://hulatu.com/index.xml)·
-[Weekly]()
+本站支持三种订阅格式，任选其一即可：
+
+- **RSS 2.0**（通用格式，兼容所有阅读器）：[全站订阅](https://hulatu.com/index.xml)
+- **Atom**（标准订阅格式）：[全站订阅](https://hulatu.com/atom.xml)
+- **JSON Feed**（现代格式，Reeder / Fiery Feeds 等支持）：[全站订阅](https://hulatu.com/feed.json)
+- **周刊专线**（RSS 2.0，仅包含周刊内容）：[订阅周刊](https://hulatu.com/weekly/index.xml)
 ## 平台
 [少数派](https://sspai.com/u/hulatu/updates)·
 [小红书](https://www.xiaohongshu.com/user/profile/68a9d4e5000000001a00fcf9)·
