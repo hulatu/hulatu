@@ -2,7 +2,6 @@
 title: "隐私政策"
 hide_title: true
 date: 2026-08-01
-layout: "privacy"
 ---
 # 隐私政策
 

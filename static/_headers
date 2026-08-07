@@ -1,0 +1,20 @@
+/css/*
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/js/*
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/img/*
+  Cache-Control: public, max-age=2592000, must-revalidate
+
+/media/*
+  Cache-Control: public, max-age=2592000, must-revalidate
+
+/favicon.png
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/safari-pinned-tab.svg
+  Cache-Control: public, max-age=604800, must-revalidate

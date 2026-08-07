@@ -1,5 +1,5 @@
 {{ define "main" }}
-<h1 class="page-title">{{ .Title }}</h1>
+{{ if not .Params.hide_title }}<h1 class="page-title">{{ .Title }}</h1>{{ end }}
 {{ if .Content }}<div class="page-intro">{{ .Content }}</div>{{ end }}
 
 {{ if .Pages }}
