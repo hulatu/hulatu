@@ -1,0 +1,65 @@
+<div class="music-player">
+  <audio class="music-audio" controls preload="none"></audio>
+  <div class="music-list">
+    {{ .Inner }}
+  </div>
+</div>
+<script>
+(function () {
+  function init(player) {
+    if (player.dataset.init) return;
+    player.dataset.init = "1";
+    var audio = player.querySelector(".music-audio");
+    var tracks = Array.prototype.slice.call(player.querySelectorAll(".music-track"));
+    if (!audio || !tracks.length) return;
+    var current = null;
+
+    function setActive(track) {
+      tracks.forEach(function (t) {
+        var active = t === track;
+        t.classList.toggle("is-active", active);
+        t.setAttribute("aria-pressed", active ? "true" : "false");
+        var icon = t.querySelector(".music-track-icon");
+        if (icon) icon.textContent = active ? "❚❚" : "▶";
+      });
+    }
+
+    function playTrack(track) {
+      if (current === track && !audio.paused) {
+        audio.pause();
+        return;
+      }
+      current = track;
+      audio.src = track.dataset.src;
+      audio.play().then(function () { setActive(track); }).catch(function () {});
+    }
+
+    tracks.forEach(function (track) {
+      track.addEventListener("click", function () { playTrack(track); });
+    });
+
+    audio.addEventListener("ended", function () {
+      var next = tracks[tracks.indexOf(current) + 1];
+      if (next) { playTrack(next); } else { setActive(null); audio.removeAttribute("src"); }
+    });
+
+    audio.addEventListener("pause", function () {
+      if (current && audio.paused) {
+        var icon = current.querySelector(".music-track-icon");
+        if (icon) icon.textContent = "▶";
+      }
+    });
+  }
+
+  function scan() {
+    document.querySelectorAll(".music-player").forEach(init);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", scan);
+  } else {
+    scan();
+  }
+  document.addEventListener("pjax:complete", scan);
+})();
+</script>

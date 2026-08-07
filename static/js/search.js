@@ -21,7 +21,6 @@
       fuse = new Fuse(posts, {
         keys: [
           { name: 'title', weight: 0.5 },
-          { name: 'tags', weight: 0.2 },
           { name: 'categories', weight: 0.1 },
           { name: 'summary', weight: 0.15 },
           { name: 'content', weight: 0.05 },
@@ -109,6 +108,7 @@
 
   btn.addEventListener('click', open);
   closeBtn && closeBtn.addEventListener('click', close);
+  box.addEventListener('click', (e) => { if (e.target === box) close(); }); // 点击搜索框以外的遮罩区域时收起弹层
   results.addEventListener('click', (e) => { if (e.target.closest('a')) close(); }); // 修复：pjax 跳转时收起弹层
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();
