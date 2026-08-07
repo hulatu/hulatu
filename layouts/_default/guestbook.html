@@ -1,6 +1,6 @@
 {{ define "main" }}
-<main class="container guestbook">
-
+<div class="guestbook">
+  <h1 class="page-title">{{ .Title }}</h1>
   <div class="gb-body">
     {{ .Content }}
   </div>
@@ -22,6 +22,5 @@
             async>
     </script>
   </div>
-</main>
+</div>
 {{ end }}
-

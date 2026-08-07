@@ -1,0 +1,17 @@
+{{ define "main" }}
+<div class="notfound">
+  <p class="notfound-code" aria-hidden="true">404</p>
+  <h1 class="page-title">页面走丢了</h1>
+  <p class="notfound-text">这里什么也没有。试试搜索，或者看看最近写下的文字。</p>
+  <button type="button" class="notfound-btn search-trigger">打开搜索</button>
+</div>
+
+<section class="notfound-list">
+  <h2 class="related-title">最近更新</h2>
+  <div class="post-list">
+    {{ range first 5 (where site.RegularPages "Type" "posts") }}
+      {{ partial "post-row.html" . }}
+    {{ end }}
+  </div>
+</section>
+{{ end }}

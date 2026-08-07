@@ -1,6 +1,7 @@
 {{ define "main" }}
 
 {{ $posts := where site.RegularPages "Type" "posts" }}
+{{ $currentYear := now.Format "2006" }}
 {{ $years := slice }}
 {{ range $posts }}
   {{ $year := .Date.Format "2006" }}
@@ -9,20 +10,51 @@
   {{ end }}
 {{ end }}
 
+<h1 class="page-title">{{ .Title }}</h1>
+<p class="archive-total">共 <strong>{{ len $posts }}</strong> 篇随笔</p>
+
+<section class="archive-timeline">
 {{ range $years }}
   {{ $year := . }}
-  <h2 class="archive-year">{{ $year }}</h2>
-  <section class="post-list">
-    {{ range $posts }}
-      {{ if eq (.Date.Format "2006") $year }}
-        <a class="post-row" href="{{ .Permalink }}">
-          <span class="post-row-title">{{ .Title }}</span>
-          <span class="post-row-date">{{ .Date.Format "01-02" }}</span>
-        </a>
+  {{ $yearPosts := slice }}
+  {{ range $posts }}
+    {{ if eq (.Date.Format "2006") $year }}{{ $yearPosts = $yearPosts | append . }}{{ end }}
+  {{ end }}
+
+  {{ $months := slice }}
+  {{ range $yearPosts }}
+    {{ $m := .Date.Format "1" }}
+    {{ if not (in $months $m) }}{{ $months = $months | append $m }}{{ end }}
+  {{ end }}
+
+  <div class="archive-year-block">
+    <h2 class="archive-year">{{ $year }} <span class="archive-count">{{ len $yearPosts }} 篇</span></h2>
+
+    {{ range $months }}
+      {{ $month := . }}
+      {{ $monthPosts := slice }}
+      {{ range $yearPosts }}
+        {{ if eq (.Date.Format "1") $month }}{{ $monthPosts = $monthPosts | append . }}{{ end }}
       {{ end }}
+
+      <details class="archive-month" {{ if eq $year $currentYear }}open{{ end }}>
+        <summary>
+          <span class="archive-month-label">{{ $month }}月</span>
+          <span class="archive-count">{{ len $monthPosts }} 篇</span>
+        </summary>
+        <div class="archive-month-list">
+          {{ range $monthPosts }}
+            <a class="archive-item" href="{{ .Permalink }}">
+              <time class="archive-item-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01-02" }}</time>
+              <span class="archive-item-title">{{ .Title }}</span>
+            </a>
+          {{ end }}
+        </div>
+      </details>
     {{ end }}
-  </section>
+  </div>
 {{ else }}
   <p class="empty-tip">还没有文章。</p>
 {{ end }}
+</section>
 {{ end }}

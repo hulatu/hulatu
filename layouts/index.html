@@ -1,17 +1,165 @@
 {{ define "main" }}
-{{ $posts := where site.RegularPages "Type" "posts" }}
+{{ $allPosts := where site.RegularPages "Type" "posts" }}
+{{ $featured := where $allPosts "Params.featured" true }}
+{{ $regular := where $allPosts "Params.featured" "!=" true }}
+{{ $posts := $featured | append $regular }}
 {{ $paginator := .Paginate $posts }}
 
-<section class="post-list{{ if gt $paginator.TotalPages 1 }} has-pager{{ end }}" style="--page-rows: {{ site.Params.paginate.pageSize }};">
+<header class="site-hero">
+  <h1 class="hero-line">总得留下点什么吧<span class="hero-mark" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+      <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+      <circle cx="11" cy="11" r="2"></circle>
+    </svg>
+  </span></h1>
+  <p class="hero-sub">关于跑步、食物、音乐与生活的一些随手记录。已写下 {{ len $posts }} 篇。</p>
+</header>
+<script>
+(function () {
+  var line = document.querySelector(".hero-line");
+  if (!line || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var full = line.textContent.trim();
+  line.setAttribute("aria-label", full + "！");
+  line.textContent = "";
+  var caret = document.createElement("span");
+  caret.className = "type-caret";
+  caret.setAttribute("aria-hidden", "true");
+  line.appendChild(caret);
+  var i = 0;
+  var timer = setInterval(function () {
+    if (i < full.length) {
+      caret.insertAdjacentText("beforebegin", full[i]);
+      i++;
+    } else {
+      clearInterval(timer);
+      var mark = document.createElement("span");
+      mark.className = "hero-mark";
+      mark.setAttribute("aria-hidden", "true");
+      mark.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><circle cx="11" cy="11" r="2"></circle></svg>';
+      caret.insertAdjacentElement("beforebegin", mark);
+      caret.remove();
+    }
+  }, 95);
+})();
+</script>
+
+<div class="list-toolbar">
+  <button type="button" class="random-btn" id="random-btn" title="随机显示 5 篇文章" aria-label="随机显示 5 篇文章">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="16 3 21 3 21 8"></polyline>
+      <line x1="4" y1="20" x2="21" y2="3"></line>
+      <polyline points="21 16 21 21 16 21"></polyline>
+      <line x1="15" y1="15" x2="21" y2="21"></line>
+      <line x1="4" y1="4" x2="9" y2="9"></line>
+    </svg>
+  </button>
+</div>
+
+<section id="post-list" class="post-list{{ if gt $paginator.TotalPages 1 }} has-pager{{ end }}" style="--page-rows: {{ len $paginator.Pages }};">
   {{ range $paginator.Pages }}
-    <a class="post-row" href="{{ .Permalink }}">
-      <span class="post-row-title">{{ .Title }}</span>
-      <span class="post-row-date">{{ .Date.Format "2006-01-02" }}</span>
-    </a>
+    {{ partial "post-row.html" . }}
   {{ else }}
     <p class="empty-tip">还没有文章，去 content/posts/ 下新建一篇吧。</p>
   {{ end }}
 </section>
+
+<script>
+(function () {
+  var btn = document.getElementById("random-btn");
+  var list = document.getElementById("post-list");
+  if (!btn || !list) return;
+  var cache = null;
+  var current = [];
+
+  function loadIndex() {
+    if (cache) return Promise.resolve(cache);
+    return fetch("/post-index.json")
+      .then(function (r) { return r.json(); })
+      .then(function (d) { cache = d; return d; });
+  }
+
+  function shuffle(a) {
+    var c = a.slice();
+    for (var i = c.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = c[i]; c[i] = c[j]; c[j] = t;
+    }
+    return c;
+  }
+
+  function pick5(all) {
+    var out = shuffle(all).slice(0, 5);
+    if (current.length === 5) {
+      var same = current.every(function (a, i) { return a.url === out[i].url; });
+      if (same) out = shuffle(all).slice(0, 5);
+    }
+    return out;
+  }
+
+  function render(rows) {
+    list.innerHTML = "";
+    rows.forEach(function (p) {
+      var a = document.createElement("a");
+      a.className = "post-row is-random-row";
+      a.href = p.url;
+
+      var thumb = document.createElement("span");
+      thumb.className = "post-thumb";
+      if (p.thumb) {
+        var img = document.createElement("img");
+        img.src = p.thumb;
+        img.alt = "";
+        img.width = 220;
+        img.height = 220;
+        img.loading = "lazy";
+        img.decoding = "async";
+        thumb.appendChild(img);
+      } else {
+        thumb.classList.add("post-thumb-fallback");
+        thumb.setAttribute("aria-hidden", "true");
+        thumb.textContent = (p.title || "").charAt(0);
+      }
+      a.appendChild(thumb);
+
+      var main = document.createElement("span");
+      main.className = "post-row-main";
+
+      var title = document.createElement("span");
+      title.className = "post-row-title";
+      title.textContent = p.title;
+      main.appendChild(title);
+
+      var meta = document.createElement("span");
+      meta.className = "post-row-meta";
+      var time = document.createElement("time");
+      time.dateTime = p.date;
+      time.textContent = p.date;
+      meta.appendChild(time);
+      if (p.cat) {
+        var cat = document.createElement("span");
+        cat.className = "post-row-cat";
+        cat.textContent = p.cat;
+        meta.appendChild(cat);
+      }
+      main.appendChild(meta);
+
+      a.appendChild(main);
+      list.appendChild(a);
+    });
+    list.classList.add("is-random");
+  }
+
+  btn.addEventListener("click", function () {
+    loadIndex()
+      .then(function (all) {
+        current = pick5(all);
+        render(current);
+      })
+      .catch(function () {});
+  });
+})();
+</script>
 
 {{ if gt $paginator.TotalPages 1 }}
 <nav class="pager">

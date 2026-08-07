@@ -1,0 +1,8 @@
+{{- with site.Params.analytics -}}
+  {{- with .umami -}}
+    <script async src="{{ . }}" data-website-id="{{ $.Site.Params.analytics.umamiId }}"></script>
+  {{- end -}}
+  {{- with .plausible -}}
+    <script defer data-domain="{{ . }}" src="https://plausible.io/js/script.js"></script>
+  {{- end -}}
+{{- end -}}

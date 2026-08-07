@@ -1,11 +1,13 @@
 ---
 title: "Typora+upic图床验证失败的问题" 
+categories: ["工具", "博客"]
+tags: ["写作工具", "Typora"]
 date: 2026-01-18T22:08:48+08:00  
 slug: "Image-Hosting-Service-Blog"  
 draft: false  
 summary: "一个格式，解决图片上传图床失败问题。"
 comments: true
----  
+---
  
 我经常用的写作工具是 Typora，我喜欢他的白背板、即时渲染。搭配上 uPic 图床工具，插进来的图片可以直接自动上传到 GitHub 图床，很丝滑。
 

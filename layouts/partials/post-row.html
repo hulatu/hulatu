@@ -1,0 +1,15 @@
+<a class="post-row" href="{{ .Permalink }}">
+  {{ partial "post-thumb.html" . }}
+  <span class="post-row-main">
+    <span class="post-row-title-line">
+      <span class="post-row-title">{{ .Title }}</span>
+      {{ if .Params.featured }}<span class="post-row-featured">精选</span>{{ end }}
+    </span>
+    <span class="post-row-meta">
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+      {{ with .GetTerms "categories" }}
+        {{ range first 2 . }}<span class="post-row-cat">{{ .Title }}</span>{{ end }}
+      {{ end }}
+    </span>
+  </span>
+</a>

@@ -1,12 +1,16 @@
 {{ define "main" }}
 <div class="about-page">
-  {{ if site.Params.avatar }}
-    <img class="about-avatar" src="{{ site.Params.avatar | relURL }}" alt="{{ site.Params.author }}">
-  {{ else }}
-    <div class="about-avatar about-avatar-fallback">{{ substr site.Params.author 0 1 }}</div>
-  {{ end }}
+  <header class="about-head">
+    {{ if site.Params.avatar }}
+      <img class="about-avatar" src="{{ site.Params.avatar | relURL }}" alt="{{ site.Params.author }}">
+    {{ else }}
+      <div class="about-avatar about-avatar-fallback">{{ substr site.Params.author 0 1 }}</div>
+    {{ end }}
+    <h1 class="about-name">{{ site.Params.author }}</h1>
+    <p class="about-role">研究生 · 跑步、食物与文字爱好者</p>
+  </header>
 
-  <div class="post-content">
+  <div class="post-content about-body">
     {{ .Content }}
   </div>
 </div>
