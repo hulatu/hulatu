@@ -56,3 +56,6 @@
 /daily/ /archive/ 301
 /feed.xml /index.xml 301
 /index.json / 301
+
+# 5) 外部收录站曾经使用的错误路径
+/docs/how-to-start-doing-self-media/ /posts/2026/07/28/how-to-start-doing-self-media/ 301
