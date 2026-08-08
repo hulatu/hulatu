@@ -7,11 +7,13 @@
       <div class="about-avatar about-avatar-fallback">{{ substr site.Params.author 0 1 }}</div>
     {{ end }}
     <h1 class="about-name">{{ site.Params.author }}</h1>
-    <p class="about-role">研究生 · 跑步、食物与文字爱好者</p>
+    <p class="about-role">跑步、美食与文字非专业爱好者</p>
   </header>
 
   <div class="post-content about-body">
     {{ .Content }}
   </div>
+
+  {{ partial "donate.html" (dict "hint" "如果本站对你有帮助，可以请我喝杯咖啡") }}
 </div>
 {{ end }}
