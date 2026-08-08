@@ -1,11 +1,13 @@
 {{- $d := site.Params.donate -}}
 {{- if not $d.enabled }}{{ return }}{{ end -}}
+{{- $hint := $d.hint -}}
+{{- if reflect.IsMap . }}{{ with .hint }}{{ $hint = . }}{{ end }}{{ end -}}
 {{- $qr := slice -}}
 {{- with $d.wechat }}{{ $qr = $qr | append (dict "src" . "label" "微信") }}{{ end -}}
 {{- with $d.alipay }}{{ $qr = $qr | append (dict "src" . "label" "支付宝") }}{{ end -}}
 {{- if and (not $qr) (not $d.url) }}{{ return }}{{ end -}}
 <section class="donate" aria-label="打赏支持">
-  {{ with $d.hint }}<p class="donate-hint">{{ . }}</p>{{ end }}
+  {{ with $hint }}<p class="donate-hint">{{ . }}</p>{{ end }}
   {{ if $qr }}
   <details class="donate-box">
     <summary class="donate-btn">
