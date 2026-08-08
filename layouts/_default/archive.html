@@ -27,32 +27,34 @@
     {{ if not (in $months $m) }}{{ $months = $months | append $m }}{{ end }}
   {{ end }}
 
-  <div class="archive-year-block">
-    <h2 class="archive-year">{{ $year }} <span class="archive-count">{{ len $yearPosts }} 篇</span></h2>
+  <details class="archive-year-block" open>
+    <summary class="archive-year">{{ $year }} <span class="archive-count">{{ len $yearPosts }} 篇</span></summary>
 
-    {{ range $months }}
-      {{ $month := . }}
-      {{ $monthPosts := slice }}
-      {{ range $yearPosts }}
-        {{ if eq (.Date.Format "1") $month }}{{ $monthPosts = $monthPosts | append . }}{{ end }}
+    <div class="archive-year-list">
+      {{ range $months }}
+        {{ $month := . }}
+        {{ $monthPosts := slice }}
+        {{ range $yearPosts }}
+          {{ if eq (.Date.Format "1") $month }}{{ $monthPosts = $monthPosts | append . }}{{ end }}
+        {{ end }}
+
+        <details class="archive-month" {{ if eq $year $currentYear }}open{{ end }}>
+          <summary>
+            <span class="archive-month-label">{{ $month }}月</span>
+            <span class="archive-count">{{ len $monthPosts }} 篇</span>
+          </summary>
+          <div class="archive-month-list">
+            {{ range $monthPosts }}
+              <a class="archive-item" href="{{ .Permalink }}">
+                <time class="archive-item-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01-02" }}</time>
+                <span class="archive-item-title">{{ .Title }}</span>
+              </a>
+            {{ end }}
+          </div>
+        </details>
       {{ end }}
-
-      <details class="archive-month" {{ if eq $year $currentYear }}open{{ end }}>
-        <summary>
-          <span class="archive-month-label">{{ $month }}月</span>
-          <span class="archive-count">{{ len $monthPosts }} 篇</span>
-        </summary>
-        <div class="archive-month-list">
-          {{ range $monthPosts }}
-            <a class="archive-item" href="{{ .Permalink }}">
-              <time class="archive-item-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01-02" }}</time>
-              <span class="archive-item-title">{{ .Title }}</span>
-            </a>
-          {{ end }}
-        </div>
-      </details>
-    {{ end }}
-  </div>
+    </div>
+  </details>
 {{ else }}
   <p class="empty-tip">还没有文章。</p>
 {{ end }}
