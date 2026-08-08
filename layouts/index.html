@@ -3,7 +3,6 @@
 {{ $featured := where $allPosts "Params.featured" true }}
 {{ $regular := where $allPosts "Params.featured" "!=" true }}
 {{ $posts := $featured | append $regular }}
-{{ $paginator := .Paginate $posts }}
 
 <header class="site-hero">
   <h1 class="hero-line">总得留下点什么吧<span class="hero-mark" aria-hidden="true">
@@ -56,20 +55,35 @@
   </button>
 </div>
 
-<section id="post-list" class="post-list{{ if gt $paginator.TotalPages 1 }} has-pager{{ end }}">
-  {{ range $paginator.Pages }}
-    <a class="post-row post-row-home" href="{{ .Permalink }}">
-      {{ partial "post-thumb.html" . }}
-      <span class="post-row-main">
-        <span class="post-row-title-line">
-          <span class="post-row-title">{{ .Title }}</span>
-          {{ if .Params.featured }}<span class="post-row-featured">精选</span>{{ end }}
+<section id="post-list" class="post-list">
+  {{ if $featured }}
+    {{ range first 5 $featured }}
+      <a class="post-row post-row-home" href="{{ .Permalink }}">
+        {{ partial "post-thumb.html" . }}
+        <span class="post-row-main">
+          <span class="post-row-title-line">
+            <span class="post-row-title">{{ .Title }}</span>
+            <span class="post-row-featured">精选</span>
+          </span>
         </span>
-      </span>
-      <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-    </a>
+        <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+      </a>
+    {{ end }}
   {{ else }}
-    <p class="empty-tip">还没有文章，去 content/posts/ 下新建一篇吧。</p>
+    {{ range first 5 $posts }}
+      <a class="post-row post-row-home" href="{{ .Permalink }}">
+        {{ partial "post-thumb.html" . }}
+        <span class="post-row-main">
+          <span class="post-row-title-line">
+            <span class="post-row-title">{{ .Title }}</span>
+            {{ if .Params.featured }}<span class="post-row-featured">精选</span>{{ end }}
+          </span>
+        </span>
+        <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+      </a>
+    {{ else }}
+      <p class="empty-tip">还没有文章，去 content/posts/ 下新建一篇吧。</p>
+    {{ end }}
   {{ end }}
 </section>
 
@@ -174,11 +188,4 @@
 })();
 </script>
 
-{{ if gt $paginator.TotalPages 1 }}
-<nav class="pager">
-  <span class="pager-prev">{{ if $paginator.HasPrev }}<a href="{{ $paginator.Prev.URL }}">← 上一页</a>{{ end }}</span>
-  <span class="pager-page">{{ $paginator.PageNumber }} / {{ $paginator.TotalPages }}</span>
-  <span class="pager-next">{{ if $paginator.HasNext }}<a href="{{ $paginator.Next.URL }}">下一页 →</a>{{ end }}</span>
-</nav>
-{{ end }}
 {{ end }}
