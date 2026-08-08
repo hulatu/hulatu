@@ -25,7 +25,18 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   github = "https://github.com/hulatu"
   email = "flyhulatu@gmail.com"
   avatar = "/images/avatar.webp"
-  
+
+  # 打赏：把微信/支付宝赞赏码图片放进 static/img/ 并填好路径；
+  # 或用第三方平台（如爱发电）填 url。全部留空时页面不显示。
+  [params.donate]
+    enabled = true
+    hint = "如果这篇文章对你有帮助，可以请我喝杯咖啡"
+    button = "打赏支持"
+    wechat = "/img/wechat.webp"
+    alipay = "/img/zhifubao.webp"
+    url = ""
+    urlLabel = "去爱发电支持我"
+   
 [params.assets]
   favicon = "/favicon.png"
   favicon16x16 = "/favicon.png"

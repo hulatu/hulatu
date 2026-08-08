@@ -13,7 +13,7 @@
       <circle cx="11" cy="11" r="2"></circle>
     </svg>
   </span></h1>
-  <p class="hero-sub">关于跑步、食物、音乐与生活的一些随手记录。已写下 {{ len $posts }} 篇。</p>
+  <p class="hero-sub">关于运动、健康、工具与生活的一些记录，已写 {{ len $posts }} 篇。</p>
 </header>
 <script>
 (function () {
@@ -56,9 +56,18 @@
   </button>
 </div>
 
-<section id="post-list" class="post-list{{ if gt $paginator.TotalPages 1 }} has-pager{{ end }}" style="--page-rows: {{ len $paginator.Pages }};">
+<section id="post-list" class="post-list{{ if gt $paginator.TotalPages 1 }} has-pager{{ end }}">
   {{ range $paginator.Pages }}
-    {{ partial "post-row.html" . }}
+    <a class="post-row post-row-home" href="{{ .Permalink }}">
+      {{ partial "post-thumb.html" . }}
+      <span class="post-row-main">
+        <span class="post-row-title-line">
+          <span class="post-row-title">{{ .Title }}</span>
+          {{ if .Params.featured }}<span class="post-row-featured">精选</span>{{ end }}
+        </span>
+      </span>
+      <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+    </a>
   {{ else }}
     <p class="empty-tip">还没有文章，去 content/posts/ 下新建一篇吧。</p>
   {{ end }}
@@ -97,55 +106,59 @@
     return out;
   }
 
+  function makeRow(p) {
+    var a = document.createElement("a");
+    a.className = "post-row post-row-home is-random-row";
+    a.href = p.url;
+
+    var thumb = document.createElement("span");
+    thumb.className = "post-thumb";
+    if (p.thumb) {
+      var img = document.createElement("img");
+      img.src = p.thumb;
+      img.alt = "";
+      img.width = 220;
+      img.height = 220;
+      img.loading = "lazy";
+      img.decoding = "async";
+      thumb.appendChild(img);
+    } else {
+      thumb.classList.add("post-thumb-fallback");
+      thumb.setAttribute("aria-hidden", "true");
+      thumb.textContent = (p.title || "").charAt(0);
+    }
+    a.appendChild(thumb);
+
+    var main = document.createElement("span");
+    main.className = "post-row-main";
+    var line = document.createElement("span");
+    line.className = "post-row-title-line";
+    var title = document.createElement("span");
+    title.className = "post-row-title";
+    title.textContent = p.title;
+    line.appendChild(title);
+    if (p.featured) {
+      var badge = document.createElement("span");
+      badge.className = "post-row-featured";
+      badge.textContent = "精选";
+      line.appendChild(badge);
+    }
+    main.appendChild(line);
+    a.appendChild(main);
+
+    var date = document.createElement("time");
+    date.className = "post-row-date";
+    date.dateTime = p.date;
+    date.textContent = p.date;
+    a.appendChild(date);
+    return a;
+  }
+
   function render(rows) {
     list.innerHTML = "";
+    if (!rows.length) return;
     rows.forEach(function (p) {
-      var a = document.createElement("a");
-      a.className = "post-row is-random-row";
-      a.href = p.url;
-
-      var thumb = document.createElement("span");
-      thumb.className = "post-thumb";
-      if (p.thumb) {
-        var img = document.createElement("img");
-        img.src = p.thumb;
-        img.alt = "";
-        img.width = 220;
-        img.height = 220;
-        img.loading = "lazy";
-        img.decoding = "async";
-        thumb.appendChild(img);
-      } else {
-        thumb.classList.add("post-thumb-fallback");
-        thumb.setAttribute("aria-hidden", "true");
-        thumb.textContent = (p.title || "").charAt(0);
-      }
-      a.appendChild(thumb);
-
-      var main = document.createElement("span");
-      main.className = "post-row-main";
-
-      var title = document.createElement("span");
-      title.className = "post-row-title";
-      title.textContent = p.title;
-      main.appendChild(title);
-
-      var meta = document.createElement("span");
-      meta.className = "post-row-meta";
-      var time = document.createElement("time");
-      time.dateTime = p.date;
-      time.textContent = p.date;
-      meta.appendChild(time);
-      if (p.cat) {
-        var cat = document.createElement("span");
-        cat.className = "post-row-cat";
-        cat.textContent = p.cat;
-        meta.appendChild(cat);
-      }
-      main.appendChild(meta);
-
-      a.appendChild(main);
-      list.appendChild(a);
+      list.appendChild(makeRow(p));
     });
     list.classList.add("is-random");
   }

@@ -25,26 +25,26 @@
       {{ end }}
     {{ end }}	
   <header class="post-header">
-    {{ with .GetTerms "categories" }}
-      <div class="post-tags">
-        {{ range . }}<a class="post-cat-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end }}
-      </div>
-    {{ end }}
-    {{ with .GetTerms "tags" }}
-      <div class="post-tags">
-        {{ range . }}<a class="post-cat-chip" href="{{ .Permalink }}">#{{ .Title }}</a>{{ end }}
-      </div>
-    {{ end }}
     <h1 class="post-title">{{ .Title }}</h1>
     <div class="post-meta">
       <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-      <span class="post-meta-sep">·</span>
-      <span>约 {{ .ReadingTime }} 分钟</span>
       <span class="post-meta-sep">·</span>
       <span>约 {{ .Plain | strings.RuneCount }} 字</span>
       {{ if ne .Date .Lastmod }}
         <span class="post-meta-sep">·</span>
         <span>更新于 {{ .Lastmod.Format "2006-01-02" }}</span>
+      {{ end }}
+    </div>
+    <div class="post-chips-row">
+      {{ with .GetTerms "categories" }}
+        <span class="post-chips post-chips-cats">
+          {{- range . }}<a class="post-cat-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end -}}
+        </span>
+      {{ end }}
+      {{ with .GetTerms "tags" }}
+        <span class="post-chips post-chips-tags">
+          {{- range . }}<a class="post-cat-chip" href="{{ .Permalink }}">#{{ .Title }}</a>{{ end -}}
+        </span>
       {{ end }}
     </div>
   </header>
@@ -61,6 +61,10 @@
   </aside>
   {{ end }}
 </article>
+
+{{ if in (slice "posts" "weekly") .Type }}
+  {{ partial "donate.html" . }}
+{{ end }}
 
 {{- if .Params.series -}}
   {{- $allPosts := where site.RegularPages "Type" "posts" -}}
@@ -118,8 +122,9 @@
   <div class="related-list">
     {{ range $related }}
       <a class="related-item" href="{{ .Permalink }}">
+        {{ partial "post-thumb.html" . }}
         <span class="related-item-title">{{ .Title }}</span>
-        <span class="related-item-date">{{ .Date.Format "2006-01-02" }}</span>
+        <time class="related-item-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
       </a>
     {{ end }}
   </div>
