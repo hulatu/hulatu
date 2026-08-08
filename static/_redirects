@@ -1,0 +1,58 @@
+# 旧版博客（PaperMod 时期）链接 301 永久跳转
+# 1) 旧 daily 栏目 → 新 posts 栏目（25 条）
+/daily/daily-update-blog/ /posts/2025/12/10/daily-update-blog/ 301
+/daily/image-hosting-service-blog/ /posts/2026/01/18/image-hosting-service-blog/ 301
+/daily/personal-profile/ /posts/2025/12/05/personal-profile/ 301
+/daily/personality-zhe-teng/ /posts/2025/12/09/personality-zhe-teng/ 301
+/daily/shooting-photography/ /posts/2026/01/07/shooting-photography/ 301
+/daily/spicy-soup-breakfast/ /posts/2026/01/20/spicy-soup-breakfast/ 301
+/daily/exam-test-letter/ /posts/2025/12/19/exam-test-letter/ 301
+/daily/sport-relative/ /posts/2025/12/07/sport-relative/ 301
+/daily/sport-tips/ /posts/2026/01/01/sport-tips/ 301
+/daily/vlog-share/ /posts/2026/01/10/vlog-share/ 301
+/daily/competitive-professional-athletes/ /posts/2026/01/29/competitive-professional-athletes/ 301
+/daily/dining-atmosphere/ /posts/2026/02/11/dining-atmosphere/ 301
+/daily/do-not-handle-others-things-lightly./ /posts/2026/02/13/do-not-handle-others-things-lightly./ 301
+/daily/do-not-handle-others%E2%80%99-things-lightly./ /posts/2026/02/13/do-not-handle-others-things-lightly./ 301
+/daily/go-home/ /posts/2026/02/10/go-home/ 301
+/daily/good-news-and-good-feelings/ /posts/2026/02/27/good-news-and-good-feelings/ 301
+/daily/holiday-balance-is-zero-i-have-arrived-at-school./ /posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school./ 301
+/daily/holiday-balance-is-zero%2Ci-have-arrived-at-school./ /posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school./ 301
+/daily/how-to-simply-boost-happiness-in-winter/ /posts/2026/01/31/how-to-simply-boost-happiness-in-winter/ 301
+/daily/kaifeng-one-day-tour/ /posts/2026/02/06/kaifeng-one-day-tour/ 301
+/daily/preparing-to-go-home/ /posts/2026/02/09/preparing-to-go-home/ 301
+/daily/racing-life/ /posts/2026/02/25/racing-life/ 301
+/daily/readers-and-spectators/ /posts/2026/02/12/readers-and-spectators/ 301
+/daily/sad-music/ /posts/2026/02/04/sad-music/ 301
+/daily/selling-second-hand-products-at-a-loss/ /posts/2026/02/03/selling-second-hand-products-at-a-loss/ 301
+/daily/still-prefer-running/ /posts/2026/02/07/still-prefer-running/ 301
+/daily/the-annual-meeting-has-ended./ /posts/2026/02/05/the-annual-meeting-has-ended./ 301
+
+# 2) 旧 posts 里的周刊 → 新 weekly 栏目（15 条）
+/posts/2025/12/21/newsletter-weekly/ /weekly/newsletter-weekly-1/ 301
+/posts/2025/12/28/newsletter-weekly/ /weekly/newsletter-weekly-2/ 301
+/posts/2026/01/04/newsletter-weekly/ /weekly/newsletter-weekly-3/ 301
+/posts/2026/01/11/newsletter-weekly/ /weekly/newsletter-weekly-4/ 301
+/posts/2026/01/18/newsletter-weekly/ /weekly/newsletter-weekly-5/ 301
+/posts/2026/01/25/newsletter-weekly/ /weekly/newsletter-weekly-6/ 301
+/posts/2026/02/01/newsletter-weekly/ /weekly/newsletter-weekly-7/ 301
+/posts/2026/02/08/newsletter-weekly/ /weekly/newsletter-weekly-8/ 301
+/posts/2026/03/01/newsletter-weekly/ /weekly/newsletter-weekly-9/ 301
+/posts/2026/03/08/newsletter-weekly/ /weekly/newsletter-weekly-10/ 301
+/posts/2026/03/14/newsletter-weekly/ /weekly/newsletter-weekly-11/ 301
+/posts/2026/03/22/newsletter-weekly/ /weekly/newsletter-weekly-12/ 301
+/posts/2026/03/29/newsletter-weekly/ /weekly/newsletter-weekly-13/ 301
+/posts/2026/04/05/newsletter-weekly/ /weekly/newsletter-weekly-14/ 301
+/posts/2026/04/13/newsletter-weekly/ /weekly/newsletter-weekly-15/ 301
+
+# 3) 修改过 slug 的综述文章（4 条）
+/posts/2026/01/21/writing-review-articles/ /posts/2026/01/21/review-feeding-1/ 301
+/posts/2026/01/22/writing-review-articles/ /posts/2026/01/22/review-feeding-2/ 301
+/posts/2025/12/14/paper-management/ /posts/2025/12/14/review-topic/ 301
+/posts/2025/12/15/paper-management/ /posts/2025/12/15/review-references/ 301
+
+# 4) 旧栏目/订阅入口
+/archives/ /archive/ 301
+/daily/ /archive/ 301
+/feed.xml /index.xml 301
+/index.json / 301
