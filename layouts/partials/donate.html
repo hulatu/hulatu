@@ -1,0 +1,32 @@
+{{- $d := site.Params.donate -}}
+{{- if not $d.enabled }}{{ return }}{{ end -}}
+{{- $qr := slice -}}
+{{- with $d.wechat }}{{ $qr = $qr | append (dict "src" . "label" "微信") }}{{ end -}}
+{{- with $d.alipay }}{{ $qr = $qr | append (dict "src" . "label" "支付宝") }}{{ end -}}
+{{- if and (not $qr) (not $d.url) }}{{ return }}{{ end -}}
+<section class="donate" aria-label="打赏支持">
+  {{ with $d.hint }}<p class="donate-hint">{{ . }}</p>{{ end }}
+  {{ if $qr }}
+  <details class="donate-box">
+    <summary class="donate-btn">
+      {{ with $d.button }}{{ . }}{{ else }}打赏支持{{ end }}
+    </summary>
+    <div class="donate-panel">
+      <p class="donate-tip">长按识别二维码，感谢支持</p>
+      <div class="donate-qrs">
+        {{ range $qr }}
+        <figure class="donate-qr">
+          <img src="{{ .src | relURL }}" alt="{{ .label }}赞赏码" width="200" height="200" loading="eager" decoding="async">
+          <figcaption>{{ .label }}</figcaption>
+        </figure>
+        {{ end }}
+      </div>
+    </div>
+  </details>
+  {{ end }}
+  {{ with $d.url }}
+  <a class="donate-btn donate-link-btn" href="{{ . }}" target="_blank" rel="noopener">
+    {{ with $d.urlLabel }}{{ . }}{{ else }}去支持我{{ end }}
+  </a>
+  {{ end }}
+</section>

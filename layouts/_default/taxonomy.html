@@ -1,4 +1,17 @@
 {{ define "main" }}
+{{ if eq .Kind "term" }}
+<h1 class="page-title">{{ .Title }}</h1>
+<section class="minimal-list">
+  {{ range .Pages.ByDate.Reverse }}
+    <a class="minimal-row" href="{{ .Permalink }}">
+      <span class="minimal-title">{{ .Title }}</span>
+      <time class="minimal-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+    </a>
+  {{ else }}
+    <p class="empty-tip">这里还没有文章。</p>
+  {{ end }}
+</section>
+{{ else }}
 <h1 class="page-title">{{ .Title }}</h1>
 <section class="category-grid">
   {{ range .Pages.ByTitle }}
@@ -10,4 +23,5 @@
     <p class="empty-tip">还没有分类。</p>
   {{ end }}
 </section>
+{{ end }}
 {{ end }}

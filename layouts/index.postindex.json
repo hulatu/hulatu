@@ -18,7 +18,8 @@
           {{- . | jsonify -}}
         {{- end -}}
       {{- else }}""{{- end }},
-      "cat": {{ with $page.GetTerms "categories" }}{{ with index . 0 }}{{ .Title | jsonify }}{{ else }}""{{ end }}{{ else }}""{{ end }}
+      "cat": {{ with $page.GetTerms "categories" }}{{ with index . 0 }}{{ .Title | jsonify }}{{ else }}""{{ end }}{{ else }}""{{ end }},
+      "featured": {{ with $page.Params.featured }}true{{ else }}false{{ end }}
     }
   {{- end -}}
 ]
