@@ -53,6 +53,25 @@
     {{ .Content }}
   </div>
 
+<!-- Google AdSense 文章结束广告 -->
+{{ if in (slice "posts" "weekly") .Type }}
+
+<div class="adsense-container">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="{{ site.Params.googleAdsense }}"
+       data-ad-slot="6825813088"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+
+</div>
+
+{{ end }}
+
   {{ if $hasToc }}
   <aside class="post-toc">
     <nav class="post-toc-nav">

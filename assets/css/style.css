@@ -2417,3 +2417,10 @@ main.container.is-loading { opacity: 0.45; }
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- 谷歌广告 ---------- */
+.adsense-container {
+    margin: 3rem auto;
+    max-width: 720px;
+    min-height: 100px;
+}

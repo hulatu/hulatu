@@ -19,6 +19,7 @@
   <link rel="alternate" type="application/feed+json" href="{{ "feed.json" | relURL }}" title="{{ site.Title }} · JSON Feed">
   {{ partial "head-meta.html" . }}
   {{ partial "analytics.html" . }}
+  {{ partial "extend-head.html" . }}
   <!-- 提前读取主题偏好，避免深色模式下出现"白屏闪烁" -->
   <script>
     (function () {
