@@ -2,6 +2,7 @@
 title: PaperMod 主题仿 BearBlog 的极简化
 categories: ["博客"]
 tags: ["博客", "Hugo"]
+cover: "https://docs.bearblog.dev/static/og-image.png"
 date: 2026-01-24T11:23:53+08:00  
 slug: Blog-Beautification-PaperMod——BearBlog  
 summary: 你在意的博客布局，可能只有你自己关注。  
@@ -82,5 +83,5 @@ Daily 页面的存在，也给了自己日更下去的助力——你可以只�
 [1]:	https://blog.solazy.me/solazy-on-fire/
 [2]:	https://github.com/sparanoid/chinese-copywriting-guidelines
 
-[image-1]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/7MhKqJ.png
-[image-2]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/j1L7ps.png
+[image-1]:	https://img.hulatu.com/post/7MhKqJ.webp
+[image-2]:	https://img.hulatu.com/post/j1L7ps.webp
