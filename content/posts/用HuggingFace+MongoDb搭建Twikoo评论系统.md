@@ -3,6 +3,7 @@ title: 用HuggingFace+MongoDb搭建Twikoo评论系统
 categories: ["博客", "工具"]
 tags: ["Hugo", "Twikoo", "评论系统", "部署"]
 date: 2026-01-26T10:19:41+08:00  
+cover: "https://img.hulatu.com/post/comment-1.webp"
 slug: "Set-up-Twikoo-comment-system"  
 summary: “缺少评论系统的博客，总觉得缺少点灵魂。“  
 draft: false  
@@ -93,18 +94,18 @@ twikoo.init({
 [1]:	https://cloud.mongodb.com/
 [2]:	https://huggingface.co
 
-[image-1]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/SIRfV5.png
-[image-2]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/YLgggx.png
-[image-3]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/Ci9ypb.png
-[image-4]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/u37BWm.png
-[image-5]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/r9T5OZ.png
-[image-6]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/ScVYoW.png
-[image-7]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/EovxB1.png
-[image-8]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/716if0.png
-[image-9]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/07LZHu.png
-[image-10]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/kDV9Tg.png
-[image-11]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/G0PSLh.png
-[image-12]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/2g6ttJ.png
-[image-13]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/ygNW6U.png
-[image-14]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/ileofb.png
-[image-15]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/968KMk.png
+[image-1]:	https://img.hulatu.com/post/SIRfV5.webp
+[image-2]:	https://img.hulatu.com/post/YLgggx.webp
+[image-3]:	https://img.hulatu.com/post/Ci9ypb.webp
+[image-4]:	https://img.hulatu.com/post/u37BWm.webp
+[image-5]:	https://img.hulatu.com/post/r9T5OZ.webp
+[image-6]:	https://img.hulatu.com/post/ScVYoW.webp
+[image-7]:	https://img.hulatu.com/post/EovxB1.webp
+[image-8]:	https://img.hulatu.com/post/716if0.webp
+[image-9]:	https://img.hulatu.com/post/07LZHu.webp
+[image-10]:	https://img.hulatu.com/post/kDV9Tg.webp
+[image-11]:	https://img.hulatu.com/post/G0PSLh.webp
+[image-12]:	https://img.hulatu.com/post/2g6ttJ.webp
+[image-13]:	https://img.hulatu.com/post/ygNW6U.webp
+[image-14]:	https://img.hulatu.com/post/ileofb.webp
+[image-15]:	https://img.hulatu.com/post/968KMk.webp
