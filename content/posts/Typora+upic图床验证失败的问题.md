@@ -2,13 +2,14 @@
 title: "Typora+upic图床验证失败的问题" 
 categories: ["工具", "博客"]
 tags: ["写作工具", "Typora"]
+cover: "https://img.hulatu.com/post/img-bed.webp"
 date: 2026-01-18T22:08:48+08:00  
 slug: "Image-Hosting-Service-Blog"  
 draft: false  
 summary: "一个格式，解决图片上传图床失败问题。"
 comments: true
 ---
- 
+
 我经常用的写作工具是 Typora，我喜欢他的白背板、即时渲染。搭配上 uPic 图床工具，插进来的图片可以直接自动上传到 GitHub 图床，很丝滑。
 
 但是，我重装电脑后，Typora 和 uPic 的**验证**出问题了——总是验证失败。不是图床的问题，因为我的 uPic 单独上传图片，是成功的，那是什么问题？
@@ -41,7 +42,7 @@ uPic/{random}{.suffix}
 
 希望对大家有帮助，谢谢！
 
-[image-1]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/image-20260118204110354_XYkciA_1Kcicx.png
-[image-2]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/image-20260120091231876_Q02gqg.png
-[image-3]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/image-20260118204738912_YDQsok_jhnxpU.png
-[image-4]:	https://cdn.jsdelivr.net/gh/hulatu/img@main/uPic/image-20260118204758814_xwLekM_8tfHEa.png
+[image-1]:	https://img.hulatu.com/post/image-20260118204110354_XYkciA_1Kcicx.webp
+[image-2]:	https://img.hulatu.com/post/image-20260120091231876_Q02gqg.webp
+[image-3]:	https://img.hulatu.com/post/image-20260118204738912_YDQsok_jhnxpU.webp
+[image-4]:	https://img.hulatu.com/post/image-20260118204758814_xwLekM_8tfHEa.webp
