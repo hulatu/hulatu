@@ -1,13 +1,13 @@
 ---
 # ===== 文章设置（写完正文后，在这里调整）=====
-title: "{{ replace .Name "-" " " | title }}"   # 标题
+title: "{{ replace .Name "-" " " | title }}"   
 date: {{ .Date }}                              
-lastmod: {{ .Date }}                           # 最后修改时间
+lastmod: {{ .Date }}                      
 slug: ""                                         
 summary: ""                                      
-cover: ""                           # /img/xxx.webp；留空显示首字
-categories: []                           # 可多个：["生活", "思考"]
-tags: []                                 # 可多个：["跑步", "复盘"]
+cover: ""                           
+categories: []                           
+tags: []                                 
 featured: false                                  
 comments: true                                   
 draft: true                                      
