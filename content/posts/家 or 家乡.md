@@ -5,7 +5,7 @@ date: 2026-08-21T22:57:02+08:00
 lastmod: 2026-08-21T22:57:02+08:00                           # 最后修改时间
 slug: "Home-and-hometown"                                         
 summary: "我不知道我是舍不得家，还是舍不得离开孕育着我成长的家乡。"                                      
-cover: ""                           # /img/xxx.webp；留空显示首字
+cover: "https://img.hulatu.com/post/XCVI9o.webp"                           # /img/xxx.webp；留空显示首字
 categories: ["居家"]                           # 可多个：["生活", "思考"]
 tags: ["情感", "思考"]                                 # 可多个：["跑步", "复盘"]
 featured: true                                  
