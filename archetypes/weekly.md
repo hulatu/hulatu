@@ -1,12 +1,12 @@
 ---
 # ===== 周刊设置（写完正文后，在这里调整）=====
-title: "{{ .Name }}"                  # 建议写「胡拉图的周刊-第XX期
+title: "{{ .Name }}"                  
 date: {{ .Date }}                                
 lastmod: {{ .Date }}                             
 slug: ""                                         
 summary: ""                                      
-cover: ""                              # /img/xxx.webp；留空显示首字
-categories: []                         # 如 ["周刊"]
+cover: ""                              
+categories: []                         
 featured: false                                  
 comments: true                                   
 draft: true                                      
