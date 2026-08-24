@@ -13,7 +13,7 @@ description: "读过的书、看过的影像、循环播放的歌。"
 
 {{< books >}}
 
-{{< book cover="/media/Naval.webp" title="纳瓦尔宝典" creator="[美\] 埃里克·乔根森">}}
+{{< book cover="/media/Naval.webp" title="纳瓦尔宝典" creator="[美] 埃里克·乔根森">}}
 
 {{< book cover="/media/motorcycle.webp" title="禅与摩托车维修艺术" creator="罗伯特·M·波西格">}}
 
