@@ -28,22 +28,42 @@
 /daily/still-prefer-running/ /posts/2026/02/07/still-prefer-running/ 301
 /daily/the-annual-meeting-has-ended./ /posts/2026/02/05/the-annual-meeting-has-ended./ 301
 
-# 2) 旧 posts 里的周刊 → 新 weekly 栏目（15 条）
-/posts/2025/12/21/newsletter-weekly/ /weekly/newsletter-weekly-1/ 301
-/posts/2025/12/28/newsletter-weekly/ /weekly/newsletter-weekly-2/ 301
-/posts/2026/01/04/newsletter-weekly/ /weekly/newsletter-weekly-3/ 301
-/posts/2026/01/11/newsletter-weekly/ /weekly/newsletter-weekly-4/ 301
-/posts/2026/01/18/newsletter-weekly/ /weekly/newsletter-weekly-5/ 301
-/posts/2026/01/25/newsletter-weekly/ /weekly/newsletter-weekly-6/ 301
-/posts/2026/02/01/newsletter-weekly/ /weekly/newsletter-weekly-7/ 301
-/posts/2026/02/08/newsletter-weekly/ /weekly/newsletter-weekly-8/ 301
-/posts/2026/03/01/newsletter-weekly/ /weekly/newsletter-weekly-9/ 301
-/posts/2026/03/08/newsletter-weekly/ /weekly/newsletter-weekly-10/ 301
-/posts/2026/03/14/newsletter-weekly/ /weekly/newsletter-weekly-11/ 301
-/posts/2026/03/22/newsletter-weekly/ /weekly/newsletter-weekly-12/ 301
-/posts/2026/03/29/newsletter-weekly/ /weekly/newsletter-weekly-13/ 301
-/posts/2026/04/05/newsletter-weekly/ /weekly/newsletter-weekly-14/ 301
-/posts/2026/04/13/newsletter-weekly/ /weekly/newsletter-weekly-15/ 301
+# 2) 旧 posts 里的周刊 → 统一后的 posts 链接（15 条）
+/posts/2025/12/21/newsletter-weekly/ /posts/2025/12/21/newsletter-weekly-1/ 301
+/posts/2025/12/28/newsletter-weekly/ /posts/2025/12/28/newsletter-weekly-2/ 301
+/posts/2026/01/04/newsletter-weekly/ /posts/2026/01/04/newsletter-weekly-3/ 301
+/posts/2026/01/11/newsletter-weekly/ /posts/2026/01/11/newsletter-weekly-4/ 301
+/posts/2026/01/18/newsletter-weekly/ /posts/2026/01/18/newsletter-weekly-5/ 301
+/posts/2026/01/25/newsletter-weekly/ /posts/2026/01/25/newsletter-weekly-6/ 301
+/posts/2026/02/01/newsletter-weekly/ /posts/2026/02/01/newsletter-weekly-7/ 301
+/posts/2026/02/08/newsletter-weekly/ /posts/2026/02/08/newsletter-weekly-8/ 301
+/posts/2026/03/01/newsletter-weekly/ /posts/2026/03/01/newsletter-weekly-9/ 301
+/posts/2026/03/08/newsletter-weekly/ /posts/2026/03/08/newsletter-weekly-10/ 301
+/posts/2026/03/14/newsletter-weekly/ /posts/2026/03/14/newsletter-weekly-11/ 301
+/posts/2026/03/22/newsletter-weekly/ /posts/2026/03/22/newsletter-weekly-12/ 301
+/posts/2026/03/29/newsletter-weekly/ /posts/2026/03/29/newsletter-weekly-13/ 301
+/posts/2026/04/05/newsletter-weekly/ /posts/2026/04/05/newsletter-weekly-14/ 301
+/posts/2026/04/13/newsletter-weekly/ /posts/2026/04/13/newsletter-weekly-15/ 301
+
+# 2b) 旧 weekly 栏目链接 → 统一后的 posts 链接（18 条）
+/weekly/newsletter-weekly-1/ /posts/2025/12/21/newsletter-weekly-1/ 301
+/weekly/newsletter-weekly-2/ /posts/2025/12/28/newsletter-weekly-2/ 301
+/weekly/newsletter-weekly-3/ /posts/2026/01/04/newsletter-weekly-3/ 301
+/weekly/newsletter-weekly-4/ /posts/2026/01/11/newsletter-weekly-4/ 301
+/weekly/newsletter-weekly-5/ /posts/2026/01/18/newsletter-weekly-5/ 301
+/weekly/newsletter-weekly-6/ /posts/2026/01/25/newsletter-weekly-6/ 301
+/weekly/newsletter-weekly-7/ /posts/2026/02/01/newsletter-weekly-7/ 301
+/weekly/newsletter-weekly-8/ /posts/2026/02/08/newsletter-weekly-8/ 301
+/weekly/newsletter-weekly-9/ /posts/2026/03/01/newsletter-weekly-9/ 301
+/weekly/newsletter-weekly-10/ /posts/2026/03/08/newsletter-weekly-10/ 301
+/weekly/newsletter-weekly-11/ /posts/2026/03/14/newsletter-weekly-11/ 301
+/weekly/newsletter-weekly-12/ /posts/2026/03/22/newsletter-weekly-12/ 301
+/weekly/newsletter-weekly-13/ /posts/2026/03/29/newsletter-weekly-13/ 301
+/weekly/newsletter-weekly-14/ /posts/2026/04/05/newsletter-weekly-14/ 301
+/weekly/newsletter-weekly-15/ /posts/2026/04/13/newsletter-weekly-15/ 301
+/weekly/weekly-newsletter-16/ /posts/2026/08/09/weekly-newsletter-16/ 301
+/weekly/weekly-newsletter-17/ /posts/2026/08/16/weekly-newsletter-17/ 301
+/weekly/newsletter-18/ /posts/2026/08/23/newsletter-18/ 301
 
 # 3) 修改过 slug 的综述文章（4 条）
 /posts/2026/01/21/writing-review-articles/ /posts/2026/01/21/review-feeding-1/ 301

@@ -1,6 +1,6 @@
 {{ define "main" }}
 
-{{ $posts := where site.RegularPages "Type" "posts" }}
+{{ $posts := where site.RegularPages "Type" "in" (slice "posts" "weekly") }}
 {{ $currentYear := now.Format "2006" }}
 {{ $years := slice }}
 {{ range $posts }}
@@ -11,7 +11,7 @@
 {{ end }}
 
 <h1 class="page-title">{{ .Title }}</h1>
-<p class="archive-total">共 <strong>{{ len $posts }}</strong> 篇随笔</p>
+<p class="archive-total">共 <strong>{{ len $posts }}</strong> 篇文章</p>
 
 <section class="archive-timeline">
 {{ range $years }}

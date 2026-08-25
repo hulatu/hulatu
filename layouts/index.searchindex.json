@@ -1,5 +1,5 @@
 [
-  {{- $pages := where site.RegularPages "Type" "posts" -}}
+  {{- $pages := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
   {{- range $index, $page := $pages -}}
     {{- if $index -}},{{- end -}}
     {
