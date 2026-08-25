@@ -27,3 +27,6 @@
 
 /index.xml
   Cache-Control: public, max-age=3600, must-revalidate
+
+/feed.json
+  Cache-Control: public, max-age=3600, must-revalidate

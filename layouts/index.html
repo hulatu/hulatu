@@ -58,29 +58,29 @@
 
 <section id="post-list" class="post-list">
   {{ if $featured }}
-    {{ range first 5 $featured }}
-      <a class="post-row post-row-home" href="{{ .Permalink }}">
-        {{ partial "post-thumb.html" . }}
+    {{ range $i, $p := first 5 $featured }}
+      <a class="post-row post-row-home" href="{{ $p.Permalink }}">
+        {{ partial "post-thumb.html" (dict "page" $p "eager" (eq $i 0)) }}
         <span class="post-row-main">
           <span class="post-row-title-line">
-            <span class="post-row-title">{{ .Title }}</span>
+            <span class="post-row-title">{{ $p.Title }}</span>
             <span class="post-row-featured">精选</span>
           </span>
         </span>
-        <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+        <time class="post-row-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006-01-02" }}</time>
       </a>
     {{ end }}
   {{ else }}
-    {{ range first 5 $posts }}
-      <a class="post-row post-row-home" href="{{ .Permalink }}">
-        {{ partial "post-thumb.html" . }}
+    {{ range $i, $p := first 5 $posts }}
+      <a class="post-row post-row-home" href="{{ $p.Permalink }}">
+        {{ partial "post-thumb.html" (dict "page" $p "eager" (eq $i 0)) }}
         <span class="post-row-main">
           <span class="post-row-title-line">
-            <span class="post-row-title">{{ .Title }}</span>
-            {{ if .Params.featured }}<span class="post-row-featured">精选</span>{{ end }}
+            <span class="post-row-title">{{ $p.Title }}</span>
+            {{ if $p.Params.featured }}<span class="post-row-featured">精选</span>{{ end }}
           </span>
         </span>
-        <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+        <time class="post-row-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006-01-02" }}</time>
       </a>
     {{ else }}
       <p class="empty-tip">还没有文章，去 content/posts/ 下新建一篇吧。</p>
