@@ -33,8 +33,8 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     enabled = true
     hint = "如果这篇文章对你有帮助，可以请我喝杯咖啡"
     button = "打赏支持"
-    wechat = "/img/wechat.webp"
-    alipay = "/img/zhifubao.webp"
+    wechat = "https://img.hulatu.com/post/wechat.webp"
+    alipay = "https://img.hulatu.com/post/zhifubao.webp"
     url = ""
     urlLabel = "去爱发电支持我"
    
