@@ -1,5 +1,11 @@
+{{- $page := . -}}
+{{- $eager := false -}}
+{{- if reflect.IsMap . -}}
+  {{- $page = .page -}}
+  {{- $eager = .eager | default false -}}
+{{- end -}}
 {{- $src := "" -}}
-{{- with .Params.cover -}}
+{{- with $page.Params.cover -}}
   {{- if hasPrefix . "/img/" -}}
     {{- $name := path.Base . -}}
     {{- if fileExists (printf "static/img/thumbs/%s" $name) -}}
@@ -13,8 +19,8 @@
 {{- end -}}
 {{- if $src -}}
   <span class="post-thumb">
-    <img src="{{ $src | relURL }}" alt="" width="220" height="220" loading="lazy" decoding="async">
+    <img src="{{ $src | relURL }}" alt="" width="220" height="220" loading="{{ if $eager }}eager{{ else }}lazy{{ end }}"{{ if $eager }} fetchpriority="high"{{ end }} decoding="async">
   </span>
 {{- else -}}
-  <span class="post-thumb post-thumb-fallback" aria-hidden="true">{{ substr .Title 0 1 }}</span>
+  <span class="post-thumb post-thumb-fallback" aria-hidden="true">{{ substr $page.Title 0 1 }}</span>
 {{- end -}}

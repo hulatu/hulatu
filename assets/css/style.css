@@ -1365,6 +1365,17 @@ main.container.is-loading { opacity: 0.45; }
   background: var(--accent);
 }
 
+.giscus-loading {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.giscus-loading[hidden] {
+  display: none;
+}
+
 /* ---------- 代码块 ---------- */
 .code-block {
   --code-bg: #efede6;

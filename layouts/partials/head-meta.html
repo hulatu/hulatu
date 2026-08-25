@@ -7,7 +7,10 @@
 {{- end -}}
 {{- $img := "/logo.png" -}}
 {{- with .Params.cover }}{{ $img = . }}{{ end -}}
-{{- $absImg := printf "%s%s" site.BaseURL (strings.TrimPrefix "/" $img) -}}
+{{- $absImg := $img -}}
+{{- if not (strings.HasPrefix $img "http") -}}
+  {{- $absImg = printf "%s%s" site.BaseURL (strings.TrimPrefix "/" $img) -}}
+{{- end -}}
 {{- $type := "website" -}}
 {{- if .IsPage }}{{ $type = "article" }}{{ end -}}
 
