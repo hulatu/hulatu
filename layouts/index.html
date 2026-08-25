@@ -3,6 +3,7 @@
 {{ $featured := where $allPosts "Params.featured" true }}
 {{ $regular := where $allPosts "Params.featured" "!=" true }}
 {{ $posts := $featured | append $regular }}
+{{ $weekly := where site.RegularPages "Type" "weekly" }}
 
 <header class="site-hero">
   <h1 class="hero-line">总得留下点什么吧<span class="hero-mark" aria-hidden="true">
@@ -12,7 +13,7 @@
       <circle cx="11" cy="11" r="2"></circle>
     </svg>
   </span></h1>
-  <p class="hero-sub">关于运动、健康、工具与生活的一些记录，已写 {{ len $posts }} 篇。</p>
+  <p class="hero-sub">关于运动、健康、工具与生活的一些记录，已写 {{ add (len $posts) (len $weekly) }} 篇。</p>
 </header>
 <script>
 (function () {

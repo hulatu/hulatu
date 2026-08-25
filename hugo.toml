@@ -17,6 +17,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   
 [permalinks]
   posts = "/posts/:year/:month/:day/:slug/"
+  weekly = "/posts/:year/:month/:day/:slug/"
 
 [params]
   description = "总得留下点什么吧！"
@@ -25,7 +26,6 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   github = "https://github.com/hulatu"
   email = "flyhulatu@gmail.com"
   avatar = "/images/avatar.webp"
-  googleAdsense = "ca-pub-2884841070961095"
 
   # 打赏：把微信/支付宝赞赏码图片放进 static/img/ 并填好路径；
   # 或用第三方平台（如爱发电）填 url。全部留空时页面不显示。
