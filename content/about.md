@@ -37,6 +37,7 @@ layout: "about"
 ---
 
 ## 朋友
+[花墨](https://flowersink.com)·
 [Cytrogen](https://blog.cytrogen.icu/)·
 [千古壹号](http://www.qianguyihao.com/)·
 [梁某银的博客](https://liangmouyin.com/)
