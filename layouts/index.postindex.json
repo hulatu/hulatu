@@ -7,13 +7,11 @@
       "url": {{ $page.RelPermalink | jsonify }},
       "date": {{ $page.Date.Format "2006-01-02" | jsonify }},
       "thumb": {{ with $page.Params.cover }}
-        {{- if hasPrefix . "/img/" -}}
-          {{- $name := path.Base . -}}
-          {{- if fileExists (printf "static/img/thumbs/%s" $name) -}}
-            {{- printf "/img/thumbs/%s" $name | jsonify -}}
-          {{- else -}}
-            {{- . | jsonify -}}
-          {{- end -}}
+        {{- $name := replace (path.Base .) "%20" "_" -}}
+        {{- $stem := strings.TrimSuffix (path.Ext $name) $name -}}
+        {{- $thumb := printf "static/img/thumbs/%s.webp" $stem -}}
+        {{- if fileExists $thumb -}}
+          {{- printf "/img/thumbs/%s.webp" $stem | jsonify -}}
         {{- else -}}
           {{- . | jsonify -}}
         {{- end -}}

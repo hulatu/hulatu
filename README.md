@@ -131,6 +131,10 @@ git push
 
 push 之后托管平台会自动重新构建并发布，通常几分钟内就能在线上看到更新。
 
+> 提示：本地 `hugo server` 预览时会把 livereload 调试脚本写进 `public/`（仅本地影响，
+> 托管平台是 push 后独立构建的，不会带上）。如果你需要手动上传 `public/` 部署，
+> 先停掉 `hugo server`，再运行 `./deploy.sh`（会做一次干净的生产构建并自检）。
+
 ### 关于 baseURL
 
 `hugo.toml` 里的 `baseURL` 建议直接改成你最终的访问地址（比如 `https://yourname.github.io/` 或你自己绑定的域名），这样生成的链接（RSS、canonical 等）才是正确的。

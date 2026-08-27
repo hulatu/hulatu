@@ -6,20 +6,46 @@
   </div>
 
   <div class="gb-comments">
-    <script src="https://giscus.app/client.js"
-            data-repo="hulatu/hulatu"
-            data-repo-id="R_kgDOTApIwg"
-            data-category="Announcements"
-            data-category-id="DIC_kwDOTApIws4DCXd5"
-            data-mapping="pathname"
-            data-strict="0"
-            data-reactions-enabled="1"
-            data-emit-metadata="0"
-            data-input-position="top"
-            data-theme="preferred_color_scheme"
-            data-lang="zh-CN"
-            crossorigin="anonymous"
-            async>
+    <div id="giscus-slot"
+      data-repo="{{ site.Params.giscus.repo }}"
+      data-repo-id="{{ site.Params.giscus.repoId }}"
+      data-category="{{ site.Params.giscus.category }}"
+      data-category-id="{{ site.Params.giscus.categoryId }}"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="preferred_color_scheme"
+      data-lang="zh-CN"></div>
+    <p class="giscus-loading" id="giscus-loading" aria-live="polite">正在加载评论…</p>
+    <script>
+    (function () {
+      var slot = document.getElementById('giscus-slot');
+      var loading = document.getElementById('giscus-loading');
+      if (!slot) return;
+      var io = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting) return;
+        var s = document.createElement('script');
+        s.src = 'https://giscus.app/client.js';
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        for (var k in slot.dataset) {
+          s.setAttribute('data-' + k.replace(/([A-Z])/g, '-$1').toLowerCase(), slot.dataset[k]);
+        }
+        slot.appendChild(s);
+        io.disconnect();
+      }, { rootMargin: '300px' });
+      io.observe(slot);
+      if (loading) {
+        var timer = setInterval(function () {
+          if (slot && slot.querySelector('iframe')) {
+            loading.hidden = true;
+            clearInterval(timer);
+          }
+        }, 300);
+      }
+    })();
     </script>
   </div>
 </div>

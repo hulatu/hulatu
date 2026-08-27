@@ -1,18 +1,29 @@
 <header class="site-header">
   <div class="container nav-container">
     <a class="site-brand" href="{{ "/" | relURL }}" aria-label="{{ site.Title }} 首页">
-      <span class="site-seal" aria-hidden="true">说</span>
       <span class="site-title">{{ site.Title }}</span>
     </a>
 
-    <div class="nav-right">
-      <nav class="nav-links" id="site-nav" aria-label="主导航">
-        {{ range site.Menus.main }}
-          <a href="{{ .URL | relURL }}">{{ .Name }}</a>
-        {{ end }}
-      </nav>
+    <nav class="nav-links" id="site-nav" aria-label="主导航">
+      {{ range site.Menus.main }}
+        <a href="{{ .URL | relURL }}">{{ .Name }}</a>
+      {{ end }}
+    </nav>
 
+    <div class="nav-right">
       <span class="nav-actions">
+        <a class="nav-icon-btn" href="{{ "index.xml" | relURL }}" title="RSS 订阅" aria-label="RSS 订阅">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 11a9 9 0 0 1 9 9"></path>
+            <path d="M4 4a16 16 0 0 1 16 16"></path>
+            <circle cx="5" cy="19" r="1.4" fill="currentColor" stroke="none"></circle>
+          </svg>
+        </a>
+
+        <a class="nav-icon-btn" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力" aria-label="开往-友链接力">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12,2C8,2 4,2.5 4,6V15.5A3.5,3.5 0 0,0 7.5,19L6,20.5V21H8.23L10.23,19H14L16,21H18V20.5L16.5,19A3.5,3.5 0 0,0 20,15.5V6C20,2.5 16.42,2 12,2M7.5,17A1.5,1.5 0 0,1 6,15.5A1.5,1.5 0 0,1 7.5,14A1.5,1.5 0 0,1 9,15.5A1.5,1.5 0 0,1 7.5,17M11,10H6V6H11V10M13,10V6H18V10H13M16.5,17A1.5,1.5 0 0,1 15,15.5A1.5,1.5 0 0,1 16.5,14A1.5,1.5 0 0,1 18,15.5A1.5,1.5 0 0,1 16.5,17Z"></path></svg>
+        </a>
+
         <button type="button" class="nav-icon-btn search-trigger" aria-label="打开搜索" title="搜索">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="11" cy="11" r="7"></circle>
