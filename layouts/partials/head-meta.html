@@ -5,7 +5,7 @@
 {{- else if .Description -}}
   {{- $desc = .Description -}}
 {{- end -}}
-{{- $img := "/logo.png" -}}
+{{- $img := "/img/og-card.png" -}}
 {{- with .Params.cover }}{{ $img = . }}{{ end -}}
 {{- $absImg := $img -}}
 {{- if not (strings.HasPrefix $img "http") -}}
