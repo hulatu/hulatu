@@ -60,7 +60,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   strict = false
   reactions = true
   emitMetadata = false
-  inputPosition = "top"
+  inputPosition = "bottom"
   lang = "zh-CN"
   theme = "preferred_color_scheme"
 
