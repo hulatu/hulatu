@@ -1,23 +1,35 @@
 {{- $pages := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
-{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\"?>" | safeHTML }}
-<feed xmlns="http://www.w3.org/2005/Atom">
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" | safeHTML }}
+{{- printf "<?xml-stylesheet type=\"text/xsl\" href=\"%satom.xsl\"?>" site.BaseURL | safeHTML }}
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
   <title>{{ site.Title }}</title>
-  <subtitle>{{ site.Params.description }}</subtitle>
+  <subtitle>{{ site.Params.description | htmlEscape }}</subtitle>
   <link href="{{ site.BaseURL }}"/>
   <link rel="self" href="{{ site.BaseURL }}atom.xml"/>
   <id>{{ site.BaseURL }}</id>
   <updated>{{ now.Format "2006-01-02T15:04:05Z07:00" }}</updated>
   <author>
     <name>{{ site.Params.author }}</name>
+    {{ with site.Params.email }}<email>{{ . }}</email>{{ end }}
   </author>
+  <logo>{{ "logo.png" | absURL }}</logo>
+  <icon>{{ site.Params.assets.favicon | default "/favicon.png" | absURL }}</icon>
+  {{ with site.Copyright }}<rights>{{ . }}</rights>{{ end }}
+  <generator uri="https://gohugo.io/">Hugo</generator>
   {{ range $pages }}
+  {{- $updated := .Lastmod -}}
+  {{- if lt $updated .Date }}{{ $updated = .Date }}{{ end -}}
   <entry>
     <title>{{ .Title | htmlEscape }}</title>
     <link href="{{ .Permalink }}"/>
     <id>{{ .Permalink }}</id>
     <published>{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}</published>
-    <updated>{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}</updated>
-    <summary>{{ .Summary | plainify | htmlEscape }}</summary>
+    <updated>{{ $updated.Format "2006-01-02T15:04:05Z07:00" }}</updated>
+    {{ range .Params.categories }}<category term="{{ . | htmlEscape }}"/>{{ end }}
+    {{ range .Params.tags }}<category term="{{ . | htmlEscape }}"/>{{ end }}
+    {{ with .Params.cover }}<media:thumbnail url="{{ . | htmlEscape }}"/><media:content url="{{ . | htmlEscape }}" medium="image"/>{{ end }}
+    <summary>{{ .Summary | plainify | htmlUnescape | htmlEscape }}</summary>
+    <content type="html">{{ .Content | htmlEscape }}</content>
   </entry>
   {{ end }}
 </feed>
