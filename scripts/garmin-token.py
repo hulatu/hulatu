@@ -3,10 +3,10 @@
 
 用法（在本机执行，不要在 GitHub 上执行）：
     pip install --upgrade garminconnect
-    GARMIN_EMAIL=你的邮箱 GARMIN_PASSWORD=你的密码 python3 scripts/garmin-token.py
+    python3 scripts/garmin-token.py
 
-如果账号开了两步验证，加一个当前验证码：
-    GARMIN_MFA_CODE=当前验证码 python3 scripts/garmin-token.py
+运行后会按提示输入邮箱、密码（密码不显示）。如果账号开了两步验证，
+登录时会再提示输入验证码（看 Garmin 发到邮箱/验证器 App 的 6 位数字）。
 
 执行成功后会把一串很长的 base64 令牌打印出来（形如 eyJvYXV0...），
 把它复制到 GitHub 仓库的 Settings → Secrets and variables → Actions，
@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import base64
+import getpass
 import os
 import sys
 from pathlib import Path
@@ -27,7 +28,9 @@ from pathlib import Path
 def mfa_code() -> str:
     code = os.environ.get("GARMIN_MFA_CODE", "").strip()
     if not code:
-        raise RuntimeError("账号开启了双重验证，请把当前验证码填入 GARMIN_MFA_CODE 后重试")
+        code = input("两步验证码（Garmin 发到邮箱/验证器 App，30-60 秒有效）: ").strip()
+    if not code:
+        raise RuntimeError("未输入验证码")
     return code
 
 
@@ -72,8 +75,12 @@ def dump_token(client) -> str:
 def main() -> None:
     email = os.environ.get("GARMIN_EMAIL", "").strip()
     password = os.environ.get("GARMIN_PASSWORD", "")
+    if not email:
+        email = input("Garmin 账号邮箱: ").strip()
+    if not password:
+        password = getpass.getpass("Garmin 密码（输入时不显示）: ")
     if not email or not password:
-        sys.exit("缺少 GARMIN_EMAIL 或 GARMIN_PASSWORD 环境变量。")
+        sys.exit("邮箱或密码不能为空。")
 
     try:
         from garminconnect import Garmin
