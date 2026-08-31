@@ -9,7 +9,8 @@ cover: ""
 coverAlt: ""                             
 categories: []                         
 featured: false                                  
-comments: true                                   
+comments: true 
+series: "周刊"                                   
 draft: true                                      
 ---
 

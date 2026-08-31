@@ -7,10 +7,10 @@ slug: ""
 summary: ""                                      
 cover: ""                          
 coverAlt: ""                                
-categories: []                           
-tags: []                                 
+categories: []                                                           
 featured: false                                  
-comments: true                                   
+comments: true 
+series: ""                                  
 draft: true                                      
 ---
 
