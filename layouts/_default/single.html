@@ -44,10 +44,6 @@
     </div>
   </header>
 
-  <div class="post-content">
-    {{ .Content }}
-  </div>
-
   {{ if $hasToc }}
   <aside class="post-toc">
     <nav class="post-toc-nav">
@@ -55,6 +51,11 @@
     </nav>
   </aside>
   {{ end }}
+
+  <div class="post-content">
+    {{ .Content }}
+  </div>
+
 </article>
 
 {{ if in (slice "posts" "weekly") .Type }}
