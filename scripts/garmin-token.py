@@ -11,6 +11,7 @@
 执行成功后会把一串很长的 base64 令牌打印出来（形如 eyJvYXV0...），
 把它复制到 GitHub 仓库的 Settings → Secrets and variables → Actions，
 新建一个名为 GARMINTOKENS 的 Secret 粘贴进去即可。
+令牌会同时保存在本机 ~/.garminconnect/garmin_tokens.json。
 
 令牌等同于你的登录凭证，只放进 GitHub Secret，不要发到公开场合。
 令牌过期后重新跑一次本脚本即可。
@@ -38,7 +39,7 @@ def mfa_code() -> str:
     return code
 
 
-def dump_token(client) -> str:
+def dump_token(client, token_dir: Path) -> str:
     """尝试多种方式导出令牌字符串。"""
     candidates: list[str] = []
 
@@ -54,24 +55,14 @@ def dump_token(client) -> str:
     except Exception:
         pass
 
-    # 兜底：登录成功后 garminconnect 会把令牌存到本地文件，直接读取并 base64
-    home = Path.home()
-    for rel in (
-        ".garminconnect/garmin_tokens.json",
-        ".garminconnect/tokens.json",
-        ".garminconnect",
-    ):
-        path = home / rel
-        if not path.exists():
-            continue
-        files = [path] if path.is_file() else [path / f for f in ("garmin_tokens.json", "tokens.json")]
-        for f in files:
-            if f.exists():
+    # 新版 garminconnect（0.2.40+）把令牌存成 ~/.garminconnect/garmin_tokens.json
+    if token_dir.is_dir():
+        for f in sorted(token_dir.iterdir()):
+            if f.is_file() and ("token" in f.name.lower() or f.name == "garmin_tokens.json"):
                 candidates.append(base64.b64encode(f.read_bytes()).decode())
-        break
 
     for token in candidates:
-        if token and len(token) > 512:
+        if token:
             return token
     sys.exit("未能导出令牌：请确认 garminconnect 已安装且登录成功（pip show garminconnect）")
 
@@ -80,6 +71,7 @@ def main() -> None:
     email = os.environ.get("GARMIN_EMAIL", "").strip()
     password = os.environ.get("GARMIN_PASSWORD", "")
     is_cn = os.environ.get("GARMIN_REGION", "").strip().lower() == "cn"
+    token_dir = Path.home() / ".garminconnect"
     if not email:
         email = input("Garmin 账号邮箱: ").strip()
     # 容错：去掉手误输入或从命令行复制的反斜杠（\@ 转义残留）
@@ -96,11 +88,11 @@ def main() -> None:
 
     try:
         client = Garmin(email=email, password=password, prompt_mfa=mfa_code, is_cn=is_cn)
-        client.login()
+        client.login(str(token_dir))
     except Exception as exc:
         sys.exit(f"Garmin 登录失败：{exc}")
 
-    token = dump_token(client)
+    token = dump_token(client, token_dir)
     print(token)
     print()
     print("把上面这一整串复制到 GitHub Secret：GARMINTOKENS")
