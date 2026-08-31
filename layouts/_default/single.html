@@ -40,7 +40,7 @@
       {{ end }}
     </div>
     {{ if .Params.series }}
-      {{- $seriesPosts := sort (where (where site.RegularPages "Type" "posts") "Params.series" .Params.series) "Date" -}}
+      {{- $seriesPosts := sort (where (where site.RegularPages "Type" "in" (slice "posts" "weekly")) "Params.series" .Params.series) "Date" -}}
       {{- $seriesIdx := 0 -}}
       {{- range $i, $p := $seriesPosts }}{{ if eq $p.Permalink $.Permalink }}{{ $seriesIdx = add $i 1 }}{{ end }}{{ end -}}
       <div class="post-series-link">
@@ -76,7 +76,7 @@
 {{ end }}
 
 {{- if .Params.series -}}
-  {{- $allPosts := where site.RegularPages "Type" "posts" -}}
+  {{- $allPosts := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
   {{- $seriesPosts := sort (where $allPosts "Params.series" .Params.series) "Date" -}}
   {{- $prevIn := false -}}
   {{- $nextIn := false -}}
