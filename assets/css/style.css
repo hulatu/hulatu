@@ -1928,6 +1928,56 @@ body.toc-open { overflow: hidden; }
   cursor: pointer;
 }
 
+.run-month-chart {
+  flex-direction: column;
+  gap: 0;
+  height: auto;
+}
+
+.run-month-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.run-month-group + .run-month-group {
+  margin-top: 1.1rem;
+}
+
+.run-month-group-label {
+  margin-bottom: 0.35rem;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.run-month-group-bars {
+  display: flex;
+  gap: 5px;
+  height: 150px;
+}
+
+.run-month-bar .bar {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 20px;
+}
+
+.run-month-bar.is-zero .bar {
+  min-height: 2px;
+}
+
+.bar-value {
+  padding-top: 3px;
+  font-size: 0.6rem;
+  line-height: 1.2;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.95;
+}
+
 .run-month-bar.is-active .bar {
   filter: brightness(1.25);
 }

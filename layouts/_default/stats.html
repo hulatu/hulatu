@@ -126,6 +126,17 @@
     {{- if gt $kmv $maxMonthKm }}{{ $maxMonthKm = $kmv }}{{ end -}}
   {{- end -}}
 
+  {{- /* 按年分组，柱状图用年份标签 + 月数 */ -}}
+  {{- $runGroups := dict -}}
+  {{- $groupYears := slice -}}
+  {{- range $k := $monthKeys -}}
+    {{- $gy := index (split $k "-") 0 -}}
+    {{- $g := index $runGroups $gy | default (dict "keys" slice) -}}
+    {{- $g = merge $g (dict "keys" ((index $g "keys") | append $k)) -}}
+    {{- $runGroups = merge $runGroups (dict $gy $g) -}}
+    {{- if not (in $groupYears $gy) }}{{ $groupYears = $groupYears | append $gy }}{{ end -}}
+  {{- end -}}
+
   <section class="stats-year">
     <header class="stats-year-head">
       <h2 class="stats-year-title">跑步数据</h2>
@@ -150,14 +161,23 @@
     <div class="stats-chart">
       <p class="stats-chart-label">每月跑步距离（公里，点击柱子查看当月记录）</p>
       <div class="bar-chart run-month-chart" role="group" aria-label="每月跑步距离">
-        {{ range $k := $monthKeys }}
-          {{- $kmv := (index $runMonths $k | default (dict "km" 0.0)).km -}}
-          {{- $h := 0 -}}
-          {{- if gt $maxMonthKm 0.0 }}{{ $h = math.Round (mul 100.0 (div $kmv $maxMonthKm)) }}{{ end -}}
-          <button type="button" class="bar-col run-month-bar {{ if eq $k $defaultMonth }}is-active{{ end }} {{ if eq $kmv 0.0 }}is-zero{{ end }}" data-month="{{ $k }}" title="{{ $k }} · {{ lang.FormatNumber 2 $kmv }} 公里">
-            <span class="bar-track"><span class="bar" style="height: {{ $h }}%"></span></span>
-            <span class="bar-label">{{ $k }}</span>
-          </button>
+        {{ range $gy := $groupYears }}
+          {{- $g := index $runGroups $gy -}}
+          <div class="run-month-group">
+            <span class="run-month-group-label">{{ $gy }} 年</span>
+            <div class="run-month-group-bars">
+              {{ range $k := index $g "keys" }}
+                {{- $kmv := (index $runMonths $k | default (dict "km" 0.0)).km -}}
+                {{- $h := 0 -}}
+                {{- if gt $maxMonthKm 0.0 }}{{ $h = math.Round (mul 100.0 (div $kmv $maxMonthKm)) }}{{ end -}}
+                {{- $mnum := int ((index (split $k "-") 1) | strings.TrimPrefix "0") -}}
+                <button type="button" class="bar-col run-month-bar {{ if eq $k $defaultMonth }}is-active{{ end }} {{ if eq $kmv 0.0 }}is-zero{{ end }}" data-month="{{ $k }}" title="{{ $k }} · {{ lang.FormatNumber 2 $kmv }} 公里">
+                  <span class="bar-track"><span class="bar" style="height: {{ $h }}%">{{ if gt $kmv 0.0 }}<span class="bar-value">{{ lang.FormatNumber 0 (math.Round $kmv) }}</span>{{ end }}</span></span>
+                  <span class="bar-label">{{ $mnum }}月</span>
+                </button>
+              {{ end }}
+            </div>
+          </div>
         {{ end }}
       </div>
     </div>
