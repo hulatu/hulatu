@@ -14,6 +14,10 @@
 
 令牌等同于你的登录凭证，只放进 GitHub Secret，不要发到公开场合。
 令牌过期后重新跑一次本脚本即可。
+
+环境变量（可选）：
+    GARMIN_REGION     设为 cn 表示中国区账号（garmin.cn），默认全球版
+    GARMIN_MFA_CODE   两步验证码，不设则登录时交互输入
 """
 
 from __future__ import annotations
@@ -75,6 +79,7 @@ def dump_token(client) -> str:
 def main() -> None:
     email = os.environ.get("GARMIN_EMAIL", "").strip()
     password = os.environ.get("GARMIN_PASSWORD", "")
+    is_cn = os.environ.get("GARMIN_REGION", "").strip().lower() == "cn"
     if not email:
         email = input("Garmin 账号邮箱: ").strip()
     # 容错：去掉手误输入或从命令行复制的反斜杠（\@ 转义残留）
@@ -90,7 +95,7 @@ def main() -> None:
         sys.exit("未安装 garminconnect，请先执行：pip install --upgrade garminconnect")
 
     try:
-        client = Garmin(email=email, password=password, prompt_mfa=mfa_code)
+        client = Garmin(email=email, password=password, prompt_mfa=mfa_code, is_cn=is_cn)
         client.login()
     except Exception as exc:
         sys.exit(f"Garmin 登录失败：{exc}")
