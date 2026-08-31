@@ -1,6 +1,8 @@
 {{ define "main" }}
 {{ $toc := .TableOfContents}}
 {{ $hasToc := in $toc "<li" }}
+{{- $chars := .Plain | strings.RuneCount -}}
+{{- $readMins := div (add $chars 299) 300 -}}
 
 <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
 
@@ -29,12 +31,22 @@
     <div class="post-meta">
       <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
       <span class="post-meta-sep">·</span>
-      <span>约 {{ .Plain | strings.RuneCount }} 字</span>
+      <span>约 {{ $chars }} 字</span>
+      <span class="post-meta-sep">·</span>
+      <span>约 {{ $readMins }} 分钟</span>
       {{ if ne .Date .Lastmod }}
         <span class="post-meta-sep">·</span>
         <span>更新于 {{ .Lastmod.Format "2006-01-02" }}</span>
       {{ end }}
     </div>
+    {{ if .Params.series }}
+      {{- $seriesPosts := sort (where (where site.RegularPages "Type" "posts") "Params.series" .Params.series) "Date" -}}
+      {{- $seriesIdx := 0 -}}
+      {{- range $i, $p := $seriesPosts }}{{ if eq $p.Permalink $.Permalink }}{{ $seriesIdx = add $i 1 }}{{ end }}{{ end -}}
+      <div class="post-series-link">
+        本系列 · <a href="{{ (index $seriesPosts 0).Permalink }}">{{ .Params.series }}</a> · 第 {{ $seriesIdx }}/{{ len $seriesPosts }} 篇
+      </div>
+    {{ end }}
     <div class="post-chips-row">
       {{ with .GetTerms "categories" }}
         <span class="post-chips post-chips-cats">
