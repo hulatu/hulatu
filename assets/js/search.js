@@ -120,6 +120,9 @@
     if (e.key === '/' && box.hidden && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
       e.preventDefault(); open();   // 任意页面按 / 唤起
     }
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K') && box.hidden) {
+      e.preventDefault(); open();   // ⌘/Ctrl + K 唤起
+    }
   });
 
   input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(doSearch, 120); });

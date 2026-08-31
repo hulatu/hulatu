@@ -6,6 +6,20 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 
 [pagination]
   pagerSize = 5
+
+[related]
+  threshold = 60
+  includeNewer = true
+  toLower = true
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+  [[related.indices]]
+    name = "categories"
+    weight = 80
+  [[related.indices]]
+    name = "date"
+    weight = 10
   
 [imaging]
   quality = 75

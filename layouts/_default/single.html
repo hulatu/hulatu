@@ -53,6 +53,11 @@
           {{- range . }}<a class="post-cat-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end -}}
         </span>
       {{ end }}
+      {{ with .GetTerms "tags" }}
+        <span class="post-chips post-chips-tags">
+          {{- range . }}<a class="post-tag-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end -}}
+        </span>
+      {{ end }}
     </div>
   </header>
 
@@ -71,6 +76,21 @@
 </article>
 
 {{ if in (slice "posts" "weekly") .Type }}
+  {{- $current := . -}}
+  {{- $candidates := where (site.RegularPages.Related $current) "Type" "in" (slice "posts" "weekly") -}}
+  {{- $related := first 3 (where $candidates "Permalink" "!=" $current.Permalink) -}}
+  {{- if $related -}}
+  <section class="related-posts">
+    <h2 class="related-title">相关文章</h2>
+    <div class="post-list">
+      {{ range $related }}
+        {{ partial "post-row.html" . }}
+      {{ end }}
+    </div>
+  </section>
+  {{- end -}}
+
+  <p class="post-license">本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a> 协议</p>
   {{ partial "post-follow.html" . }}
   {{ partial "donate.html" . }}
 {{ end }}
