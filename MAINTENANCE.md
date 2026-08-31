@@ -49,7 +49,7 @@ hugo server -D
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
-| 年度数据页 | 页面文案在 `content/stats.md`；统计和柱状图逻辑在 `layouts/_default/stats.html` |
+| 年度数据页（含跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（由 GitHub Actions 自动同步） |
 | 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
 | 深浅色 | `assets/js/theme.js` + `assets/css/style.css` 的 `[data-theme="dark"]` |
@@ -75,6 +75,25 @@ hugo server -D
 | 900–1199px | 目录 + 标签云内联显示在正文上方 |
 | < 900px | 侧栏隐藏，目录改成左下角按钮 + 底部抽屉；标签云隐藏 |
 | < 760px / < 600px / < 400px | 导航、卡片、列表的移动端微调 |
+
+### 跑步数据
+
+跑步数据展示在「数据」页（`/stats/`）。数据链路：Garmin 255 同步到 Garmin Connect → GitHub Actions 定时拉取（`.github/workflows/sync-garmin.yml`，默认每天晚上 10 点一次）→ 合并写入 `data/runs.json` → 构建时在数据页生成跑步总览、月度柱状图和最近记录。
+
+首次配置：
+
+1. 在 GitHub 仓库的 Settings → Secrets and variables → Actions 里添加 `GARMIN_EMAIL` 和 `GARMIN_PASSWORD`。
+2. 如果 Garmin 账号开了两步验证，自动同步需要额外配置：最省事的方式是取消两步验证；否则需要把登录令牌存进 `GARMINTOKENS` secret（参考 garminconnect 文档），或改用下面的本地手动同步。
+
+跑完步想立刻更新（不想等定时任务）：
+
+```bash
+pip install --upgrade garminconnect
+GARMIN_EMAIL=你的邮箱 GARMIN_PASSWORD=你的密码 python3 scripts/sync-garmin.py
+./deploy.sh
+```
+
+说明：脚本默认只同步跑步（`running`），想加其他运动类型用环境变量 `GARMIN_TYPES=running,cycling`。garminconnect 是非官方接口，Garmin 改版后若失效，留意 GitHub Actions 的运行日志并按提示调整。
 
 ## 三、部署与托管
 

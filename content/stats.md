@@ -1,6 +1,6 @@
 ---
 title: "年度数据"
-description: "写作的年度统计：字数与篇数。"
+description: "写作与跑步的年度统计：字数、篇数、跑步里程。"
 layout: "stats"
 ---
 
