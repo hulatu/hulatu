@@ -17,5 +17,9 @@ hugo_stats.json
 # 本地用 npx/esbuild 压缩 JS 时可能产生
 node_modules/
 
+# Python 脚本缓存（scripts/ 下的同步脚本）
+__pycache__/
+*.pyc
+
 # 日志
 *.log
