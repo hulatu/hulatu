@@ -1047,31 +1047,47 @@ main.container.is-loading { opacity: 0.45; }
 }
 
 /* ---------- 目录 ---------- */
-.post-toc { display: none; font-size: 0.85rem; }
+.post-toc { font-size: 0.72rem; }
 
 .post-toc::before {
   content: "目录";
   display: block;
   font-family: var(--font-serif);
-  font-size: 0.8rem;
+  font-size: 0.66rem;
   letter-spacing: 0.3em;
   color: var(--muted);
   margin-bottom: 0.7rem;
 }
 
-@media (min-width: 1320px) {
+/* 中等宽度（含浏览器侧边栏压缩视口）：目录内联显示在正文上方，保证可见 */
+.post-single.has-toc .post-toc {
+  display: block;
+  position: static;
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  margin: 1.6rem 0 2.2rem;
+  padding: 0.9rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+/* 手机窄屏：隐藏目录 */
+@media (max-width: 899.98px) {
+  .post-single.has-toc .post-toc { display: none; }
+}
+
+/* 宽屏：固定右侧目录，并限制不超出视口右缘 */
+@media (min-width: 1200px) {
   .post-single.has-toc .post-toc {
-    display: block;
     position: fixed;
     top: 100px;
-    left: calc(50% + (var(--max-width) / 2) + 2.2rem);
-    width: 210px;
+    left: min(calc(50% + (var(--max-width) / 2) + 1.2rem), calc(100vw - 232px));
+    width: 200px;
     max-height: calc(100vh - 140px);
     overflow-y: auto;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 1rem 1.1rem;
+    margin: 0;
   }
 }
 
@@ -1084,16 +1100,7 @@ main.container.is-loading { opacity: 0.45; }
 .post-toc-nav li { margin: 0.15rem 0; }
 
 .post-toc-nav li > ul {
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
   padding-left: 0.85rem;
-  transition: max-height 0.25s ease, opacity 0.2s ease;
-}
-
-.post-toc-nav li.is-expanded > ul {
-  max-height: 2000px;
-  opacity: 1;
 }
 
 .post-toc-nav a {
