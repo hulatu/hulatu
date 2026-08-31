@@ -1,0 +1,32 @@
+{{ define "main" }}
+<article class="tools-page">
+  <h1 class="page-title">{{ .Title }}</h1>
+  <div class="page-intro">{{ .Content }}</div>
+
+  {{ range .Params.groups }}
+  <section class="tool-group">
+    <h2 class="tool-group-title">{{ .name }}</h2>
+    <ul class="tool-list">
+      {{ range .tools }}
+      {{- $tool := . -}}
+      {{- $post := false -}}
+      {{- if $tool.post }}{{ $post = site.GetPage $tool.post }}{{ end -}}
+      <li class="tool-item">
+        <div class="tool-main">
+          {{ with $tool.url }}
+            <a class="tool-name" href="{{ . }}" target="_blank" rel="noopener">{{ $tool.name }}</a>
+          {{ else }}
+            <span class="tool-name">{{ $tool.name }}</span>
+          {{ end }}
+          <span class="tool-desc">{{ $tool.desc }}</span>
+        </div>
+        {{ with $post }}
+          <a class="tool-post" href="{{ .RelPermalink }}">相关文章 ↗</a>
+        {{ end }}
+      </li>
+      {{ end }}
+    </ul>
+  </section>
+  {{ end }}
+</article>
+{{ end }}
