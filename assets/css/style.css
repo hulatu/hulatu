@@ -412,7 +412,8 @@ main.container.is-loading { opacity: 0.45; }
 .list-toolbar {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.55rem;
+  align-items: center;
+  margin-top: 0.9rem;
 }
 
 .random-btn {
@@ -473,6 +474,44 @@ main.container.is-loading { opacity: 0.45; }
 }
 
 .random-btn:active, .mode-btn:active { transform: translateY(1px); }
+
+/* ---------- 首页 · 时间模式翻页 ---------- */
+.list-pager {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-inline: auto;
+}
+
+.list-pager[hidden] { display: none; }
+
+.pager-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.pager-btn:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--surface);
+}
+
+.pager-btn:active:not(:disabled) { transform: translateY(1px); }
+
+.pager-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
 
 /* ---------- 首页 · 文章行（小封面 + 日期居右） ---------- */
 .post-row-home {

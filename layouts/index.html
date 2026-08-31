@@ -13,30 +13,6 @@
   <p class="hero-sub">关于运动、健康、工具与生活的一些记录，已写 {{ add (len $posts) (len $weekly) }} 篇，今年写了 {{ lang.FormatNumber 0 $chars }} 字。</p>
 </header>
 
-<div class="list-toolbar">
-  {{ if $featured }}
-  <button type="button" class="mode-btn" id="mode-btn" title="显示最新文章" aria-label="切换精选与最新文章">
-    <svg id="mode-icon-latest" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10"></circle>
-      <polyline points="12 6 12 12 16 14"></polyline>
-    </svg>
-    <span class="mode-sep" aria-hidden="true">/</span>
-    <svg id="mode-icon-featured" class="is-active" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-    </svg>
-  </button>
-  {{ end }}
-  <button type="button" class="random-btn" id="random-btn" title="随机显示 5 篇文章" aria-label="随机显示 5 篇文章">
-    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <polyline points="16 3 21 3 21 8"></polyline>
-      <line x1="4" y1="20" x2="21" y2="3"></line>
-      <polyline points="21 16 21 21 16 21"></polyline>
-      <line x1="15" y1="15" x2="21" y2="21"></line>
-      <line x1="4" y1="4" x2="9" y2="9"></line>
-    </svg>
-  </button>
-</div>
-
 <section id="post-list" class="post-list">
   {{ if $featured }}
     {{ range $i, $p := first 5 $featured }}
@@ -69,15 +45,57 @@
   {{ end }}
 </section>
 
+<div class="list-toolbar">
+  <button type="button" class="random-btn" id="random-btn" title="随机显示 5 篇文章" aria-label="随机显示 5 篇文章">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="16 3 21 3 21 8"></polyline>
+      <line x1="4" y1="20" x2="21" y2="3"></line>
+      <polyline points="21 16 21 21 16 21"></polyline>
+      <line x1="15" y1="15" x2="21" y2="21"></line>
+      <line x1="4" y1="4" x2="9" y2="9"></line>
+    </svg>
+  </button>
+  <nav class="list-pager" id="list-pager" aria-label="按时间翻页" hidden>
+    <button type="button" class="pager-btn" id="pager-prev" title="上一页" aria-label="上一页">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <button type="button" class="pager-btn" id="pager-next" title="下一页" aria-label="下一页">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </nav>
+  {{ if $featured }}
+  <button type="button" class="mode-btn" id="mode-btn" title="显示最新文章" aria-label="切换精选与最新文章">
+    <svg id="mode-icon-latest" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+    <span class="mode-sep" aria-hidden="true">/</span>
+    <svg id="mode-icon-featured" class="is-active" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+    </svg>
+  </button>
+  {{ end }}
+</div>
+
 <script>
 (function () {
   var btn = document.getElementById("random-btn");
   var modeBtn = document.getElementById("mode-btn");
   var list = document.getElementById("post-list");
+  var pager = document.getElementById("list-pager");
+  var prevBtn = document.getElementById("pager-prev");
+  var nextBtn = document.getElementById("pager-next");
   if (!btn || !list) return;
   var cache = null;
   var current = [];
   var mode = "featured"; // featured | latest | random
+  var PER_PAGE = 5;
+  var latestAll = [];
+  var latestPage = 0;
 
   function loadIndex() {
     if (cache) return Promise.resolve(cache);
@@ -93,11 +111,27 @@
   function showLatest() {
     loadIndex()
       .then(function (all) {
-        render(postsOf(all).sort(function (a, b) { return b.date.localeCompare(a.date); }).slice(0, 5));
+        latestAll = postsOf(all).sort(function (a, b) { return b.date.localeCompare(a.date); });
+        latestPage = 0;
+        renderPage();
         mode = "latest";
         syncToggle();
       })
       .catch(function () {});
+  }
+
+  function renderPage() {
+    render(latestAll.slice(latestPage * PER_PAGE, (latestPage + 1) * PER_PAGE));
+    syncPager();
+  }
+
+  function syncPager() {
+    if (!pager) return;
+    var show = mode === "latest";
+    pager.hidden = !show;
+    if (!show) return;
+    prevBtn.disabled = latestPage === 0;
+    nextBtn.disabled = (latestPage + 1) * PER_PAGE >= latestAll.length;
   }
 
   function showFeatured() {
@@ -122,6 +156,7 @@
     if (clock) clock.classList.toggle("is-active", mode === "latest");
     if (star) star.classList.toggle("is-active", mode === "featured");
     modeBtn.title = mode === "featured" ? "显示最新文章" : "显示精选文章";
+    syncPager();
   }
 
   function shuffle(a) {
@@ -205,6 +240,21 @@
         showLatest();
       } else {
         showFeatured();
+      }
+    });
+  }
+
+  if (prevBtn && nextBtn) {
+    prevBtn.addEventListener("click", function () {
+      if (latestPage > 0) {
+        latestPage -= 1;
+        renderPage();
+      }
+    });
+    nextBtn.addEventListener("click", function () {
+      if ((latestPage + 1) * PER_PAGE < latestAll.length) {
+        latestPage += 1;
+        renderPage();
       }
     });
   }
