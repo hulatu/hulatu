@@ -5,7 +5,8 @@ date: {{ .Date }}
 lastmod: {{ .Date }}                      
 slug: ""                                         
 summary: ""                                      
-cover: ""                           
+cover: ""                          
+coverAlt: ""                                
 categories: []                           
 tags: []                                 
 featured: false                                  
