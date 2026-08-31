@@ -4,6 +4,7 @@
     {{- if $index -}},{{- end -}}
     {
       "title": {{ $page.Title | jsonify }},
+      "type": {{ $page.Type | jsonify }},
       "url": {{ $page.RelPermalink | jsonify }},
       "date": {{ $page.Date.Format "2006-01-02" | jsonify }},
       "thumb": {{ with $page.Params.cover }}
