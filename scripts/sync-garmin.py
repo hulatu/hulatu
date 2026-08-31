@@ -78,6 +78,8 @@ def main() -> None:
     is_cn = os.environ.get("GARMIN_REGION", "").strip().lower() == "cn"
     if not tokens and (not email or not password):
         sys.exit("缺少登录信息：请设置 GARMIN_EMAIL + GARMIN_PASSWORD，或设置 GARMINTOKENS 令牌（推荐）。")
+    if tokens and len(tokens) < 100:
+        print("警告：GARMINTOKENS 看起来不完整（正常令牌是很长的一串），将回退到账号密码登录。")
 
     allowed_types = {
         t.strip()
@@ -103,13 +105,22 @@ def main() -> None:
     try:
         if tokens:
             # 有令牌时直接用令牌登录，避免每次从数据中心 IP 输密码被限流
+            print("使用 GARMINTOKENS 令牌登录……")
             client = Garmin(is_cn=is_cn)
             client.login(tokens)
         else:
+            print("使用账号密码登录……")
             client = Garmin(email=email, password=password, prompt_mfa=mfa_code, is_cn=is_cn)
             client.login()
     except GarminConnectAuthenticationError as exc:
-        sys.exit(f"Garmin 登录失败（请检查账号密码/验证码）：{exc}")
+        msg = str(exc)
+        if "Username and password are required" in msg:
+            sys.exit(
+                "登录信息无效：GARMINTOKENS 不是有效的令牌，且 GARMIN_EMAIL/GARMIN_PASSWORD "
+                "也没有填。请检查 GitHub Secrets：令牌必须是 garmin-token.py 打印的完整字符串；"
+                "或者改填 GARMIN_EMAIL + GARMIN_PASSWORD。"
+            )
+        sys.exit(f"Garmin 登录失败（请检查账号密码/验证码）：{msg}")
     except Exception as exc:
         sys.exit(f"Garmin 登录失败：{exc}")
 
