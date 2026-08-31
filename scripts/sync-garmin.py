@@ -104,9 +104,10 @@ def main() -> None:
         if tokens:
             # 有令牌时直接用令牌登录，避免每次从数据中心 IP 输密码被限流
             client = Garmin(is_cn=is_cn)
+            client.login(tokens)
         else:
             client = Garmin(email=email, password=password, prompt_mfa=mfa_code, is_cn=is_cn)
-        client.login()
+            client.login()
     except GarminConnectAuthenticationError as exc:
         sys.exit(f"Garmin 登录失败（请检查账号密码/验证码）：{exc}")
     except Exception as exc:
