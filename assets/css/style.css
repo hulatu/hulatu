@@ -1864,6 +1864,61 @@ body.toc-open { overflow: hidden; }
   .stats-cards { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ---------- 跑步数据 ---------- */
+.run-summary {
+  margin: 1rem 0 1.8rem;
+}
+
+.run-table-wrap {
+  margin-top: 0.9rem;
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.run-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.run-table th,
+.run-table td {
+  padding: 0.55rem 0.9rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.run-table th {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+
+.run-table th:first-child,
+.run-table td:first-child {
+  text-align: left;
+}
+
+.run-table td {
+  border-bottom: 1px solid var(--line);
+}
+
+.run-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.run-table tbody tr:hover td {
+  background: var(--paper);
+}
+
+.run-date {
+  color: var(--muted);
+}
+
 .giscus-wrap {
   margin-top: 3rem;
   background: var(--surface);
