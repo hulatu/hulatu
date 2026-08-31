@@ -77,6 +77,8 @@ def main() -> None:
     password = os.environ.get("GARMIN_PASSWORD", "")
     if not email:
         email = input("Garmin 账号邮箱: ").strip()
+    # 容错：去掉手误输入或从命令行复制的反斜杠（\@ 转义残留）
+    email = email.replace("\\", "").strip()
     if not password:
         password = getpass.getpass("Garmin 密码（输入时不显示）: ")
     if not email or not password:
