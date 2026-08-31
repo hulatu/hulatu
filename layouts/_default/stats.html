@@ -1,0 +1,82 @@
+{{ define "main" }}
+{{- $all := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
+{{- $chars := 0 -}}
+{{- range $all }}{{ $chars = add $chars (strings.RuneCount (replaceRE "[[:space:]]+" "" .Plain)) }}{{ end -}}
+{{- $years := collections.Reverse ($all.GroupByDate "2006") -}}
+
+<h1 class="page-title">{{ .Title }}</h1>
+{{ if .Content }}<div class="page-intro">{{ .Content }}</div>{{ end }}
+
+{{ if not $all }}
+  <p class="empty-tip">还没有文章，数据页暂时是空的。</p>
+{{ else }}
+<section class="stats-cards" aria-label="总览">
+  <div class="stat-card">
+    <span class="stat-num">{{ lang.FormatNumber 0 (len $all) }}</span>
+    <span class="stat-label">篇文章</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ lang.FormatNumber 0 $chars }}</span>
+    <span class="stat-label">总字数</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ len $years }}</span>
+    <span class="stat-label">写作年数</span>
+  </div>
+</section>
+
+{{ range $years }}
+  {{- $year := .Key -}}
+  {{- $yearPages := .Pages -}}
+  {{- $yearChars := 0 -}}
+  {{- range $yearPages }}{{ $yearChars = add $yearChars (strings.RuneCount (replaceRE "[[:space:]]+" "" .Plain)) }}{{ end -}}
+
+  {{- $maxMonthChars := 0 -}}
+  {{- $monthChars := slice -}}
+  {{- range $m := seq 1 12 -}}
+    {{- $sum := 0 -}}
+    {{- range where $yearPages "Date.Month" $m }}{{ $sum = add $sum (strings.RuneCount (replaceRE "[[:space:]]+" "" .Plain)) }}{{ end -}}
+    {{- $monthChars = $monthChars | append $sum -}}
+    {{- if gt $sum $maxMonthChars }}{{ $maxMonthChars = $sum }}{{ end -}}
+  {{- end -}}
+
+  <section class="stats-year">
+    <header class="stats-year-head">
+      <h2 class="stats-year-title">{{ $year }} 年</h2>
+      <span class="stats-year-meta">
+        {{ len $yearPages }} 篇 · {{ lang.FormatNumber 0 $yearChars }} 字
+      </span>
+    </header>
+
+    <div class="stats-chart">
+      <p class="stats-chart-label">月度写作字数</p>
+      <div class="bar-chart" role="img" aria-label="{{ $year }} 年每月写作字数">
+        {{ range $i, $v := $monthChars }}
+          {{- $h := 0 -}}
+          {{- if gt $maxMonthChars 0 }}{{ $h = math.Round (mul 100.0 (div (float $v) (float $maxMonthChars))) }}{{ end -}}
+          <div class="bar-col" title="{{ add $i 1 }}月 · {{ lang.FormatNumber 0 $v }} 字">
+            <div class="bar-track"><div class="bar {{ if eq $v 0 }}is-zero{{ end }}" style="height: {{ $h }}%"></div></div>
+            <span class="bar-label">{{ add $i 1 }}</span>
+          </div>
+        {{ end }}
+      </div>
+    </div>
+
+  </section>
+{{ end }}
+
+<section class="stats-cats">
+  <h2 class="stats-section-title">话题分布</h2>
+  <div class="stats-cat-chips">
+    {{ range site.Taxonomies.categories.ByCount }}
+      <a class="stats-cat-chip" href="{{ .Page.RelPermalink }}">
+        {{ .Page.Title }}
+        <span class="stats-cat-count">{{ .Count }}</span>
+      </a>
+    {{ else }}
+      <p class="empty-tip">还没有分类。</p>
+    {{ end }}
+  </div>
+</section>
+{{ end }}
+{{ end }}

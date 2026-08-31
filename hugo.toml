@@ -55,8 +55,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   # 文章底部关注公众号引导：填图片地址即启用
   [params.wechat]
     followImg = "https://img.hulatu.com/post/VAZcJj.webp"
-    followText = "喜欢我的内容？长按识别二维码关注，不错过每次更新。"
-   
+    
 [params.assets]
   favicon = "/favicon.png"
   favicon16x16 = "/favicon.png"
@@ -139,7 +138,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     url = "/categories/"
     weight = 3
   [[menu.main]]
-    name = "工具箱"
+    name = "工具"
     url = "/tools/"
     weight = 4
   [[menu.main]]
@@ -147,9 +146,9 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     url = "/weekly/"
     weight = 5
   [[menu.main]]
-    name = "跑步"
-    url = "/running/"
-    weight = 6
+    name = "数据"
+    url = "/stats/"
+    weight = 7
   [[menu.main]]
     name = "留言"
     url = "/guestbook/"

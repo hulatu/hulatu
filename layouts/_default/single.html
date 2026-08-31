@@ -61,12 +61,84 @@
     </div>
   </header>
 
+  {{ if or $hasToc (in (slice "posts" "weekly") .Type) }}
+  <div class="post-rail">
+    {{ if $hasToc }}
+    <aside class="post-toc">
+      <nav class="post-toc-nav">
+        {{ $toc | safeHTML }}
+      </nav>
+    </aside>
+    {{ end }}
+    {{ if in (slice "posts" "weekly") .Type }}
+    <aside class="post-tagcloud" aria-label="标签云">
+      <h2 class="tagcloud-title">标签</h2>
+      <div class="tagcloud">
+        {{- $tags := site.Taxonomies.tags.ByCount -}}
+        {{- $maxCount := 0 -}}
+        {{- range $tags }}{{ if gt .Count $maxCount }}{{ $maxCount = .Count }}{{ end }}{{ end -}}
+        {{- range first 15 $tags -}}
+          {{- $size := 0.85 -}}
+          {{- if gt $maxCount 0 -}}
+            {{- $size = div (math.Round (mul 100.0 (add 0.74 (mul 0.38 (div (float .Count) (float $maxCount)))))) 100.0 -}}
+          {{- end -}}
+          <a class="tagcloud-link" href="{{ .Page.RelPermalink }}" style="font-size: {{ $size }}rem">{{ .Page.Title }}</a>
+        {{- end -}}
+      </div>
+      <a class="tagcloud-more" href="{{ "tags/" | relURL }}">全部标签 →</a>
+    </aside>
+    {{ end }}
+  </div>
+  {{ end }}
+
   {{ if $hasToc }}
-  <aside class="post-toc">
-    <nav class="post-toc-nav">
-      {{ $toc | safeHTML }}
-    </nav>
-  </aside>
+  <button type="button" class="toc-btn" id="toc-btn" aria-label="打开目录" aria-expanded="false" aria-controls="toc-drawer">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="4" y1="6" x2="20" y2="6"></line>
+      <line x1="4" y1="12" x2="20" y2="12"></line>
+      <line x1="4" y1="18" x2="20" y2="18"></line>
+    </svg>
+  </button>
+
+  <div class="toc-drawer" id="toc-drawer" hidden>
+    <div class="toc-drawer-backdrop" data-toc-close></div>
+    <div class="toc-drawer-panel" role="dialog" aria-modal="true" aria-label="文章目录">
+      <div class="toc-drawer-head">
+        <span class="toc-drawer-title">目录</span>
+        <button type="button" class="toc-drawer-close" data-toc-close aria-label="关闭目录">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="post-toc-nav toc-drawer-nav">{{ $toc | safeHTML }}</nav>
+    </div>
+  </div>
+  <script>
+  (function () {
+    var btn = document.getElementById("toc-btn");
+    var drawer = document.getElementById("toc-drawer");
+    if (!btn || !drawer) return;
+    function open() {
+      drawer.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+      document.body.classList.add("toc-open");
+    }
+    function close() {
+      drawer.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+      document.body.classList.remove("toc-open");
+    }
+    btn.addEventListener("click", open);
+    drawer.addEventListener("click", function (e) {
+      if (e.target.closest("[data-toc-close]") || e.target.closest(".toc-drawer-nav a")) close();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !drawer.hidden) close();
+    });
+  })();
+  </script>
   {{ end }}
 
   <div class="post-content">
@@ -90,7 +162,53 @@
   </section>
   {{- end -}}
 
-  <p class="post-license">本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a> 协议</p>
+  <div class="post-actions">
+    <a class="post-pill post-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener" title="本文采用 CC BY-NC-SA 4.0 协议">CC BY-NC-SA 4.0</a>
+    <button type="button" class="post-pill copy-link-btn" id="copy-link-btn">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+      </svg>
+      <span class="copy-link-label">复制链接</span>
+    </button>
+  </div>
+  <script>
+  (function () {
+    var btn = document.getElementById("copy-link-btn");
+    if (!btn) return;
+    var label = btn.querySelector(".copy-link-label");
+    var done = function () {
+      var old = label.textContent;
+      label.textContent = "已复制 ✓";
+      btn.classList.add("is-copied");
+      setTimeout(function () {
+        label.textContent = old;
+        btn.classList.remove("is-copied");
+      }, 1600);
+    };
+    var fallback = function () {
+      var ta = document.createElement("textarea");
+      ta.value = location.href;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+    };
+    btn.addEventListener("click", function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(location.href).then(done, function () {
+          fallback();
+          done();
+        });
+      } else {
+        fallback();
+        done();
+      }
+    });
+  })();
+  </script>
   {{ partial "post-follow.html" . }}
   {{ partial "donate.html" . }}
 {{ end }}
@@ -191,7 +309,7 @@
 </script>
 {{ end }}
 
-{{ if and (in (slice "posts" "weekly") .Type) site.Params.giscus.repo }}
+{{ if and (in (slice "posts" "weekly") .Type) site.Params.giscus.repo (ne .Params.comments false) }}
 <section class="giscus-wrap">
   <h2 class="giscus-title">评论</h2>
   <div id="giscus-slot"
