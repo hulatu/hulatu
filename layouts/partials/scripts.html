@@ -10,5 +10,4 @@
 {{- end -}}
 {{- $pageBundle := $pageFiles | resources.Concat "js/page-extra.js" | minify | fingerprint -}}
 
-<script src="{{ "js/fuse.min.js" | relURL }}"></script>
 <script src="{{ $bundle.RelPermalink }}" integrity="{{ $bundle.Data.Integrity }}" crossorigin="anonymous" data-search-index="{{ "search-index.json" | relURL }}" data-page-extra="{{ $pageBundle.RelPermalink }}"></script>

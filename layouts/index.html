@@ -4,10 +4,13 @@
 {{ $regular := where $allPosts "Params.featured" "!=" true }}
 {{ $posts := $featured | append $regular }}
 {{ $weekly := where site.RegularPages "Type" "weekly" }}
+{{- $yearPages := where site.RegularPages "Date.Year" now.Year -}}
+{{- $chars := 0 -}}
+{{- range $yearPages }}{{ $chars = add $chars (strings.RuneCount (replaceRE "[[:space:]]+" "" .Plain)) }}{{ end -}}
 
 <header class="site-hero">
   <h1 class="hero-line">总得留下点什么吧</h1>
-  <p class="hero-sub">关于运动、健康、工具与生活的一些记录，已写 {{ add (len $posts) (len $weekly) }} 篇。</p>
+  <p class="hero-sub">关于运动、健康、工具与生活的一些记录，已写 {{ add (len $posts) (len $weekly) }} 篇，今年写了 {{ lang.FormatNumber 0 $chars }} 字。</p>
 </header>
 
 <div class="list-toolbar">
