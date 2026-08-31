@@ -1919,6 +1919,68 @@ body.toc-open { overflow: hidden; }
   color: var(--muted);
 }
 
+.run-month-chart .run-month-bar {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.run-month-bar.is-active .bar {
+  filter: brightness(1.25);
+}
+
+.run-month-bar.is-active .bar-label {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.run-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.2rem 0 1.4rem;
+}
+
+.run-month-btn {
+  padding: 0.35em 1.1em;
+  font-size: 0.82rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.run-month-btn:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.run-month-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.run-month-current {
+  min-width: 8em;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+}
+
+.run-month-panel {
+  display: none;
+}
+
+.run-month-panel.is-active {
+  display: block;
+}
+
 .giscus-wrap {
   margin-top: 3rem;
   background: var(--surface);
