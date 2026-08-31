@@ -82,8 +82,16 @@ hugo server -D
 
 首次配置：
 
-1. 在 GitHub 仓库的 Settings → Secrets and variables → Actions 里添加 `GARMIN_EMAIL` 和 `GARMIN_PASSWORD`。
-2. 如果 Garmin 账号开了两步验证，自动同步需要额外配置：最省事的方式是取消两步验证；否则需要把登录令牌存进 `GARMINTOKENS` secret（参考 garminconnect 文档），或改用下面的本地手动同步。
+推荐方式（令牌）：GitHub 的机房 IP 经常被 Garmin 限流（报 `429 rate limited`），直接填密码不稳定。先在本机生成一次登录令牌：
+
+```bash
+pip install --upgrade garminconnect
+GARMIN_EMAIL=你的邮箱 GARMIN_PASSWORD=你的密码 python3 scripts/garmin-token.py
+```
+
+把输出的一整串长字符串存为 GitHub Secret：`GARMINTOKENS`（Settings → Secrets and variables → Actions）。之后定时任务用令牌登录，不再每次输密码。令牌过期后再跑一次上面的命令更新即可。
+
+备选方式（密码）：在 Secrets 里添加 `GARMIN_EMAIL` 和 `GARMIN_PASSWORD`。如果 Garmin 账号开了两步验证，还需要 `GARMIN_MFA_CODE`（验证码每次会变，不适合自动同步，建议关闭两步验证或改用令牌方式）。
 
 跑完步想立刻更新（不想等定时任务）：
 
