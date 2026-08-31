@@ -5,11 +5,16 @@
     pip install --upgrade garminconnect
     GARMIN_EMAIL=你的邮箱 GARMIN_PASSWORD=你的密码 python3 scripts/sync-garmin.py
 
+推荐方式（避免 GitHub 机房 IP 被 Garmin 限流）：
+    先按 scripts/garmin-token.py 的说明生成令牌，把输出的长字符串存为
+    GitHub Secret：GARMINTOKENS。定时任务会优先用令牌登录。
+
 GitHub Actions 会定时自动执行（见 .github/workflows/sync-garmin.yml）。
 
 环境变量：
     GARMIN_EMAIL      Garmin 账号邮箱（必填）
     GARMIN_PASSWORD   Garmin 密码（必填）
+    GARMINTOKENS      可选但推荐。登录令牌（scripts/garmin-token.py 生成），优先使用
     GARMIN_MFA_CODE   可选，账号开启两步验证时填当前验证码
     GARMIN_TYPES      可选，要同步的运动类型，逗号分隔，默认 running
     GARMIN_LIMIT      可选，每次最多拉取多少条，默认 100
@@ -66,10 +71,11 @@ def to_item(activity: dict, allowed_types: set[str]) -> dict | None:
 
 
 def main() -> None:
+    tokens = os.environ.get("GARMINTOKENS", "").strip()
     email = os.environ.get("GARMIN_EMAIL", "").strip()
     password = os.environ.get("GARMIN_PASSWORD", "")
-    if not email or not password:
-        sys.exit("缺少 GARMIN_EMAIL 或 GARMIN_PASSWORD 环境变量。")
+    if not tokens and (not email or not password):
+        sys.exit("缺少登录信息：请设置 GARMIN_EMAIL + GARMIN_PASSWORD，或设置 GARMINTOKENS 令牌（推荐）。")
 
     allowed_types = {
         t.strip()
@@ -93,7 +99,11 @@ def main() -> None:
         return code
 
     try:
-        client = Garmin(email=email, password=password, prompt_mfa=mfa_code)
+        if tokens:
+            # 有令牌时直接用令牌登录，避免每次从数据中心 IP 输密码被限流
+            client = Garmin()
+        else:
+            client = Garmin(email=email, password=password, prompt_mfa=mfa_code)
         client.login()
     except GarminConnectAuthenticationError as exc:
         sys.exit(f"Garmin 登录失败（请检查账号密码/验证码）：{exc}")

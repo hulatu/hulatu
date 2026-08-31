@@ -33,6 +33,7 @@ jobs:
           GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
           GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
           GARMIN_MFA_CODE: ${{ secrets.GARMIN_MFA_CODE }}
+          GARMINTOKENS: ${{ secrets.GARMINTOKENS }}
         run: python3 scripts/sync-garmin.py
 
       - name: 提交数据变更
