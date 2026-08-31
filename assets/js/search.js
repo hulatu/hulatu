@@ -11,12 +11,24 @@
   let fuse = null, posts = [], loaded = false, loading = false, timer;
 
   /* ---------- 索引加载（带状态反馈） ---------- */
+  function ensureFuse() {
+    if (window.Fuse) return Promise.resolve();
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = '/js/fuse.min.js';
+      s.onload = resolve;
+      s.onerror = function () { reject(new Error('fuse load failed')); };
+      document.head.appendChild(s);
+    });
+  }
+
   async function load() {
     if (loaded || loading) return;
     loading = true;
     showTip('索引加载中…');
     const url = document.querySelector('script[data-search-index]')?.dataset.searchIndex || '/search-index.json';
     try {
+      await ensureFuse();
       posts = await fetch(url).then((r) => r.json());
       fuse = new Fuse(posts, {
         keys: [
@@ -30,7 +42,11 @@
         minMatchCharLength: 1,  // 允许单字中文查询
       });
       loaded = true;
-      input.value.trim() ? doSearch() : showRecent();
+      if (input.value.trim()) {
+        doSearch();
+      } else {
+        empty.hidden = true;
+      }
     } catch (e) {
       showTip('索引加载失败，请刷新重试');
       console.warn(e);
@@ -72,27 +88,16 @@
     });
   }
 
-  // 空查询时展示最近更新，打开不再是空白
-  function showRecent() {
-    if (!posts.length) return showTip('暂无内容');
-    empty.textContent = '最近更新';
-    empty.hidden = false;
-    results.innerHTML = '';
-    [...posts].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
-      .slice(0, 6)
-      .forEach((p) => {
-        const li = document.createElement('li');
-        li.innerHTML = '<a href="' + p.permalink + '"><strong>' + esc(p.title) +
-                       '</strong><small>' + esc(p.date || '') + '</small></a>';
-        results.appendChild(li);
-      });
-  }
-
   /* ---------- 搜索（120ms 防抖） ---------- */
   function doSearch() {
     if (!loaded) return;
     const q = input.value.trim();
-    q ? render(fuse.search(q).map((r) => r.item), q) : showRecent();
+    if (q) {
+      render(fuse.search(q).map((r) => r.item), q);
+    } else {
+      empty.hidden = true;
+      results.innerHTML = '';
+    }
   }
 
   /* ---------- 开关与键盘 ---------- */
