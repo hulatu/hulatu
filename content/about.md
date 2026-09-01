@@ -23,31 +23,31 @@ layout: "about"
 - **JSON Feed**（现代格式，Reeder / Fiery Feeds 等支持）：[全站订阅](https://hulatu.com/feed.json)
 - **周刊专线**（RSS 2.0，仅包含周刊内容）：[订阅周刊](https://hulatu.com/weekly/index.xml)
 ## 平台
-[少数派](https://sspai.com/u/hulatu/updates)·
-[小红书](https://www.xiaohongshu.com/user/profile/68a9d4e5000000001a00fcf9)·
+[少数派](https://sspai.com/u/hulatu/updates) ·
+[小红书](https://www.xiaohongshu.com/user/profile/68a9d4e5000000001a00fcf9) ·
 [公众号](https://img.hulatu.com/post/bk7UaF.webp)
 
 ## 联系
 
-[QQ](https://img.hulatu.com/post/paIl9a.webp)·
-[WX](https://img.hulatu.com/post/qbD1Mk.webp)
-[Gmail](mailto:flyhulatu@gmail.com)·
+[QQ](https://img.hulatu.com/post/paIl9a.webp) ·
+[WX](https://img.hulatu.com/post/qbD1Mk.webp) ·
+[Gmail](mailto:flyhulatu@gmail.com) ·
 [Qmail](mailto:2983685624@qq.com)
 
 ---
 
 ## 朋友
-[花墨](https://flowersink.com)·
-[Cytrogen](https://blog.cytrogen.icu/)·
-[千古壹号](http://www.qianguyihao.com/)·
+[花墨](https://flowersink.com) ·
+[Cytrogen](https://blog.cytrogen.icu/) ·
+[千古壹号](http://www.qianguyihao.com/) ·
 [梁某银的博客](https://liangmouyin.com/)
 
 ## 组织
 
 [博友圈](https://www.boyouquan.com) ·
-[笔墨迹](https://blogscn.fun/)·
+[笔墨迹](https://blogscn.fun/) ·
 [十年之约](https://www.foreverblog.cn) ·
-[iblogroll](https://iblogroll.com/blog/125)·
-[BlogsClub](https://www.blogsclub.org/)·
-[博客大联盟](https://bo.ke/tags/blog/?sort=weight)·
+[iblogroll](https://iblogroll.com/blog/125) ·
+[BlogsClub](https://www.blogsclub.org/) ·
+[博客大联盟](https://bo.ke/tags/blog/?sort=weight) ·
 [中文博客琅琊榜](https://github.com/qianguyihao/blog-list/tree/main)
