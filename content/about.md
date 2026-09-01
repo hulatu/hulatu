@@ -31,12 +31,12 @@ layout: "about"
 
 [QQ](https://img.hulatu.com/post/paIl9a.webp) ·
 [WX](https://img.hulatu.com/post/qbD1Mk.webp) ·
-[Gmail](mailto:flyhulatu@gmail.com) ·
-[Qmail](mailto:2983685624@qq.com)
+[Gmail](mailto:flyhulatu@gmail.com)
 
 ---
 
 ## 朋友
+
 [花墨](https://flowersink.com) ·
 [Cytrogen](https://blog.cytrogen.icu/) ·
 [千古壹号](http://www.qianguyihao.com/) ·
