@@ -483,7 +483,34 @@ main.container.is-loading { opacity: 0.45; }
   margin-inline: auto;
 }
 
-.list-pager[hidden] { display: none; }
+/* 首页翻页：隐藏时也保留占位，切换「精选 / 顺序列表」整页高度不跳动 */
+#list-pager {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+#list-pager[hidden] {
+  display: flex; /* 覆盖通用 display:none，保持占位 */
+}
+
+#list-pager:not([hidden]) {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 首页翻页按钮与工具栏其它按钮等高（30px） */
+#list-pager .pager-btn {
+  width: 30px;
+  height: 30px;
+}
+
+#list-pager .pager-btn svg {
+  width: 15px;
+  height: 15px;
+}
 
 .pager-btn {
   display: inline-flex;
