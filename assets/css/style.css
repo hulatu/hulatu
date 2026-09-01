@@ -2634,6 +2634,45 @@ body.toc-open { overflow: hidden; }
   margin: 0 auto;
 }
 
+/* 关于页：区块间自动分隔线（写文章时不用再手动加分隔符） */
+.about-body h2 {
+  margin-top: 2.2rem;
+  padding-top: 1.3rem;
+  border-top: 1px dashed var(--line-strong);
+}
+
+.about-body h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* 关于页：链接组自动渲染为胶囊按钮（每行一个链接，自动隔开） */
+.about-link-group ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  list-style: none;
+}
+
+.about-link-group a {
+  display: inline-block;
+  padding: 0.35em 1.05em;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.about-link-group a:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
 /* ---------- 留言页 ---------- */
 .guestbook,
 .container .guestbook {

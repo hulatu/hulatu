@@ -1,6 +1,6 @@
 ---
 title: "Typora+upic图床验证失败的问题" 
-categories: ["工具·数码"]
+categories: ["工具数码"]
 tags: ["写作工具", "Typora"]
 cover: "https://img.hulatu.com/post/img-bed.webp"
 coverAlt: "Typora+upic图床验证失败的问题 封面图"
