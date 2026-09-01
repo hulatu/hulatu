@@ -50,6 +50,7 @@ hugo server -D
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
 | 数据页（文章数据 + 跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（由 GitHub Actions 自动同步） |
+| 自动提交（每晚 22:30） | 脚本 `scripts/auto-commit.sh`；定时任务 `scripts/com.hulatuo.blog-auto-commit.plist`（已安装到 `~/Library/LaunchAgents/`） |
 | 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
 | 深浅色 | `assets/js/theme.js` + `assets/css/style.css` 的 `[data-theme="dark"]` |
@@ -79,6 +80,8 @@ hugo server -D
 ### 跑步数据
 
 跑步数据展示在「数据」页（`/stats/`）。数据链路：Garmin 255 同步到 Garmin Connect → GitHub Actions 定时拉取（`.github/workflows/sync-garmin.yml`，默认每天晚上 10 点一次）→ 合并写入 `data/runs.json` → 构建时在数据页生成跑步总览、月度柱状图和最近记录。
+
+每晚 22:30 还有一个本机 LaunchAgent（`com.hulatuo.blog-auto-commit`）会自动执行 `scripts/auto-commit.sh`：先 `git pull` 把 22:00 同步的跑步数据拉到本地，再 `git add -A` 完整提交所有本地改动并推送到 GitHub。日志在 `~/.blog-auto-commit.log`。想停用：`launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.hulatuo.blog-auto-commit.plist` 后删除该 plist 文件即可。
 
 首次配置：
 
