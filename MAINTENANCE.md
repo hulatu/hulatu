@@ -49,7 +49,7 @@ hugo server -D
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
-| 年度数据页（含跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（由 GitHub Actions 自动同步） |
+| 数据页（文章数据 + 跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（由 GitHub Actions 自动同步） |
 | 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
 | 深浅色 | `assets/js/theme.js` + `assets/css/style.css` 的 `[data-theme="dark"]` |
