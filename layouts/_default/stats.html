@@ -7,63 +7,38 @@
 <h1 class="page-title">{{ .Title }}</h1>
 {{ if .Content }}<div class="page-intro">{{ .Content }}</div>{{ end }}
 
-{{ if not $all }}
-  <p class="empty-tip">还没有文章，数据页暂时是空的。</p>
-{{ else }}
-<section class="stats-cards" aria-label="总览">
-  <div class="stat-card">
-    <span class="stat-num">{{ lang.FormatNumber 0 (len $all) }}</span>
-    <span class="stat-label">篇文章</span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-num">{{ lang.FormatNumber 0 $chars }}</span>
-    <span class="stat-label">总字数</span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-num">{{ len $years }}</span>
-    <span class="stat-label">写作年数</span>
-  </div>
-</section>
+{{- /* ===== 文章月度字数 ===== */ -}}
+{{- $postMonths := dict -}}
+{{- $postKeys := slice -}}
+{{- $postMax := 0 -}}
+{{- range $all -}}
+  {{- $t := .Date -}}
+  {{- $mkey := printf "%04d-%02d" $t.Year (int $t.Month) -}}
+  {{- $c := strings.RuneCount (replaceRE "[[:space:]]+" "" .Plain) -}}
+  {{- $mv := index $postMonths $mkey | default (dict "chars" 0) -}}
+  {{- $mv = merge $mv (dict "chars" (add (index $mv "chars") $c)) -}}
+  {{- $postMonths = merge $postMonths (dict $mkey $mv) -}}
+  {{- if not (in $postKeys $mkey) }}{{ $postKeys = $postKeys | append $mkey }}{{ end -}}
+{{- end -}}
+{{- $postKeys = sort $postKeys -}}
+{{- range $postKeys }}{{ if gt (index (index $postMonths .) "chars") $postMax }}{{ $postMax = index (index $postMonths .) "chars" }}{{ end }}{{ end -}}
 
-{{ range $years }}
-  {{- $year := .Key -}}
-  {{- $yearPages := .Pages -}}
-  {{- $yearChars := 0 -}}
-  {{- range $yearPages }}{{ $yearChars = add $yearChars (strings.RuneCount (replaceRE "[[:space:]]+" "" .Plain)) }}{{ end -}}
-
-  {{- $maxMonthChars := 0 -}}
-  {{- $monthChars := slice -}}
-  {{- range $m := seq 1 12 -}}
-    {{- $sum := 0 -}}
-    {{- range where $yearPages "Date.Month" $m }}{{ $sum = add $sum (strings.RuneCount (replaceRE "[[:space:]]+" "" .Plain)) }}{{ end -}}
-    {{- $monthChars = $monthChars | append $sum -}}
-    {{- if gt $sum $maxMonthChars }}{{ $maxMonthChars = $sum }}{{ end -}}
+{{- /* 补全月份序列（最早到最晚） */ -}}
+{{- $postSeq := slice -}}
+{{- if $postKeys -}}
+  {{- $pf := time.AsTime (printf "%s-01" (index $postKeys 0)) -}}
+  {{- $pl := time.AsTime (printf "%s-01" (index $postKeys (sub (len $postKeys) 1))) -}}
+  {{- $y := $pf.Year -}}
+  {{- $m := int $pf.Month -}}
+  {{- $endKey := printf "%04d-%02d" $pl.Year (int $pl.Month) -}}
+  {{- range seq 0 2000 -}}
+    {{- $k := printf "%04d-%02d" $y $m -}}
+    {{- $postSeq = $postSeq | append $k -}}
+    {{- if eq $k $endKey }}{{ break }}{{ end -}}
+    {{- $m = add $m 1 -}}
+    {{- if gt $m 12 }}{{ $m = 1 }}{{ $y = add $y 1 }}{{ end -}}
   {{- end -}}
-
-  <section class="stats-year">
-    <header class="stats-year-head">
-      <h2 class="stats-year-title">{{ $year }} 年</h2>
-      <span class="stats-year-meta">
-        {{ len $yearPages }} 篇 · {{ lang.FormatNumber 0 $yearChars }} 字
-      </span>
-    </header>
-
-    <div class="stats-chart">
-      <p class="stats-chart-label">月度写作字数</p>
-      <div class="bar-chart" role="img" aria-label="{{ $year }} 年每月写作字数">
-        {{ range $i, $v := $monthChars }}
-          {{- $h := 0 -}}
-          {{- if gt $maxMonthChars 0 }}{{ $h = math.Round (mul 100.0 (div (float $v) (float $maxMonthChars))) }}{{ end -}}
-          <div class="bar-col" title="{{ add $i 1 }}月 · {{ lang.FormatNumber 0 $v }} 字">
-            <div class="bar-track"><div class="bar {{ if eq $v 0 }}is-zero{{ end }}" style="height: {{ $h }}%"></div></div>
-            <span class="bar-label">{{ add $i 1 }}</span>
-          </div>
-        {{ end }}
-      </div>
-    </div>
-
-  </section>
-{{ end }}
+{{- end -}}
 
 {{- /* ===== 跑步数据（来自 data/runs.json，Garmin 自动同步） ===== */ -}}
 {{- $runs := slice -}}
@@ -73,247 +48,340 @@
   {{- with .activities }}{{ $runs = . }}{{ end -}}
 {{- end -}}
 
+{{- $runCount := 0 -}}
+{{- $runKm := 0.0 -}}
+{{- $monthRunKm := 0.0 -}}
+{{- $runMonths := dict -}}
+{{- $runSeq := slice -}}
+{{- $runMax := 0.0 -}}
+{{- $revKeys := slice -}}
+{{- $defaultMonth := "" -}}
+
 {{- if $runs -}}
   {{- $runs = sort $runs "date" "asc" -}}
-  {{- $runCount := len $runs -}}
-  {{- $runKm := 0.0 -}}
-  {{- $monthRunKm := 0.0 -}}
+  {{- $runCount = len $runs -}}
   {{- $nowYear := now.Year -}}
   {{- $nowMonth := int now.Month -}}
-
-  {{- /* 按月聚合 */ -}}
-  {{- $runMonths := dict -}}
   {{- range $runs -}}
     {{- $t := time.AsTime .date -}}
     {{- $km := float .distance_km -}}
     {{- $runKm = add $runKm $km -}}
     {{- if and (eq $t.Year $nowYear) (eq (int $t.Month) $nowMonth) }}{{ $monthRunKm = add $monthRunKm $km }}{{ end -}}
     {{- $mkey := printf "%04d-%02d" $t.Year (int $t.Month) -}}
-    {{- $mval := index $runMonths $mkey | default (dict "km" 0.0 "count" 0 "runs" slice) -}}
-    {{- $mval = merge $mval (dict "km" (add (index $mval "km") $km) "count" (add 1 (index $mval "count")) "runs" ((index $mval "runs") | append .)) -}}
-    {{- $runMonths = merge $runMonths (dict $mkey $mval) -}}
+    {{- $mv := index $runMonths $mkey | default (dict "km" 0.0 "count" 0 "runs" slice) -}}
+    {{- $mv = merge $mv (dict "km" (add (index $mv "km") $km) "count" (add 1 (index $mv "count")) "runs" ((index $mv "runs") | append .)) -}}
+    {{- $runMonths = merge $runMonths (dict $mkey $mv) -}}
   {{- end -}}
 
-  {{- /* 从最早月到最晚月的完整月份序列（含没有跑步的月份） */ -}}
+  {{- /* 完整月份序列 */ -}}
   {{- $firstT := time.AsTime (index $runs 0).date -}}
   {{- $lastT := time.AsTime (index $runs (sub $runCount 1)).date -}}
   {{- $endKey := printf "%04d-%02d" $lastT.Year (int $lastT.Month) -}}
-  {{- $monthKeys := slice -}}
   {{- $y := $firstT.Year -}}
   {{- $m := int $firstT.Month -}}
   {{- range seq 0 2000 -}}
-    {{- $key := printf "%04d-%02d" $y $m -}}
-    {{- $monthKeys = $monthKeys | append $key -}}
-    {{- if eq $key $endKey }}{{ break }}{{ end -}}
+    {{- $k := printf "%04d-%02d" $y $m -}}
+    {{- $runSeq = $runSeq | append $k -}}
+    {{- if eq $k $endKey }}{{ break }}{{ end -}}
     {{- $m = add $m 1 -}}
     {{- if gt $m 12 }}{{ $m = 1 }}{{ $y = add $y 1 }}{{ end -}}
   {{- end -}}
 
-  {{- /* 倒序月份（最新在前，用于翻页） */ -}}
-  {{- $revKeys := slice -}}
-  {{- range $monthKeys }}{{ $revKeys = slice . | append $revKeys }}{{ end -}}
-
-  {{- /* 默认选中：最近一个有跑步记录的月份 */ -}}
-  {{- $defaultMonth := "" -}}
+  {{- range $runSeq }}{{ $kmv := (index $runMonths . | default (dict "km" 0.0)).km }}{{ if gt $kmv $runMax }}{{ $runMax = $kmv }}{{ end }}{{ end -}}
+  {{- range $runSeq }}{{ $revKeys = slice . | append $revKeys }}{{ end -}}
   {{- range $revKeys -}}
     {{- if and (eq $defaultMonth "") (gt (index (index $runMonths .) "count") 0) }}{{ $defaultMonth = . }}{{ end -}}
   {{- end -}}
+{{- end -}}
 
-  {{- /* 图表最高值 */ -}}
-  {{- $maxMonthKm := 0.0 -}}
-  {{- range $monthKeys -}}
-    {{- $kmv := (index $runMonths . | default (dict "km" 0.0)).km -}}
-    {{- if gt $kmv $maxMonthKm }}{{ $maxMonthKm = $kmv }}{{ end -}}
-  {{- end -}}
+<section class="data-panel data-panel-posts">
+  <header class="data-panel-head">
+    <span class="data-panel-icon" aria-hidden="true">✍️</span>
+    <div>
+      <h2 class="data-panel-title">文章数据</h2>
+      <p class="data-panel-desc">博客写作统计：篇数、字数、月度产出</p>
+    </div>
+  </header>
 
-  {{- /* 按年分组，柱状图用年份标签 + 月数 */ -}}
-  {{- $runGroups := dict -}}
-  {{- $groupYears := slice -}}
-  {{- range $k := $monthKeys -}}
-    {{- $gy := index (split $k "-") 0 -}}
-    {{- $g := index $runGroups $gy | default (dict "keys" slice) -}}
-    {{- $g = merge $g (dict "keys" ((index $g "keys") | append $k)) -}}
-    {{- $runGroups = merge $runGroups (dict $gy $g) -}}
-    {{- if not (in $groupYears $gy) }}{{ $groupYears = $groupYears | append $gy }}{{ end -}}
-  {{- end -}}
-
-  <section class="stats-year">
-    <header class="stats-year-head">
-      <h2 class="stats-year-title">跑步数据</h2>
-      {{ if $updated }}<span class="stats-year-meta">更新于 {{ dateFormat "2006-01-02 15:04" (time.AsTime $updated) }} · 来自 Garmin Connect</span>{{ end }}
-    </header>
-
-    <section class="stats-cards run-summary" aria-label="跑步总览">
+  {{ if not $all }}
+    <p class="empty-tip">还没有文章，数据页暂时是空的。</p>
+  {{ else }}
+    <section class="stats-cards" aria-label="文章总览">
       <div class="stat-card">
-        <span class="stat-num">{{ lang.FormatNumber 0 $runCount }}</span>
-        <span class="stat-label">累计次数</span>
+        <span class="stat-num">{{ lang.FormatNumber 0 (len $all) }}</span>
+        <span class="stat-label">篇文章</span>
       </div>
       <div class="stat-card">
-        <span class="stat-num">{{ lang.FormatNumber 1 $runKm }}</span>
-        <span class="stat-label">累计公里</span>
+        <span class="stat-num">{{ lang.FormatNumber 0 $chars }}</span>
+        <span class="stat-label">总字数</span>
       </div>
       <div class="stat-card">
-        <span class="stat-num">{{ lang.FormatNumber 1 $monthRunKm }}</span>
-        <span class="stat-label">本月公里</span>
+        <span class="stat-num">{{ len $years }}</span>
+        <span class="stat-label">写作年数</span>
       </div>
     </section>
 
-    <div class="stats-chart">
-      <p class="stats-chart-label">每月跑步距离（公里，点击柱子查看当月记录）</p>
-      <div class="bar-chart run-month-chart" role="group" aria-label="每月跑步距离">
-        {{ range $gy := $groupYears }}
-          {{- $g := index $runGroups $gy -}}
-          <div class="run-month-group">
-            <span class="run-month-group-label">{{ $gy }} 年</span>
-            <div class="run-month-group-bars">
-              {{ range $k := index $g "keys" }}
-                {{- $kmv := (index $runMonths $k | default (dict "km" 0.0)).km -}}
-                {{- $h := 0 -}}
-                {{- if gt $maxMonthKm 0.0 }}{{ $h = math.Round (mul 100.0 (div $kmv $maxMonthKm)) }}{{ end -}}
-                {{- $mnum := int ((index (split $k "-") 1) | strings.TrimPrefix "0") -}}
-                <button type="button" class="bar-col run-month-bar {{ if eq $k $defaultMonth }}is-active{{ end }} {{ if eq $kmv 0.0 }}is-zero{{ end }}" data-month="{{ $k }}" title="{{ $k }} · {{ lang.FormatNumber 2 $kmv }} 公里">
-                  <span class="bar-track"><span class="bar" style="height: {{ $h }}%">{{ if gt $kmv 0.0 }}<span class="bar-value">{{ lang.FormatNumber 0 (math.Round $kmv) }}</span>{{ end }}</span></span>
-                  <span class="bar-label">{{ $mnum }}月</span>
-                </button>
-              {{ end }}
-            </div>
-          </div>
+    <div class="chart-block">
+      <p class="chart-caption" id="posts-chart-caption">最近 12 个月</p>
+      <div class="bar-chart month-chart" id="posts-chart" role="group" aria-label="每月写作字数">
+        {{ range $k := $postSeq }}
+          {{- $c := (index $postMonths $k | default (dict "chars" 0)).chars -}}
+          {{- $disp := "" -}}
+          {{- if ge $c 10000 }}{{ $disp = printf "%s万" (lang.FormatNumber 1 (div (float $c) 10000.0)) }}{{ else }}{{ $disp = lang.FormatNumber 0 $c }}{{ end -}}
+          {{- $h := 0 -}}
+          {{- if gt $postMax 0 }}{{ $h = math.Round (mul 100.0 (div (float $c) (float $postMax))) }}{{ end -}}
+          {{- $mnum := int ((index (split $k "-") 1) | strings.TrimPrefix "0") -}}
+          <button type="button" class="bar-col month-bar {{ if eq $c 0 }}is-zero{{ end }}" data-month="{{ $k }}" data-value="{{ $c }}" title="{{ $k }} · {{ lang.FormatNumber 0 $c }} 字">
+            <span class="bar-track"><span class="bar" style="height: {{ $h }}%">{{ if gt $c 0 }}<span class="bar-value">{{ $disp }}</span>{{ end }}</span></span>
+            <span class="bar-label">{{ $mnum }}月</span>
+          </button>
         {{ end }}
+      </div>
+      <div class="chart-nav">
+        <button type="button" class="data-nav-btn" id="posts-chart-prev">‹ 更早</button>
+        <button type="button" class="data-nav-btn" id="posts-chart-next">更新 ›</button>
       </div>
     </div>
 
-    <div class="run-month-nav" id="run-month-nav">
-      <button type="button" class="run-month-btn" id="run-month-prev" aria-label="上一月">‹ 上一月</button>
-      {{- $defParts := split $defaultMonth "-" -}}
-      <span class="run-month-current" id="run-month-current">{{ printf "%s年%d月" (index $defParts 0) (int ((index $defParts 1) | strings.TrimPrefix "0")) }}</span>
-      <button type="button" class="run-month-btn" id="run-month-next" aria-label="下一月">下一月 ›</button>
-    </div>
+    <section class="stats-cats">
+      <h2 class="stats-section-title">话题分布</h2>
+      <div class="stats-cat-chips">
+        {{ range site.Taxonomies.categories.ByCount }}
+          <a class="stats-cat-chip" href="{{ .Page.RelPermalink }}">
+            {{ .Page.Title }}
+            <span class="stats-cat-count">{{ .Count }}</span>
+          </a>
+        {{ else }}
+          <p class="empty-tip">还没有分类。</p>
+        {{ end }}
+      </div>
+    </section>
+  {{ end }}
+</section>
 
-    <div class="run-month-panels">
-      {{ range $k := $revKeys }}
-        {{- $mv := index $runMonths $k | default (dict "km" 0.0 "count" 0 "runs" slice) -}}
-        {{- $mruns := index $mv "runs" -}}
-        <div class="run-month-panel {{ if eq $k $defaultMonth }}is-active{{ end }}" data-month="{{ $k }}">
-          {{ if $mruns }}
-            <div class="run-table-wrap">
-              <table class="run-table">
-                <thead>
-                  <tr>
-                    <th>日期</th>
-                    <th>距离</th>
-                    <th>用时</th>
-                    <th>配速</th>
-                    <th>平均心率</th>
-                    <th>消耗</th>
-                  </tr>
-                </thead>
-                <tbody>
-                {{ range $mruns }}
-                  {{- $d := int .duration_s -}}
-                  {{- $dur := printf "%d:%02d" (div $d 60) (mod $d 60) -}}
-                  {{- if ge $d 3600 }}{{ $dur = printf "%d:%02d:%02d" (div $d 3600) (mod (div $d 60) 60) (mod $d 60) }}{{ end -}}
-                  {{- $pace := "—" -}}
-                  {{- if and .distance_km .duration_s -}}
-                    {{- $spk := int (math.Round (div (float .duration_s) (float .distance_km))) -}}
-                    {{- $pace = printf "%d:%02d" (div $spk 60) (mod $spk 60) -}}
-                  {{- end -}}
-                  <tr>
-                    <td class="run-date">{{ .date }}</td>
-                    <td>{{ lang.FormatNumber 2 .distance_km }} 公里</td>
-                    <td>{{ $dur }}</td>
-                    <td>{{ $pace }}</td>
-                    <td>{{ with .avg_hr }}{{ . }}{{ else }}—{{ end }}</td>
-                    <td>{{ with .calories }}{{ . }} kcal{{ else }}—{{ end }}</td>
-                  </tr>
-                {{ end }}
-                </tbody>
-              </table>
-            </div>
-          {{ else }}
-            <p class="empty-tip">这个月没有跑步记录。</p>
-          {{ end }}
-        </div>
-      {{ end }}
+{{ if $runs }}
+<section class="data-panel data-panel-runs">
+  <header class="data-panel-head">
+    <span class="data-panel-icon" aria-hidden="true">🏃</span>
+    <div>
+      <h2 class="data-panel-title">跑步数据</h2>
+      <p class="data-panel-desc">{{ if $updated }}更新于 {{ dateFormat "2006-01-02 15:04" (time.AsTime $updated) }} · {{ end }}来自 Garmin Connect</p>
+    </div>
+  </header>
+
+  <section class="stats-cards" aria-label="跑步总览">
+    <div class="stat-card">
+      <span class="stat-num">{{ lang.FormatNumber 0 $runCount }}</span>
+      <span class="stat-label">累计次数</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ lang.FormatNumber 1 $runKm }}</span>
+      <span class="stat-label">累计公里</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ lang.FormatNumber 1 $monthRunKm }}</span>
+      <span class="stat-label">本月公里</span>
     </div>
   </section>
 
-  <script>
-  (function () {
-    "use strict";
-    function init() {
-      var nav = document.getElementById("run-month-nav");
-      if (!nav) return;
-      var prev = document.getElementById("run-month-prev");
-      var next = document.getElementById("run-month-next");
-      var label = document.getElementById("run-month-current");
-      var bars = Array.prototype.slice.call(document.querySelectorAll(".run-month-bar"));
-      var panels = Array.prototype.slice.call(document.querySelectorAll(".run-month-panel"));
-      var order = panels.map(function (p) { return p.getAttribute("data-month"); });
-      var active = document.querySelector(".run-month-panel.is-active");
-      var current = active ? active.getAttribute("data-month") : null;
+  <div class="chart-block">
+    <p class="chart-caption" id="run-chart-caption">最近 12 个月</p>
+    <div class="bar-chart month-chart" id="run-chart" role="group" aria-label="每月跑步距离">
+      {{ range $k := $runSeq }}
+        {{- $kmv := (index $runMonths $k | default (dict "km" 0.0)).km -}}
+        {{- $disp := lang.FormatNumber 0 (math.Round $kmv) -}}
+        {{- $h := 0 -}}
+        {{- if gt $runMax 0.0 }}{{ $h = math.Round (mul 100.0 (div $kmv $runMax)) }}{{ end -}}
+        {{- $mnum := int ((index (split $k "-") 1) | strings.TrimPrefix "0") -}}
+        <button type="button" class="bar-col month-bar {{ if eq $k $defaultMonth }}is-active{{ end }} {{ if eq $kmv 0.0 }}is-zero{{ end }}" data-month="{{ $k }}" data-value="{{ $kmv }}" title="{{ $k }} · {{ lang.FormatNumber 2 $kmv }} 公里">
+          <span class="bar-track"><span class="bar" style="height: {{ $h }}%">{{ if gt $kmv 0.0 }}<span class="bar-value">{{ $disp }}</span>{{ end }}</span></span>
+          <span class="bar-label">{{ $mnum }}月</span>
+        </button>
+      {{ end }}
+    </div>
+    <div class="chart-nav">
+      <button type="button" class="data-nav-btn" id="run-chart-prev">‹ 更早</button>
+      <button type="button" class="data-nav-btn" id="run-chart-next">更新 ›</button>
+    </div>
+  </div>
 
-      function fmt(key) {
-        var p = key.split("-");
-        return p[0] + "年" + parseInt(p[1], 10) + "月";
-      }
-      function show(key) {
-        var i = order.indexOf(key);
-        if (i < 0) return;
-        current = key;
-        panels.forEach(function (p) {
-          p.classList.toggle("is-active", p.getAttribute("data-month") === key);
-        });
-        bars.forEach(function (b) {
-          b.classList.toggle("is-active", b.getAttribute("data-month") === key);
-        });
-        if (label) label.textContent = fmt(key);
-        if (prev) prev.disabled = i >= order.length - 1;
-        if (next) next.disabled = i <= 0;
-      }
-      function bind(el, handler) {
-        if (el && !el.dataset.bound) {
-          el.dataset.bound = "1";
-          el.addEventListener("click", handler);
-        }
-      }
-      bind(prev, function () {
-        var i = order.indexOf(current);
-        if (i < order.length - 1) show(order[i + 1]);
-      });
-      bind(next, function () {
-        var i = order.indexOf(current);
-        if (i > 0) show(order[i - 1]);
-      });
-      bars.forEach(function (b) {
-        bind(b, function () { show(b.getAttribute("data-month")); });
-      });
-      if (current) show(current);
-    }
-    if (!window.__runMonthNavBound) {
-      window.__runMonthNavBound = true;
-      document.addEventListener("pjax:complete", init);
-    }
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", init);
-    } else {
-      init();
-    }
-  })();
-  </script>
-{{- end -}}
+  <div class="run-month-nav" id="run-month-nav">
+    <button type="button" class="data-nav-btn" id="run-month-prev" aria-label="上一月">‹ 上一月</button>
+    {{- $defParts := split $defaultMonth "-" -}}
+    <span class="run-month-current" id="run-month-current">{{ printf "%s年%d月" (index $defParts 0) (int ((index $defParts 1) | strings.TrimPrefix "0")) }}</span>
+    <button type="button" class="data-nav-btn" id="run-month-next" aria-label="下一月">下一月 ›</button>
+  </div>
 
-<section class="stats-cats">
-  <h2 class="stats-section-title">话题分布</h2>
-  <div class="stats-cat-chips">
-    {{ range site.Taxonomies.categories.ByCount }}
-      <a class="stats-cat-chip" href="{{ .Page.RelPermalink }}">
-        {{ .Page.Title }}
-        <span class="stats-cat-count">{{ .Count }}</span>
-      </a>
-    {{ else }}
-      <p class="empty-tip">还没有分类。</p>
+  <div class="run-month-panels">
+    {{ range $k := $revKeys }}
+      {{- $mv := index $runMonths $k | default (dict "km" 0.0 "count" 0 "runs" slice) -}}
+      {{- $mruns := index $mv "runs" -}}
+      <div class="run-month-panel {{ if eq $k $defaultMonth }}is-active{{ end }}" data-month="{{ $k }}">
+        {{ if $mruns }}
+          <div class="run-table-wrap">
+            <table class="run-table">
+              <thead>
+                <tr>
+                  <th>日期</th>
+                  <th>距离</th>
+                  <th>用时</th>
+                  <th>配速</th>
+                  <th>平均心率</th>
+                  <th>消耗</th>
+                </tr>
+              </thead>
+              <tbody>
+              {{ range $mruns }}
+                {{- $d := int .duration_s -}}
+                {{- $dur := printf "%d:%02d" (div $d 60) (mod $d 60) -}}
+                {{- if ge $d 3600 }}{{ $dur = printf "%d:%02d:%02d" (div $d 3600) (mod (div $d 60) 60) (mod $d 60) }}{{ end -}}
+                {{- $pace := "—" -}}
+                {{- if and .distance_km .duration_s -}}
+                  {{- $spk := int (math.Round (div (float .duration_s) (float .distance_km))) -}}
+                  {{- $pace = printf "%d:%02d" (div $spk 60) (mod $spk 60) -}}
+                {{- end -}}
+                <tr>
+                  <td class="run-date">{{ .date }}</td>
+                  <td>{{ lang.FormatNumber 2 .distance_km }} 公里</td>
+                  <td>{{ $dur }}</td>
+                  <td>{{ $pace }}</td>
+                  <td>{{ with .avg_hr }}{{ . }}{{ else }}—{{ end }}</td>
+                  <td>{{ with .calories }}{{ . }} kcal{{ else }}—{{ end }}</td>
+                </tr>
+              {{ end }}
+              </tbody>
+            </table>
+          </div>
+        {{ else }}
+          <p class="empty-tip">这个月没有跑步记录。</p>
+        {{ end }}
+      </div>
     {{ end }}
   </div>
 </section>
 {{ end }}
+
+<script>
+(function () {
+  "use strict";
+  function fmtMonth(key) {
+    var p = key.split("-");
+    return p[0] + "年" + parseInt(p[1], 10) + "月";
+  }
+  function bind(el, fn) {
+    if (el && !el.dataset.bound) {
+      el.dataset.bound = "1";
+      el.addEventListener("click", fn);
+    }
+  }
+
+  function initPagedChart(bars, prev, next, caption) {
+    var size = 12;
+    var start = Math.max(0, bars.length - size);
+    function maxInWindow(from, to) {
+      var mx = 0;
+      for (var i = from; i < to; i++) {
+        var v = parseFloat(bars[i].getAttribute("data-value")) || 0;
+        if (v > mx) mx = v;
+      }
+      return mx;
+    }
+    function render() {
+      var end = Math.min(bars.length, start + size);
+      var mx = maxInWindow(start, end);
+      for (var i = 0; i < bars.length; i++) {
+        var vis = i >= start && i < end;
+        bars[i].style.display = vis ? "" : "none";
+        if (vis) {
+          var v = parseFloat(bars[i].getAttribute("data-value")) || 0;
+          var h = mx > 0 ? Math.round((v / mx) * 100) : 0;
+          var bar = bars[i].querySelector(".bar");
+          if (bar) bar.style.height = h + "%";
+        }
+      }
+      if (prev) prev.disabled = start <= 0;
+      if (next) next.disabled = start >= bars.length - size;
+      if (caption && bars.length) {
+        caption.textContent = fmtMonth(bars[start].getAttribute("data-month")) + " — " + fmtMonth(bars[end - 1].getAttribute("data-month"));
+      }
+    }
+    function ensureVisible(key) {
+      var idx = -1;
+      for (var i = 0; i < bars.length; i++) {
+        if (bars[i].getAttribute("data-month") === key) { idx = i; break; }
+      }
+      if (idx < 0) return;
+      if (idx < start) start = idx;
+      else if (idx >= start + size) start = Math.min(bars.length - size, idx - size + 1);
+      render();
+    }
+    function page(dir) {
+      var ns = start + dir * size;
+      if (ns < 0) ns = 0;
+      if (ns > bars.length - size) ns = bars.length - size;
+      if (ns !== start) { start = ns; render(); }
+    }
+    bind(prev, function () { page(-1); });
+    bind(next, function () { page(1); });
+    render();
+    return { ensureVisible: ensureVisible };
+  }
+
+  function init() {
+    var postsChart = document.getElementById("posts-chart");
+    var postsBars = postsChart ? Array.prototype.slice.call(postsChart.querySelectorAll(".month-bar")) : [];
+    var postsChartObj = postsBars.length ? initPagedChart(
+      postsBars,
+      document.getElementById("posts-chart-prev"),
+      document.getElementById("posts-chart-next"),
+      document.getElementById("posts-chart-caption")
+    ) : null;
+
+    var runChart = document.getElementById("run-chart");
+    var runBars = runChart ? Array.prototype.slice.call(runChart.querySelectorAll(".month-bar")) : [];
+    var runChartObj = runBars.length ? initPagedChart(
+      runBars,
+      document.getElementById("run-chart-prev"),
+      document.getElementById("run-chart-next"),
+      document.getElementById("run-chart-caption")
+    ) : null;
+
+    var nav = document.getElementById("run-month-nav");
+    if (nav && runChartObj) {
+      var prev = document.getElementById("run-month-prev");
+      var next = document.getElementById("run-month-next");
+      var label = document.getElementById("run-month-current");
+      var panels = Array.prototype.slice.call(document.querySelectorAll(".run-month-panel"));
+      var order = panels.map(function (p) { return p.getAttribute("data-month"); });
+      var active = document.querySelector(".run-month-panel.is-active");
+      var current = active ? active.getAttribute("data-month") : null;
+      function showMonth(key) {
+        var i = order.indexOf(key);
+        if (i < 0) return;
+        current = key;
+        panels.forEach(function (p) { p.classList.toggle("is-active", p.getAttribute("data-month") === key); });
+        runBars.forEach(function (b) { b.classList.toggle("is-active", b.getAttribute("data-month") === key); });
+        if (label) label.textContent = fmtMonth(key);
+        if (prev) prev.disabled = i >= order.length - 1;
+        if (next) next.disabled = i <= 0;
+        if (runChartObj) runChartObj.ensureVisible(key);
+      }
+      bind(prev, function () { var i = order.indexOf(current); if (i < order.length - 1) showMonth(order[i + 1]); });
+      bind(next, function () { var i = order.indexOf(current); if (i > 0) showMonth(order[i - 1]); });
+      runBars.forEach(function (b) { bind(b, function () { showMonth(b.getAttribute("data-month")); }); });
+      if (current) showMonth(current);
+    }
+  }
+
+  if (!window.__dataPageBound) {
+    window.__dataPageBound = true;
+    document.addEventListener("pjax:complete", init);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
 {{ end }}

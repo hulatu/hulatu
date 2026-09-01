@@ -1891,15 +1891,180 @@ body.toc-open { overflow: hidden; }
   .stats-cards { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ---------- 跑步数据 ---------- */
-.run-summary {
-  margin: 1rem 0 1.8rem;
+/* ---------- 数据面板（文章数据 / 跑步数据） ---------- */
+.data-panel {
+  --panel-accent: var(--accent);
+  --panel-accent-ink: var(--accent-ink);
+  margin-top: 2.2rem;
+  padding: 1.4rem 1.5rem 1.6rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.data-panel-runs {
+  --panel-accent: #2e9e6b;
+  --panel-accent-ink: #1d6b47;
+}
+
+[data-theme="dark"] .data-panel-runs {
+  --panel-accent: #3fc07f;
+  --panel-accent-ink: #1f7a4c;
+}
+
+.data-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.data-panel-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  font-size: 1.15rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel-accent) 12%, transparent);
+}
+
+.data-panel-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+}
+
+.data-panel-desc {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.data-panel .stats-cards {
+  margin: 0 0 1.8rem;
+}
+
+.data-panel .stats-section-title {
+  margin-top: 2rem;
+}
+
+/* 月度柱状图 */
+.month-chart .month-bar {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.month-bar .bar {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 20px;
+  background: linear-gradient(180deg, var(--panel-accent), var(--panel-accent-ink));
+  border-radius: 4px 4px 0 0;
+}
+
+.month-bar.is-zero .bar {
+  min-height: 2px;
+  background: transparent;
+}
+
+.bar-value {
+  padding-top: 3px;
+  font-size: 0.6rem;
+  line-height: 1.2;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.95;
+}
+
+.month-bar.is-active .bar {
+  filter: brightness(1.25);
+}
+
+.month-bar.is-active .bar-label {
+  color: var(--panel-accent);
+  font-weight: 700;
+}
+
+.chart-block {
+  margin-top: 1.4rem;
+}
+
+.chart-caption {
+  margin: 0 0 0.3rem;
+  text-align: right;
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-nav {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1.1rem;
+}
+
+.data-nav-btn {
+  padding: 0.35em 1.1em;
+  font-size: 0.82rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.data-nav-btn:hover:not(:disabled) {
+  color: var(--panel-accent);
+  border-color: color-mix(in srgb, var(--panel-accent) 45%, var(--line));
+}
+
+.data-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 跑步月度切换与明细表 */
+.run-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.4rem 0 1rem;
+}
+
+.run-month-current {
+  min-width: 8em;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--panel-accent);
+}
+
+.run-month-panel {
+  display: none;
+}
+
+.run-month-panel.is-active {
+  display: block;
 }
 
 .run-table-wrap {
   margin-top: 0.9rem;
   overflow-x: auto;
-  background: var(--surface);
+  background: var(--paper);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
 }
@@ -1939,123 +2104,11 @@ body.toc-open { overflow: hidden; }
 }
 
 .run-table tbody tr:hover td {
-  background: var(--paper);
+  background: var(--surface);
 }
 
 .run-date {
   color: var(--muted);
-}
-
-.run-month-chart .run-month-bar {
-  appearance: none;
-  border: 0;
-  padding: 0;
-  background: none;
-  font: inherit;
-  cursor: pointer;
-}
-
-.run-month-chart {
-  flex-direction: column;
-  gap: 0;
-  height: auto;
-}
-
-.run-month-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.run-month-group + .run-month-group {
-  margin-top: 1.1rem;
-}
-
-.run-month-group-label {
-  margin-bottom: 0.35rem;
-  text-align: center;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-}
-
-.run-month-group-bars {
-  display: flex;
-  gap: 5px;
-  height: 150px;
-}
-
-.run-month-bar .bar {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  min-height: 20px;
-}
-
-.run-month-bar.is-zero .bar {
-  min-height: 2px;
-}
-
-.bar-value {
-  padding-top: 3px;
-  font-size: 0.6rem;
-  line-height: 1.2;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  opacity: 0.95;
-}
-
-.run-month-bar.is-active .bar {
-  filter: brightness(1.25);
-}
-
-.run-month-bar.is-active .bar-label {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.run-month-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin: 1.2rem 0 1.4rem;
-}
-
-.run-month-btn {
-  padding: 0.35em 1.1em;
-  font-size: 0.82rem;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-
-.run-month-btn:hover:not(:disabled) {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-}
-
-.run-month-btn:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.run-month-current {
-  min-width: 8em;
-  text-align: center;
-  font-family: var(--font-serif);
-  font-size: 1.05rem;
-}
-
-.run-month-panel {
-  display: none;
-}
-
-.run-month-panel.is-active {
-  display: block;
 }
 
 .giscus-wrap {
