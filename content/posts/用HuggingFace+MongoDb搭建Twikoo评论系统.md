@@ -1,6 +1,6 @@
 ---
 title: 用HuggingFace+MongoDb搭建Twikoo评论系统
-categories: ["工具·数码"]
+categories: ["工具数码"]
 tags: ["Hugo", "Twikoo", "评论系统", "部署"]
 date: 2026-01-26T10:19:41+08:00  
 cover: "https://img.hulatu.com/post/comment-1.webp"

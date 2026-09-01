@@ -1,6 +1,6 @@
 ---
 title: "如何更好的使用 AI 工具" 
-categories: ["工具·数码"]
+categories: ["工具数码"]
 tags: ["AI", "效率", "工具"]
 date: 2026-01-26T09:59:07+08:00      
 cover: "https://img.hulatu.com/post/ai.webp"                  

@@ -1,0 +1,23 @@
+{{- /* 关于页链接组：每行一个链接，自动渲染为分隔的胶囊按钮，无需手打分隔符 */ -}}
+{{- $lines := split (.Inner | strings.TrimSpace) "\n" -}}
+<div class="about-link-group">
+  <ul>
+    {{- range $lines -}}
+      {{- $l := trim . " \t\r\n" -}}
+      {{- if $l -}}
+        {{- $links := findRE `\[[^\]]+\]\([^)]+\)` $l -}}
+        {{- if $links -}}
+          {{- range $links -}}
+            {{- $m1 := index (findRE `\[[^\]]+\]` .) 0 -}}
+            {{- $m2 := index (findRE `\([^)]+\)` .) 0 -}}
+            {{- $label := strings.TrimSuffix "]" (strings.TrimPrefix "[" $m1) -}}
+            {{- $url := strings.TrimSuffix ")" (strings.TrimPrefix "(" $m2) -}}
+            <li><a href="{{ $url }}"{{ if hasPrefix $url "http" }} target="_blank" rel="noopener"{{ end }}>{{ $label }}</a></li>
+          {{- end -}}
+        {{- else -}}
+          <li>{{ $l | markdownify }}</li>
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  </ul>
+</div>
