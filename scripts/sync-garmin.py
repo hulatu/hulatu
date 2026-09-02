@@ -2,14 +2,14 @@
 """从 Garmin Connect 同步跑步记录到 data/runs.json。
 
 本地使用：
-    pip install --upgrade garminconnect
-    GARMIN_EMAIL=你的邮箱 GARMIN_PASSWORD=你的密码 python3 scripts/sync-garmin.py
+    ./publish.sh   # 自动用本机令牌同步并提交推送
+    或直接：python3 scripts/sync-garmin.py
 
-推荐方式（避免 GitHub 机房 IP 被 Garmin 限流）：
-    先按 scripts/garmin-token.py 的说明生成令牌，把输出的长字符串存为
-    GitHub Secret：GARMINTOKENS。定时任务会优先用令牌登录。
+本机令牌由 scripts/garmin-token.py 生成，保存在 ~/.garminconnect/garmin_tokens.json，
+存在时优先使用，不需要每次输账号密码。
 
-GitHub Actions 会定时自动执行（见 .github/workflows/sync-garmin.yml）。
+也可把 garmin-token.py 打印的长字符串存为 GitHub Secret：GARMINTOKENS，
+手动触发 GitHub Actions 同步（见 .github/workflows/sync-garmin.yml）。
 
 环境变量：
     GARMIN_EMAIL      Garmin 账号邮箱（必填）
@@ -77,8 +77,22 @@ def main() -> None:
     email = os.environ.get("GARMIN_EMAIL", "").strip()
     password = os.environ.get("GARMIN_PASSWORD", "")
     is_cn = os.environ.get("GARMIN_REGION", "").strip().lower() == "cn"
-    if not tokens and (not email or not password):
-        sys.exit("缺少登录信息：请设置 GARMIN_EMAIL + GARMIN_PASSWORD，或设置 GARMINTOKENS 令牌（推荐）。")
+
+    # 本机令牌：garmin-token.py 生成后保存在 ~/.garminconnect/garmin_tokens.json，
+    # 存在时优先使用；令牌里的 prod-cn 标记说明是中国区账号（garmin.cn）。
+    local_tokenstore = Path.home() / ".garminconnect"
+    local_token_file = local_tokenstore / "garmin_tokens.json"
+    use_local_store = local_token_file.is_file()
+    if use_local_store:
+        try:
+            if "prod-cn" in local_token_file.read_text(encoding="utf-8"):
+                is_cn = True
+        except OSError:
+            pass
+
+    if not use_local_store and not tokens and (not email or not password):
+        sys.exit("缺少登录信息：请先运行 python3 scripts/garmin-token.py 生成本机令牌，"
+                 "或设置 GARMIN_EMAIL + GARMIN_PASSWORD / GARMINTOKENS。")
     if tokens and len(tokens) < 100:
         print("警告：GARMINTOKENS 看起来不完整（正常令牌是很长的一串），将回退到账号密码登录。")
 
@@ -111,7 +125,11 @@ def main() -> None:
             prompt_mfa=mfa_code,
             is_cn=is_cn,
         )
-        if tokens:
+        if use_local_store:
+            # 直接用本机令牌，避免输密码 / 两步验证
+            print("使用本机令牌登录（~/.garminconnect）……")
+            client.login(str(local_tokenstore))
+        elif tokens:
             # 有令牌时直接用令牌登录，避免每次从数据中心 IP 输密码被限流
             print("使用 GARMINTOKENS 令牌登录……")
             client.login(tokens)
