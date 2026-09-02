@@ -50,7 +50,7 @@ hugo server -D
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
 | 数据页（文章数据 + 跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（手动运行 `./publish.sh` 同步） |
-| 手动提交发布 | `./publish.sh`：同步跑步数据 → git pull → 提交全部改动 → 推送 GitHub（已取消每日定时任务） |
+| 手动提交发布 | 终端输入 `up`：同步跑步数据 → git pull → 提交全部改动 → 推送 GitHub → hugo 构建 → 部署 Cloudflare（已取消每日定时任务） |
 | 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
 | 深浅色 | `assets/js/theme.js` + `assets/css/style.css` 的 `[data-theme="dark"]` |
@@ -84,10 +84,10 @@ hugo server -D
 已取消每日定时任务（GitHub Actions 定时拉取 + 本机 LaunchAgent 自动提交）。现在全部手动：
 
 ```bash
-cd ~/Blog && ./publish.sh   # 以后在同一终端按 ↑ 即可重复
+up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
 ```
 
-`publish.sh` 一次完成：同步跑步数据（失败不阻断）→ `git pull` → 提交全部本地改动 → 推送 GitHub。托管平台会在 push 后自动重新构建。
+`up` 一次完成：同步跑步数据（失败不阻断）→ `git pull` → 提交全部本地改动 → 推送 GitHub → hugo 构建 → 推送到 Cloudflare。核心步骤在 `publish.sh`。
 
 首次配置：
 
@@ -105,10 +105,10 @@ GARMIN_EMAIL=你的邮箱 GARMIN_PASSWORD=你的密码 python3 scripts/garmin-to
 跑完步想立刻更新：
 
 ```bash
-cd ~/Blog && ./publish.sh
+up
 ```
 
-说明：`publish.sh` 优先用本机令牌（`~/.garminconnect/garmin_tokens.json`）同步跑步数据，令牌过期时先重跑 `python3 scripts/garmin-token.py`。脚本默认只同步跑步（`running`），想加其他运动类型用环境变量 `GARMIN_TYPES=running,cycling`。garminconnect 是非官方接口，Garmin 改版后若失效，留意同步时的报错并按提示调整。
+说明：`up` / `publish.sh` 优先用本机令牌（`~/.garminconnect/garmin_tokens.json`）同步跑步数据，令牌过期时先重跑 `python3 scripts/garmin-token.py`。脚本默认只同步跑步（`running`），想加其他运动类型用环境变量 `GARMIN_TYPES=running,cycling`。garminconnect 是非官方接口，Garmin 改版后若失效，留意同步时的报错并按提示调整。
 
 ## 三、部署与托管
 

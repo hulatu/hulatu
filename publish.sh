@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # 手动发布博客：同步 Garmin 跑步数据 → git pull → 提交全部改动 → 推送 GitHub
 # 用法：
-#   cd ~/Blog && ./publish.sh
-# 之后在同一终端按 ↑ 即可重复执行（新文章、新修改、跑步数据一次搞定）。
+#   在终端输入 up（已配置到 ~/.config/zsh/.zshrc，先跑本脚本，再构建并部署 Cloudflare）
+#   也可以直接：cd ~/Blog && ./publish.sh
 set -uo pipefail
 
 cd "$(dirname "$0")" || exit 1
