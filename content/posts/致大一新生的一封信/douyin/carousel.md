@@ -1,3 +1,9 @@
+---
+build:
+  render: never
+  list: never
+---
+
 # 《致大一新生的一封信》抖音图文脚本
 
 来源：[hulatu.com/posts/2026/08/29/a-letter-to-freshmen-in-university](https://hulatu.com/posts/2026/08/29/a-letter-to-freshmen-in-university/) · 共 8 页
