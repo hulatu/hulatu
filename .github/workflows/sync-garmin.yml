@@ -1,9 +1,6 @@
-name: 同步 Garmin 跑步数据
+name: 同步 Garmin 跑步数据（手动触发）
 
 on:
-  schedule:
-    # 每 24 小时检查一次新记录（每天晚上 10 点）
-    - cron: "0 22 * * *"
   workflow_dispatch:
 
 permissions:

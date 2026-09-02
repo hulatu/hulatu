@@ -49,8 +49,8 @@ hugo server -D
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
-| 数据页（文章数据 + 跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（由 GitHub Actions 自动同步） |
-| 自动提交（每晚 22:30） | 脚本 `scripts/auto-commit.sh`；定时任务 `scripts/com.hulatuo.blog-auto-commit.plist`（已安装到 `~/Library/LaunchAgents/`） |
+| 数据页（文章数据 + 跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（手动运行 `./publish.sh` 同步） |
+| 手动提交发布 | `./publish.sh`：同步跑步数据 → git pull → 提交全部改动 → 推送 GitHub（已取消每日定时任务） |
 | 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
 | 深浅色 | `assets/js/theme.js` + `assets/css/style.css` 的 `[data-theme="dark"]` |
@@ -79,13 +79,19 @@ hugo server -D
 
 ### 跑步数据
 
-跑步数据展示在「数据」页（`/stats/`）。数据链路：Garmin 255 同步到 Garmin Connect → GitHub Actions 定时拉取（`.github/workflows/sync-garmin.yml`，默认每天晚上 10 点一次）→ 合并写入 `data/runs.json` → 构建时在数据页生成跑步总览、月度柱状图和最近记录。
+跑步数据展示在「数据」页（`/stats/`）。数据链路：Garmin 255 同步到 Garmin Connect → 在本地手动拉取（`./publish.sh` 或 `python3 scripts/sync-garmin.py`）→ 合并写入 `data/runs.json` → 提交推送 → 托管平台构建时生成跑步总览、月度柱状图和最近记录。
 
-每晚 22:30 还有一个本机 LaunchAgent（`com.hulatuo.blog-auto-commit`）会自动执行 `scripts/auto-commit.sh`：先 `git pull` 把 22:00 同步的跑步数据拉到本地，再 `git add -A` 完整提交所有本地改动并推送到 GitHub。日志在 `~/.blog-auto-commit.log`。想停用：`launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.hulatuo.blog-auto-commit.plist` 后删除该 plist 文件即可。
+已取消每日定时任务（GitHub Actions 定时拉取 + 本机 LaunchAgent 自动提交）。现在全部手动：
+
+```bash
+cd ~/Blog && ./publish.sh   # 以后在同一终端按 ↑ 即可重复
+```
+
+`publish.sh` 一次完成：同步跑步数据（失败不阻断）→ `git pull` → 提交全部本地改动 → 推送 GitHub。托管平台会在 push 后自动重新构建。
 
 首次配置：
 
-推荐方式（令牌）：GitHub 的机房 IP 经常被 Garmin 限流（报 `429 rate limited`），直接填密码不稳定。先在本机生成一次登录令牌：
+推荐方式（令牌）：先在本机生成一次登录令牌（会同时保存在 `~/.garminconnect/garmin_tokens.json`，本地手动同步直接复用；把打印出的长字符串存为 GitHub Secret `GARMINTOKENS`，可手动触发 GitHub Actions 同步）：
 
 ```bash
 pip install --upgrade garminconnect
@@ -96,15 +102,13 @@ GARMIN_EMAIL=你的邮箱 GARMIN_PASSWORD=你的密码 python3 scripts/garmin-to
 
 备选方式（密码）：在 Secrets 里添加 `GARMIN_EMAIL` 和 `GARMIN_PASSWORD`。如果 Garmin 账号开了两步验证，还需要 `GARMIN_MFA_CODE`（验证码每次会变，不适合自动同步，建议关闭两步验证或改用令牌方式）。
 
-跑完步想立刻更新（不想等定时任务）：
+跑完步想立刻更新：
 
 ```bash
-pip install --upgrade garminconnect
-GARMIN_EMAIL=你的邮箱 GARMIN_PASSWORD=你的密码 python3 scripts/sync-garmin.py
-./deploy.sh
+cd ~/Blog && ./publish.sh
 ```
 
-说明：脚本默认只同步跑步（`running`），想加其他运动类型用环境变量 `GARMIN_TYPES=running,cycling`。garminconnect 是非官方接口，Garmin 改版后若失效，留意 GitHub Actions 的运行日志并按提示调整。
+说明：`publish.sh` 优先用本机令牌（`~/.garminconnect/garmin_tokens.json`）同步跑步数据，令牌过期时先重跑 `python3 scripts/garmin-token.py`。脚本默认只同步跑步（`running`），想加其他运动类型用环境变量 `GARMIN_TYPES=running,cycling`。garminconnect 是非官方接口，Garmin 改版后若失效，留意同步时的报错并按提示调整。
 
 ## 三、部署与托管
 
