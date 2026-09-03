@@ -2647,30 +2647,68 @@ body.toc-open { overflow: hidden; }
   border-top: 0;
 }
 
-/* 关于页：链接组自动渲染为胶囊按钮（每行一个链接，自动隔开） */
+/* 关于页：链接组 = 通联簿行（发丝分隔 + 朱笔眉批悬停），不再用胶囊按钮 */
 .about-link-group ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  padding: 0;
-  margin: 0.5rem 0 0;
   list-style: none;
+  margin: 0.6rem 0 0.4rem;
+  padding: 0;
+}
+
+.about-link-group li {
+  position: relative;
+  padding-left: 1.2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.about-link-group li::before {
+  content: "";
+  position: absolute;
+  left: 0.05rem;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: top;
+  opacity: 0.9;
+  transition: transform 0.18s ease;
+}
+
+.about-link-group li:hover::before,
+.about-link-group li:focus-within::before {
+  transform: scaleY(1);
 }
 
 .about-link-group a {
-  display: inline-block;
-  padding: 0.35em 1.05em;
-  font-size: 0.85rem;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.58rem 0.1rem;
+  font-size: 0.94rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.about-link-group a[target="_blank"]::after {
+  content: none;
 }
 
 .about-link-group a:hover {
   color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.about-link-arrow {
+  color: var(--muted);
+  font-size: 0.78rem;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.about-link-group a:hover .about-link-arrow {
+  color: var(--accent);
+  transform: translate(2px, -2px);
 }
 
 /* ---------- 留言页 ---------- */
