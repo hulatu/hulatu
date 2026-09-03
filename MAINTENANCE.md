@@ -50,7 +50,7 @@ hugo server -D
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
 | 数据页（文章数据 + 跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（手动运行 `./publish.sh` 同步） |
-| 手动提交发布 | 终端输入 `up`：同步跑步数据 → git pull → 提交全部改动 → 推送 GitHub → hugo 构建 → 部署 Cloudflare（已取消每日定时任务） |
+| 手动提交发布 | 终端输入 `up`：先提交本地改动 → git pull → 同步跑步数据（失败不阻断）→ 推送 GitHub → hugo 构建 → 部署 Cloudflare（已取消每日定时任务） |
 | 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
 | 深浅色 | `assets/js/theme.js` + `assets/css/style.css` 的 `[data-theme="dark"]` |
@@ -87,7 +87,7 @@ hugo server -D
 up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
 ```
 
-`up` 一次完成：同步跑步数据（失败不阻断）→ `git pull` → 提交全部本地改动 → 推送 GitHub → hugo 构建 → 推送到 Cloudflare。核心步骤在 `publish.sh`。
+`up` 一次完成：先提交本地改动（不依赖网络）→ `git pull` → 同步跑步数据（失败不阻断）→ 推送 GitHub → hugo 构建 → 推送到 Cloudflare。核心步骤在 `publish.sh`。即使网络或 Garmin 出问题，新文章也已先落入本地 commit，不会一直停留在未提交状态。
 
 首次配置：
 
