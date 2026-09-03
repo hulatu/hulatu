@@ -23,3 +23,6 @@ __pycache__/
 
 # 日志
 *.log
+
+# 抖音图文中间产物（hulatu-carousel 输出已改到 ~/Downloads，防止误入库）
+content/**/douyin/
