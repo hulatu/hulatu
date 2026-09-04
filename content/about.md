@@ -50,9 +50,11 @@ layout: "about"
 {{< about-links >}}
 [博友圈](https://www.boyouquan.com)
 [笔墨迹](https://blogscn.fun/)
+[博客集](https://bloginc.cn/)
 [十年之约](https://www.foreverblog.cn)
 [iblogroll](https://iblogroll.com/blog/125)
 [BlogsClub](https://www.blogsclub.org/)
 [博客大联盟](https://bo.ke/tags/blog/?sort=weight)
 [中文博客琅琊榜](https://github.com/qianguyihao/blog-list/tree/main)
 {{< /about-links >}}
+
