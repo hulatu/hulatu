@@ -87,7 +87,7 @@ hugo server -D
 up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
 ```
 
-`up` 一次完成：先提交本地改动（不依赖网络）→ `git pull` → 同步跑步数据（失败不阻断）→ 推送 GitHub → hugo 构建 → 推送到 Cloudflare。核心步骤在 `publish.sh`。即使网络或 Garmin 出问题，新文章也已先落入本地 commit，不会一直停留在未提交状态。
+`up` 一次完成：`git status` 查看改动 → 提交本地改动（commit 信息：博客：新增/修改文章）→ 先推送 GitHub → 同步跑步数据（失败不阻断）→ `git pull --rebase` 拉取远端 → 再完整推送 → hugo 构建 → 推送到 Cloudflare。核心步骤在 `publish.sh`。即使网络或 Garmin 出问题，新文章也已先落入本地 commit，不会一直停留在未提交状态。
 
 首次配置：
 
