@@ -14,7 +14,7 @@
 环境变量：
     GARMIN_EMAIL      Garmin 账号邮箱（必填）
     GARMIN_PASSWORD   Garmin 密码（必填）
-    GARMIN_REGION     可选，cn 表示中国区账号（garmin.cn），默认全球版
+    GARMIN_REGION     可选，cn 表示中国区账号（garmin.cn），不设时自动从令牌识别
     GARMINTOKENS      可选但推荐。登录令牌（scripts/garmin-token.py 生成），优先使用
     GARMIN_MFA_CODE   可选，账号开启两步验证时填当前验证码
     GARMIN_TYPES      可选，要同步的运动类型，逗号分隔，默认 running
@@ -26,11 +26,51 @@ from __future__ import annotations
 import json
 import os
 import sys
+import base64
 from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_FILE = ROOT / "data" / "runs.json"
+
+
+def _token_text_indicates_cn(token_text: str) -> bool:
+    """判断令牌是否属于中国区（garmin.cn）账号。
+
+    garminconnect 0.3.x 的令牌是 JSON，其中 di_token 是 JWT，
+    明文里不再有 prod-cn 字样，需要解码 JWT 的 iss 字段判断。
+    旧格式令牌若直接含 garmin.cn / prod-cn，也能兼容识别。
+    """
+    lowered = token_text.lower()
+    if "garmin.cn" in lowered or "prod-cn" in lowered:
+        return True
+    if "garmin.com" in lowered:
+        return False
+
+    raw = token_text
+    if not raw.lstrip().startswith("{"):
+        # 兼容旧脚本导出的 base64 令牌
+        try:
+            raw = base64.b64decode(raw).decode("utf-8")
+            if "garmin.cn" in raw.lower() or "prod-cn" in raw.lower():
+                return True
+            if "garmin.com" in raw.lower():
+                return False
+        except Exception:
+            return False
+
+    try:
+        data = json.loads(raw)
+        di_token = data.get("di_token") or ""
+        parts = di_token.split(".")
+        if len(parts) >= 2:
+            payload_b64 = parts[1]
+            payload_b64 += "=" * (-len(payload_b64) % 4)
+            payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+            return str(payload.get("iss", "")).endswith("garmin.cn")
+    except Exception:
+        pass
+    return False
 
 
 def load_existing() -> dict:
@@ -76,19 +116,24 @@ def main() -> None:
     tokens = "".join(os.environ.get("GARMINTOKENS", "").split())
     email = os.environ.get("GARMIN_EMAIL", "").strip()
     password = os.environ.get("GARMIN_PASSWORD", "")
-    is_cn = os.environ.get("GARMIN_REGION", "").strip().lower() == "cn"
+    region_env = os.environ.get("GARMIN_REGION", "").strip().lower()
+    # 显式设置 GARMIN_REGION 时以它为准；未设置时从令牌内容自动识别
+    is_cn = region_env == "cn"
 
     # 本机令牌：garmin-token.py 生成后保存在 ~/.garminconnect/garmin_tokens.json，
-    # 存在时优先使用；令牌里的 prod-cn 标记说明是中国区账号（garmin.cn）。
+    # 存在时优先使用；令牌的 iss / 域名会标明是否中国区账号。
     local_tokenstore = Path.home() / ".garminconnect"
     local_token_file = local_tokenstore / "garmin_tokens.json"
     use_local_store = local_token_file.is_file()
-    if use_local_store:
+    if not region_env and use_local_store:
         try:
-            if "prod-cn" in local_token_file.read_text(encoding="utf-8"):
+            if _token_text_indicates_cn(local_token_file.read_text(encoding="utf-8")):
                 is_cn = True
         except OSError:
             pass
+    if not region_env and not use_local_store and tokens:
+        if _token_text_indicates_cn(tokens):
+            is_cn = True
 
     if not use_local_store and not tokens and (not email or not password):
         sys.exit("缺少登录信息：请先运行 python3 scripts/garmin-token.py 生成本机令牌，"

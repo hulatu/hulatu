@@ -8,7 +8,7 @@
 运行后会按提示输入邮箱、密码（密码不显示）。如果账号开了两步验证，
 登录时会再提示输入验证码（看 Garmin 发到邮箱/验证器 App 的 6 位数字）。
 
-执行成功后会把一串很长的 base64 令牌打印出来（形如 eyJvYXV0...），
+执行成功后会把一段 JSON 令牌打印出来（形如 {"di_token":"eyJ..."}），
 把它复制到 GitHub 仓库的 Settings → Secrets and variables → Actions，
 新建一个名为 GARMINTOKENS 的 Secret 粘贴进去即可。
 令牌会同时保存在本机 ~/.garminconnect/garmin_tokens.json。
@@ -17,7 +17,7 @@
 令牌过期后重新跑一次本脚本即可。
 
 环境变量（可选）：
-    GARMIN_REGION     设为 cn 表示中国区账号（garmin.cn），默认全球版
+    GARMIN_REGION     设为 cn 表示中国区账号（garmin.cn），不设时自动识别/询问
     GARMIN_MFA_CODE   两步验证码，不设则登录时交互输入
 """
 
@@ -27,7 +27,26 @@ import base64
 import getpass
 import os
 import sys
+import json
 from pathlib import Path
+
+
+def _token_text_indicates_cn(token_text: str) -> bool:
+    lowered = token_text.lower()
+    if "garmin.cn" in lowered or "prod-cn" in lowered:
+        return True
+    try:
+        data = json.loads(token_text)
+        di_token = data.get("di_token") or ""
+        parts = di_token.split(".")
+        if len(parts) >= 2:
+            payload_b64 = parts[1]
+            payload_b64 += "=" * (-len(payload_b64) % 4)
+            payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+            return str(payload.get("iss", "")).endswith("garmin.cn")
+    except Exception:
+        pass
+    return False
 
 
 def mfa_code() -> str:
@@ -43,6 +62,22 @@ def dump_token(client, token_dir: Path) -> str:
     """尝试多种方式导出令牌字符串。"""
     candidates: list[str] = []
 
+    # garminconnect 0.3.x：底层 client 直接导出 JSON 令牌
+    try:
+        candidates.append(client.client.dumps())
+    except Exception:
+        pass
+
+    # 兜底：读本机 ~/.garminconnect/garmin_tokens.json 的原文
+    if token_dir.is_dir():
+        token_file = token_dir / "garmin_tokens.json"
+        if token_file.is_file():
+            try:
+                candidates.append(token_file.read_text(encoding="utf-8").strip())
+            except OSError:
+                pass
+
+    # 旧版 garth 令牌
     try:
         import garth
 
@@ -55,7 +90,7 @@ def dump_token(client, token_dir: Path) -> str:
     except Exception:
         pass
 
-    # 新版 garminconnect（0.2.40+）把令牌存成 ~/.garminconnect/garmin_tokens.json
+    # 最后的兜底：把其他令牌文件 base64 编码（旧格式专用）
     if token_dir.is_dir():
         for f in sorted(token_dir.iterdir()):
             if f.is_file() and ("token" in f.name.lower() or f.name == "garmin_tokens.json"):
@@ -70,8 +105,21 @@ def dump_token(client, token_dir: Path) -> str:
 def main() -> None:
     email = os.environ.get("GARMIN_EMAIL", "").strip()
     password = os.environ.get("GARMIN_PASSWORD", "")
-    is_cn = os.environ.get("GARMIN_REGION", "").strip().lower() == "cn"
+    region_env = os.environ.get("GARMIN_REGION", "").strip().lower()
+    is_cn = region_env == "cn"
     token_dir = Path.home() / ".garminconnect"
+
+    # 没显式指定区域时：已有令牌就按令牌识别，否则询问用户
+    token_file = token_dir / "garmin_tokens.json"
+    if not region_env and token_file.is_file():
+        try:
+            is_cn = _token_text_indicates_cn(token_file.read_text(encoding="utf-8"))
+        except OSError:
+            pass
+    if not region_env and not token_file.is_file():
+        answer = input("Garmin 账号是中国区（garmin.cn）吗？输入 y 或回车默认否: ").strip().lower()
+        is_cn = answer in ("y", "yes")
+
     if not email:
         email = input("Garmin 账号邮箱: ").strip()
     # 容错：去掉手误输入或从命令行复制的反斜杠（\@ 转义残留）
@@ -95,7 +143,7 @@ def main() -> None:
     token = dump_token(client, token_dir)
     print(token)
     print()
-    print("把上面这一整串复制到 GitHub Secret：GARMINTOKENS")
+    print("把上面这一整段 JSON 复制到 GitHub Secret：GARMINTOKENS")
 
 
 if __name__ == "__main__":
