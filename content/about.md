@@ -24,12 +24,15 @@ layout: "about"
 - **周刊专线**（RSS 2.0，仅包含周刊内容）：[订阅周刊](https://hulatu.com/weekly/index.xml)
 ## 平台
 {{< about-links >}}
+[即刻](https://web.okjike.com/u/25B20BAD-D356-4801-AC0E-093CD1334AF5)
+[知乎](https://www.zhihu.com/people/hulatu)
 [少数派](https://sspai.com/u/hulatu/updates)
 [小红书](https://www.xiaohongshu.com/user/profile/68a9d4e5000000001a00fcf9)
 [公众号](https://img.hulatu.com/post/bk7UaF.webp)
 {{< /about-links >}}
 
 ## 联系
+
 {{< about-links >}}
 [QQ](https://img.hulatu.com/post/paIl9a.webp)
 [WX](https://img.hulatu.com/post/qbD1Mk.webp)
