@@ -7,7 +7,8 @@ slug: ""
 summary: ""                                      
 cover: ""                          
 coverAlt: ""                                
-categories: []                                                           
+categories: [""]   
+tags: [""]                                                        
 featured: false                                  
 comments: true 
 series: ""                                  

@@ -7,7 +7,8 @@ slug: "Do-one-thing-well"
 summary: "先做好一件事，大部分人生问题都会迎刃而解。"                                      
 cover: "https://img.hulatu.com/post/6U6PuO.webp"                          
 coverAlt: "Do-one-thing-well"                                
-categories: ["思考"]                                                           
+categories: ["思考"] 
+tags: ["摆烂", "无欲", "习惯"]                                                                                                                     
 featured: false                                  
 comments: true 
 series: ""                                  
