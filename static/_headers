@@ -10,8 +10,11 @@
 /media/*
   Cache-Control: public, max-age=2592000, must-revalidate
 
-/favicon.png
-  Cache-Control: public, max-age=604800, must-revalidate
+/favicon*.png
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/favicon.ico
+  Cache-Control: public, max-age=3600, must-revalidate
 
 /apple-touch-icon.png
   Cache-Control: public, max-age=604800, must-revalidate
