@@ -10,8 +10,10 @@
   <link rel="dns-prefetch" href="https://giscus.app">
   <link rel="preconnect" href="https://img.hulatu.com">
   <link rel="dns-prefetch" href="https://img.hulatu.com">
+  <link rel="icon" type="image/x-icon" href="{{ "favicon.ico" | relURL }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ site.Params.assets.favicon16x16 | default "/favicon.png" | relURL }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ site.Params.assets.favicon32x32 | default "/favicon.png" | relURL }}">
+  <link rel="icon" type="image/png" sizes="96x96" href="{{ site.Params.assets.favicon96x96 | default "/favicon.png" | relURL }}">
   <link rel="apple-touch-icon" href="{{ site.Params.assets.apple_touch_icon | default "/favicon.png" | relURL }}">
   <link rel="mask-icon" href="{{ site.Params.assets.safari_pinned_tab | default "/favicon.png" | relURL }}" color="#c73e2f">
   {{- $css := resources.Get "css/style.css" | minify | fingerprint -}}
