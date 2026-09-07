@@ -6,7 +6,7 @@
   {{ range .Params.groups }}
   <section class="tool-group">
     <h2 class="tool-group-title">{{ .name }}</h2>
-    <ul class="tool-list">
+    <ul class="tool-list group-card">
       {{ range .tools }}
       {{- $tool := . -}}
       {{- $post := false -}}

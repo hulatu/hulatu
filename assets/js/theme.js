@@ -6,7 +6,7 @@
 
   function applyTheme(theme) {
     root.setAttribute("data-theme", theme);
-    if (meta) meta.setAttribute("content", theme === "dark" ? "#16181c" : "#c73e2f");
+    if (meta) meta.setAttribute("content", theme === "dark" ? "#0b0b10" : "#f6f6f8");
   }
 
   if (btn) {

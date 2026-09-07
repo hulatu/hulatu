@@ -63,8 +63,9 @@ hugo server -D
 
 ```css
 --accent: #c73e2f;      /* 印章红，全站主色 */
---paper: #f7f6f1;       /* 浅色背景 */
---ink: #27292d;         /* 正文文字 */
+--paper: #f6f6f8;       /* 冷白浅色背景 */
+--surface: #ffffff;     /* 卡片 / 分组列表 */
+--ink: #1d1d1f;         /* 正文文字 */
 --font-serif: ...;      /* 标题字体 */
 ```
 

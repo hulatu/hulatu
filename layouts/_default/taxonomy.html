@@ -1,7 +1,7 @@
 {{ define "main" }}
 {{ if eq .Kind "term" }}
 <h1 class="page-title">{{ .Title }}</h1>
-<section class="minimal-list">
+<section class="minimal-list group-card">
   {{ range .Pages.ByDate.Reverse }}
     <a class="minimal-row" href="{{ .Permalink }}">
       <span class="minimal-title">{{ .Title }}</span>
@@ -11,9 +11,21 @@
     <p class="empty-tip">这里还没有文章。</p>
   {{ end }}
 </section>
+{{ else if eq .Data.Plural "tags" }}
+<h1 class="page-title">{{ .Title }}</h1>
+<section class="tag-cloud" aria-label="全部标签">
+  {{ range site.Taxonomies.tags.ByCount }}
+    <a class="tag-chip" href="{{ .Page.RelPermalink }}">
+      <span class="tag-chip-name"># {{ .Page.Title }}</span>
+      <span class="tag-chip-count" aria-label="{{ .Count }} 篇文章">{{ .Count }}</span>
+    </a>
+  {{ else }}
+    <p class="empty-tip">还没有标签。</p>
+  {{ end }}
+</section>
 {{ else }}
 <h1 class="page-title">{{ .Title }}</h1>
-<section class="category-grid">
+<section class="category-grid group-card">
   {{ range .Pages.ByTitle }}
     <a class="category-card" href="{{ .Permalink }}">
       <span class="category-card-name">{{ .Title }}</span>

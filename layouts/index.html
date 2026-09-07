@@ -68,23 +68,19 @@
     </button>
   </nav>
   {{ if $featured }}
-  <button type="button" class="mode-btn" id="mode-btn" title="显示最新文章" aria-label="切换精选与最新文章">
-    <svg id="mode-icon-latest" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10"></circle>
-      <polyline points="12 6 12 12 16 14"></polyline>
-    </svg>
-    <span class="mode-sep" aria-hidden="true">/</span>
-    <svg id="mode-icon-featured" class="is-active" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-    </svg>
-  </button>
+  <div class="mode-seg" id="mode-seg" role="group" aria-label="切换列表内容">
+    <button type="button" class="seg-btn is-active" id="mode-featured" data-mode="featured" aria-pressed="true">精选</button>
+    <button type="button" class="seg-btn" id="mode-latest" data-mode="latest" aria-pressed="false">最新</button>
+  </div>
   {{ end }}
 </div>
 
 <script>
 (function () {
   var btn = document.getElementById("random-btn");
-  var modeBtn = document.getElementById("mode-btn");
+  var seg = document.getElementById("mode-seg");
+  var featuredBtn = document.getElementById("mode-featured");
+  var latestBtn = document.getElementById("mode-latest");
   var list = document.getElementById("post-list");
   var pager = document.getElementById("list-pager");
   var prevBtn = document.getElementById("pager-prev");
@@ -150,12 +146,14 @@
   }
 
   function syncToggle() {
-    if (!modeBtn) return;
-    var clock = document.getElementById("mode-icon-latest");
-    var star = document.getElementById("mode-icon-featured");
-    if (clock) clock.classList.toggle("is-active", mode === "latest");
-    if (star) star.classList.toggle("is-active", mode === "featured");
-    modeBtn.title = mode === "featured" ? "显示最新文章" : "显示精选文章";
+    if (featuredBtn) {
+      featuredBtn.classList.toggle("is-active", mode === "featured");
+      featuredBtn.setAttribute("aria-pressed", mode === "featured" ? "true" : "false");
+    }
+    if (latestBtn) {
+      latestBtn.classList.toggle("is-active", mode === "latest");
+      latestBtn.setAttribute("aria-pressed", mode === "latest" ? "true" : "false");
+    }
     syncPager();
   }
 
@@ -234,9 +232,11 @@
     list.classList.add("is-random");
   }
 
-  if (modeBtn) {
-    modeBtn.addEventListener("click", function () {
-      if (mode === "featured") {
+  if (seg) {
+    seg.addEventListener("click", function (e) {
+      var b = e.target.closest(".seg-btn");
+      if (!b || !b.dataset.mode) return;
+      if (b.dataset.mode === "latest") {
         showLatest();
       } else {
         showFeatured();
