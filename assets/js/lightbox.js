@@ -103,6 +103,15 @@
     document.addEventListener("click", onClick);
   }
 
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var t = e.target;
+    if (t && t.matches && t.matches(".post-cover")) {
+      e.preventDefault();
+      open(t);
+    }
+  });
+
   document.addEventListener("DOMContentLoaded", bind);
   document.addEventListener("pjax:complete", function () {
     if (overlay && !overlay.hasAttribute("hidden")) close();

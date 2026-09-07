@@ -27,6 +27,62 @@
     });
   }
 
+  /* ---------- 顶栏滚动状态（滚动后浮现发丝分割线） ---------- */
+  var header = document.querySelector(".site-header");
+  var headerTicking = false;
+
+  function updateHeader() {
+    headerTicking = false;
+    if (!header) return;
+    header.classList.toggle("is-scrolled", window.scrollY > 8);
+  }
+
+  function onScrollHeader() {
+    if (!headerTicking) {
+      headerTicking = true;
+      window.requestAnimationFrame(updateHeader);
+    }
+  }
+
+  if (header) {
+    window.addEventListener("scroll", onScrollHeader, { passive: true });
+    updateHeader();
+  }
+
+  /* ---------- 滚动轻量浮现（仅一次，尊重减弱动效） ---------- */
+  var revealObserver = null;
+
+  function initReveal() {
+    if (reducedMotion || !("IntersectionObserver" in window)) return;
+    if (revealObserver) revealObserver.disconnect();
+
+    revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("reveal-visible");
+        revealObserver.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+
+    document.querySelectorAll(".post-list .post-row, .stat-card, .data-panel")
+      .forEach(function (el) {
+        if (el.classList.contains("reveal-visible")) return;
+        el.classList.add("reveal-in");
+        var rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 90) {
+          el.classList.add("reveal-visible");
+          return;
+        }
+        if (!el.classList.contains("reveal-pending")) {
+          el.classList.add("reveal-pending");
+        }
+        revealObserver.observe(el);
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", initReveal);
+  document.addEventListener("pjax:complete", initReveal);
+
   /* ---------- 文章阅读进度条 ---------- */
   var ticking = false;
 

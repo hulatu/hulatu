@@ -16,12 +16,14 @@
         <img class="post-cover"
              src="{{ $r.RelPermalink }}"
              width="{{ $r.Width }}" height="{{ $r.Height }}"
+             role="button" tabindex="0" aria-label="查看大图"
              loading="eager" fetchpriority="high" decoding="async"
              alt="{{ with $.Params.coverAlt }}{{ . }}{{ else }}{{ $.Title }}{{ end }}">
       {{ else }}
         {{/* 图还在 static/：管道够不着，先直出，但补抢跑属性，至少让 LCP 图优先下载 */}}
         <img class="post-cover"
              src="{{ . | relURL }}"
+             role="button" tabindex="0" aria-label="查看大图"
              loading="eager" fetchpriority="high" decoding="async"
              alt="{{ with $.Params.coverAlt }}{{ . }}{{ else }}{{ $.Title }}{{ end }}">
       {{ end }}
