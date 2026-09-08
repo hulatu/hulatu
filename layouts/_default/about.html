@@ -14,6 +14,6 @@
     {{ .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table" "</table></div>" | safeHTML }}
   </div>
 
-  {{ partial "donate.html" (dict "hint" "如果本站对你有帮助，可以请我喝杯咖啡") }}
+  {{ partial "support.html" (dict "hint" "如果本站对你有帮助，可以请我喝杯咖啡" "withFollow" false) }}
 </div>
 {{ end }}

@@ -175,16 +175,6 @@
       </svg>
       <span class="copy-link-label">复制链接</span>
     </button>
-    <button type="button" class="post-pill share-link-btn" id="share-link-btn">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="18" cy="5" r="3"></circle>
-        <circle cx="6" cy="12" r="3"></circle>
-        <circle cx="18" cy="19" r="3"></circle>
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-      </svg>
-      <span class="share-link-label">分享</span>
-    </button>
   </div>
   <script>
   (function () {
@@ -223,41 +213,7 @@
     });
   })();
   </script>
-  <script>
-  (function () {
-    var btn = document.getElementById("share-link-btn");
-    if (!btn) return;
-    var label = btn.querySelector(".share-link-label");
-    var done = function (text) {
-      var old = label.textContent;
-      label.textContent = text;
-      btn.classList.add("is-copied");
-      setTimeout(function () {
-        label.textContent = old;
-        btn.classList.remove("is-copied");
-      }, 1600);
-    };
-    btn.addEventListener("click", function () {
-      if (navigator.share) {
-        navigator.share({
-          title: document.title,
-          text: document.title,
-          url: location.href,
-        }).then(function () { done("已分享 ✓"); }).catch(function () {});
-        return;
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(location.href).then(function () {
-          done("已复制 ✓");
-        });
-      }
-    });
-  })();
-  </script>
-  <div class="post-support">
-    {{ partial "post-follow.html" . }}
-    {{ partial "donate.html" . }}
-  </div>
+  {{ partial "support.html" . }}
 {{ end }}
 
 {{- if .Params.series -}}
