@@ -96,7 +96,6 @@
 
 <section class="data-panel data-panel-posts">
   <header class="data-panel-head">
-    <span class="data-panel-icon" aria-hidden="true">✍️</span>
     <div>
       <h2 class="data-panel-title">文章数据</h2>
       <p class="data-panel-desc">博客写作统计：篇数、字数、月度产出</p>
@@ -162,7 +161,6 @@
 {{ if $runs }}
 <section class="data-panel data-panel-runs">
   <header class="data-panel-head">
-    <span class="data-panel-icon" aria-hidden="true">🏃</span>
     <div>
       <h2 class="data-panel-title">跑步数据</h2>
       <p class="data-panel-desc">{{ if $updated }}更新于 {{ dateFormat "2006-01-02 15:04" (time.AsTime $updated) }} · {{ end }}来自 Garmin Connect</p>
