@@ -14,6 +14,10 @@
       var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
       applyTheme(next);
       localStorage.setItem("theme", next);
+      // 重播图标入场动画：先移除 class、强制 reflow，再重新加上
+      btn.classList.remove("is-animating");
+      void btn.offsetWidth;
+      btn.classList.add("is-animating");
     });
   }
 

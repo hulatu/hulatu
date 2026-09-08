@@ -53,6 +53,12 @@
     window.scrollTo(0, 0);
     reExecScripts(oldMain);
     swapFooter(doc, oldMain);
+    oldMain.classList.add("is-entering");
+    oldMain.addEventListener("animationend", function onEnterEnd(e) {
+      if (e.animationName !== "main-in") return;
+      oldMain.classList.remove("is-entering");
+      oldMain.removeEventListener("animationend", onEnterEnd);
+    });
     document.dispatchEvent(new CustomEvent("pjax:complete"));
   }
 

@@ -12,7 +12,8 @@
             {{- $m2 := index (findRE `\([^)]+\)` .) 0 -}}
             {{- $label := strings.TrimSuffix "]" (strings.TrimPrefix "[" $m1) -}}
             {{- $url := strings.TrimSuffix ")" (strings.TrimPrefix "(" $m2) -}}
-            <li><a href="{{ $url }}"{{ if hasPrefix $url "http" }} target="_blank" rel="noopener"{{ end }}>{{ $label }}<span class="about-link-arrow" aria-hidden="true">↗</span></a></li>
+            {{- $external := strings.HasPrefix $url "http" -}}
+            <li><a href="{{ $url }}"{{ if $external }} target="_blank" rel="noopener"{{ end }}>{{ $label }}{{ if $external }}<span class="about-link-arrow" aria-hidden="true">↗</span>{{ end }}</a></li>
           {{- end -}}
         {{- else -}}
           <li>{{ $l | markdownify }}</li>
