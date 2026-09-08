@@ -1,0 +1,5 @@
+{{- $img := site.Params.wechat.followImg -}}
+{{- if not $img }}{{ return }}{{ end -}}
+<section class="post-follow" aria-label="关注公众号">
+  <img class="post-follow-img" src="{{ $img | relURL }}" alt="微信公众号「{{ site.Title }}」二维码" width="900" height="383" loading="lazy" decoding="async">
+</section>
