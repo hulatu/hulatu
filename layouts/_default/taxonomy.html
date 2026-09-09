@@ -5,7 +5,12 @@
   {{ range .Pages.ByDate.Reverse }}
     <a class="minimal-row" href="{{ .Permalink }}">
       <span class="minimal-title">{{ .Title }}</span>
-      <time class="minimal-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+      <span class="minimal-meta">
+        <time class="minimal-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+        {{- $chars := .Plain | strings.RuneCount -}}
+        {{- $readMins := div (add $chars 299) 300 -}}
+        <span class="minimal-read">约 {{ $readMins }} 分钟</span>
+      </span>
     </a>
   {{ else }}
     <p class="empty-tip">这里还没有文章。</p>

@@ -10,6 +10,9 @@
       {{ with .GetTerms "categories" }}
         {{ range first 2 . }}<span class="post-row-cat">{{ .Title }}</span>{{ end }}
       {{ end }}
+      {{- $chars := .Plain | strings.RuneCount -}}
+      {{- $readMins := div (add $chars 299) 300 -}}
+      <span class="post-row-read">约 {{ $readMins }} 分钟</span>
     </span>
   </span>
 </a>

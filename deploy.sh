@@ -21,5 +21,7 @@ if rg -q "livereload" "$STAGE/index.html" 2>/dev/null; then
   exit 1
 fi
 
+python3 scripts/og-images.py "$STAGE"
+
 rsync -a --delete "$STAGE/" public/
 echo "完成：已生成生产构建到 public/（无调试脚本）。"
