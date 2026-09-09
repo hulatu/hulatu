@@ -1,5 +1,5 @@
 {{- $jsFiles := slice -}}
-{{- range (slice "theme" "ui" "search" "pjax" "page-loader") -}}
+{{- range (slice "theme" "ui" "search" "shortcuts" "pjax" "page-loader" "pwa") -}}
   {{- $jsFiles = $jsFiles | append (resources.Get (printf "js/%s.js" .)) -}}
 {{- end -}}
 {{- $bundle := $jsFiles | resources.Concat "js/bundle.js" | minify | fingerprint -}}

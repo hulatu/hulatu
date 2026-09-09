@@ -6,7 +6,11 @@
   {{- $desc = .Description -}}
 {{- end -}}
 {{- $img := "/img/og-card.png" -}}
-{{- with .Params.cover }}{{ $img = . }}{{ end -}}
+{{- if and .IsPage (in (slice "posts" "weekly") .Type) -}}
+  {{- with .Params.slug }}{{ $img = printf "/og/%s-%s.png" ($.Date.Format "20060102") . }}{{ end -}}
+{{- else -}}
+  {{- with .Params.cover }}{{ $img = . }}{{ end -}}
+{{- end -}}
 {{- $absImg := $img -}}
 {{- if not (strings.HasPrefix $img "http") -}}
   {{- $absImg = printf "%s%s" site.BaseURL (strings.TrimPrefix "/" $img) -}}
@@ -29,7 +33,7 @@
   {{ with .GetTerms "tags" }}{{ range . }}<meta property="article:tag" content="{{ .Title }}">{{ end }}{{ end }}
 {{ end }}
 
-<meta name="twitter:card" content="{{ if .Params.cover }}summary_large_image{{ else }}summary{{ end }}">
+<meta name="twitter:card" content="{{ if or .Params.cover (and .IsPage (in (slice "posts" "weekly") .Type)) }}summary_large_image{{ else }}summary{{ end }}">
 <meta name="twitter:title" content="{{ $title }}">
 <meta name="twitter:description" content="{{ $desc }}">
 <meta name="twitter:image" content="{{ $absImg }}">
