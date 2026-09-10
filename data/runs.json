@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-09T21:53:14+08:00",
+  "updated": "2026-09-10T22:12:20+08:00",
   "activities": [
     {
       "id": "477288307",
@@ -274,7 +274,23 @@
       "calories": 438
     },
     {
+      "id": "638022962",
+      "date": "2025-10-03",
+      "distance_km": 6.12,
+      "duration_s": 2539,
+      "avg_hr": 151,
+      "calories": 438
+    },
+    {
       "id": "526268838",
+      "date": "2025-10-06",
+      "distance_km": 7.17,
+      "duration_s": 2403,
+      "avg_hr": 166,
+      "calories": 504
+    },
+    {
+      "id": "638022961",
       "date": "2025-10-06",
       "distance_km": 7.17,
       "duration_s": 2403,
@@ -290,7 +306,23 @@
       "calories": 441
     },
     {
+      "id": "638022960",
+      "date": "2025-10-07",
+      "distance_km": 6.06,
+      "duration_s": 2205,
+      "avg_hr": 161,
+      "calories": 441
+    },
+    {
       "id": "527209617",
+      "date": "2025-10-09",
+      "distance_km": 6.53,
+      "duration_s": 2401,
+      "avg_hr": 155,
+      "calories": 455
+    },
+    {
+      "id": "638022959",
       "date": "2025-10-09",
       "distance_km": 6.53,
       "duration_s": 2401,
@@ -306,7 +338,23 @@
       "calories": 718
     },
     {
+      "id": "638022956",
+      "date": "2025-10-10",
+      "distance_km": 10.1,
+      "duration_s": 3863,
+      "avg_hr": 155,
+      "calories": 718
+    },
+    {
       "id": "529275926",
+      "date": "2025-10-15",
+      "distance_km": 10.08,
+      "duration_s": 3591,
+      "avg_hr": 155,
+      "calories": 686
+    },
+    {
+      "id": "638022958",
       "date": "2025-10-15",
       "distance_km": 10.08,
       "duration_s": 3591,
@@ -322,7 +370,23 @@
       "calories": 473
     },
     {
+      "id": "638022955",
+      "date": "2025-11-01",
+      "distance_km": 6.52,
+      "duration_s": 2530,
+      "avg_hr": 160,
+      "calories": 473
+    },
+    {
       "id": "535183361",
+      "date": "2025-11-02",
+      "distance_km": 8.01,
+      "duration_s": 2891,
+      "avg_hr": 155,
+      "calories": 555
+    },
+    {
+      "id": "638022957",
       "date": "2025-11-02",
       "distance_km": 8.01,
       "duration_s": 2891,
@@ -338,7 +402,23 @@
       "calories": 547
     },
     {
+      "id": "638022951",
+      "date": "2025-11-09",
+      "distance_km": 8.01,
+      "duration_s": 2850,
+      "avg_hr": 158,
+      "calories": 547
+    },
+    {
       "id": "539723537",
+      "date": "2025-11-16",
+      "distance_km": 7.31,
+      "duration_s": 2537,
+      "avg_hr": 157,
+      "calories": 494
+    },
+    {
+      "id": "638022950",
       "date": "2025-11-16",
       "distance_km": 7.31,
       "duration_s": 2537,
@@ -354,7 +434,23 @@
       "calories": 378
     },
     {
+      "id": "638022953",
+      "date": "2025-11-19",
+      "distance_km": 5.67,
+      "duration_s": 1815,
+      "avg_hr": 162,
+      "calories": 378
+    },
+    {
       "id": "541900243",
+      "date": "2025-11-23",
+      "distance_km": 8.68,
+      "duration_s": 3083,
+      "avg_hr": 154,
+      "calories": 596
+    },
+    {
+      "id": "638022952",
       "date": "2025-11-23",
       "distance_km": 8.68,
       "duration_s": 3083,
@@ -370,7 +466,23 @@
       "calories": 421
     },
     {
+      "id": "638022945",
+      "date": "2026-02-03",
+      "distance_km": 5.56,
+      "duration_s": 2043,
+      "avg_hr": 173,
+      "calories": 421
+    },
+    {
       "id": "563950573",
+      "date": "2026-02-07",
+      "distance_km": 10.1,
+      "duration_s": 3839,
+      "avg_hr": 159,
+      "calories": 727
+    },
+    {
+      "id": "638022973",
       "date": "2026-02-07",
       "distance_km": 10.1,
       "duration_s": 3839,
@@ -386,7 +498,23 @@
       "calories": 573
     },
     {
+      "id": "638022942",
+      "date": "2026-03-10",
+      "distance_km": 8.1,
+      "duration_s": 3010,
+      "avg_hr": 159,
+      "calories": 573
+    },
+    {
       "id": "572475083",
+      "date": "2026-03-11",
+      "distance_km": 7.22,
+      "duration_s": 2798,
+      "avg_hr": 153,
+      "calories": 506
+    },
+    {
+      "id": "638022941",
       "date": "2026-03-11",
       "distance_km": 7.22,
       "duration_s": 2798,
@@ -402,7 +530,23 @@
       "calories": 427
     },
     {
+      "id": "638022939",
+      "date": "2026-03-24",
+      "distance_km": 6.1,
+      "duration_s": 2301,
+      "avg_hr": 156,
+      "calories": 427
+    },
+    {
       "id": "578000324",
+      "date": "2026-03-26",
+      "distance_km": 7.02,
+      "duration_s": 2554,
+      "avg_hr": 160,
+      "calories": 476
+    },
+    {
+      "id": "638022943",
       "date": "2026-03-26",
       "distance_km": 7.02,
       "duration_s": 2554,
@@ -418,7 +562,23 @@
       "calories": 481
     },
     {
+      "id": "638022940",
+      "date": "2026-03-31",
+      "distance_km": 7.02,
+      "duration_s": 2515,
+      "avg_hr": 155,
+      "calories": 481
+    },
+    {
       "id": "581408119",
+      "date": "2026-04-04",
+      "distance_km": 7.01,
+      "duration_s": 2527,
+      "avg_hr": 153,
+      "calories": 480
+    },
+    {
+      "id": "638022938",
       "date": "2026-04-04",
       "distance_km": 7.01,
       "duration_s": 2527,
@@ -434,7 +594,23 @@
       "calories": 352
     },
     {
+      "id": "638022937",
+      "date": "2026-04-05",
+      "distance_km": 5.18,
+      "duration_s": 1834,
+      "avg_hr": 150,
+      "calories": 352
+    },
+    {
       "id": "581746452",
+      "date": "2026-04-07",
+      "distance_km": 6.85,
+      "duration_s": 2405,
+      "avg_hr": 159,
+      "calories": 467
+    },
+    {
+      "id": "638022935",
       "date": "2026-04-07",
       "distance_km": 6.85,
       "duration_s": 2405,
@@ -450,7 +626,23 @@
       "calories": 520
     },
     {
+      "id": "638022934",
+      "date": "2026-04-10",
+      "distance_km": 7.57,
+      "duration_s": 2763,
+      "avg_hr": 151,
+      "calories": 520
+    },
+    {
       "id": "584029424",
+      "date": "2026-04-12",
+      "distance_km": 7.08,
+      "duration_s": 2459,
+      "avg_hr": 156,
+      "calories": 488
+    },
+    {
+      "id": "638022936",
       "date": "2026-04-12",
       "distance_km": 7.08,
       "duration_s": 2459,
@@ -466,7 +658,23 @@
       "calories": 383
     },
     {
+      "id": "638022933",
+      "date": "2026-04-13",
+      "distance_km": 5.56,
+      "duration_s": 2052,
+      "avg_hr": 151,
+      "calories": 383
+    },
+    {
       "id": "584951891",
+      "date": "2026-04-16",
+      "distance_km": 6.01,
+      "duration_s": 2181,
+      "avg_hr": 153,
+      "calories": 407
+    },
+    {
+      "id": "638022932",
       "date": "2026-04-16",
       "distance_km": 6.01,
       "duration_s": 2181,
@@ -482,7 +690,23 @@
       "calories": 380
     },
     {
+      "id": "638022931",
+      "date": "2026-04-20",
+      "distance_km": 5.72,
+      "duration_s": 2008,
+      "avg_hr": 148,
+      "calories": 380
+    },
+    {
       "id": "587045981",
+      "date": "2026-04-22",
+      "distance_km": 10.14,
+      "duration_s": 3676,
+      "avg_hr": 151,
+      "calories": 696
+    },
+    {
+      "id": "638022930",
       "date": "2026-04-22",
       "distance_km": 10.14,
       "duration_s": 3676,
@@ -498,7 +722,23 @@
       "calories": 492
     },
     {
+      "id": "638022928",
+      "date": "2026-05-01",
+      "distance_km": 7.12,
+      "duration_s": 2580,
+      "avg_hr": 150,
+      "calories": 492
+    },
+    {
       "id": "592310386",
+      "date": "2026-05-07",
+      "distance_km": 6.07,
+      "duration_s": 2205,
+      "avg_hr": 163,
+      "calories": 435
+    },
+    {
+      "id": "638022929",
       "date": "2026-05-07",
       "distance_km": 6.07,
       "duration_s": 2205,
@@ -514,7 +754,23 @@
       "calories": 393
     },
     {
+      "id": "638022927",
+      "date": "2026-05-08",
+      "distance_km": 5.67,
+      "duration_s": 2057,
+      "avg_hr": 149,
+      "calories": 393
+    },
+    {
       "id": "593695488",
+      "date": "2026-05-11",
+      "distance_km": 6.22,
+      "duration_s": 2462,
+      "avg_hr": 147,
+      "calories": 435
+    },
+    {
+      "id": "638022926",
       "date": "2026-05-11",
       "distance_km": 6.22,
       "duration_s": 2462,
@@ -530,6 +786,14 @@
       "calories": 586
     },
     {
+      "id": "638022925",
+      "date": "2026-05-24",
+      "distance_km": 8.2,
+      "duration_s": 3226,
+      "avg_hr": 153,
+      "calories": 586
+    },
+    {
       "id": "632382121",
       "date": "2026-07-21",
       "distance_km": 4.65,
@@ -538,7 +802,31 @@
       "calories": 397
     },
     {
+      "id": "638022923",
+      "date": "2026-07-21",
+      "distance_km": 4.65,
+      "duration_s": 2031,
+      "avg_hr": 156,
+      "calories": 397
+    },
+    {
+      "id": "638022922",
+      "date": "2026-08-03",
+      "distance_km": 4.93,
+      "duration_s": 1819,
+      "avg_hr": 160,
+      "calories": 358
+    },
+    {
       "id": "634013889",
+      "date": "2026-08-04",
+      "distance_km": 6.53,
+      "duration_s": 2590,
+      "avg_hr": 161,
+      "calories": 486
+    },
+    {
+      "id": "638022924",
       "date": "2026-08-04",
       "distance_km": 6.53,
       "duration_s": 2590,
@@ -554,7 +842,23 @@
       "calories": 450
     },
     {
+      "id": "638022921",
+      "date": "2026-08-23",
+      "distance_km": 6.6,
+      "duration_s": 3057,
+      "avg_hr": 146,
+      "calories": 450
+    },
+    {
       "id": "632382409",
+      "date": "2026-08-26",
+      "distance_km": 8.02,
+      "duration_s": 3388,
+      "avg_hr": 147,
+      "calories": 556
+    },
+    {
+      "id": "638022920",
       "date": "2026-08-26",
       "distance_km": 8.02,
       "duration_s": 3388,
@@ -570,7 +874,23 @@
       "calories": 379
     },
     {
+      "id": "638022918",
+      "date": "2026-08-31",
+      "distance_km": 5.12,
+      "duration_s": 1954,
+      "avg_hr": 163,
+      "calories": 379
+    },
+    {
       "id": "634421450",
+      "date": "2026-09-01",
+      "distance_km": 8.01,
+      "duration_s": 3110,
+      "avg_hr": 156,
+      "calories": 566
+    },
+    {
+      "id": "638022919",
       "date": "2026-09-01",
       "distance_km": 8.01,
       "duration_s": 3110,
@@ -586,7 +906,23 @@
       "calories": 431
     },
     {
+      "id": "638022915",
+      "date": "2026-09-04",
+      "distance_km": 6.12,
+      "duration_s": 2454,
+      "avg_hr": 152,
+      "calories": 431
+    },
+    {
       "id": "635974574",
+      "date": "2026-09-05",
+      "distance_km": 5.16,
+      "duration_s": 1806,
+      "avg_hr": 157,
+      "calories": 345
+    },
+    {
+      "id": "638022916",
       "date": "2026-09-05",
       "distance_km": 5.16,
       "duration_s": 1806,
@@ -600,6 +936,22 @@
       "duration_s": 2153,
       "avg_hr": 163,
       "calories": 423
+    },
+    {
+      "id": "638022914",
+      "date": "2026-09-09",
+      "distance_km": 6.2,
+      "duration_s": 2153,
+      "avg_hr": 163,
+      "calories": 423
+    },
+    {
+      "id": "637988149",
+      "date": "2026-09-10",
+      "distance_km": 5.1,
+      "duration_s": 1956,
+      "avg_hr": 146,
+      "calories": 353
     }
   ]
 }
