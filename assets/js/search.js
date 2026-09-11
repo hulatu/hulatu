@@ -6,9 +6,10 @@
   const input = document.getElementById('search-input');
   const results = document.getElementById('search-results');
   const empty = document.getElementById('search-empty');
+  const categoriesEl = document.getElementById('search-categories');
   if (!btn || !box) return;
 
-  let fuse = null, posts = [], loaded = false, loading = false, timer;
+  let fuse = null, posts = [], loaded = false, loading = false, timer, categoriesBuilt = false;
 
   /* ---------- 索引加载（带状态反馈） ---------- */
   function ensureFuse() {
@@ -45,13 +46,48 @@
       if (input.value.trim()) {
         doSearch();
       } else {
-        empty.hidden = true;
+        showInitial();
       }
     } catch (e) {
       showTip('索引加载失败，请刷新重试');
       console.warn(e);
     }
     loading = false;
+  }
+
+  function buildCategories() {
+    if (!categoriesEl || categoriesBuilt) return;
+    categoriesBuilt = true;
+    var counts = {};
+    posts.forEach(function (p) {
+      String(p.categories || '').split(/[、,，]/).forEach(function (c) {
+        c = c.trim();
+        if (c) counts[c] = (counts[c] || 0) + 1;
+      });
+    });
+    var items = Object.keys(counts).sort(function (a, b) {
+      return (counts[b] - counts[a]) || a.localeCompare(b, 'zh-CN');
+    }).slice(0, 8);
+    if (!items.length) return;
+    items.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'search-category';
+      b.textContent = c;
+      b.addEventListener('click', function () {
+        input.value = c;
+        doSearch();
+      });
+      categoriesEl.appendChild(b);
+    });
+  }
+
+  function showInitial() {
+    results.innerHTML = '';
+    empty.textContent = '输入关键词开始搜索';
+    empty.hidden = false;
+    buildCategories();
+    if (categoriesEl) categoriesEl.hidden = false;
   }
 
   /* ---------- 工具 ---------- */
@@ -74,16 +110,24 @@
   }
 
   /* ---------- 渲染 ---------- */
-  function showTip(text) { results.innerHTML = ''; empty.textContent = text; empty.hidden = false; }
+  function showTip(text) {
+    results.innerHTML = '';
+    empty.textContent = text;
+    empty.hidden = false;
+    if (categoriesEl) categoriesEl.hidden = true;
+  }
 
   function render(list, q) {
     results.innerHTML = '';
     if (!list.length) { showTip('没有找到与「' + q + '」相关的内容'); return; }
     empty.hidden = true;
+    if (categoriesEl) categoriesEl.hidden = true;
     list.slice(0, 15).forEach((p) => {
       const li = document.createElement('li');
+      var meta = [p.date, p.categories].filter(Boolean).join(' · ');
       li.innerHTML = '<a href="' + p.permalink + '"><strong>' + hi(p.title, q) +
-                     '</strong><small>' + snippet(p, q) + '</small></a>';
+                     '</strong><small class="search-result-meta">' + esc(meta) + '</small>' +
+                     '<small>' + snippet(p, q) + '</small></a>';
       results.appendChild(li);
     });
   }
@@ -95,8 +139,7 @@
     if (q) {
       render(fuse.search(q).map((r) => r.item), q);
     } else {
-      empty.hidden = true;
-      results.innerHTML = '';
+      showInitial();
     }
   }
 
@@ -114,6 +157,13 @@
   btn.addEventListener('click', open);
   closeBtn && closeBtn.addEventListener('click', close);
   box.addEventListener('click', (e) => { if (e.target === box) close(); }); // 点击搜索框以外的遮罩区域时收起弹层
+  if (categoriesEl) {
+    categoriesEl.addEventListener('click', (e) => {
+      if (e.target.closest('.search-category')) {
+        input.focus();
+      }
+    });
+  }
   results.addEventListener('click', (e) => { if (e.target.closest('a')) close(); }); // 修复：pjax 跳转时收起弹层
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();

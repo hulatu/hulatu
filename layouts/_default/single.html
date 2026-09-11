@@ -28,6 +28,7 @@
         {{/* 图还在 static/：管道够不着，先直出，但补抢跑属性，至少让 LCP 图优先下载 */}}
         <img class="post-cover"
              src="{{ . | relURL }}"
+             width="1200" height="630"
              role="button" tabindex="0" aria-label="查看大图"
              loading="eager" fetchpriority="high" decoding="async"
              alt="{{ with $.Params.coverAlt }}{{ . }}{{ else }}{{ $.Title }}{{ end }}">
@@ -68,33 +69,13 @@
     </div>
   </header>
 
-  {{ if or $hasToc (in (slice "posts" "weekly") .Type) }}
+  {{ if $hasToc }}
   <div class="post-rail">
-    {{ if $hasToc }}
     <aside class="post-toc">
       <nav class="post-toc-nav">
         {{ $toc | safeHTML }}
       </nav>
     </aside>
-    {{ end }}
-    {{ if in (slice "posts" "weekly") .Type }}
-    <aside class="post-tagcloud" aria-label="标签云">
-      <h2 class="tagcloud-title">标签</h2>
-      <div class="tagcloud">
-        {{- $tags := site.Taxonomies.tags.ByCount -}}
-        {{- $maxCount := 0 -}}
-        {{- range $tags }}{{ if gt .Count $maxCount }}{{ $maxCount = .Count }}{{ end }}{{ end -}}
-        {{- range first 15 $tags -}}
-          {{- $size := 0.85 -}}
-          {{- if gt $maxCount 0 -}}
-            {{- $size = div (math.Round (mul 100.0 (add 0.74 (mul 0.38 (div (float .Count) (float $maxCount)))))) 100.0 -}}
-          {{- end -}}
-          <a class="tagcloud-link" href="{{ .Page.RelPermalink }}" style="font-size: {{ $size }}rem">{{ .Page.Title }}</a>
-        {{- end -}}
-      </div>
-      <a class="tagcloud-more" href="{{ "tags/" | relURL }}">全部标签 →</a>
-    </aside>
-    {{ end }}
   </div>
   {{ end }}
 

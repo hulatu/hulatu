@@ -7,6 +7,7 @@
       "type": {{ $page.Type | jsonify }},
       "url": {{ $page.RelPermalink | jsonify }},
       "date": {{ $page.Date.Format "2006-01-02" | jsonify }},
+      "summary": {{ $page.Summary | plainify | truncate 90 | jsonify }},
       "thumb": {{ with $page.Params.cover }}
         {{- $name := replace (path.Base .) "%20" "_" -}}
         {{- $stem := strings.TrimSuffix (path.Ext $name) $name -}}

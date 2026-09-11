@@ -28,26 +28,6 @@
     </div>
   </header>
 
-  {{ with $a.now }}
-  <section class="about-now" aria-label="最近状态">
-    <div class="about-now-head">
-      <h2 class="about-eyebrow">此刻</h2>
-      <p class="about-now-sub">最近在关注和投入的事情</p>
-    </div>
-    <div class="about-now-grid">
-      {{ range . }}
-        {{- $nowPage := "" -}}
-        {{- with .page }}{{ with site.GetPage . }}{{ $nowPage = .RelPermalink }}{{ end }}{{ end -}}
-        <article class="about-now-card">
-          <span class="about-now-label">{{ .label }}</span>
-          <p class="about-now-text">{{ .text }}</p>
-          {{ if $nowPage }}<a class="about-now-link" href="{{ $nowPage }}">读这篇 →</a>{{ end }}
-        </article>
-      {{ end }}
-    </div>
-  </section>
-  {{ end }}
-
   <div class="about-body">
     <section class="about-section">
       <h2>我是谁</h2>

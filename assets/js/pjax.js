@@ -24,6 +24,33 @@
     });
   }
 
+  function pathOf(value) {
+    try {
+      return new URL(value, window.location.href).pathname.replace(/\/+$/, "") || "/";
+    } catch (e) {
+      return "/";
+    }
+  }
+
+  function updateNavState(url) {
+    var nav = document.getElementById("site-nav");
+    if (!nav) return;
+    var currentPath = pathOf(url);
+    nav.querySelectorAll("a").forEach(function (link) {
+      var linkPath = pathOf(link.getAttribute("href"));
+      var active = linkPath === currentPath;
+      if (!active && linkPath !== "/" && currentPath.indexOf(linkPath) === 0) {
+        active = true;
+      }
+      link.classList.toggle("is-active", active);
+      if (active) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  }
+
   function swapFooter(newDoc, main) {
     var newFooter = newDoc.querySelector(footerSel);
     var oldFooter = document.querySelector(footerSel);
@@ -46,6 +73,7 @@
     }
     oldMain.innerHTML = newMain.innerHTML;
     document.title = doc.title;
+    updateNavState(url);
     var newDesc = doc.querySelector('meta[name="description"]');
     var oldDesc = document.querySelector('meta[name="description"]');
     if (newDesc && oldDesc) oldDesc.setAttribute("content", newDesc.getAttribute("content") || "");

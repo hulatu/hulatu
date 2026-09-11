@@ -23,7 +23,7 @@
     {{ end }}
   </section>
 {{ else if not .Content }}
-  <p class="empty-tip">这里还没有内容。</p>
+  <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
 {{ end }}
 
 {{ if gt $paginator.TotalPages 1 }}

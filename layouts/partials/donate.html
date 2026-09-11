@@ -18,7 +18,7 @@
       <div class="donate-qrs">
         {{ range $qr }}
         <figure class="donate-qr">
-          <img src="{{ .src | relURL }}" alt="{{ .label }}赞赏码" width="200" height="200" loading="eager" decoding="async">
+          <img src="{{ .src | relURL }}" alt="{{ .label }}赞赏码" width="200" height="200" loading="lazy" decoding="async">
           <figcaption>{{ .label }}</figcaption>
         </figure>
         {{ end }}

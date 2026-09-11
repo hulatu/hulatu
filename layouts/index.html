@@ -23,6 +23,7 @@
             <span class="post-row-title">{{ $p.Title }}</span>
             <span class="post-row-featured">精选</span>
           </span>
+          <span class="post-row-summary">{{ $p.Summary | plainify | truncate 90 }}</span>
         </span>
         <time class="post-row-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006-01-02" }}</time>
       </a>
@@ -36,11 +37,12 @@
             <span class="post-row-title">{{ $p.Title }}</span>
             {{ if $p.Params.featured }}<span class="post-row-featured">精选</span>{{ end }}
           </span>
+          <span class="post-row-summary">{{ $p.Summary | plainify | truncate 90 }}</span>
         </span>
         <time class="post-row-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006-01-02" }}</time>
       </a>
     {{ else }}
-      <p class="empty-tip">还没有文章，去 content/posts/ 下新建一篇吧。</p>
+      <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
     {{ end }}
   {{ end }}
 </section>
@@ -213,6 +215,12 @@
       line.appendChild(badge);
     }
     main.appendChild(line);
+    if (p.summary) {
+      var summary = document.createElement("span");
+      summary.className = "post-row-summary";
+      summary.textContent = p.summary;
+      main.appendChild(summary);
+    }
     a.appendChild(main);
 
     var date = document.createElement("time");
