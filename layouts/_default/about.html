@@ -1,17 +1,84 @@
 {{ define "main" }}
+{{- $a := .Params.about | default dict -}}
+{{- $role := $a.role | default "食品领域研究生" -}}
+{{- $location := $a.location | default "郑州" -}}
+{{- $tagline := $a.tagline | default "记录跑步、写作与工具折腾。" -}}
+{{- $focus := $a.focus | default (slice "跑步" "写作" "工具折腾") -}}
+{{- $intro := $a.intro | default (slice "欢迎来到我的世界。") -}}
+
 <div class="about-page">
   <header class="about-head">
-    {{ if site.Params.avatar }}
-      <img class="about-avatar" src="{{ site.Params.avatar | relURL }}" alt="{{ site.Params.author }}">
-    {{ else }}
-      <div class="about-avatar about-avatar-fallback">{{ substr site.Params.author 0 1 }}</div>
-    {{ end }}
-    <h1 class="about-name">{{ site.Params.author }}</h1>
-    <p class="about-role">食品领域研究生，记录跑步、写作与工具折腾</p>
+    <div class="about-head-card">
+      {{ if site.Params.avatar }}
+        <img class="about-avatar" src="{{ site.Params.avatar | relURL }}" alt="{{ site.Params.author }}">
+      {{ else }}
+        <div class="about-avatar about-avatar-fallback">{{ substr site.Params.author 0 1 }}</div>
+      {{ end }}
+
+      <div class="about-head-main">
+        <h1 class="about-name">{{ site.Params.author }}<span class="about-name-note">朋朋</span></h1>
+        <p class="about-role">{{ $role }} · {{ $location }}</p>
+        <p class="about-tagline">{{ $tagline }}</p>
+        <div class="about-focus" aria-label="关注方向">
+          {{ range $focus }}<span class="about-focus-chip">{{ . }}</span>{{ end }}
+        </div>
+      </div>
+
+      <span class="about-seal" aria-hidden="true">胡</span>
+    </div>
   </header>
 
-  <div class="post-content about-body">
-    {{ .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table" "</table></div>" | safeHTML }}
+  {{ with $a.now }}
+  <section class="about-now" aria-label="最近状态">
+    <div class="about-now-head">
+      <h2 class="about-eyebrow">此刻</h2>
+      <p class="about-now-sub">最近在关注和投入的事情</p>
+    </div>
+    <div class="about-now-grid">
+      {{ range . }}
+        {{- $nowPage := "" -}}
+        {{- with .page }}{{ with site.GetPage . }}{{ $nowPage = .RelPermalink }}{{ end }}{{ end -}}
+        <article class="about-now-card">
+          <span class="about-now-label">{{ .label }}</span>
+          <p class="about-now-text">{{ .text }}</p>
+          {{ if $nowPage }}<a class="about-now-link" href="{{ $nowPage }}">读这篇 →</a>{{ end }}
+        </article>
+      {{ end }}
+    </div>
+  </section>
+  {{ end }}
+
+  <div class="about-body">
+    <section class="about-section">
+      <h2>我是谁</h2>
+      {{ range $intro }}<p>{{ . }}</p>{{ end }}
+    </section>
+
+    <section class="about-section">
+      <h2>订阅</h2>
+      <p class="about-section-desc">本站支持四种订阅格式，任选其一即可。</p>
+      {{ partial "about-link-list" (dict "items" $a.subscribe) }}
+    </section>
+
+    <section class="about-section">
+      <h2>平台</h2>
+      {{ partial "about-link-list" (dict "items" $a.platforms) }}
+    </section>
+
+    <section class="about-section">
+      <h2>联系</h2>
+      {{ partial "about-link-list" (dict "items" $a.contacts) }}
+    </section>
+
+    <section class="about-section">
+      <h2>朋友</h2>
+      {{ partial "about-link-list" (dict "items" $a.friends) }}
+    </section>
+
+    <section class="about-section">
+      <h2>博客圈与组织</h2>
+      {{ partial "about-link-list" (dict "items" $a.communities) }}
+    </section>
   </div>
 
   {{ partial "donate.html" (dict "hint" "如果本站对你有帮助，可以请我喝杯咖啡") }}

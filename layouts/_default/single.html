@@ -166,6 +166,100 @@
   </section>
   {{- end -}}
 
+  {{- if .Params.series -}}
+    {{- $allPosts := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
+    {{- $seriesPosts := sort (where $allPosts "Params.series" .Params.series) "Date" -}}
+    {{- $prevIn := false -}}
+    {{- $nextIn := false -}}
+    {{- range $i, $p := $seriesPosts -}}
+      {{- if eq $p.Permalink $.Permalink -}}
+        {{- if gt $i 0 }}{{ $prevIn = index $seriesPosts (sub $i 1) }}{{ end -}}
+        {{- if lt (add $i 1) (len $seriesPosts) }}{{ $nextIn = index $seriesPosts (add $i 1) }}{{ end -}}
+      {{- end -}}
+    {{- end -}}
+    <div class="post-series">
+      <p class="post-series-label">系列 · {{ .Params.series }}</p>
+      <nav class="post-nav" aria-label="系列导航">
+        {{ with $prevIn }}
+          <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
+            <span class="post-nav-label">系列上一篇</span>
+            <span class="post-nav-title">{{ .Title }}</span>
+          </a>
+        {{ else }}
+          <span class="post-nav-card is-empty"><span class="post-nav-label">系列第一篇</span></span>
+        {{ end }}
+        {{ with $nextIn }}
+          <a class="post-nav-card post-nav-next" href="{{ .Permalink }}">
+            <span class="post-nav-label">系列下一篇</span>
+            <span class="post-nav-title">{{ .Title }}</span>
+          </a>
+        {{ else }}
+          <span class="post-nav-card is-empty"><span class="post-nav-label">系列最后一篇</span></span>
+        {{ end }}
+      </nav>
+    </div>
+  {{- else -}}
+    <nav class="post-nav" aria-label="文章导航">
+      {{ with .PrevInSection }}
+        <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
+          <span class="post-nav-label">上一篇</span>
+          <span class="post-nav-title">{{ .Title }}</span>
+        </a>
+      {{ end }}
+      {{ with .NextInSection }}
+        <a class="post-nav-card post-nav-next" href="{{ .Permalink }}">
+          <span class="post-nav-label">下一篇</span>
+          <span class="post-nav-title">{{ .Title }}</span>
+        </a>
+      {{ end }}
+    </nav>
+  {{- end -}}
+
+  <button type="button" class="random-post-btn" id="random-post-btn"
+    data-current="{{ .RelPermalink }}"
+    data-index="{{ "post-index.json" | relURL }}"
+    title="随机一篇" aria-label="随机打开一篇文章">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="16 3 21 3 21 8"></polyline>
+      <line x1="4" y1="20" x2="21" y2="3"></line>
+      <polyline points="21 16 21 21 16 21"></polyline>
+      <line x1="15" y1="15" x2="21" y2="21"></line>
+      <line x1="4" y1="4" x2="9" y2="9"></line>
+    </svg>
+    <span class="random-post-label">随机一篇</span>
+  </button>
+  <script>
+  (function () {
+    var btn = document.getElementById("random-post-btn");
+    if (!btn) return;
+    var current = btn.getAttribute("data-current");
+    var indexUrl = btn.getAttribute("data-index");
+    var cache = null;
+
+    function pick() {
+      var pool = cache.filter(function (p) { return p.url !== current; });
+      if (!pool.length) return null;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    btn.addEventListener("click", function () {
+      if (btn.dataset.busy) return;
+      function go() {
+        var p = pick();
+        if (!p) return;
+        btn.dataset.busy = "1";
+        window.location.href = p.url;
+      }
+      if (cache) return go();
+      btn.dataset.busy = "1";
+      fetch(indexUrl)
+        .then(function (r) { return r.json(); })
+        .then(function (d) { cache = d; delete btn.dataset.busy; go(); })
+        .catch(function () { delete btn.dataset.busy; });
+    });
+  })();
+  </script>
+
   <div class="post-actions">
     <a class="post-pill post-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener" title="本文采用 CC BY-NC-SA 4.0 协议">CC BY-NC-SA 4.0</a>
     <button type="button" class="post-pill copy-link-btn" id="copy-link-btn">
@@ -213,148 +307,54 @@
     });
   })();
   </script>
+
   {{ partial "post-follow.html" . }}
   {{ partial "donate.html" . }}
-{{ end }}
 
-{{- if .Params.series -}}
-  {{- $allPosts := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
-  {{- $seriesPosts := sort (where $allPosts "Params.series" .Params.series) "Date" -}}
-  {{- $prevIn := false -}}
-  {{- $nextIn := false -}}
-  {{- range $i, $p := $seriesPosts -}}
-    {{- if eq $p.Permalink $.Permalink -}}
-      {{- if gt $i 0 }}{{ $prevIn = index $seriesPosts (sub $i 1) }}{{ end -}}
-      {{- if lt (add $i 1) (len $seriesPosts) }}{{ $nextIn = index $seriesPosts (add $i 1) }}{{ end -}}
-    {{- end -}}
-  {{- end -}}
-  <div class="post-series">
-    <p class="post-series-label">系列 · {{ .Params.series }}</p>
-    <nav class="post-nav" aria-label="系列导航">
-      {{ with $prevIn }}
-        <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
-          <span class="post-nav-label">系列上一篇</span>
-          <span class="post-nav-title">{{ .Title }}</span>
-        </a>
-      {{ else }}
-        <span class="post-nav-card is-empty"><span class="post-nav-label">系列第一篇</span></span>
-      {{ end }}
-      {{ with $nextIn }}
-        <a class="post-nav-card post-nav-next" href="{{ .Permalink }}">
-          <span class="post-nav-label">系列下一篇</span>
-          <span class="post-nav-title">{{ .Title }}</span>
-        </a>
-      {{ else }}
-        <span class="post-nav-card is-empty"><span class="post-nav-label">系列最后一篇</span></span>
-      {{ end }}
-    </nav>
-  </div>
-{{- else if not $relatedPosts -}}
-<nav class="post-nav" aria-label="文章导航">
-  {{ with .PrevInSection }}
-    <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
-      <span class="post-nav-label">上一篇</span>
-      <span class="post-nav-title">{{ .Title }}</span>
-    </a>
-  {{ end }}
-  {{ with .NextInSection }}
-    <a class="post-nav-card post-nav-next" href="{{ .Permalink }}">
-      <span class="post-nav-label">下一篇</span>
-      <span class="post-nav-title">{{ .Title }}</span>
-    </a>
-  {{ end }}
-</nav>
-{{- end -}}
-
-{{ if in (slice "posts" "weekly") .Type }}
-<button type="button" class="random-post-btn" id="random-post-btn"
-  data-current="{{ .RelPermalink }}"
-  data-index="{{ "post-index.json" | relURL }}"
-  title="随机一篇" aria-label="随机打开一篇文章">
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <polyline points="16 3 21 3 21 8"></polyline>
-    <line x1="4" y1="20" x2="21" y2="3"></line>
-    <polyline points="21 16 21 21 16 21"></polyline>
-    <line x1="15" y1="15" x2="21" y2="21"></line>
-    <line x1="4" y1="4" x2="9" y2="9"></line>
-  </svg>
-  <span class="random-post-label">随机一篇</span>
-</button>
-<script>
-(function () {
-  var btn = document.getElementById("random-post-btn");
-  if (!btn) return;
-  var current = btn.getAttribute("data-current");
-  var indexUrl = btn.getAttribute("data-index");
-  var cache = null;
-
-  function pick() {
-    var pool = cache.filter(function (p) { return p.url !== current; });
-    if (!pool.length) return null;
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  btn.addEventListener("click", function () {
-    if (btn.dataset.busy) return;
-    function go() {
-      var p = pick();
-      if (!p) return;
-      btn.dataset.busy = "1";
-      window.location.href = p.url;
-    }
-    if (cache) return go();
-    btn.dataset.busy = "1";
-    fetch(indexUrl)
-      .then(function (r) { return r.json(); })
-      .then(function (d) { cache = d; delete btn.dataset.busy; go(); })
-      .catch(function () { delete btn.dataset.busy; });
-  });
-})();
-</script>
-{{ end }}
-
-{{ if and (in (slice "posts" "weekly") .Type) site.Params.giscus.repo (ne .Params.comments false) }}
-<section class="giscus-wrap">
-  <h2 class="giscus-title">评论</h2>
-  <div id="giscus-slot"
-    data-repo="{{ site.Params.giscus.repo }}"
-    data-repo-id="{{ site.Params.giscus.repoId }}"
-    data-category="{{ site.Params.giscus.category }}"
-    data-category-id="{{ site.Params.giscus.categoryId }}"
-    data-mapping="{{ site.Params.giscus.mapping }}"
-    data-strict="0"
-    data-reactions-enabled="{{ if site.Params.giscus.reactions }}1{{ else }}0{{ end }}"
-    data-emit-metadata="0"
-    data-input-position="{{ site.Params.giscus.inputPosition }}"
-    data-theme="preferred_color_scheme"
-    data-lang="{{ site.Params.giscus.lang }}"></div>
-  <p class="giscus-loading" id="giscus-loading" aria-live="polite">正在加载评论…</p>
-  <script>
-  (function () {
-    var slot = document.getElementById('giscus-slot');
-    var loading = document.getElementById('giscus-loading');
-    var io = new IntersectionObserver(function (es) {
-      if (!es[0].isIntersecting) return;
-      var s = document.createElement('script');
-      s.src = 'https://giscus.app/client.js';
-      s.async = true;
-      s.crossOrigin = 'anonymous';
-      for (var k in slot.dataset) {
-        s.setAttribute('data-' + k.replace(/([A-Z])/g, '-$1').toLowerCase(), slot.dataset[k]);
-      }
-      slot.appendChild(s);
-      io.disconnect();
-    }, { rootMargin: '300px' });
-    io.observe(slot);
-    if (loading) {
-      var timer = setInterval(function () {
-        if (slot && slot.querySelector('iframe')) {
-          loading.hidden = true;
-          clearInterval(timer);
+  {{ if and site.Params.giscus.repo (ne .Params.comments false) }}
+  <section class="giscus-wrap">
+    <h2 class="giscus-title">评论</h2>
+    <div id="giscus-slot"
+      data-repo="{{ site.Params.giscus.repo }}"
+      data-repo-id="{{ site.Params.giscus.repoId }}"
+      data-category="{{ site.Params.giscus.category }}"
+      data-category-id="{{ site.Params.giscus.categoryId }}"
+      data-mapping="{{ site.Params.giscus.mapping }}"
+      data-strict="0"
+      data-reactions-enabled="{{ if site.Params.giscus.reactions }}1{{ else }}0{{ end }}"
+      data-emit-metadata="0"
+      data-input-position="{{ site.Params.giscus.inputPosition }}"
+      data-theme="preferred_color_scheme"
+      data-lang="{{ site.Params.giscus.lang }}"></div>
+    <p class="giscus-loading" id="giscus-loading" aria-live="polite">正在加载评论…</p>
+    <script>
+    (function () {
+      var slot = document.getElementById('giscus-slot');
+      var loading = document.getElementById('giscus-loading');
+      var io = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting) return;
+        var s = document.createElement('script');
+        s.src = 'https://giscus.app/client.js';
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        for (var k in slot.dataset) {
+          s.setAttribute('data-' + k.replace(/([A-Z])/g, '-$1').toLowerCase(), slot.dataset[k]);
         }
-      }, 300);
-    }
-  })();
-  </script>
-</section>
-{{ end }}{{ end }}
+        slot.appendChild(s);
+        io.disconnect();
+      }, { rootMargin: '300px' });
+      io.observe(slot);
+      if (loading) {
+        var timer = setInterval(function () {
+          if (slot && slot.querySelector('iframe')) {
+            loading.hidden = true;
+            clearInterval(timer);
+          }
+        }, 300);
+      }
+    })();
+    </script>
+  </section>
+  {{ end }}
+{{ end }}
+{{ end }}

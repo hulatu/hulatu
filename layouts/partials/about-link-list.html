@@ -1,0 +1,19 @@
+{{- $items := .items -}}
+{{- if not $items }}{{ return }}{{ end -}}
+<ul class="about-link-list">
+  {{- range $items -}}
+    {{- $external := false -}}
+    {{- if .url }}{{ $external = strings.HasPrefix .url "http" }}{{ end -}}
+    <li>
+      {{- if .url -}}
+        <a href="{{ .url }}"{{ if $external }} target="_blank" rel="noopener"{{ end }}>
+          <span class="about-link-title">{{ .label }}</span>
+          {{- with .note }}<span class="about-link-note">{{ . }}</span>{{ end -}}
+          {{- if $external }}<span class="about-link-arrow" aria-hidden="true">↗</span>{{ end -}}
+        </a>
+      {{- else -}}
+        <span class="about-link-title">{{ .label }}</span>
+      {{- end -}}
+    </li>
+  {{- end -}}
+</ul>
