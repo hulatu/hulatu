@@ -3,61 +3,85 @@ title: "关于"
 hide_title: true
 date: 2026-08-01
 layout: "about"
+about:
+  role: "食品领域研究生"
+  location: "郑州"
+  tagline: "记录跑步、写作与工具折腾。"
+  focus: ["跑步", "写作", "工具折腾"]
+  intro:
+    - "泥嚎！欢迎来到我的世界。我叫朋朋（笔名：胡拉图）。"
+    - "一名不谈专业、只聊生活、热爱折腾的研究生。目前在郑州上学，平时喜欢搞鼓电子设备、写作和各类生产力工具。"
+    - "这个博客用来记录学习和生活，希望你喜欢。"
+    - "博客搭建基于 Hugo 框架、自己写的博客主题。简单、轻量、加载迅速。"
+  now:
+    - label: "最近在读"
+      text: "重读《小狗钱钱》，继续整理金钱观和消费习惯。"
+      page: "posts/《小狗钱钱》对我的影响.md"
+    - label: "最近在跑"
+      text: "恢复晨跑，更关注体感和节奏，而不是配速。"
+      page: "posts/当我谈晨跑时，我在谈些什么.md"
+    - label: "最近在折腾"
+      text: "Hugo 主题、Typora + uPic 图床，以及 AI 辅助写作。"
+      page: "posts/如何打造一台极简好用的电脑、手机.md"
+  subscribe:
+    - label: "RSS 2.0"
+      note: "通用格式，兼容所有阅读器"
+      url: "https://hulatu.com/index.xml"
+    - label: "Atom"
+      note: "标准订阅格式"
+      url: "https://hulatu.com/atom.xml"
+    - label: "JSON Feed"
+      note: "Reeder / Fiery Feeds 等支持"
+      url: "https://hulatu.com/feed.json"
+    - label: "周刊专线"
+      note: "仅包含周刊内容"
+      url: "https://hulatu.com/weekly/index.xml"
+  platforms:
+    - label: "即刻"
+      url: "https://web.okjike.com/u/25B20BAD-D356-4801-AC0E-093CD1334AF5"
+    - label: "知乎"
+      url: "https://www.zhihu.com/people/hulatu"
+    - label: "少数派"
+      url: "https://sspai.com/u/hulatu/updates"
+    - label: "小红书"
+      url: "https://www.xiaohongshu.com/user/profile/68a9d4e5000000001a00fcf9"
+    - label: "公众号"
+      note: "公众号二维码"
+      url: "https://img.hulatu.com/post/bk7UaF.webp"
+  contacts:
+    - label: "QQ"
+      note: "点开查看二维码"
+      url: "https://img.hulatu.com/post/paIl9a.webp"
+    - label: "WX"
+      note: "点开查看二维码"
+      url: "https://img.hulatu.com/post/qbD1Mk.webp"
+    - label: "Gmail"
+      note: "flyhulatu@gmail.com"
+      url: "mailto:flyhulatu@gmail.com"
+  friends:
+    - label: "花墨"
+      url: "https://flowersink.com"
+    - label: "Cytrogen"
+      url: "https://blog.cytrogen.icu/"
+    - label: "千古壹号"
+      url: "http://www.qianguyihao.com/"
+    - label: "梁某银的博客"
+      url: "https://liangmouyin.com/"
+  communities:
+    - label: "博友圈"
+      url: "https://www.boyouquan.com"
+    - label: "笔墨迹"
+      url: "https://blogscn.fun/"
+    - label: "博客集"
+      url: "https://bloginc.cn/"
+    - label: "十年之约"
+      url: "https://www.foreverblog.cn"
+    - label: "iblogroll"
+      url: "https://iblogroll.com/blog/125"
+    - label: "BlogsClub"
+      url: "https://www.blogsclub.org/"
+    - label: "博客大联盟"
+      url: "https://bo.ke/tags/blog/?sort=weight"
+    - label: "中文博客琅琊榜"
+      url: "https://github.com/qianguyihao/blog-list/tree/main"
 ---
-## 我
-泥嚎！欢迎来到我的世界。我叫朋朋（笔名：胡拉图）。
-
-一名不谈专业、只聊生活、热爱折腾的研究生。
-
-目前在郑州上学。平时喜欢搞鼓电子设备、写作和各类生产力工具。
-
-这个博客用来记录学习和生活，希望你喜欢。
-
-博客搭建基于 Hugo 框架、自己写的博客主题。简单、轻量、加载迅速。
-
-## 订阅
-本站支持三种订阅格式，任选其一即可：
-
-- **RSS 2.0**（通用格式，兼容所有阅读器）：[全站订阅](https://hulatu.com/index.xml)
-- **Atom**（标准订阅格式）：[全站订阅](https://hulatu.com/atom.xml)
-- **JSON Feed**（现代格式，Reeder / Fiery Feeds 等支持）：[全站订阅](https://hulatu.com/feed.json)
-- **周刊专线**（RSS 2.0，仅包含周刊内容）：[订阅周刊](https://hulatu.com/weekly/index.xml)
-## 平台
-{{< about-links >}}
-[即刻](https://web.okjike.com/u/25B20BAD-D356-4801-AC0E-093CD1334AF5)
-[知乎](https://www.zhihu.com/people/hulatu)
-[少数派](https://sspai.com/u/hulatu/updates)
-[小红书](https://www.xiaohongshu.com/user/profile/68a9d4e5000000001a00fcf9)
-[公众号](https://img.hulatu.com/post/bk7UaF.webp)
-{{< /about-links >}}
-
-## 联系
-
-{{< about-links >}}
-[QQ](https://img.hulatu.com/post/paIl9a.webp)
-[WX](https://img.hulatu.com/post/qbD1Mk.webp)
-[Gmail](mailto:flyhulatu@gmail.com)
-{{< /about-links >}}
-
-## 朋友
-
-{{< about-links >}}
-[花墨](https://flowersink.com)
-[Cytrogen](https://blog.cytrogen.icu/)
-[千古壹号](http://www.qianguyihao.com/)
-[梁某银的博客](https://liangmouyin.com/)
-{{< /about-links >}}
-
-## 组织
-
-{{< about-links >}}
-[博友圈](https://www.boyouquan.com)
-[笔墨迹](https://blogscn.fun/)
-[博客集](https://bloginc.cn/)
-[十年之约](https://www.foreverblog.cn)
-[iblogroll](https://iblogroll.com/blog/125)
-[BlogsClub](https://www.blogsclub.org/)
-[博客大联盟](https://bo.ke/tags/blog/?sort=weight)
-[中文博客琅琊榜](https://github.com/qianguyihao/blog-list/tree/main)
-{{< /about-links >}}
-
