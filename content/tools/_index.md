@@ -1,5 +1,5 @@
 ---
-title: "工具箱"
+title: "工具"
 description: "我一直在用、并且真心推荐的工具清单。"
 groups:
   - name: "科研"

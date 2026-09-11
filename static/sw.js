@@ -2,10 +2,41 @@
 const VERSION = "hulatu-v1";
 const CORE_ASSETS = ["/", "/manifest.webmanifest", "/logo.png"];
 
+async function cacheCriticalAssets() {
+  const cache = await caches.open(VERSION);
+  await cache.addAll(CORE_ASSETS);
+
+  try {
+    const page = await fetch("/");
+    if (!page.ok) return;
+    const html = await page.text();
+    const urls = new Set();
+
+    const collect = (pattern) => {
+      let match;
+      while ((match = pattern.exec(html)) !== null) {
+        urls.add(match[1]);
+      }
+    };
+
+    collect(/<link[^>]+href=["']([^"']+\.css[^"']*)["']/gi);
+    collect(/<script[^>]+src=["']([^"']+\.js[^"']*)["']/gi);
+
+    const tasks = [];
+    urls.forEach((src) => {
+      try {
+        const url = new URL(src, self.location.origin);
+        if (url.origin === self.location.origin) {
+          tasks.push(cache.add(url.href));
+        }
+      } catch (e) {}
+    });
+    await Promise.all(tasks);
+  } catch (e) {}
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(VERSION).then((cache) => cache.addAll(CORE_ASSETS)).then(() => self.skipWaiting())
-  );
+  event.waitUntil(cacheCriticalAssets().then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {

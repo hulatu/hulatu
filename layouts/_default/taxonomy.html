@@ -13,7 +13,7 @@
       </span>
     </a>
   {{ else }}
-    <p class="empty-tip">这里还没有文章。</p>
+    <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
   {{ end }}
 </section>
 {{ else if eq .Data.Plural "tags" }}
@@ -25,7 +25,7 @@
       <span class="tag-chip-count" aria-label="{{ .Count }} 篇文章">{{ .Count }}</span>
     </a>
   {{ else }}
-    <p class="empty-tip">还没有标签。</p>
+    <p class="empty-tip">还没有标签，先从第一篇开始吧。</p>
   {{ end }}
 </section>
 {{ else }}
@@ -34,10 +34,10 @@
   {{ range .Pages.ByTitle }}
     <a class="category-card" href="{{ .Permalink }}">
       <span class="category-card-name">{{ .Title }}</span>
-      <span class="category-card-count">{{ len .Pages }}</span>
+      <span class="category-card-count">{{ len .Pages }} 篇</span>
     </a>
   {{ else }}
-    <p class="empty-tip">还没有分类。</p>
+    <p class="empty-tip">还没有分类，先从第一篇开始吧。</p>
   {{ end }}
 </section>
 {{ end }}
