@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-10T22:12:20+08:00",
+  "updated": "2026-09-11T19:10:40+08:00",
   "activities": [
     {
       "id": "477288307",
@@ -258,7 +258,23 @@
       "calories": 600
     },
     {
+      "id": "638022963",
+      "date": "2025-09-15",
+      "distance_km": 8.17,
+      "duration_s": 3206,
+      "avg_hr": 160,
+      "calories": 600
+    },
+    {
       "id": "522420544",
+      "date": "2025-09-24",
+      "distance_km": 8.13,
+      "duration_s": 2908,
+      "avg_hr": 160,
+      "calories": 577
+    },
+    {
+      "id": "638022965",
       "date": "2025-09-24",
       "distance_km": 8.13,
       "duration_s": 2908,
