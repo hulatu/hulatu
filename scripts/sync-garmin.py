@@ -111,6 +111,11 @@ def to_item(activity: dict, allowed_types: set[str]) -> dict | None:
     return item
 
 
+def fingerprint(item: dict) -> tuple:
+    """生成除活动 id 外的内容指纹，用于防止 Garmin 返回不同 id 的重复记录。"""
+    return tuple(sorted((k, str(v)) for k, v in item.items() if k != "id"))
+
+
 def main() -> None:
     # 去掉令牌里的空白/换行（复制时可能混入）
     tokens = "".join(os.environ.get("GARMINTOKENS", "").split())
@@ -199,17 +204,25 @@ def main() -> None:
         sys.exit(f"拉取活动列表失败：{exc}")
 
     data = load_existing()
-    by_id = {str(item.get("id")): item for item in data.get("activities", [])}
+    existing = {}
+    for item in data.get("activities", []):
+        item_id = str(item.get("id"))
+        if item_id:
+            existing[item_id] = item
+        existing[fingerprint(item)] = item
 
     added = 0
     for activity in activities or []:
         item = to_item(activity, allowed_types)
-        if item is None or item["id"] in by_id:
+        if item is None:
             continue
-        by_id[item["id"]] = item
+        if item["id"] in existing or fingerprint(item) in existing:
+            continue
+        existing[item["id"]] = item
+        existing[fingerprint(item)] = item
         added += 1
 
-    merged = sorted(by_id.values(), key=lambda x: (x["date"], x["id"]))
+    merged = sorted(existing.values(), key=lambda x: (x["date"], x["id"]))
     data["updated"] = datetime.now().astimezone().isoformat(timespec="seconds")
     data["activities"] = merged
 
