@@ -204,25 +204,33 @@ def main() -> None:
         sys.exit(f"拉取活动列表失败：{exc}")
 
     data = load_existing()
-    existing = {}
+    seen_ids = set()
+    seen_fingerprints = set()
+    merged_rows = []
     for item in data.get("activities", []):
         item_id = str(item.get("id"))
+        item_fingerprint = fingerprint(item)
+        if item_id in seen_ids or item_fingerprint in seen_fingerprints:
+            continue
         if item_id:
-            existing[item_id] = item
-        existing[fingerprint(item)] = item
+            seen_ids.add(item_id)
+        seen_fingerprints.add(item_fingerprint)
+        merged_rows.append(item)
 
     added = 0
     for activity in activities or []:
         item = to_item(activity, allowed_types)
         if item is None:
             continue
-        if item["id"] in existing or fingerprint(item) in existing:
+        item_fingerprint = fingerprint(item)
+        if item["id"] in seen_ids or item_fingerprint in seen_fingerprints:
             continue
-        existing[item["id"]] = item
-        existing[fingerprint(item)] = item
+        seen_ids.add(item["id"])
+        seen_fingerprints.add(item_fingerprint)
+        merged_rows.append(item)
         added += 1
 
-    merged = sorted(existing.values(), key=lambda x: (x["date"], x["id"]))
+    merged = sorted(merged_rows, key=lambda x: (x["date"], x["id"]))
     data["updated"] = datetime.now().astimezone().isoformat(timespec="seconds")
     data["activities"] = merged
 
