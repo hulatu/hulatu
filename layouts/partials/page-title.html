@@ -1,0 +1,14 @@
+{{- $title := .Title -}}
+{{- if eq .Type "categories" -}}
+  {{- $title = printf "%s · 分类" .Title -}}
+{{- else if eq .Type "tags" -}}
+  {{- $title = printf "%s · 标签" .Title -}}
+{{- end -}}
+{{- if and (eq .Type "weekly") .IsNode -}}
+  {{- with .Paginator -}}
+    {{- if gt .PageNumber 1 -}}
+      {{- $title = printf "%s - 第 %d 页" $.Title .PageNumber -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $title -}}

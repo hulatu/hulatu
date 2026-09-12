@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} - {{ site.Title }}{{ end }}</title>
+  {{- $pageTitle := partial "page-title.html" . -}}
+  <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ $pageTitle }} - {{ site.Title }}{{ end }}</title>
   <meta name="description" content="{{ if .Description }}{{ .Description }}{{ else if .IsPage }}{{ .Summary | plainify | truncate 160 }}{{ else }}{{ site.Params.description }}{{ end }}">
   <meta name="theme-color" content="#f6f6f8">
   <link rel="preconnect" href="https://giscus.app">

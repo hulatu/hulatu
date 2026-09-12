@@ -1,4 +1,4 @@
-{{- $title := .Title -}}
+{{- $title := partial "page-title.html" . -}}
 {{- $desc := site.Params.description -}}
 {{- if .IsPage -}}
   {{- $desc = .Description | default (.Summary | plainify | truncate 160) | default $desc -}}
