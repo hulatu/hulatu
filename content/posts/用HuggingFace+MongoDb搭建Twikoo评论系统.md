@@ -1,7 +1,7 @@
 ---
-title: 用HuggingFace+MongoDb搭建Twikoo评论系统
-categories: ["工具数码"]
-tags: ["Hugo", "Twikoo", "评论系统", "部署"]
+title: 用 HuggingFace+MongoDb 搭建 Twikoo 评论系统
+categories: ["工具"]
+tags: ["Hugo", "Twikoo", "评论", "博客"]
 date: 2026-01-26T10:19:41+08:00  
 cover: "https://img.hulatu.com/post/comment-1.webp"
 coverAlt: "用HuggingFace+MongoDb搭建Twikoo评论系统 封面图"
@@ -25,44 +25,44 @@ comments: true
 
 第一步，这两个网站的账号，你得先注册，有一个自己的账号。
 
-![新建][image-1]
+![新建](https://img.hulatu.com/post/pG97hv.png)
 
-![任意填一个名称][image-2]
+![任意填一个名称](https://img.hulatu.com/post/uiR6fY.png)
 
-![下一步][image-3]
+![下一步](https://img.hulatu.com/post/8ZYyde.png)
 
-![新建][image-4]
+![新建](https://img.hulatu.com/post/3a3ACh.png)
 
-![必须要和我选择一样][image-5]
+![必须要和我选择一样](https://img.hulatu.com/post/rp9z5k.png)
 
-![记好这串密码][image-6]
+![记好这串密码](https://img.hulatu.com/post/hm6A6H.png)
 
 请记好这串密码，后面要用到。
 
 ![调整ip][image-7]
 
-![必须出现0.0.0.0/0][image-8]
+![必须出现0.0.0.0/0](https://img.hulatu.com/post/PVAtTB.png)
 
-![等状态称为 Active][image-9]
+![等状态称为 Active](https://img.hulatu.com/post/Br3prP.png)
 
-![点 connect][image-10]
+![点 connect](https://img.hulatu.com/post/F1ktUU.png)
 
-![点 drivers][image-11]
+![点 drivers](https://img.hulatu.com/post/H2t32C.png)
 
-![复制密钥][image-12]
+![复制密钥](https://img.hulatu.com/post/bjIGV2.png)
 
 记得把方框框起来的部分（包括尖括号），换成前面我要求大家复制保存起来的那个密钥，再把这一长串密钥，保存好。然后，打开下面的链接：
 
 https://huggingface.co/spaces/imaegoo/twikoo?duplicate=true
 
-![粘贴密钥][image-13]
+![粘贴密钥](https://img.hulatu.com/post/MzsyFS.png)
 
 把刚才复制的那一串密钥，粘贴进来，进行下一步。
 
-![点击这里][image-14]
+![点击这里](https://img.hulatu.com/post/wh145n.png)
 
 
-![复制这串地址][image-15]
+![复制这串地址](https://img.hulatu.com/post/nqXdoK.png)
 
 在把刚才复制的链接，放在以下这段代码里。
 
