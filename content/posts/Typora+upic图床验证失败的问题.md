@@ -33,7 +33,7 @@ uPic/{random}{.suffix}
 
 最后，这个开关一定选择关闭，不然也容易上传图片失败。
 
-![输出格式编码，选择关闭][image-2]
+![输出格式编码，选择关闭](https://img.hulatu.com/post/Rjefry.png)
 
 用我这个方法操作后，再去 Typora 验证 uPic 图片上传选项，就一定能成功了。
 
