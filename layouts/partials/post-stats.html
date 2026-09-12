@@ -1,0 +1,20 @@
+{{- /* 评论数 / 阅读数。
+       数据来自 data/hot.json 的 byPath（由 scripts/fetch_hot.py 生成），
+       键与 layouts/index.postindex.json 里一致：RelPermalink 转小写、去首尾斜杠。
+       没有数据、或两个数都是 0 时不输出任何内容（调用方可以用 with 包一层）。
+       用法：partial "post-stats.html" —— 传入当前页面，不传额外参数。 */ -}}
+{{- $stats := dict -}}
+{{- with hugo.Data.hot -}}{{ with .byPath }}{{ $stats = . }}{{ end }}{{ end -}}
+{{- /* 注意 strings.Trim 是 STRING CUTSET（字符串在前、cutset 在后），
+       和 TrimPrefix / TrimSuffix 相反。写成管道 `X | strings.Trim "/"`
+       会变成 strings.Trim("/", X)，被削的是 "/" 本身，结果恒为空串。 */ -}}
+{{- $key := strings.Trim (lower .RelPermalink) "/" -}}
+{{- $stat := index $stats $key -}}
+{{- $parts := slice -}}
+{{- with $stat -}}
+  {{- if .comments }}{{ $parts = $parts | append (printf "%d 条评论" (int .comments)) }}{{ end -}}
+  {{- if .views }}{{ $parts = $parts | append (printf "%d 次阅读" (int .views)) }}{{ end -}}
+{{- end -}}
+{{- with $parts -}}
+<span class="post-stat" title="评论数来自 giscus，阅读量来自 Cloudflare Web Analytics">{{ delimit . " · " }}</span>
+{{- end -}}

@@ -1,0 +1,25 @@
+{{- /* 从标题里的「第 X 期」解析期号：支持阿拉伯数字与中文数字（1-99）。
+       解析不出来返回 0，调用方用 {{ if $issue }} 自行兜底。 */ -}}
+{{- $n := 0 -}}
+{{- $m := findRE `第\s*([0-9]+|[零一二三四五六七八九十]+)\s*期` .Title 1 -}}
+{{- with $m -}}
+  {{- $s := replaceRE `.*第\s*([0-9]+|[零一二三四五六七八九十]+)\s*期.*` "$1" (index . 0) -}}
+  {{- if findRE `^[0-9]+$` $s -}}
+    {{- $n = int $s -}}
+  {{- else -}}
+    {{- $digits := dict "零" 0 "一" 1 "二" 2 "三" 3 "四" 4 "五" 5 "六" 6 "七" 7 "八" 8 "九" 9 -}}
+    {{- if in $s "十" -}}
+      {{- $parts := split $s "十" -}}
+      {{- $tens := index $parts 0 -}}
+      {{- $ones := index $parts 1 -}}
+      {{- $t := 1 -}}
+      {{- with $tens -}}{{- $t = index $digits . -}}{{- end -}}
+      {{- $o := 0 -}}
+      {{- with $ones -}}{{- $o = index $digits . -}}{{- end -}}
+      {{- $n = add (mul $t 10) $o -}}
+    {{- else -}}
+      {{- with index $digits $s -}}{{- $n = . -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $n -}}

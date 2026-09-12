@@ -1,0 +1,72 @@
+{{ define "main" }}
+{{- $name := .Params.seriesName | default .Title -}}
+{{- $items := slice -}}
+{{- if eq .Params.seriesType "weekly" -}}
+  {{- $items = sort (where site.RegularPages "Type" "weekly") "Date" -}}
+{{- else -}}
+  {{- $items = sort (where (where site.RegularPages "Type" "posts") "Params.series" $name) "Date" -}}
+{{- end -}}
+{{- $count := len $items -}}
+{{- $latest := false -}}
+{{- if $count -}}{{- $latest = index $items (sub $count 1) -}}{{- end -}}
+
+<article class="series-page">
+  <header class="series-hero">
+    <p class="series-eyebrow">系列</p>
+    <h1 class="series-title">{{ .Title }}</h1>
+    {{- with .Params.description -}}
+      <p class="series-desc">{{ . }}</p>
+    {{- end -}}
+    <div class="series-stats">
+      <span class="series-stat"><strong>{{ $count }}</strong> 篇</span>
+      {{- if $latest -}}
+        <span class="series-stat">最近更新 <strong>{{ $latest.Date.Format "2006-01-02" }}</strong></span>
+      {{- end -}}
+    </div>
+    {{- if $count -}}
+    <div class="series-progress" id="series-progress" data-series="{{ $name }}">
+      <div class="series-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="{{ $count }}" aria-valuenow="0" aria-label="系列阅读进度">
+        <span class="series-progress-fill" id="series-progress-fill"></span>
+      </div>
+      <span class="series-progress-text" id="series-progress-text">已读 0 / {{ $count }}</span>
+    </div>
+    {{- end -}}
+  </header>
+
+  {{ with .Content }}<div class="series-intro">{{ . }}</div>{{ end }}
+
+  {{ if $count }}
+  <section class="series-catalog" id="series-catalog" data-series="{{ $name }}">
+    <h2 class="series-catalog-title">按顺序阅读</h2>
+    <ol class="series-list">
+      {{- range $i, $p := $items -}}
+        {{- $chars := $p.Plain | strings.RuneCount -}}
+        {{- $readMins := div (add $chars 299) 300 -}}
+        <li class="series-item">
+          <a class="series-item-link" href="{{ $p.Permalink }}" data-url="{{ $p.RelPermalink }}">
+            <span class="series-item-num">{{ add $i 1 }}</span>
+            <span class="series-item-main">
+              <span class="series-item-title">{{ $p.Title }}</span>
+              <span class="series-item-meta">
+                <time datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006-01-02" }}</time>
+                <span class="series-item-read">约 {{ $readMins }} 分钟</span>
+                {{- with $p.GetTerms "categories" -}}
+                  {{- range first 1 . -}}<span class="series-item-cat">{{ .Title }}</span>{{- end -}}
+                {{- end -}}
+              </span>
+            </span>
+            <span class="series-item-check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+          </a>
+        </li>
+      {{- end -}}
+    </ol>
+  </section>
+  {{ else }}
+  <p class="empty-tip">这个系列还没有文章。</p>
+  {{ end }}
+</article>
+{{ end }}

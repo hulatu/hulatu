@@ -7,7 +7,14 @@
 {{- end -}}
 {{- $img := "/img/og-card.png" -}}
 {{- if and .IsPage (in (slice "posts" "weekly") .Type) -}}
-  {{- with .Params.slug }}{{ $img = printf "/og/%s-%s.png" ($.Date.Format "20060102") . }}{{ end -}}
+  {{- /* 每篇文章的分享图由 scripts/og-images.py 生成到 static/og/（提交进 git）。
+         先确认文件真的在，否则退回默认卡片 —— 免得分享图变成死链。 */ -}}
+  {{- with .Params.slug -}}
+    {{- $name := printf "%s-%s.png" ($.Date.Format "20060102") . -}}
+    {{- if fileExists (printf "static/og/%s" $name) -}}
+      {{- $img = printf "/og/%s" $name -}}
+    {{- end -}}
+  {{- end -}}
 {{- else -}}
   {{- with .Params.cover }}{{ $img = . }}{{ end -}}
 {{- end -}}

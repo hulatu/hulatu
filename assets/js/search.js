@@ -10,6 +10,7 @@
   if (!btn || !box) return;
 
   let fuse = null, posts = [], loaded = false, loading = false, timer, categoriesBuilt = false;
+  let activeIndex = -1;   // 键盘选中的结果下标；-1 表示当前没有选中项
 
   /* ---------- 索引加载（带状态反馈） ---------- */
   function ensureFuse() {
@@ -84,6 +85,7 @@
 
   function showInitial() {
     results.innerHTML = '';
+    activeIndex = -1;
     empty.textContent = '输入关键词开始搜索';
     empty.hidden = false;
     buildCategories();
@@ -93,11 +95,19 @@
   /* ---------- 工具 ---------- */
   const esc = (t) => { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
 
-  // 高亮命中词
+  // 高亮命中词：一段文本里出现多次就全部标出来，不只是第一处
   function hi(text, q) {
-    const i = (text || '').toLowerCase().indexOf(q.toLowerCase());
-    if (i < 0) return esc(text);
-    return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+    const src = text || '';
+    const needle = (q || '').toLowerCase();
+    if (!needle) return esc(src);
+    const hay = src.toLowerCase();
+    if (hay.indexOf(needle) < 0) return esc(src);
+    let out = '', from = 0, at;
+    while ((at = hay.indexOf(needle, from)) >= 0) {
+      out += esc(src.slice(from, at)) + '<mark>' + esc(src.slice(at, at + needle.length)) + '</mark>';
+      from = at + needle.length;
+    }
+    return out + esc(src.slice(from));
   }
 
   // 从正文里截取命中处前后的一段上下文，而不是永远显示开头
@@ -109,9 +119,35 @@
     return (s > 0 ? '…' : '') + hi(body.slice(s, e), q) + (e < body.length ? '…' : '');
   }
 
+  /* ---------- 键盘选中项 ----------
+     刻意不用 DOM focus 移动：焦点一旦离开输入框，继续打字就没反应了。
+     改成给 <a> 挂 .is-active，输入框始终保留焦点。 */
+  function resultLinks() {
+    return Array.prototype.slice.call(results.querySelectorAll('a'));
+  }
+
+  function paintActive(i) {
+    const ls = resultLinks();
+    ls.forEach(function (a, n) { a.classList.toggle('is-active', n === i); });
+    const el = ls[i];
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+  }
+
+  function moveActive(step) {
+    const ls = resultLinks();
+    if (!ls.length) return;
+    if (activeIndex < 0) {
+      activeIndex = step > 0 ? 0 : ls.length - 1;   // 还没选过：↓ 选第一项，↑ 选最后一项
+    } else {
+      activeIndex = (activeIndex + step + ls.length) % ls.length;   // 首尾循环
+    }
+    paintActive(activeIndex);
+  }
+
   /* ---------- 渲染 ---------- */
   function showTip(text) {
     results.innerHTML = '';
+    activeIndex = -1;
     empty.textContent = text;
     empty.hidden = false;
     if (categoriesEl) categoriesEl.hidden = true;
@@ -119,6 +155,7 @@
 
   function render(list, q) {
     results.innerHTML = '';
+    activeIndex = -1;   // 结果换了一批，之前的选中项作废
     if (!list.length) { showTip('没有找到与「' + q + '」相关的内容'); return; }
     empty.hidden = true;
     if (categoriesEl) categoriesEl.hidden = true;
@@ -177,14 +214,27 @@
 
   input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(doSearch, 120); });
 
-  // 方向键在结果间移动，Enter 打开（链接默认行为）
+  // ↑↓ 在结果间移动，Enter 打开选中的那条（没选过就打开第一条）
   input.addEventListener('keydown', (e) => {
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-    const links = [...results.querySelectorAll('a')];
-    if (!links.length) return;
-    e.preventDefault();
-    const i = links.indexOf(document.activeElement);
-    e.key === 'ArrowDown' ? (links[i + 1] || links[0]).focus()
-                          : (i <= 0 ? input : links[i - 1]).focus();
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(1); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); return; }
+    if (e.key === 'Enter') {
+      const ls = resultLinks();
+      if (!ls.length) return;
+      e.preventDefault();
+      ls[activeIndex >= 0 ? activeIndex : 0].click();   // 复用已有的点击处理，会顺手关掉弹层
+    }
+  });
+
+  // 鼠标划过时同步选中项，免得键盘选中的和眼睛看到的不一致
+  results.addEventListener('mouseover', (e) => {
+    const a = e.target.closest ? e.target.closest('a') : null;
+    if (!a) return;
+    const ls = resultLinks();
+    const i = ls.indexOf(a);
+    if (i >= 0 && i !== activeIndex) {
+      activeIndex = i;
+      ls.forEach(function (x, n) { x.classList.toggle('is-active', n === i); });
+    }
   });
 })();

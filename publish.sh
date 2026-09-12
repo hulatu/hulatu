@@ -19,6 +19,36 @@ git status
 
 # 2. 提交本地全部改动
 echo "==> 2/6 提交本地改动"
+# 2a. 刷新热门榜（giscus 热议 + Cloudflare 热读）；没配 token 时脚本自己跳过，不阻断发布
+PYHOT=""
+for cand in "$(command -v python3 2>/dev/null)" \
+  /opt/homebrew/Caskroom/miniforge/base/bin/python3 \
+  /usr/local/bin/python3; do
+  if [ -n "$cand" ] && [ -x "$cand" ]; then
+    PYHOT="$cand"
+    break
+  fi
+done
+
+if [ -n "$PYHOT" ]; then
+  if ! "$PYHOT" scripts/fetch_hot.py; then
+    echo "    !! 热门榜刷新失败，沿用上一次的 data/hot.json" >&2
+  fi
+else
+  echo "    !! 跳过热门榜：没找到可用的 python3" >&2
+fi
+
+# 2b. 生成 OG 分享图到 static/og/，必须赶在 git add 之前 —— 这些图要跟文章一起提交，
+#     Cloudflare Pages 的平台构建（镜像里没有 ImageMagick）只能靠 static/ 照搬。
+#     没装 magick / 找不到字体时脚本自己跳过，不阻断发布。
+if [ -n "$PYHOT" ]; then
+  if ! "$PYHOT" scripts/og-images.py; then
+    echo "    !! OG 分享图生成失败，本次可能缺少部分分享图" >&2
+  fi
+else
+  echo "    !! 跳过 OG 分享图：没找到可用的 python3" >&2
+fi
+
 git add .
 if git diff --cached --quiet; then
   echo "    没有需要提交的本地改动"

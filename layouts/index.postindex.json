@@ -1,6 +1,14 @@
 [
   {{- $pages := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
+  {{- /* data/hot.json 的 byPath：{规范化路径: {comments, reactions, views}}，由 scripts/fetch_hot.py 生成 */ -}}
+  {{- $stats := dict -}}
+  {{- with hugo.Data.hot -}}{{ with .byPath }}{{ $stats = . }}{{ end }}{{ end -}}
   {{- range $index, $page := $pages -}}
+    {{- /* 键要和 python 端 norm_path() 一致：去域名、去首尾斜杠、转小写 */ -}}
+    {{- /* strings.Trim 是 STRING CUTSET（与 TrimPrefix/TrimSuffix 相反），
+           管道写法会退化成 strings.Trim("/", $path)，key 恒为空串。 */ -}}
+    {{- $key := strings.Trim (lower $page.RelPermalink) "/" -}}
+    {{- $stat := index $stats $key -}}
     {{- if $index -}},{{- end -}}
     {
       "title": {{ $page.Title | jsonify }},
@@ -19,7 +27,9 @@
         {{- end -}}
       {{- else }}""{{- end }},
       "cat": {{ with $page.GetTerms "categories" }}{{ with index . 0 }}{{ .Title | jsonify }}{{ else }}""{{ end }}{{ else }}""{{ end }},
-      "featured": {{ with $page.Params.featured }}true{{ else }}false{{ end }}
+      "featured": {{ with $page.Params.featured }}true{{ else }}false{{ end }},
+      "comments": {{ if $stat }}{{ $stat.comments | default 0 }}{{ else }}0{{ end }},
+      "views": {{ if $stat }}{{ $stat.views | default 0 }}{{ else }}0{{ end }}
     }
   {{- end -}}
 ]
