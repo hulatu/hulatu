@@ -5,26 +5,34 @@
 {{- $tagline := $a.tagline | default "记录跑步、写作与工具折腾。" -}}
 {{- $focus := $a.focus | default (slice "跑步" "写作" "工具折腾") -}}
 {{- $intro := $a.intro | default (slice "欢迎来到我的世界。") -}}
+{{- /* 头像文件真的躺在 static/ 里才渲染，换图期间缺文件就退回「胡」字印章，
+       免得页面上出现一个裂图。site.Params.avatar 是以 / 开头的站内路径，
+       所以要先拼上 static 前缀才是磁盘上的位置。 */ -}}
+{{- $avatar := site.Params.avatar | default "" -}}
+{{- if and $avatar (not (fileExists (printf "static%s" $avatar))) -}}{{- $avatar = "" -}}{{- end -}}
 
 <div class="about-page">
   <header class="about-head">
     <div class="about-head-card">
-      {{ if site.Params.avatar }}
-        <img class="about-avatar" src="{{ site.Params.avatar | relURL }}" alt="{{ site.Params.author }}">
+      {{ if $avatar }}
+        <img class="about-avatar" src="{{ $avatar | relURL }}" alt="{{ site.Params.author }}"
+             width="160" height="160" loading="eager" fetchpriority="high" decoding="async">
       {{ else }}
-        <div class="about-avatar about-avatar-fallback">{{ substr site.Params.author 0 1 }}</div>
+        <div class="about-avatar about-avatar-fallback" aria-hidden="true">{{ substr site.Params.author 0 1 }}</div>
       {{ end }}
 
       <div class="about-head-main">
         <h1 class="about-name">{{ site.Params.author }}<span class="about-name-note">朋朋</span></h1>
         <p class="about-role">{{ $role }} · {{ $location }}</p>
         <p class="about-tagline">{{ $tagline }}</p>
+
+        <span class="about-divider" aria-hidden="true"></span>
+
         <div class="about-focus" aria-label="关注方向">
           {{ range $focus }}<span class="about-focus-chip">{{ . }}</span>{{ end }}
         </div>
-      </div>
 
-      <span class="about-seal" aria-hidden="true">胡</span>
+      </div>
     </div>
   </header>
 

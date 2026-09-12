@@ -24,7 +24,6 @@
             <span class="post-row-featured">精选</span>
           </span>
           <span class="post-row-summary">{{ $p.Summary | plainify | truncate 90 }}</span>
-          {{ partial "post-stats.html" $p }}
         </span>
         <time class="post-row-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006-01-02" }}</time>
       </a>
@@ -39,7 +38,6 @@
             {{ if $p.Params.featured }}<span class="post-row-featured">精选</span>{{ end }}
           </span>
           <span class="post-row-summary">{{ $p.Summary | plainify | truncate 90 }}</span>
-          {{ partial "post-stats.html" $p }}
         </span>
         <time class="post-row-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006-01-02" }}</time>
       </a>
@@ -90,12 +88,13 @@
   var prevBtn = document.getElementById("pager-prev");
   var nextBtn = document.getElementById("pager-next");
   if (!btn || !list) return;
+
   var cache = null;
   var current = [];
-  var mode = "featured"; // featured | latest | random
+  var mode = "featured";
   var PER_PAGE = 5;
-  var latestAll = [];
-  var latestPage = 0;
+
+  var latestAll = [], latestPage = 0;
 
   function loadIndex() {
     if (cache) return Promise.resolve(cache);
@@ -224,17 +223,6 @@
       main.appendChild(summary);
     }
 
-    // 评论数 / 阅读数（来自 post-index.json，由 data/hot.json 注入）
-    var statParts = [];
-    if (p.comments) statParts.push(p.comments + " 条评论");
-    if (p.views) statParts.push(p.views + " 次阅读");
-    if (statParts.length) {
-      var stat = document.createElement("span");
-      stat.className = "post-stat";
-      stat.title = "评论数来自 giscus，阅读量来自 Cloudflare Web Analytics";
-      stat.textContent = statParts.join(" · ");
-      main.appendChild(stat);
-    }
     a.appendChild(main);
 
     var date = document.createElement("time");

@@ -559,6 +559,7 @@ main.container.is-entering {
 
 /* ---------- 首页 · 列表工具栏 ---------- */
 .list-toolbar {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -639,10 +640,12 @@ main.container.is-entering {
 
 /* ---------- 首页 · 时间模式翻页 ---------- */
 .list-pager {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-inline: auto;
 }
 
 /* 首页翻页：隐藏时也保留占位，切换「精选 / 顺序列表」整页高度不跳动 */
@@ -3073,12 +3076,13 @@ body.toc-open { overflow: hidden; }
   padding: var(--space-1) 0 var(--space-9);
 }
 
+/* 两列布局：左头像右信息，顶部对齐，信息列内部全部左对齐 */
 .about-head-card {
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-7);
-  align-items: center;
+  align-items: start;
   padding: var(--space-8) var(--space-8) var(--space-7);
   background: var(--surface);
   border: 1px solid var(--line);
@@ -3087,6 +3091,7 @@ body.toc-open { overflow: hidden; }
   overflow: hidden;
 }
 
+/* 底边这道印章红：由两端向中间渐显，左右对称 */
 .about-head-card::after {
   content: "";
   position: absolute;
@@ -3096,44 +3101,51 @@ body.toc-open { overflow: hidden; }
   height: 3px;
   background: linear-gradient(
     90deg,
-    var(--accent),
-    color-mix(in srgb, var(--accent) 28%, transparent)
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    var(--accent) 50%,
+    color-mix(in srgb, var(--accent) 22%, transparent)
   );
 }
 
+/* 头像：148px 圆形 + 印泥淡痕，比原 112px 大，比居中版 160px 更适配两列 */
 .about-avatar {
-  width: 112px;
-  height: 112px;
-  border-radius: 24px;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--line-strong);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 0 0 6px var(--accent-soft);
 }
 
+/* 只有文件缺失时才出现：一个印章红圆形里的「胡」字 */
 .about-avatar-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 112px;
-  height: 112px;
-  border-radius: 24px;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--on-accent);
   font-family: var(--font-serif);
-  font-size: 2.4rem;
+  font-size: 3.2rem;
   font-weight: 700;
 }
 
+/* 信息列：flex column 左对齐，印章用 margin-left:auto 推到右下角，
+   不再需要 padding-right 避让绝对定位印章 */
 .about-head-main {
   min-width: 0;
-  padding-right: var(--space-10);
-  padding-left: var(--space-6);
-  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .about-name {
   display: flex;
   align-items: baseline;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: var(--space-2);
   font-family: var(--font-serif);
@@ -3158,14 +3170,37 @@ body.toc-open { overflow: hidden; }
 
 .about-tagline {
   max-width: 30rem;
+  margin: 0 0 var(--space-5);
   color: var(--muted);
   font-size: 0.88rem;
-  margin: 0 0 var(--space-4);
+}
+
+/* 短分隔线：左对齐，3rem 宽，中间一颗菱形 —— tagline 与 chips 之间的视觉呼吸 */
+.about-divider {
+  position: relative;
+  display: block;
+  width: 3rem;
+  height: 1px;
+  margin: 0 0 var(--space-5);
+  background: var(--line);
+}
+
+.about-divider::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .about-focus {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-start;
   gap: var(--space-2);
 }
 
@@ -3180,25 +3215,6 @@ body.toc-open { overflow: hidden; }
   color: var(--ink-soft);
   font-size: 0.78rem;
   letter-spacing: 0.04em;
-}
-
-.about-seal {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  line-height: 1;
-  transform: rotate(5deg);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .about-body {
@@ -3793,6 +3809,7 @@ body.shortcut-open { overflow: hidden; }
 }
 
 .series-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -3801,8 +3818,22 @@ body.shortcut-open { overflow: hidden; }
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
   transition: transform 0.18s var(--ease), border-color 0.18s ease, box-shadow 0.18s ease;
 }
+
+/* 左侧一道印章红「书脊」：一个系列就是一本书的脊背 */
+.series-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0.26;
+  transition: opacity 0.18s ease;
+}
+
+.series-card:hover::before { opacity: 1; }
 
 .series-card:hover {
   transform: translateY(-2px);
@@ -3869,16 +3900,34 @@ body.shortcut-open { overflow: hidden; }
 }
 
 /* ---------- 系列 · 详情页 ---------- */
+/* 和周刊的 .column-head 一样是卡片头：整个站的头图区都不再是裸块 */
 .series-hero {
-  padding: 0 0 var(--space-6);
-  border-bottom: 1px solid var(--line);
+  position: relative;
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  margin-bottom: var(--space-7);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+/* 顶边一道印章红细边，与总览页卡片的左侧书脊呼应 */
+.series-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 16%, transparent));
 }
 
 .series-eyebrow {
   margin: 0 0 var(--space-2);
-  font-size: 0.76rem;
-  letter-spacing: 0.22em;
   color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
 }
 
 .series-title {
@@ -3898,7 +3947,7 @@ body.shortcut-open { overflow: hidden; }
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-5);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   color: var(--muted);
 }
 
@@ -3940,17 +3989,31 @@ body.shortcut-open { overflow: hidden; }
 }
 
 .series-intro {
-  margin: var(--space-7) 0 var(--space-5);
+  margin: 0 0 var(--space-5);
   color: var(--ink-soft);
 }
 
 .series-intro p { margin: 0 0 var(--space-4); }
 .series-intro p:last-child { margin-bottom: 0; }
 
+/* 与 .tool-group-title / .post-series-label 同一套「印章红圆点 + 宋体」小节标题 */
 .series-catalog-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   font-family: var(--font-serif);
   font-size: 1.12rem;
+  font-weight: 400;
+  color: var(--ink-soft);
   margin: 0 0 var(--space-4);
+}
+
+.series-catalog-title::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 
 .series-list {
@@ -3988,7 +4051,8 @@ body.shortcut-open { overflow: hidden; }
   border-radius: 50%;
   background: var(--surface-2);
   color: var(--muted);
-  font-size: 0.86rem;
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
   font-variant-numeric: tabular-nums;
   transition: background 0.2s ease, color 0.2s ease;
 }
@@ -4313,6 +4377,8 @@ body.shortcut-open { overflow: hidden; }
 
   .column-title { font-size: 1.4rem; }
 
+  .series-hero { padding: var(--space-5) var(--space-5) var(--space-4); }
+
   .series-title { font-size: 1.6rem; }
 
   .series-item-link {
@@ -4336,162 +4402,6 @@ body.shortcut-open { overflow: hidden; }
 
   .issue-toc { padding: var(--space-4); }
 }
-
-/* ---------- 热门榜（giscus 热议 + Cloudflare 热读） ---------- */
-.hot-card {
-  margin: 0 0 var(--space-8);
-  padding: var(--space-5) var(--space-5) var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
-}
-
-.hot-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
-}
-
-.hot-title {
-  font-family: var(--font-serif);
-  font-size: 1.12rem;
-  margin: 0;
-}
-
-.hot-window {
-  font-size: 0.76rem;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.hot-head-side {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-3);
-}
-
-/* 只在 `fetch_hot.py --demo` 写出的示例数据上出现 */
-.hot-demo {
-  padding: 0.2em 0.55em;
-  border-radius: var(--radius-pill);
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.7rem;
-  line-height: 1.6;
-  letter-spacing: 0.08em;
-}
-
-.hot-tabs {
-  display: inline-flex;
-  gap: 2px;
-  margin-bottom: var(--space-3);
-  padding: 3px;
-  background: var(--surface-2);
-  border-radius: var(--radius-pill);
-}
-
-/* 作者样式里的 display 会盖掉 UA 的 [hidden]，这里显式兜住 */
-.hot-tabs[hidden] { display: none; }
-
-.hot-tab {
-  padding: 0.32em 1.05em;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 0.82rem;
-  line-height: 1.6;
-  cursor: pointer;
-  transition: background 0.2s var(--ease), color 0.2s var(--ease);
-}
-
-.hot-tab:hover { color: var(--ink); }
-
-.hot-tab.is-active {
-  background: var(--surface);
-  color: var(--accent);
-  box-shadow: var(--shadow-sm);
-}
-
-/* 两个榜单都有数据时会被 JS 收起成标签页，标题就不再需要 */
-.hot-panel-title {
-  margin: 0 0 var(--space-2);
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-
-[data-hot].is-tabbed .hot-panel-title { display: none; }
-[data-hot].is-tabbed .hot-panel { display: none; }
-[data-hot].is-tabbed .hot-panel.is-active { display: block; }
-
-.hot-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.hot-item + .hot-item { border-top: 1px solid var(--line); }
-
-.hot-link {
-  display: grid;
-  grid-template-columns: 26px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-row);
-  transition: background 0.2s var(--ease);
-}
-
-.hot-link:hover { background: var(--surface-2); }
-
-.hot-rank {
-  font-family: var(--font-serif);
-  font-size: 1rem;
-  text-align: center;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.hot-item:nth-child(-n + 3) .hot-rank { color: var(--accent); }
-
-.hot-name {
-  min-width: 0;
-  font-size: 0.94rem;
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: color 0.15s ease;
-}
-
-.hot-link:hover .hot-name { color: var(--accent); }
-
-.hot-metric {
-  font-size: 0.78rem;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 600px) {
-  .hot-card { padding: var(--space-4) var(--space-4) var(--space-3); }
-  .hot-link { padding: var(--space-3) var(--space-1); gap: var(--space-2); }
-  .hot-unit { display: none; }
-}
-
-/* ---------- 评论数 / 阅读数（来自 data/hot.json 的 byPath） ---------- */
-.post-stat {
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-/* 首页行里它自成一行，字号比列表页的 meta 行再小一点 */
-.post-row-main .post-stat { font-size: 0.78rem; }
 
 /* ---------- 响应式 ---------- */
 @media (max-width: 760px) {
@@ -4670,31 +4580,27 @@ body.shortcut-open { overflow: hidden; }
 
   .about-head-card {
     grid-template-columns: 1fr;
-    gap: var(--space-4);
-    padding: var(--space-6) var(--space-6) var(--space-6);
+    gap: var(--space-5);
+    padding: var(--space-7) var(--space-5) var(--space-6);
+    text-align: center;
   }
 
   .about-avatar,
   .about-avatar-fallback {
-    width: 92px;
-    height: 92px;
-    border-radius: 20px;
+    width: 124px;
+    height: 124px;
+    margin: 0 auto;
+    box-shadow: 0 0 0 5px var(--accent-soft);
   }
 
   .about-head-main {
-    padding-right: 0;
-    padding-left: 0;
-    border-left: 0;
+    align-items: center;
   }
 
-  .about-seal {
-    top: 16px;
-    right: 16px;
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    font-size: 1.15rem;
-  }
+  .about-name { justify-content: center; }
+  .about-tagline { margin: 0 auto var(--space-5); }
+  .about-divider { margin: 0 auto var(--space-5); }
+  .about-focus { justify-content: center; }
 
   .about-section {
     padding: var(--space-5) var(--space-5);

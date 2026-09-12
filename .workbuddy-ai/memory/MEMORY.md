@@ -25,6 +25,15 @@
 - 字体：标题 `--font-serif`（思源宋体），正文 `--font-sans`，代码 `--font-mono`
 - 断点：1200px（固定侧栏）、899.98px（隐藏侧栏）、760px、600px、400px
 - **新增样式统一插到 `/* ---------- 响应式 ---------- */` 段之前**，媒体查询写在新增块末尾
+- **页面「头部区」只有四套写法，新页面必须归入其中一套，别自创**：
+  1. **`.page-title` + `.page-intro`** —— **主流**，用于 `_default/list`、`tools/list`、分类、标签、系列总览
+  2. **`.friends-head`** —— 居中 + `.friends-eyebrow`（**serif / 0.72rem / 0.28em / uppercase**），仅朋友页
+  3. **`.column-head`** —— **卡片**（surface + line + radius-card + shadow-sm + padding space-5），周刊列表页
+  4. **`.about-head-card`** —— **居中卡片**（圆形头像 + 对称分隔线 + 落款印章），仅关于页
+  ⇒ 带「简介 + 统计」的详情型头部一律做成**卡片**（如 `series/single.html` 的 `.series-hero`）；
+  裸块 + `border-bottom` 是反面例子，全站已无此写法
+- **小节标题的统一写法**：`display:flex; align-items:center; gap:var(--space-2); font-family:var(--font-serif); font-weight:400; color:var(--ink-soft)` + `::before` 一个 **8px 印章红圆点**。
+  已在 `.tool-group-title`（1.18rem）、`.post-series-label`（0.98rem）、`.series-catalog-title`（1.12rem）使用
 
 ## 模板约定
 - `layouts/_default/baseof.html` 里 `main.container` 内是 `{{ block "main" }}`
@@ -39,6 +48,11 @@
   被修剪的字符串成了 `"/"`、cutset 成了整条路径，结果**恒为空串**。正确写法：`strings.Trim (lower X) "/"`。
   这个坑不报错、不中断构建，只是查表全部落空（页面上数字静默变 0），极难发现——凡是用字符串 key 查 map 的地方都要留意
 - **`public/` 在 .gitignore 里**：`public/post-index.json` 只在本地构建后存在，脚本拿它做路径→标题映射时要留兜底
+- **首页不显示评论数 / 阅读数**（2026-09-12 用户明确要求去掉，说「我不想要」）：
+  `layouts/index.html` 里服务端两个分支（精选 / 兜底）和 JS `makeRow` 的渲染都已移除。
+  **文章页（`.post-meta`）和列表行（`layouts/partials/post-row.html`，被 404 / 列表页 / 相关文章复用）仍然显示**。
+  `post-index.json` 里的 `comments`/`views` 字段保留着（当前无消费方，约 4KB），
+  想恢复首页显示时不用重做数据链路 —— 把 `layouts/index.html` 那三处加回来即可
 
 ## 内容结构
 - `content/posts/` 普通文章；`content/weekly/` 周刊（20 期，标题含「第 X 期」）
@@ -58,7 +72,9 @@
   标签页交互 `assets/js/hot.js`；无数据整块隐藏。`--demo` 可生成示例数据看版式，`--introspect` 查维度名
 - **热门榜 token 存放位置**：`~/.config/zsh/secrets.zsh`（`~/.config/zsh/.zshrc` 末尾 source 它，
   带 `[ -f … ] &&` 守卫）。GitHub PAT 勾 `public_repo`（或 fine-grained 给 Discussions: Read）；
-  Cloudflare token 权限 `Account → Account Analytics → Read`；Account ID 用 `wrangler whoami` 最快
+  Cloudflare token 权限 `Account → Account Analytics → Read`；
+  ⚠️ **Account ID 不能靠 `wrangler whoami`** —— 本机**没装 wrangler**（`command not found`）。
+  改从 Cloudflare 控制台 Account Home 取，或域名 Overview 右侧栏
 - 图片走图床 `https://img.hulatu.com/`
 - 改 slug / 移动文章后**必须在 `static/_redirects` 补 301**
 

@@ -84,8 +84,15 @@
 # 4) 旧栏目/订阅入口
 /archives/ /archive/ 301
 /daily/ /archive/ 301
+/running/ /stats/ 301
 /feed.xml /index.xml 301
 /index.json / 301
 
 # 5) 外部收录站曾经使用的错误路径
 /docs/how-to-start-doing-self-media/ /posts/2026/07/28/how-to-start-doing-self-media/ 301
+
+# 6) 大小写 slug 变体：显式 slug 历史上有大写版本，统一到当前小写 canonical
+/posts/2026/02/07/Still-prefer-running/ /posts/2026/02/07/still-prefer-running/ 301
+/posts/2026/02/07/Still-prefer-running /posts/2026/02/07/still-prefer-running/ 301
+/Guestbook/ /guestbook/ 301
+/GUESTBOOK/ /guestbook/ 301

@@ -50,14 +50,12 @@ hugo server -D
 | 系列聚合页 / 系列简介 | `content/series/`：`_index.md` 是总览页，每个系列一个同名 md 写简介；模板在 `layouts/series/` |
 | 周刊专栏头图 | `content/weekly/_index.md` 的 `headerImage` |
 | 周刊期号徽章 | 从标题「第 X 期」自动解析，逻辑在 `layouts/partials/issue-num.html` |
-| 热门榜（热议 / 热读） | 数据 `data/hot.json`（由 `scripts/fetch_hot.py` 生成）；展示模板 `layouts/partials/hot-list.html`，归档页调用；切换交互 `assets/js/hot.js` |
-| 评论数 / 阅读数 | 数据同上（`data/hot.json` 的 `byPath`）；渲染模板 `layouts/partials/post-stats.html`，被文章页 / 列表行 / 首页行三处调用；两个数都是 0 时整块不输出 |
 | 文章底部「编辑此页」 | `hugo.toml` 的 `[params.edit]`（`repo` + `branch`，`repo` 留空则整个链接不显示）；链接由 `.File.Path` 拼出，模板在 `layouts/_default/single.html` 的 `.post-actions` |
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
 | 数据页（文章数据 + 跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（手动运行 `./publish.sh` 同步） |
-| 手动提交发布 | 终端输入 `up` → `publish.sh`（刷热门榜 → 生成 OG 分享图 → 提交本地改动 → 推 GitHub → 同步跑步数据 → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
+| 手动提交发布 | 终端输入 `up` → `publish.sh`（生成 OG 分享图 → 提交本地改动 → 推 GitHub → 同步跑步数据 → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | OG 分享图 | 生成器 `scripts/og-images.py`，输出到 **`static/og/` 并提交进 git**（Hugo 构建时把 `static/` 复制到 `public/og/`，所以本地和平台构建都有图）。生成时机在 `publish.sh` 里，必须赶在 `git add` 和 `hugo` 之前。`og:image` 元信息在 `layouts/partials/head-meta.html` |
 | 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
@@ -105,12 +103,11 @@ up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
 `up`（函数定义在 `~/.config/zsh/.zshrc`）实际只做两件事：
 
 1. **`bash ./publish.sh`** —— 依次：
-   - 刷新热门榜：`scripts/fetch_hot.py` → 写 `data/hot.json`
    - 生成 OG 分享图：`scripts/og-images.py` → 写 `static/og/`
    - `git add .` + 提交（commit 信息：博客：新增/修改文章）
    - 推 GitHub → 同步 Garmin 跑步数据（失败不阻断）→ `git pull --rebase` 拉取远端 → 再完整推送
 
-   热门榜和 OG 图都**赶在 `git add` 之前**生成，这样才能跟文章一起提交、被平台构建读到。
+   OG 图要**赶在 `git add` 之前**生成，这样才能跟文章一起提交、被平台构建读到。
 2. **`hugo --minify`** —— 本地构建一份预览到 `public/`。`public/` 在 `.gitignore` 里，不会上传，纯粹给你自己看效果。
 
 > ⚠️ `up` **不会**调用 `./deploy.sh`。`deploy.sh` 是手动脚本，做「干净构建 + livereload 自检」，只写本地 `public/`，不上传也不部署。它同样把 OG 图生成放在 `hugo` 之前。
@@ -155,106 +152,6 @@ weight: 1                  # 总览页排序
 
 - 周刊会自动归入「周刊」系列：`content/series/周刊.md` 里用 `seriesType: "weekly"` 标记，按 `Type` 汇总，不依赖 `series` 字段（所以早期没填 `series` 的几期也不会漏）；
 - 系列详情页的「已读 x/N」进度存在浏览器 `localStorage`（键名 `series-read`），换设备不跟随，也不需要后端。
-
-### 热门榜（热议 / 热读）
-
-归档页（`/archive/`）顶部会显示一个「热门」卡片，两个榜单：
-
-- **热议** —— 按 giscus 的评论数排序，数据来自 GitHub Discussions（免费）；
-- **热读** —— 按浏览量排序，数据来自 Cloudflare Web Analytics（免费，站点本来就跑在 Cloudflare 上）。
-
-数据由 `scripts/fetch_hot.py` 生成到 `data/hot.json`。链路是**构建前抓取**（不是浏览器里实时请求），
-所以两个 token 都只留在你本机，不会进前端。`./publish.sh` 第 2 步已经内置了这一步。
-
-**首次配置**：把几个值填进 `~/.config/zsh/secrets.zsh`（已经建好了，里面是注释掉的占位符；
-填完去掉行首的 `#`，再 `chmod 600 ~/.config/zsh/secrets.zsh`）。`~/.config/zsh/.zshrc` 末尾
-已经有一行 source 它，所以 `up` 跑 `publish.sh` 时能读到。
-
-1. **`GITHUB_TOKEN`（热议）**
-   - 打开 <https://github.com/settings/tokens> → **Tokens (classic)** → **Generate new token (classic)**
-   - 勾 **`public_repo`**（只读公开仓库的 Discussions，这个就够），生成后复制 `ghp_...`（**只显示一次**）
-   - 想要更小的权限就选 **Fine-grained tokens**：Repository access 只勾 `hulatu/hulatu`，
-     Repository permissions 给 **Discussions: Read**（GitHub 的 GraphQL 自 2023 年起支持 fine-grained PAT）
-
-2. **`CF_API_TOKEN` + `CF_ACCOUNT_ID`（热读）**
-   - 打开 <https://dash.cloudflare.com/?to=/:account/api-tokens> → **Create Token**
-   - 选 **Custom token** → **Get started**（不要套现成模板）
-   - Permissions：第一栏 **Account**、第二栏 **Account Analytics**、第三栏 **Read**
-   - Account Resources：**Include → 你的账号**；Zone Resources 留 All zones 即可（RUM 是账号级数据，用不到 Zone）
-   - 生成后复制（**只显示一次**）
-   - **Account ID** 有三种拿法（⚠️ 本机**并没有装 wrangler**，`wrangler whoami` 会 command not found）：
-     ① 控制台 → 任选一个域名 → **Overview**，右侧 API 区块里的 Account ID；
-     ② 控制台 **Account Home** 右侧栏；
-     ③ 地址栏 URL 里那段 32 位 hex
-
-3. **`CF_SITE_TAG`** 一般不用填，脚本会自己从 Web Analytics 站点列表里找。
-   如果那一步报权限错误，可以手动指定：控制台 → 你的账号 → **Web Analytics** → 点进 hulatu.com，
-   页面里 beacon 片段 `data-cf-beacon='{"token":"..."}'` 中的 `token` 就是 site tag。
-
-4. 手动跑一次确认：
-
-   ```bash
-   python3 scripts/fetch_hot.py
-   ```
-
-   > 脚本优先用 `public/post-index.json` 把访问路径映射成文章标题；
-   > 这个文件不存在时会退而从 `content/` 的 `slug` + `date` 推算。
-   > 所以**先跑一次 `./deploy.sh` 或 `hugo` 再抓，标题最准**。
-
-**常用环境变量**：
-
-| 变量 | 默认 | 作用 |
-|---|---|---|
-| `GITHUB_TOKEN` | 无 | 不填则跳过「热议」榜 |
-| `CF_API_TOKEN` / `CF_ACCOUNT_ID` | 无 | 不填则跳过「热读」榜 |
-| `CF_SITE_TAG` | 自动查找 | 一个账户下有多个 Web Analytics 站点时手动指定 |
-| `HOT_DAYS` | `30` | 「热读」统计窗口天数 |
-| `HOT_LIMIT` | `5` | 每个榜单保留几条 |
-
-**先看版式（还没配 token 时）**：
-
-```bash
-python3 scripts/fetch_hot.py --demo    # 用真实文章标题 + 假数字生成示例数据
-```
-
-跑完 `hugo server -D` 打开 `/archive/` 就能看到「热门」卡片，右上角会标着「示例数据」。
-确认版式没问题后 `rm data/hot.json` 删掉，等配好 token 再跑真数据。
-
-**排查**：如果「热读」报维度字段不存在（Cloudflare 改过 schema），跑
-`python3 scripts/fetch_hot.py --introspect`，它会打印 RUM 数据集当前可用的字段和维度名。
-
-**行为约定**：两个数据源互相独立——任一边失败只保留它上一次的数据，另一边照常更新；
-两边都失败时不覆盖 `data/hot.json`。`data/hot.json` 不存在、或两个榜单都为空时，
-归档页上的整块会自动隐藏，不会报错。想把它同时放到首页，在 `layouts/index.html` 里
-加一行 `{{ partial "hot-list.html" . }}` 即可。
-
-### 评论数 / 阅读数（`byPath`）
-
-脚本除了写两个榜单，还会把**全量**计数写进 `data/hot.json` 的 `byPath`：
-
-```json
-"byPath": {
-  "posts/2025/12/10/daily-update-blog": { "comments": 12, "reactions": 3, "views": 340 }
-}
-```
-
-- 键是「去域名、去首尾斜杠、转小写」的路径，和 `layouts/index.postindex.json` 里
-  `strings.Trim (lower $page.RelPermalink) "/"` 算出来的完全一致；
-  ⚠️ **Hugo 的 `strings.Trim` 是 `STRING CUTSET`（字符串在前、cutset 在后）**，和
-  `TrimPrefix` / `TrimSuffix` 的顺序相反。千万别写成管道 `X | strings.Trim "/"`——
-  那会变成 `strings.Trim("/", X)`，被削的是 `"/"` 自己，key 恒为空串，
-  结果是**页面上的评论数/阅读数全部静默显示为 0**（不报错，极难发现）。
-- 构建时它被注入 `public/post-index.json` 的 `comments` / `views` 字段；
-- 显示统一走 `layouts/partials/post-stats.html`，三处调用：文章页 `.post-meta`、
-  列表行 `.post-row-meta`（`layouts/partials/post-row.html`）、首页行
-  （`layouts/index.html`，服务端渲染和 JS 生成的两条路径都覆盖了）；
-- 两个数都是 0、或没有 `byPath` 时，这个 span 整块不输出。
-
-**覆盖规则**：某个源抓取成功时，它的字段**整体覆盖**（先清空再写入），所以删掉的讨论、
-下线的路径不会残留；某个源失败时，只有它的字段沿用上一次的值。
-
-> 「阅读数」是 Cloudflare Web Analytics 的**近 `HOT_DAYS` 天（默认 30 天）**浏览量，
-> 不是历史总访问量；鼠标悬停在数字上的提示里也写明了数据来源。
 
 ## 三、部署与托管
 

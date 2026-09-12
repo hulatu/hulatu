@@ -55,9 +55,6 @@
         <span class="post-meta-sep">·</span>
         <span>更新于 {{ .Lastmod.Format "2006-01-02" }}</span>
       {{ end }}
-      {{- with partial "post-stats.html" . }}
-        <span class="post-meta-sep">·</span>{{ . }}
-      {{- end }}
     </div>
     {{ if and .Params.series (not $isWeekly) }}
       {{- $seriesPosts := sort (where (where site.RegularPages "Type" "in" (slice "posts" "weekly")) "Params.series" .Params.series) "Date" -}}
