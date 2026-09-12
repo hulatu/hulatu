@@ -55,7 +55,13 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   # 文章底部关注公众号引导：填图片地址即启用
   [params.wechat]
     followImg = "https://img.hulatu.com/post/VAZcJj.webp"
-    
+
+  # 文章底部「编辑此页」链接：指向本仓库里这篇文章的源文件。
+  # repo 填博客仓库地址（不是个人主页），留空则整个链接不显示。
+  [params.edit]
+    repo = "https://github.com/hulatu/hulatu"
+    branch = "main"
+
 [params.assets]
   favicon = "/favicon.png"
   favicon16x16 = "/favicon-16x16.png"
@@ -138,6 +144,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     name = "分类"
     url = "/categories/"
     weight = 3
+  # 系列（/series/）刻意不放在导航栏，改到页脚图标区：layouts/partials/footer.html
   [[menu.main]]
     name = "工具"
     url = "/tools/"
@@ -149,7 +156,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   [[menu.main]]
     name = "数据"
     url = "/stats/"
-    weight = 7
+    weight = 6
   [[menu.main]]
     name = "留言"
     url = "/guestbook/"
@@ -165,4 +172,4 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 [params.analytics]
   umami = "https://cloud.umami.is/script.js"
   umamiId = "b191cc39-861f-43c0-b750-b1e090fa9472"
-  plausible = ""
+  plausible = "hulatu.com"

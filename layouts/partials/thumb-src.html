@@ -1,0 +1,14 @@
+{{- /* 返回一篇文章列表缩略图的 URL：优先用 static/img/thumbs/ 下同名 webp，
+       否则回退到封面原图；没有封面时返回空串。 */ -}}
+{{- $src := "" -}}
+{{- with .Params.cover -}}
+  {{- $name := replace (path.Base .) "%20" "_" -}}
+  {{- $stem := strings.TrimSuffix (path.Ext $name) $name -}}
+  {{- $thumb := printf "static/img/thumbs/%s.webp" $stem -}}
+  {{- if fileExists $thumb -}}
+    {{- $src = printf "/img/thumbs/%s.webp" $stem -}}
+  {{- else -}}
+    {{- $src = . -}}
+  {{- end -}}
+{{- end -}}
+{{- return $src -}}

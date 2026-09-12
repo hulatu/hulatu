@@ -4,17 +4,21 @@
 
 ## ✨ 功能特点
 
-- **导航栏**：关于 / 归档 / 分类 / 工具箱 / 周刊 / 数据 / 留言 + 搜索、深浅色切换、RSS
+- **导航栏**：关于 / 归档 / 分类 / 工具 / 周刊 / 数据 / 留言 + 搜索、深浅色切换、RSS
+- **页脚**：版权 / 图标链接（系列、朋友、书影音、GitHub、邮箱、隐私政策）/ Powered by Hugo
 - **首页**：精选 / 时间两种排列 + 随机 5 篇；时间模式下底部左右箭头翻页
-- **文章页**：阅读进度、目录 + 标签云侧栏（手机端目录变底部抽屉）、相关文章、上一篇/下一篇、随机一篇、复制链接、CC 协议
-- **真搜索功能**：基于 [Fuse.js](https://www.fusejs.io/) 的客户端模糊搜索，构建时自动生成 `search-index.json`，按 `/` 或 ⌘/Ctrl+K 唤起
+- **文章页**：阅读进度、目录 + 标签云侧栏（手机端目录变底部抽屉）、相关文章、上一篇/下一篇、随机一篇、复制链接、CC 协议、编辑此页（直接跳 GitHub 上的源文件）
+- **真搜索功能**：基于 [Fuse.js](https://www.fusejs.io/) 的客户端模糊搜索，构建时自动生成 `search-index.json`，按 `/` 或 ⌘/Ctrl+K 唤起；命中词全部高亮，↑↓ 选结果、Enter 打开
 - **评论系统**：接入 [giscus](https://giscus.app)（基于 GitHub Discussions），跟随深浅色主题
 - **无刷新导航**：站内跳转只替换正文，不整页刷新（pjax）
 - **深色 / 浅色模式**：右上角一键切换，记住选择，刷新不闪烁
 - **归档页**：按年份、月份折叠分组展示所有文章
 - **分类 / 标签**：自动生成总览和文章列表，文章页标签云直达
 - **年度数据页**：统计篇数、字数、月度写作柱状图、话题分布
-- **周刊**：独立栏目 + 每页 5 期的箭头翻页 + 专属 RSS
+- **系列 / 专栏**：`/series/` 聚合页，每个系列有简介、按顺序的目录和「已读 x/N」阅读进度（进度存在本地，无需后端）
+- **周刊**：独立栏目 + 专栏头图 + 期号徽章 + 每期「本期目录」+ 每页 5 期的箭头翻页 + 专属 RSS
+- **热门榜**：归档页顶部，「热议」按 giscus 评论数、「热读」按 Cloudflare Web Analytics 浏览量（数据由 `scripts/fetch_hot.py` 构建前生成，没有数据时整块自动隐藏）
+- **评论数 / 阅读数**：同一份数据还会写进 `data/hot.json` 的 `byPath`，构建时注入 `post-index.json`，于是文章页和列表页能显示「N 条评论 · N 次阅读」（没有数据就不显示）
 - **订阅**：RSS 2.0 / Atom / JSON Feed 三种格式
 - **SEO**：canonical、Open Graph、Twitter Card、JSON-LD、sitemap、robots、旧链接 301 跳转
 
@@ -30,20 +34,27 @@ blog/
 │   ├── guestbook/              # 「留言」页面
 │   ├── categories/             # 「分类」页面（_index.md）
 │   ├── tags/                   # 「标签」页面（_index.md）
+│   ├── series/                 # 「系列」页面（_index.md + 每个系列一个文件）
 │   ├── media/                  # 「书影音」页面
 │   ├── stats.md                # 「年度数据」页面
 │   ├── posts/                  # 普通文章
 │   └── weekly/                 # 周刊文章
 ├── layouts/                    # 页面模板
 │   ├── _default/
+│   ├── series/                 # 系列聚合页（list.html）与详情页（single.html）
 │   ├── partials/                # 导航栏、页脚、搜索弹窗
 │   ├── shortcodes/              # media / media-grid 等短代码
 │   └── index.searchindex.json   # 搜索索引生成模板
 ├── assets/
 │   ├── css/style.css            # 全站样式
 │   └── js/                      # 主题、搜索、pjax 等脚本
+├── scripts/                     # Garmin 跑步数据同步、热门榜抓取、OG 图生成等脚本
+├── data/
+│   ├── runs.json                # 跑步数据
+│   └── hot.json                 # 热门榜（scripts/fetch_hot.py 生成，可提交）
 ├── static/
-│   ├── img/                     # 缩略图、OG 卡片
+│   ├── og/                      # 每篇文章的 OG 分享图（scripts/og-images.py 生成，提交进 git）
+│   ├── img/                     # 缩略图、默认 OG 卡片
 │   ├── media/                   # 书影音配图
 │   └── js/fuse.min.js           # 搜索用的 Fuse.js
 ├── archetypes/posts.md         # 新建文章的默认模板
@@ -100,6 +111,11 @@ hugo new content/posts/my-first-post.md
 | 文章封面图 | 在文章 front matter 加 `cover` 字段（远程 URL 或本地路径均可） |
 | 相关文章数量与匹配 | `hugo.toml` 里 `[related]` 段 |
 | 目录/标签云侧栏断点 | `assets/css/style.css` 里搜 `1200px` / `899.98px` 媒体查询 |
+| 新增一个系列 | 文章 front matter 填 `series: "系列名"`，再在 `content/series/` 里加一个同名 md 写简介 |
+| 周刊期号徽章 | 从标题「第 X 期」自动解析，逻辑在 `layouts/partials/issue-num.html` |
+| 热门榜（token、数据源、条数、窗口） | 三个 token 填在 `~/.config/zsh/secrets.zsh`（获取步骤见 [MAINTENANCE.md](MAINTENANCE.md) 的「热门榜」一节）；跑 `python3 scripts/fetch_hot.py`；展示模板 `layouts/partials/hot-list.html`；条数/窗口用 `HOT_LIMIT` / `HOT_DAYS` |
+| 评论数 / 阅读数 | 数据来自 `data/hot.json` 的 `byPath`；模板 `layouts/partials/post-stats.html`，两个数都是 0 时整块不输出 |
+| 文章底部「编辑此页」 | `hugo.toml` 的 `[params.edit]`（`repo` 填博客仓库地址，留空则不显示）；模板在 `layouts/_default/single.html` |
 
 ## 💬 接入 giscus 评论系统
 

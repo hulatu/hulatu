@@ -1,0 +1,44 @@
+{{ define "main" }}
+{{- $posts := where site.RegularPages "Type" "posts" -}}
+{{- $weekly := where site.RegularPages "Type" "weekly" -}}
+
+<h1 class="page-title">{{ .Title }}</h1>
+{{ with .Content }}<div class="page-intro">{{ . }}</div>{{ end }}
+
+{{- $seriesPages := .Pages.ByWeight -}}
+{{ if $seriesPages }}
+<section class="series-grid">
+  {{- range $seriesPages -}}
+    {{- $name := .Params.seriesName | default .Title -}}
+    {{- $items := slice -}}
+    {{- if eq .Params.seriesType "weekly" -}}
+      {{- $items = sort $weekly "Date" -}}
+    {{- else -}}
+      {{- $items = sort (where $posts "Params.series" $name) "Date" -}}
+    {{- end -}}
+    {{- $count := len $items -}}
+    {{- $latest := false -}}
+    {{- if $count -}}{{- $latest = index $items (sub $count 1) -}}{{- end -}}
+    <a class="series-card" href="{{ .RelPermalink }}">
+      <span class="series-card-head">
+        <span class="series-card-name">{{ .Title }}</span>
+        <span class="series-card-count">{{ $count }} 篇</span>
+      </span>
+      {{- with .Params.description -}}
+        <span class="series-card-desc">{{ . }}</span>
+      {{- end -}}
+      <span class="series-card-foot">
+        {{- if $latest -}}
+          <span class="series-card-latest">最新 · {{ $latest.Title }}</span>
+          <time class="series-card-date" datetime="{{ $latest.Date.Format "2006-01-02" }}">{{ $latest.Date.Format "2006-01-02" }}</time>
+        {{- else -}}
+          <span class="series-card-latest">还没有文章</span>
+        {{- end -}}
+      </span>
+    </a>
+  {{- end -}}
+</section>
+{{ else }}
+<p class="empty-tip">还没有系列。在文章 front matter 里填上 <code>series</code>，再在 <code>content/series/</code> 里加一个同名页面即可。</p>
+{{ end }}
+{{ end }}

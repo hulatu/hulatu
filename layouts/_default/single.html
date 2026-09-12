@@ -1,6 +1,8 @@
 {{ define "main" }}
 {{ $toc := .TableOfContents}}
 {{ $hasToc := in $toc "<li" }}
+{{ $isWeekly := eq .Type "weekly" }}
+{{- $seriesName := partial "series-name.html" . -}}
 {{- $chars := .Plain | strings.RuneCount -}}
 {{- $readMins := div (add $chars 299) 300 -}}
 {{- $relatedPosts := slice -}}
@@ -11,7 +13,8 @@
 
 <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
 
-<article class="post-single {{ if $hasToc }}has-toc{{ end }}">
+<article class="post-single {{ if and $hasToc (not $isWeekly) }}has-toc{{ end }}">
+    {{- with $seriesName }}<span class="series-marker" data-series="{{ . }}" hidden></span>{{ end }}
     {{ with .Params.cover }}
       {{/* 先去掉可能的前导斜杠，让 assets 与 static 用同一套路径约定 */}}
       {{ $cover := resources.Get (strings.TrimPrefix "/" .) }}
@@ -35,6 +38,12 @@
       {{ end }}
     {{ end }}	
   <header class="post-header">
+    {{ if $isWeekly }}
+      {{- $issue := partial "issue-num.html" . -}}
+      {{- if $issue -}}
+      <p class="issue-badge"><span class="issue-badge-label">周刊</span><span class="issue-badge-num">第 {{ $issue }} 期</span></p>
+      {{- end -}}
+    {{ end }}
     <h1 class="post-title">{{ .Title }}</h1>
     <div class="post-meta">
       <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
@@ -46,13 +55,19 @@
         <span class="post-meta-sep">·</span>
         <span>更新于 {{ .Lastmod.Format "2006-01-02" }}</span>
       {{ end }}
+      {{- with partial "post-stats.html" . }}
+        <span class="post-meta-sep">·</span>{{ . }}
+      {{- end }}
     </div>
-    {{ if .Params.series }}
+    {{ if and .Params.series (not $isWeekly) }}
       {{- $seriesPosts := sort (where (where site.RegularPages "Type" "in" (slice "posts" "weekly")) "Params.series" .Params.series) "Date" -}}
       {{- $seriesIdx := 0 -}}
       {{- range $i, $p := $seriesPosts }}{{ if eq $p.Permalink $.Permalink }}{{ $seriesIdx = add $i 1 }}{{ end }}{{ end -}}
-      <div class="post-series-link">
-        本系列 · <a href="{{ (index $seriesPosts 0).Permalink }}">{{ .Params.series }}</a> · 第 {{ $seriesIdx }}/{{ len $seriesPosts }} 篇
+      {{- $seriesPages := where (where site.RegularPages "Type" "series") "Params.seriesName" .Params.series -}}
+      {{- $seriesPage := false -}}
+      {{- if $seriesPages }}{{ $seriesPage = index $seriesPages 0 }}{{ end -}}
+      <div class="post-series-link" data-series="{{ .Params.series }}">
+        本系列 · {{ with $seriesPage }}<a href="{{ .RelPermalink }}">{{ $.Params.series }}</a>{{ else }}{{ $.Params.series }}{{ end }} · 第 {{ $seriesIdx }}/{{ len $seriesPosts }} 篇
       </div>
     {{ end }}
     <div class="post-chips-row">
@@ -69,7 +84,7 @@
     </div>
   </header>
 
-  {{ if $hasToc }}
+  {{ if and $hasToc (not $isWeekly) }}
   <div class="post-rail">
     <aside class="post-toc">
       <nav class="post-toc-nav">
@@ -79,7 +94,7 @@
   </div>
   {{ end }}
 
-  {{ if $hasToc }}
+  {{ if and $hasToc (not $isWeekly) }}
   <button type="button" class="toc-btn" id="toc-btn" aria-label="打开目录" aria-expanded="false" aria-controls="toc-drawer">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <line x1="4" y1="6" x2="20" y2="6"></line>
@@ -129,6 +144,13 @@
   </script>
   {{ end }}
 
+  {{ if and $isWeekly $hasToc }}
+  <section class="issue-toc" aria-labelledby="issue-toc-title">
+    <h2 class="issue-toc-title" id="issue-toc-title">本期目录</h2>
+    <nav class="issue-toc-nav">{{ $toc | safeHTML }}</nav>
+  </section>
+  {{ end }}
+
   <div class="post-content">
     {{ .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table" "</table></div>" | safeHTML }}
   </div>
@@ -147,7 +169,7 @@
   </section>
   {{- end -}}
 
-  {{- if .Params.series -}}
+  {{- if and .Params.series (not $isWeekly) -}}
     {{- $allPosts := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
     {{- $seriesPosts := sort (where $allPosts "Params.series" .Params.series) "Date" -}}
     {{- $prevIn := false -}}
@@ -158,8 +180,11 @@
         {{- if lt (add $i 1) (len $seriesPosts) }}{{ $nextIn = index $seriesPosts (add $i 1) }}{{ end -}}
       {{- end -}}
     {{- end -}}
+    {{- $seriesPages := where (where site.RegularPages "Type" "series") "Params.seriesName" .Params.series -}}
+    {{- $seriesPage := false -}}
+    {{- if $seriesPages }}{{ $seriesPage = index $seriesPages 0 }}{{ end -}}
     <div class="post-series">
-      <p class="post-series-label">系列 · {{ .Params.series }}</p>
+      <p class="post-series-label">系列 · {{ with $seriesPage }}<a href="{{ .RelPermalink }}">{{ $.Params.series }}</a>{{ else }}{{ $.Params.series }}{{ end }}</p>
       <nav class="post-nav" aria-label="系列导航">
         {{ with $prevIn }}
           <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
@@ -183,13 +208,13 @@
     <nav class="post-nav" aria-label="文章导航">
       {{ with .PrevInSection }}
         <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
-          <span class="post-nav-label">上一篇</span>
+          <span class="post-nav-label">{{ if $isWeekly }}上一期{{ else }}上一篇{{ end }}</span>
           <span class="post-nav-title">{{ .Title }}</span>
         </a>
       {{ end }}
       {{ with .NextInSection }}
         <a class="post-nav-card post-nav-next" href="{{ .Permalink }}">
-          <span class="post-nav-label">下一篇</span>
+          <span class="post-nav-label">{{ if $isWeekly }}下一期{{ else }}下一篇{{ end }}</span>
           <span class="post-nav-title">{{ .Title }}</span>
         </a>
       {{ end }}
@@ -243,13 +268,30 @@
 
   <div class="post-actions">
     <a class="post-pill post-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener" title="本文采用 CC BY-NC-SA 4.0 协议">CC BY-NC-SA 4.0</a>
-    <button type="button" class="post-pill copy-link-btn" id="copy-link-btn">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-      </svg>
-      <span class="copy-link-label">复制链接</span>
-    </button>
+    <span class="post-actions-right">
+      {{- /* 「编辑此页」：repo 在 hugo.toml 的 [params.edit] 里配，留空则不显示。
+             .File.Path 在部分 Hugo 版本里可能已带 content/ 前缀，这里统一去掉再拼回去。 */ -}}
+      {{- with site.Params.edit -}}
+        {{- if and .repo $.File -}}
+          {{- $path := $.File.Path | replaceRE "^content/" "" -}}
+          {{- $branch := .branch | default "main" -}}
+      <a class="post-pill post-edit" href="{{ printf "%s/edit/%s/content/%s" (strings.TrimSuffix "/" .repo) $branch $path }}" target="_blank" rel="noopener" title="在 GitHub 上编辑这篇的源文件">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+        <span>编辑此页</span>
+      </a>
+        {{- end -}}
+      {{- end }}
+      <button type="button" class="post-pill copy-link-btn" id="copy-link-btn">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+        </svg>
+        <span class="copy-link-label">复制链接</span>
+      </button>
+    </span>
   </div>
   <script>
   (function () {

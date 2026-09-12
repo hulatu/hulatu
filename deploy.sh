@@ -14,14 +14,15 @@ fi
 STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
 
+# OG 图先落到 static/og/，下面的 hugo 构建才会把它们复制进 $STAGE/og/
+python3 scripts/og-images.py
+
 hugo --gc --minify --destination "$STAGE"
 
 if rg -q "livereload" "$STAGE/index.html" 2>/dev/null; then
   echo "构建异常：产物包含 livereload，已中止，请先停掉 hugo server。" >&2
   exit 1
 fi
-
-python3 scripts/og-images.py "$STAGE"
 
 rsync -a --delete "$STAGE/" public/
 echo "完成：已生成生产构建到 public/（无调试脚本）。"
