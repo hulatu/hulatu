@@ -18,9 +18,9 @@
       <p class="series-desc">{{ . }}</p>
     {{- end -}}
     <div class="series-stats">
-      <span class="series-stat"><strong>{{ $count }}</strong> 篇</span>
+      <span class="series-stat">共 <strong>{{ $count }}</strong> 篇</span>
       {{- if $latest -}}
-        <span class="series-stat">最近更新 <strong>{{ $latest.Date.Format "2006-01-02" }}</strong></span>
+        <span class="series-stat">最近更新 · <strong>{{ $latest.Date.Format "2006-01-02" }}</strong></span>
       {{- end -}}
     </div>
     {{- if $count -}}

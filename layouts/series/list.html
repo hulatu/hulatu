@@ -2,6 +2,7 @@
 {{- $posts := where site.RegularPages "Type" "posts" -}}
 {{- $weekly := where site.RegularPages "Type" "weekly" -}}
 
+<p class="series-eyebrow">系列</p>
 <h1 class="page-title">{{ .Title }}</h1>
 {{ with .Content }}<div class="page-intro">{{ . }}</div>{{ end }}
 
