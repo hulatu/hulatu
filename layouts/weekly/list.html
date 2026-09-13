@@ -36,7 +36,7 @@
   <span class="rss-guide-arrow" aria-hidden="true">→</span>
 </a>
 
-{{ $paginator := .Paginate $all }}
+{{ $paginator := .Paginate $all 6 }}
 {{ if $paginator.Pages }}
 <section class="issue-grid">
   {{ range $paginator.Pages }}

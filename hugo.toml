@@ -5,7 +5,7 @@ enableRobotsTXT = true
 copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 
 [pagination]
-  pagerSize = 5
+  pagerSize = 6
 
 [related]
   threshold = 60
@@ -22,8 +22,13 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     weight = 10
   
 [imaging]
-  quality = 75
   resampleFilter = "Lanczos"
+  [imaging.jpeg]
+    quality = 75
+  [imaging.webp]
+    quality = 75
+  [imaging.avif]
+    quality = 75
   
 [minify]
   disableXML = true
