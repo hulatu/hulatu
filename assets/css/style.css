@@ -3117,7 +3117,7 @@ body.toc-open { overflow: hidden; }
 }
 
 .footer-badge:hover { opacity: 1; transform: translateY(-1px); }
-.footer-badge img { display: block; }
+.footer-badge img { display: block; height: 30px; width: auto; }
 
 .footer-badge-label {
   color: var(--muted);
