@@ -1,9 +1,9 @@
 ---
-title: "Typora+upic图床验证失败的问题" 
-categories: ["工具数码"]
-tags: ["写作工具", "Typora"]
+title: "Typora + Upic图床验证失败的问题" 
+categories: ["工具"]
+tags: ["写作", "图片"]
 cover: "https://img.hulatu.com/post/img-bed.webp"
-coverAlt: "Typora+upic图床验证失败的问题 封面图"
+coverAlt: "Image-Hosting-Service-Blog"
 date: 2026-01-18T22:08:48+08:00  
 slug: "Image-Hosting-Service-Blog"  
 draft: false  
@@ -21,7 +21,7 @@ comments: true
 
 找到问题就很好解决了：
 
-![修改保存路径][image-1]
+![修改保存路径](https://img.hulatu.com/post/mdUx19.png)
 
 在我们的 uPic 偏好设置里，把**保存路径**的格式修改一下，加上{random}这个变量，这样哪怕我们传送同一张照片多次，因为文件名里一定有一个**随机元素**，所以他们的文件名不可能重复，也就不会出现文件名带来的错误。
 
@@ -37,13 +37,8 @@ uPic/{random}{.suffix}
 
 用我这个方法操作后，再去 Typora 验证 uPic 图片上传选项，就一定能成功了。
 
-![推荐设置+验证图片上传][image-3]
+![推荐设置 + 验证图片上传](https://img.hulatu.com/post/bBq6LU.png)
 
-![成功][image-4]
+![成功](https://img.hulatu.com/post/SR2cfS.png)
 
 希望对大家有帮助，谢谢！
-
-[image-1]:	https://img.hulatu.com/post/image-20260118204110354_XYkciA_1Kcicx.webp
-[image-2]:	https://img.hulatu.com/post/image-20260120091231876_Q02gqg.webp
-[image-3]:	https://img.hulatu.com/post/image-20260118204738912_YDQsok_jhnxpU.webp
-[image-4]:	https://img.hulatu.com/post/image-20260118204758814_xwLekM_8tfHEa.webp

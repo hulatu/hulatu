@@ -11,7 +11,7 @@ draft: false
 comments: true                              
 ---
 
-参考来源：[So!azy 博客从选型到搭建上线][1]
+参考来源：[So!azy 博客从选型到搭建上线](https://blog.solazy.me/solazy-on-fire/ )
 
 看到这篇文章后，对这个主题一见钟情，然后就开始了魔改之路。
 
@@ -55,7 +55,7 @@ Daily 页面的存在，也给了自己日更下去的助力——你可以只�
 
 字体、字号、行距、强调、符号……等等的使用，尽可能做到统一。其实这方面是有一些约定俗成的「规则」的，大家想要详细了解的，也可以看看：
 
-[中文文案排版指北][2]
+[中文文案排版指北](https://github.com/sparanoid/chinese-copywriting-guidelines)
 
 这是个多好的时代，很多我们想到或者没注意到的东西，都有人给我们准备好了，感谢互联网。
 
@@ -80,9 +80,3 @@ Daily 页面的存在，也给了自己日更下去的助力——你可以只�
 讲实话：我到现在也觉得之前的那个博客挺好看，如今这个 BearBlog 风格的极简风，刚做出来的那一刻，不怎么太适应，因为把我之前在那个博客上设计的很多东西都「斩杀」了，有点疼。但现在越看越舒服，越看越喜欢。而且并没有喧宾夺主、吸引注意的元素，一切都是为了内容服务，这是我的初衷。甚好！甚好！！
 
 希望可以给到爱折腾博客的人群、或者现在依旧在花时间折腾博客的人群一些帮助。
-
-[1]:	https://blog.solazy.me/solazy-on-fire/
-[2]:	https://github.com/sparanoid/chinese-copywriting-guidelines
-
-[image-1]:	https://img.hulatu.com/post/7MhKqJ.webp
-[image-2]:	https://img.hulatu.com/post/j1L7ps.webp

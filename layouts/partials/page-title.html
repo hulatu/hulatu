@@ -4,7 +4,7 @@
 {{- else if eq .Type "tags" -}}
   {{- $title = printf "%s · 标签" .Title -}}
 {{- end -}}
-{{- if and (eq .Type "weekly") .IsNode -}}
+{{- if and (eq .Type "weekly") .IsBranch -}}
   {{- with .Paginator -}}
     {{- if gt .PageNumber 1 -}}
       {{- $title = printf "%s - 第 %d 页" $.Title .PageNumber -}}

@@ -1,5 +1,5 @@
 ---
-title: 用 HuggingFace+MongoDb 搭建 Twikoo 评论系统
+title: 用 HuggingFace + MongoDb 搭建 Twikoo 评论系统
 categories: ["工具"]
 tags: ["Hugo", "Twikoo", "评论", "博客"]
 date: 2026-01-26T10:19:41+08:00  
@@ -19,9 +19,9 @@ comments: true
 
 我使用的工具是 **HuggingFace+MongoDb**，下面我给大家分享一下，搭建的过程。
 
-[MongoDb][1]
+[MongoDb](https://cloud.mongodb.com/)
 
-[HuggingFace][2]
+[HuggingFace](https://huggingface.co)
 
 第一步，这两个网站的账号，你得先注册，有一个自己的账号。
 
@@ -39,7 +39,7 @@ comments: true
 
 请记好这串密码，后面要用到。
 
-![调整ip][image-7]
+![调整 Ip](https://img.hulatu.com/post/5PyiX8.png)
 
 ![必须出现0.0.0.0/0](https://img.hulatu.com/post/PVAtTB.png)
 
@@ -53,7 +53,7 @@ comments: true
 
 记得把方框框起来的部分（包括尖括号），换成前面我要求大家复制保存起来的那个密钥，再把这一长串密钥，保存好。然后，打开下面的链接：
 
-https://huggingface.co/spaces/imaegoo/twikoo?duplicate=true
+[密钥](https://huggingface.co/spaces/imaegoo/twikoo?duplicate=true)
 
 ![粘贴密钥](https://img.hulatu.com/post/MzsyFS.png)
 
@@ -91,22 +91,3 @@ twikoo.init({
 然后去预览一下你的博客，开启了评论的文章，都可以显示评论系统了。
 
 大家有什么问题，欢迎评论区讨论交流。
-
-[1]:	https://cloud.mongodb.com/
-[2]:	https://huggingface.co
-
-[image-1]:	https://img.hulatu.com/post/SIRfV5.webp
-[image-2]:	https://img.hulatu.com/post/YLgggx.webp
-[image-3]:	https://img.hulatu.com/post/Ci9ypb.webp
-[image-4]:	https://img.hulatu.com/post/u37BWm.webp
-[image-5]:	https://img.hulatu.com/post/r9T5OZ.webp
-[image-6]:	https://img.hulatu.com/post/ScVYoW.webp
-[image-7]:	https://img.hulatu.com/post/EovxB1.webp
-[image-8]:	https://img.hulatu.com/post/716if0.webp
-[image-9]:	https://img.hulatu.com/post/07LZHu.webp
-[image-10]:	https://img.hulatu.com/post/kDV9Tg.webp
-[image-11]:	https://img.hulatu.com/post/G0PSLh.webp
-[image-12]:	https://img.hulatu.com/post/2g6ttJ.webp
-[image-13]:	https://img.hulatu.com/post/ygNW6U.webp
-[image-14]:	https://img.hulatu.com/post/ileofb.webp
-[image-15]:	https://img.hulatu.com/post/968KMk.webp
