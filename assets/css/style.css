@@ -3093,6 +3093,40 @@ body.toc-open { overflow: hidden; }
 .footer-icon-links a:hover { color: var(--accent); transform: translateY(-1px); }
 .footer-icon-links svg { display: block; }
 
+.footer-ai {
+  grid-column: 1 / -1;
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: var(--space-2) 0 0;
+}
+
+.footer-badge-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.footer-badge {
+  display: inline-block;
+  line-height: 0;
+  opacity: 0.92;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.footer-badge:hover { opacity: 1; transform: translateY(-1px); }
+.footer-badge img { display: block; }
+
+.footer-badge-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  margin: 0;
+  white-space: nowrap;
+}
+
 /* ---------- 关于页 ---------- */
 .about-page {
   max-width: 760px;

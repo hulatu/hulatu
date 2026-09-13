@@ -1,5 +1,20 @@
 <footer class="site-footer">
   <div class="container footer-container">
+    <div class="footer-ai">
+      <span class="footer-badge-item">
+        <a class="footer-badge" href="https://notbyai.fyi" target="_blank" rel="noopener" title="Not By AI">
+          <img src="{{ "img/written-by-human-not-by-ai-white.svg" | relURL }}" alt="Written by a Human, Not by AI" width="131" height="42" loading="lazy" decoding="async">
+        </a>
+        <span class="footer-badge-label">承诺非AI创作</span>
+      </span>
+      <span class="footer-badge-item">
+        <a class="footer-badge" href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener" title="Creative Commons BY-NC-SA 4.0">
+          <img src="{{ "img/cc-by-nc-sa.svg" | relURL }}" alt="Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International" width="120" height="42" loading="lazy" decoding="async">
+        </a>
+        <span class="footer-badge-label">内容使用许可</span>
+      </span>
+    </div>
+
     <p class="footer-copyright">&copy; {{ site.Params.since }}&ndash;{{ now.Format "2006" }} {{ site.Params.author }}</p>
 
     <p class="footer-icon-links">
