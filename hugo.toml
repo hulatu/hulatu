@@ -61,12 +61,6 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   [params.wechat]
     followImg = "https://img.hulatu.com/post/VAZcJj.webp"
 
-  # 文章底部「编辑此页」链接：指向本仓库里这篇文章的源文件。
-  # repo 填博客仓库地址（不是个人主页），留空则整个链接不显示。
-  [params.edit]
-    repo = "https://github.com/hulatu/hulatu"
-    branch = "main"
-
 [params.assets]
   favicon = "/favicon.png"
   favicon16x16 = "/favicon-16x16.png"
