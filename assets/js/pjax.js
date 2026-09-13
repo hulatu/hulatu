@@ -1,5 +1,8 @@
 (function () {
   "use strict";
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
   var mainSel = "main.container";
   var footerSel = "footer.site-footer";
 
@@ -63,7 +66,7 @@
     }
   }
 
-  function apply(newHtml, url, push) {
+  function apply(newHtml, url, push, restoreY) {
     var doc = new DOMParser().parseFromString(newHtml, "text/html");
     var newMain = doc.querySelector(mainSel);
     var oldMain = document.querySelector(mainSel);
@@ -77,8 +80,14 @@
     var newDesc = doc.querySelector('meta[name="description"]');
     var oldDesc = document.querySelector('meta[name="description"]');
     if (newDesc && oldDesc) oldDesc.setAttribute("content", newDesc.getAttribute("content") || "");
-    if (push) history.pushState({ pjax: true }, "", url);
-    window.scrollTo(0, 0);
+    if (push) {
+      history.pushState({ pjax: true, y: window.scrollY }, "", url);
+      window.scrollTo(0, 0);
+    } else if (typeof restoreY === "number") {
+      window.scrollTo(0, restoreY);
+    } else {
+      window.scrollTo(0, 0);
+    }
     reExecScripts(oldMain);
     swapFooter(doc, oldMain);
     oldMain.classList.add("is-entering");
@@ -90,7 +99,7 @@
     document.dispatchEvent(new CustomEvent("pjax:complete"));
   }
 
-  function load(url, push) {
+  function load(url, push, restoreY) {
     var main = document.querySelector(mainSel);
     if (main) main.classList.add("is-loading");
     document.dispatchEvent(new CustomEvent("pjax:start"));
@@ -99,7 +108,7 @@
         if (!r.ok) throw new Error("page load failed");
         return r.text();
       })
-      .then(function (html) { apply(html, url, push); })
+      .then(function (html) { apply(html, url, push, restoreY); })
       .catch(function () { window.location.href = url; })
       .finally(function () {
         if (main) main.classList.remove("is-loading");
@@ -119,7 +128,8 @@
     }
   });
 
-  window.addEventListener("popstate", function () {
-    load(window.location.href, false);
+  window.addEventListener("popstate", function (e) {
+    var y = (e.state && typeof e.state.y === "number") ? e.state.y : 0;
+    load(window.location.href, false, y);
   });
 })();
