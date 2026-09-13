@@ -579,6 +579,7 @@ main.container.is-entering {
   justify-content: center;
   width: 30px;
   height: 30px;
+  padding: 0;
   background: none;
   border: 1px solid var(--line);
   border-radius: 50%;
@@ -588,6 +589,8 @@ main.container.is-entering {
 }
 
 .random-btn svg {
+  display: block;
+  transform-origin: center;
   transition: transform 0.3s var(--ease);
 }
 
@@ -603,9 +606,9 @@ main.container.is-entering {
 
 .random-btn:active { transform: translateY(1px); }
 
-/* 随机进入文章按钮不跟第一个随机按钮一起旋转，避免两个按钮动效重复 */
+/* 两个首页随机按钮悬停时统一旋转 */
 .random-enter-btn:hover svg {
-  transform: none;
+  transform: rotate(90deg);
 }
 
 /* iOS 风格分段控件：精选 / 最新 */
@@ -613,8 +616,9 @@ main.container.is-entering {
   display: inline-flex;
   align-items: center;
   justify-self: end;
-  gap: var(--space-1);
-  padding: var(--space-1);
+  gap: 2px;
+  height: 30px;
+  padding: 3px;
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
@@ -628,12 +632,21 @@ main.container.is-entering {
   font: inherit;
   font-size: 0.78rem;
   line-height: 1;
-  padding: 0.55em 1em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4em;
+  height: 100%;
+  padding: 0 1em;
   border-radius: var(--radius-pill);
   cursor: pointer;
   white-space: nowrap;
   transition: color 0.2s var(--ease), background 0.2s var(--ease),
     box-shadow 0.2s var(--ease);
+}
+
+.seg-btn:hover:not(.is-active) {
+  color: var(--ink-soft);
 }
 
 .seg-btn.is-active {
@@ -3654,6 +3667,17 @@ svg {
 .random-post-btn svg,
 .lightbox-nav svg,
 .lightbox-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* 首页左下角两个随机按钮：按视觉重量做光学补偿，避免箭头图标显得偏大 */
+.home-side-actions #random-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.home-side-actions #random-post-btn svg {
   width: 20px;
   height: 20px;
 }
