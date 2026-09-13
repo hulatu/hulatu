@@ -5,7 +5,7 @@
 - 线上部署由 Cloudflare Pages 的 Git 集成完成，而它的构建镜像里**没有 ImageMagick**，
   也用不了本机的 macOS 字体，所以 OG 图不可能在平台构建时生成；
 - 但 Hugo 每次构建（本地 `hugo`、`up`、以及 Pages 的平台构建）都会把 `static/`
-  原样复制到 `public/`，所以只要图在 `static/og/` 里并被提交，/og/xxx.png 哪儿都拿得到。
+  原样复制到 `public/`，所以只要图在 `static/og/` 里并被提交，/og/xxx.webp 哪儿都拿得到。
 
 用法：python3 scripts/og-images.py      （无需参数）
 
@@ -157,6 +157,8 @@ def render(post, out_path, logo_resized):
         "-annotate",
         "+98+544",
         meta,
+        "-quality",
+        "82",
         out_path,
     ]
     subprocess.run(args, check=True)
@@ -202,7 +204,7 @@ def main():
             if not post or post["draft"] or not post["slug"]:
                 continue
             key = "{}-{}".format(post["date"].replace("-", ""), post["slug"])
-            out_path = os.path.join(out_dir, key + ".png")
+            out_path = os.path.join(out_dir, key + ".webp")
             if os.path.exists(out_path) and os.path.getmtime(out_path) >= os.path.getmtime(f):
                 n_skip += 1
                 continue

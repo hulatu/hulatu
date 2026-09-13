@@ -54,8 +54,8 @@ hugo server -D
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
-| 数据页（文章数据 + 跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（手动运行 `./publish.sh` 同步） |
-| 手动提交发布 | 终端输入 `up` → `publish.sh`（生成 OG 分享图 → 提交本地改动 → 推 GitHub → 同步跑步数据 → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
+| 数据页（文章数据 + 跑步数据） | 页面文案在 `content/stats.md`；统计模板在 `layouts/_default/stats.html`；跑步数据文件 `data/runs.json`（由 GitHub Actions 自动同步） |
+| 手动提交发布 | 终端输入 `up` → `publish.sh`（生成 OG 分享图 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | OG 分享图 | 生成器 `scripts/og-images.py`，输出到 **`static/og/` 并提交进 git**（Hugo 构建时把 `static/` 复制到 `public/og/`，所以本地和平台构建都有图）。生成时机在 `publish.sh` 里，必须赶在 `git add` 和 `hugo` 之前。`og:image` 元信息在 `layouts/partials/head-meta.html` |
 | 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
@@ -86,7 +86,7 @@ hugo server -D
 
 ### 跑步数据
 
-跑步数据展示在「数据」页（`/stats/`）。数据链路：Garmin 255 同步到 Garmin Connect → 在本地手动拉取（`./publish.sh` 或 `python3 scripts/sync-garmin.py`）→ 合并写入 `data/runs.json` → 提交推送 → 托管平台构建时生成跑步总览、月度柱状图和最近记录。
+跑步数据展示在「数据」页（`/stats/`）。数据链路：Garmin 255 同步到 Garmin Connect → GitHub Actions 定时拉取 → 合并写入 `data/runs.json` → 仅在数据变化时提交推送 → 托管平台构建时生成跑步总览、月度柱状图和最近记录。
 
 已取消每日定时任务（GitHub Actions 定时拉取 + 本机 LaunchAgent 自动提交）。现在全部手动：
 
@@ -105,7 +105,7 @@ up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
 1. **`bash ./publish.sh`** —— 依次：
    - 生成 OG 分享图：`scripts/og-images.py` → 写 `static/og/`
    - `git add .` + 提交（commit 信息：博客：新增/修改文章）
-   - 推 GitHub → 同步 Garmin 跑步数据（失败不阻断）→ `git pull --rebase` 拉取远端 → 再完整推送
+   - 推 GitHub → `git pull --rebase` 拉取远端 → 再完整推送
 
    OG 图要**赶在 `git add` 之前**生成，这样才能跟文章一起提交、被平台构建读到。
 2. **`hugo --minify`** —— 本地构建一份预览到 `public/`。`public/` 在 `.gitignore` 里，不会上传，纯粹给你自己看效果。
@@ -133,7 +133,7 @@ GARMIN_EMAIL=你的邮箱 GARMIN_PASSWORD=你的密码 python3 scripts/garmin-to
 up
 ```
 
-说明：`up` / `publish.sh` 优先用本机令牌（`~/.garminconnect/garmin_tokens.json`）同步跑步数据，令牌过期时先重跑 `python3 scripts/garmin-token.py`。脚本默认只同步跑步（`running`），想加其他运动类型用环境变量 `GARMIN_TYPES=running,cycling`。garminconnect 是非官方接口，Garmin 改版后若失效，留意同步时的报错并按提示调整。
+说明：跑步数据现在由 GitHub Actions 定时同步；本地如需手动同步，可运行 `python3 scripts/sync-garmin.py`。令牌过期时先重跑 `python3 scripts/garmin-token.py`，然后更新 GitHub Secret。脚本默认只同步跑步（`running`），想加其他运动类型用环境变量 `GARMIN_TYPES=running,cycling`。garminconnect 是非官方接口，Garmin 改版后若失效，留意同步时的报错并按提示调整。
 
 ### 系列 / 专栏
 

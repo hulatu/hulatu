@@ -559,11 +559,18 @@ main.container.is-entering {
 
 /* ---------- 首页 · 列表工具栏 ---------- */
 .list-toolbar {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(112px, 1fr) auto minmax(112px, 1fr);
   align-items: center;
   margin-top: var(--space-4);
+}
+
+.home-side-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: start;
+  min-width: 128px;
 }
 
 .random-btn {
@@ -596,10 +603,16 @@ main.container.is-entering {
 
 .random-btn:active { transform: translateY(1px); }
 
+/* 随机进入文章按钮不跟第一个随机按钮一起旋转，避免两个按钮动效重复 */
+.random-enter-btn:hover svg {
+  transform: none;
+}
+
 /* iOS 风格分段控件：精选 / 最新 */
 .mode-seg {
   display: inline-flex;
   align-items: center;
+  justify-self: end;
   gap: var(--space-1);
   padding: var(--space-1);
   background: var(--surface-2);
@@ -640,12 +653,10 @@ main.container.is-entering {
 
 /* ---------- 首页 · 时间模式翻页 ---------- */
 .list-pager {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  justify-self: center;
 }
 
 /* 首页翻页：隐藏时也保留占位，切换「精选 / 顺序列表」整页高度不跳动 */

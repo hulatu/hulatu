@@ -1,7 +1,10 @@
-name: 同步 Garmin 跑步数据（手动触发）
+name: 同步 Garmin 跑步数据
 
 on:
   workflow_dispatch:
+  schedule:
+    # 每天 22:00（Asia/Taipei）= 14:00 UTC
+    - cron: "0 14 * * *"
 
 permissions:
   contents: write

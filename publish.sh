@@ -2,10 +2,9 @@
 # 手动发布博客（up 一键流程的第一段）：
 #   1. git status 查看改动
 #   2. 提交本地全部改动（没有改动就跳过）
-#   3. 先推送 GitHub
-#   4. 同步 Garmin 跑步数据（失败不阻断）
-#   5. 从 GitHub 拉取远端提交
-#   6. 最后完整推送一次，确保文章和跑步数据都上去
+#   3. 推送 GitHub
+#   4. 拉取远端提交
+#   5. 最后完整推送一次
 # 用法：
 #   在终端输入 up（已配置到 ~/.config/zsh/.zshrc，先跑本脚本，再构建并部署 Cloudflare）
 #   也可以直接：cd ~/Blog && ./publish.sh
@@ -14,11 +13,11 @@ set -uo pipefail
 cd "$(dirname "$0")" || exit 1
 
 # 1. 先看状态
-echo "==> 1/6 查看改动状态"
+echo "==> 1/5 查看改动状态"
 git status
 
 # 2. 提交本地全部改动
-echo "==> 2/6 提交本地改动"
+echo "==> 2/5 提交本地改动"
 # 2a. 生成 OG 分享图到 static/og/，必须赶在 git add 之前 —— 这些图要跟文章一起提交，
 #     Cloudflare Pages 的平台构建（镜像里没有 ImageMagick）只能靠 static/ 照搬。
 #     没装 magick / 找不到字体时脚本自己跳过，不阻断发布。
@@ -51,45 +50,20 @@ else
 fi
 
 # 3. 先推送 GitHub；远端有新提交导致被拒时不退出，留到最后一步补推
-echo "==> 3/6 推送本地改动到 GitHub"
+echo "==> 3/5 推送本地改动到 GitHub"
 if ! git push origin main; then
   echo "    !! 推送失败（远端可能有新提交），先继续，稍后拉取后补推" >&2
 fi
 
-# 4. 同步跑步数据（优先用本机令牌 ~/.garminconnect，失败不阻断推送）
-PY=""
-for cand in "$(command -v python3 2>/dev/null)" \
-  /opt/homebrew/Caskroom/miniforge/base/bin/python3 \
-  /usr/local/bin/python3; do
-  if [ -n "$cand" ] && "$cand" -c "import garminconnect" >/dev/null 2>&1; then
-    PY="$cand"
-    break
-  fi
-done
-
-echo "==> 4/6 同步 Garmin 跑步数据"
-if [ -n "$PY" ]; then
-  if "$PY" scripts/sync-garmin.py; then
-    git add data/runs.json
-    if ! git diff --cached --quiet; then
-      git commit -m "Update: 同步跑步数据 $(date '+%Y-%m-%d %H:%M:%S')"
-    fi
-  else
-    echo "    !! 同步失败（令牌可能过期），跳过，继续推送其他内容" >&2
-  fi
-else
-  echo "    !! 跳过跑步数据：未找到带 garminconnect 的 Python（可先 pip install --upgrade garminconnect）" >&2
-fi
-
-# 5. 从 GitHub 拉取（可能有其他设备的提交）
-echo "==> 5/6 从 GitHub 拉取远端提交"
+# 4. 从 GitHub 拉取（可能有其他设备的提交）
+echo "==> 4/5 从 GitHub 拉取远端提交"
 if ! git pull --rebase origin main; then
   echo "!! git pull 失败（可能有冲突）。本地改动已先提交，不会丢，处理完冲突后重试即可" >&2
   exit 1
 fi
 
-# 6. 完整推送
-echo "==> 6/6 完整推送（文章 + 跑步数据）"
+# 5. 完整推送
+echo "==> 5/5 完整推送"
 if ! git push origin main; then
   echo "!! git push 失败。改动已提交在本地，网络恢复后重试 ./publish.sh 即可" >&2
   exit 1
