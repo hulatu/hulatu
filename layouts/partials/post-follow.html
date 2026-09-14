@@ -1,5 +1,11 @@
-{{- $img := site.Params.wechat.followImg -}}
+{{- $img := site.Params.wechat.qr | default site.Params.wechat.followImg -}}
 {{- if not $img }}{{ return }}{{ end -}}
+{{- $name := site.Params.wechat.name | default (printf "公众号：%s" site.Title) -}}
+{{- $desc := site.Params.wechat.desc | default "运动、健康、工具与生活" -}}
 <section class="post-follow" aria-label="关注公众号">
-  <img class="post-follow-img" src="{{ $img | relURL }}" alt="微信公众号「{{ site.Title }}」二维码" width="900" height="383" loading="lazy" decoding="async">
+  <div class="post-follow-text">
+    <strong class="post-follow-title">{{ $name }}</strong>
+    {{ with $desc }}<span class="post-follow-desc">{{ . }}</span>{{ end }}
+  </div>
+  <img class="post-follow-qr" src="{{ $img | relURL }}" alt="{{ $name }}二维码" width="88" height="88" loading="lazy" decoding="async">
 </section>

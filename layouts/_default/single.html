@@ -152,6 +152,56 @@
 
 </article>
 
+  <div class="post-actions">
+    <a class="post-pill post-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener" title="本文采用 CC BY-NC-SA 4.0 协议">CC BY-NC-SA 4.0</a>
+    <span class="post-actions-right">
+      <button type="button" class="post-pill copy-link-btn" id="copy-link-btn">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+        </svg>
+        <span class="copy-link-label">复制链接</span>
+      </button>
+    </span>
+  </div>
+  <script>
+  (function () {
+    var btn = document.getElementById("copy-link-btn");
+    if (!btn) return;
+    var label = btn.querySelector(".copy-link-label");
+    var done = function () {
+      var old = label.textContent;
+      label.textContent = "已复制 ✓";
+      btn.classList.add("is-copied");
+      setTimeout(function () {
+        label.textContent = old;
+        btn.classList.remove("is-copied");
+      }, 1600);
+    };
+    var fallback = function () {
+      var ta = document.createElement("textarea");
+      ta.value = location.href;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+    };
+    btn.addEventListener("click", function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(location.href).then(done, function () {
+          fallback();
+          done();
+        });
+      } else {
+        fallback();
+        done();
+      }
+    });
+  })();
+  </script>
+
 {{ if in (slice "posts" "weekly") .Type }}
   {{- if $relatedPosts -}}
   <section class="related-posts">
@@ -164,6 +214,7 @@
   </section>
   {{- end -}}
 
+  {{- if not $relatedPosts -}}
   {{- if and .Params.series (not $isWeekly) -}}
     {{- $allPosts := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
     {{- $seriesPosts := sort (where $allPosts "Params.series" .Params.series) "Date" -}}
@@ -215,6 +266,7 @@
       {{ end }}
     </nav>
   {{- end -}}
+  {{- end -}}
 
   <button type="button" class="random-post-btn" id="random-post-btn"
     data-current="{{ .RelPermalink }}"
@@ -257,56 +309,6 @@
         .then(function (r) { return r.json(); })
         .then(function (d) { cache = d; delete btn.dataset.busy; go(); })
         .catch(function () { delete btn.dataset.busy; });
-    });
-  })();
-  </script>
-
-  <div class="post-actions">
-    <a class="post-pill post-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener" title="本文采用 CC BY-NC-SA 4.0 协议">CC BY-NC-SA 4.0</a>
-    <span class="post-actions-right">
-      <button type="button" class="post-pill copy-link-btn" id="copy-link-btn">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-        </svg>
-        <span class="copy-link-label">复制链接</span>
-      </button>
-    </span>
-  </div>
-  <script>
-  (function () {
-    var btn = document.getElementById("copy-link-btn");
-    if (!btn) return;
-    var label = btn.querySelector(".copy-link-label");
-    var done = function () {
-      var old = label.textContent;
-      label.textContent = "已复制 ✓";
-      btn.classList.add("is-copied");
-      setTimeout(function () {
-        label.textContent = old;
-        btn.classList.remove("is-copied");
-      }, 1600);
-    };
-    var fallback = function () {
-      var ta = document.createElement("textarea");
-      ta.value = location.href;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand("copy"); } catch (e) {}
-      document.body.removeChild(ta);
-    };
-    btn.addEventListener("click", function () {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(location.href).then(done, function () {
-          fallback();
-          done();
-        });
-      } else {
-        fallback();
-        done();
-      }
     });
   })();
   </script>

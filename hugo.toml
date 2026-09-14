@@ -63,6 +63,9 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 
   # 文章底部关注公众号引导：填图片地址即启用
   [params.wechat]
+    name = "公众号：胡拉图说"
+    desc = "运动、健康、工具与生活"
+    qr = "https://img.hulatu.com/post/VMIet5.webp"
     followImg = "https://img.hulatu.com/post/VAZcJj.webp"
 
 [params.assets]
