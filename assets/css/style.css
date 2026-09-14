@@ -131,24 +131,6 @@ main.container.is-home {
   padding-bottom: var(--space-4);
 }
 
-main.container.is-loading { opacity: 0.45; }
-
-/* PJAX 切换后新内容淡入（只由脚本加 class 触发，首屏不播放） */
-main.container.is-entering {
-  animation: main-in 0.24s var(--ease) both;
-}
-
-@keyframes main-in {
-  from {
-    opacity: 0.45;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 /* ---------- 头部导航 ---------- */
 .site-header {
   position: sticky;
@@ -569,8 +551,8 @@ main.container.is-entering {
 
 /* ---------- 首页 · 列表工具栏 ---------- */
 .list-toolbar {
-  display: grid;
-  grid-template-columns: minmax(112px, 1fr) auto minmax(112px, 1fr);
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   margin-top: var(--space-4);
 }
@@ -579,8 +561,6 @@ main.container.is-entering {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  justify-self: start;
-  min-width: 128px;
 }
 
 .random-btn {
@@ -621,94 +601,12 @@ main.container.is-entering {
   transform: rotate(90deg);
 }
 
-/* iOS 风格分段控件：精选 / 最新 */
-.mode-seg {
-  display: inline-flex;
-  align-items: center;
-  justify-self: end;
-  gap: 2px;
-  height: 30px;
-  padding: 3px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
-}
-
-.seg-btn {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.78rem;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 4em;
-  height: 100%;
-  padding: 0 1em;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.2s var(--ease), background 0.2s var(--ease),
-    box-shadow 0.2s var(--ease);
-}
-
-.seg-btn:hover:not(.is-active) {
-  color: var(--ink-soft);
-}
-
-.seg-btn.is-active {
-  color: var(--ink);
-  background: var(--surface);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-  font-weight: 600;
-}
-
-[data-theme="dark"] .seg-btn.is-active {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-.seg-btn:focus-visible {
-  outline-offset: 1px;
-}
-
 /* ---------- 首页 · 时间模式翻页 ---------- */
 .list-pager {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   justify-self: center;
-}
-
-/* 首页翻页：隐藏时也保留占位，切换「精选 / 顺序列表」整页高度不跳动 */
-#list-pager {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
-}
-
-#list-pager[hidden] {
-  display: flex; /* 覆盖通用 display:none，保持占位 */
-}
-
-#list-pager:not([hidden]) {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* 首页翻页按钮与工具栏其它按钮等高（30px） */
-#list-pager .pager-btn {
-  width: 30px;
-  height: 30px;
-}
-
-#list-pager .pager-btn svg {
-  width: 15px;
-  height: 15px;
 }
 
 .pager-btn {
@@ -1050,94 +948,6 @@ a.pager-btn { text-decoration: none; }
 }
 
 .archive-item:hover .archive-item-title { color: var(--accent); }
-
-/* ---------- 文章页 ---------- */
-.reading-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 3px;
-  width: 0;
-  background: var(--accent);
-  z-index: 200;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.reading-progress.is-visible { opacity: 1; }
-
-/* ---------- PJAX 顶部加载条 / 回到顶部 ---------- */
-.pjax-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 2px;
-  width: 0;
-  background: var(--accent);
-  z-index: 210;
-  opacity: 0;
-  transition: width 0.3s ease, opacity 0.25s ease;
-  pointer-events: none;
-}
-
-.pjax-progress.is-loading {
-  opacity: 1;
-  transition: width 0.3s ease;
-}
-
-.back-top {
-  position: fixed;
-  right: clamp(16px, 4vw, 28px);
-  bottom: clamp(18px, 5vh, 32px);
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--line-strong);
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  color: var(--muted);
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-}
-
-.back-top:hover {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-  transform: translateY(-2px);
-}
-
-.back-top-label {
-  position: absolute;
-  right: calc(100% + 10px);
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  background: color-mix(in srgb, var(--paper) 92%, transparent);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  padding: 0.28em 0.8em;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.back-top:hover .back-top-label,
-.back-top:focus-visible .back-top-label {
-  opacity: 1;
-}
-
-.back-top[hidden] { display: none; }
 
 /* ---------- 文章页 · 随机一篇（右下角悬浮） ---------- */
 .random-post-btn {
@@ -3006,6 +2816,25 @@ body.toc-open { overflow: hidden; }
   text-underline-offset: 3px;
 }
 
+.friends-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-serif);
+  font-size: 1.18rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+  margin: var(--space-8) 0 var(--space-4);
+}
+
+.friends-section-title::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 /* ---------- 页脚 ---------- */
 .site-footer {
   color: var(--muted);
@@ -3063,40 +2892,6 @@ body.toc-open { overflow: hidden; }
 
 .footer-icon-links a:hover { color: var(--accent); transform: translateY(-1px); }
 .footer-icon-links svg { display: block; }
-
-.footer-ai {
-  grid-column: 1 / -1;
-  justify-self: center;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-8);
-  margin: var(--space-2) 0 0;
-}
-
-.footer-badge-item {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.footer-badge {
-  display: inline-block;
-  line-height: 0;
-  opacity: 0.92;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.footer-badge:hover { opacity: 1; transform: translateY(-1px); }
-.footer-badge img { display: block; height: 30px; width: auto; }
-
-.footer-badge-label {
-  color: var(--muted);
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  margin: 0;
-  white-space: nowrap;
-}
 
 /* ---------- 关于页 ---------- */
 .about-page {
@@ -3666,7 +3461,6 @@ svg {
 .nav-icon-btn svg,
 .toc-btn svg,
 .toc-drawer-close svg,
-.back-top svg,
 .pager-btn svg,
 .random-btn svg,
 .random-post-btn svg,
@@ -3676,7 +3470,7 @@ svg {
   height: 20px;
 }
 
-/* 首页左下角两个随机按钮：按视觉重量做光学补偿，避免箭头图标显得偏大 */
+/* 首页两个随机按钮：按视觉重量做光学补偿，避免箭头图标显得偏大 */
 .home-side-actions #random-btn svg {
   width: 16px;
   height: 16px;
@@ -3694,7 +3488,6 @@ svg {
 .post-pill,
 .post-series-link a,
 .tag-chip,
-.seg-btn,
 .pager-btn,
 .nav-icon-btn,
 .toc-btn {
@@ -3707,7 +3500,6 @@ svg {
 .post-pill::after,
 .post-series-link a::after,
 .tag-chip::after,
-.seg-btn::after,
 .pager-btn::after,
 .nav-icon-btn::after,
 .toc-btn::after {
@@ -3745,122 +3537,10 @@ svg {
 .post-pill:active,
 .post-series-link:active,
 .tag-chip:active,
-.seg-btn:active,
 .pager-btn:active,
 .nav-icon-btn:active {
   transform: scale(0.96);
 }
-
-/* ---------- 快捷键面板 ---------- */
-.shortcut-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(22, 24, 28, 0.45);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 20px;
-  z-index: 160;
-  animation: overlay-in 0.2s var(--ease);
-}
-
-[data-theme="dark"] .shortcut-overlay { background: rgba(0, 0, 0, 0.58); }
-
-.shortcut-overlay[hidden] { display: none; }
-
-.shortcut-panel {
-  width: 100%;
-  max-width: 460px;
-  background: var(--paper);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-  animation: search-pop 0.3s var(--ease);
-}
-
-.shortcut-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--line);
-}
-
-.shortcut-title {
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.shortcut-close {
-  border: none;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 1.05rem;
-  padding: var(--space-1) var(--space-2);
-  border-radius: 6px;
-}
-
-.shortcut-close:hover { color: var(--ink); background: var(--surface); }
-
-.shortcut-list {
-  list-style: none;
-  margin: 0;
-  padding: var(--space-2) var(--space-2);
-}
-
-.shortcut-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-row);
-}
-
-.shortcut-row:hover { background: var(--surface-2); }
-
-.shortcut-desc {
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-}
-
-.shortcut-keys {
-  display: inline-flex;
-  gap: 5px;
-  flex: none;
-}
-
-.shortcut-keys kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 26px;
-  height: 24px;
-  padding: 0 0.45em;
-  font-size: 0.72rem;
-  font-family: var(--font-sans);
-  color: var(--ink-soft);
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-bottom-width: 2px;
-  border-radius: 7px;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
-}
-
-.shortcut-foot {
-  margin: 0;
-  padding: var(--space-3) var(--space-5);
-  font-size: 0.78rem;
-  color: var(--muted);
-  border-top: 1px solid var(--line);
-}
-
-body.shortcut-open { overflow: hidden; }
 
 /* ---------- 系列 · 总览页 ---------- */
 .series-grid {
@@ -4688,10 +4368,6 @@ body.shortcut-open { overflow: hidden; }
     padding: var(--space-5) var(--space-5);
   }
 
-  .back-top {
-    width: 38px;
-    height: 38px;
-  }
 }
 
 @media (max-width: 400px) {
@@ -4722,9 +4398,6 @@ body.shortcut-open { overflow: hidden; }
 
   .site-header,
   .site-footer,
-  .back-top,
-  .reading-progress,
-  .pjax-progress,
   .post-rail,
   .toc-btn,
   .toc-drawer,

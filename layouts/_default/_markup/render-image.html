@@ -7,10 +7,16 @@
     {{- $h = .Height -}}
   {{- end -}}
 {{- end -}}
+{{- $src := .Destination -}}
+{{- $isGif := strings.HasSuffix (strings.ToLower .Destination) ".gif" -}}
+{{- if and (not $isGif) (hasPrefix .Destination "http") -}}
+  {{- $src = partial "cf-image.html" (dict "src" .Destination "params" "width=1200,fit=scale-down,format=auto,quality=80,metadata=none") -}}
+{{- end -}}
 <figure class="article-image">
   <a href="{{ .Destination }}">
     <img
-      src="{{ .Destination }}"
+      src="{{ $src }}"
+      data-full="{{ .Destination }}"
       alt="{{ .Text }}"
       loading="lazy" decoding="async"
       {{ with $w }}width="{{ . }}"{{ end }}

@@ -19,17 +19,37 @@
   </a>
 
   {{ with .Params.friends }}
-  <ul class="friends-list">
-    {{ range . }}
-      {{- $external := strings.HasPrefix .url "http" -}}
-      <li>
-        <a class="friend-card" href="{{ .url }}"{{ if $external }} target="_blank" rel="noopener"{{ end }}>
-          <span class="friend-name">{{ .name }}</span>
-          <span class="friend-arrow" aria-hidden="true">↗</span>
-        </a>
-      </li>
-    {{ end }}
-  </ul>
+  <section class="friends-section">
+    <h2 class="friends-section-title">朋友</h2>
+    <ul class="friends-list">
+      {{ range . }}
+        {{- $external := strings.HasPrefix .url "http" -}}
+        <li>
+          <a class="friend-card" href="{{ .url }}"{{ if $external }} target="_blank" rel="noopener"{{ end }}>
+            <span class="friend-name">{{ .name }}</span>
+            <span class="friend-arrow" aria-hidden="true">↗</span>
+          </a>
+        </li>
+      {{ end }}
+    </ul>
+  </section>
+  {{ end }}
+
+  {{ with .Params.communities }}
+  <section class="friends-section">
+    <h2 class="friends-section-title">博客圈与组织</h2>
+    <ul class="friends-list">
+      {{ range . }}
+        {{- $external := strings.HasPrefix .url "http" -}}
+        <li>
+          <a class="friend-card" href="{{ .url }}"{{ if $external }} target="_blank" rel="noopener"{{ end }}>
+            <span class="friend-name">{{ .name }}</span>
+            <span class="friend-arrow" aria-hidden="true">↗</span>
+          </a>
+        </li>
+      {{ end }}
+    </ul>
+  </section>
   {{ end }}
 
   <section class="friends-meta">

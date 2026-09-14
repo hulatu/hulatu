@@ -67,5 +67,4 @@
   }
 
   document.addEventListener("DOMContentLoaded", scan);
-  document.addEventListener("pjax:complete", scan);
 })();

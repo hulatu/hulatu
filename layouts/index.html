@@ -55,6 +55,8 @@
         <line x1="4" y1="4" x2="9" y2="9"></line>
       </svg>
     </button>
+  </div>
+  <div class="home-side-actions">
     <button type="button" class="random-btn random-enter-btn" id="random-post-btn" title="随机进入一篇文章" aria-label="随机进入一篇文章">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="10"></circle>
@@ -62,45 +64,17 @@
       </svg>
     </button>
   </div>
-  <nav class="list-pager" id="list-pager" aria-label="按时间翻页" hidden>
-    <button type="button" class="pager-btn" id="pager-prev" title="上一页" aria-label="上一页">
-      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </button>
-    <button type="button" class="pager-btn" id="pager-next" title="下一页" aria-label="下一页">
-      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </svg>
-    </button>
-  </nav>
-  {{ if $featured }}
-  <div class="mode-seg" id="mode-seg" role="group" aria-label="切换列表内容">
-    <button type="button" class="seg-btn is-active" id="mode-featured" data-mode="featured" aria-pressed="true">精选</button>
-    <button type="button" class="seg-btn" id="mode-latest" data-mode="latest" aria-pressed="false">最新</button>
-  </div>
-  {{ end }}
 </div>
 
 <script>
 (function () {
   var btn = document.getElementById("random-btn");
   var randomPostBtn = document.getElementById("random-post-btn");
-  var seg = document.getElementById("mode-seg");
-  var featuredBtn = document.getElementById("mode-featured");
-  var latestBtn = document.getElementById("mode-latest");
   var list = document.getElementById("post-list");
-  var pager = document.getElementById("list-pager");
-  var prevBtn = document.getElementById("pager-prev");
-  var nextBtn = document.getElementById("pager-next");
   if (!btn || !list) return;
 
   var cache = null;
   var current = [];
-  var mode = "featured";
-  var PER_PAGE = 5;
-
-  var latestAll = [], latestPage = 0;
 
   function loadIndex() {
     if (cache) return Promise.resolve(cache);
@@ -111,59 +85,6 @@
 
   function postsOf(all) {
     return all.filter(function (p) { return p.type === "posts"; });
-  }
-
-  function showLatest() {
-    loadIndex()
-      .then(function (all) {
-        latestAll = postsOf(all).sort(function (a, b) { return b.date.localeCompare(a.date); });
-        latestPage = 0;
-        renderPage();
-        mode = "latest";
-        syncToggle();
-      })
-      .catch(function () {});
-  }
-
-  function renderPage() {
-    render(latestAll.slice(latestPage * PER_PAGE, (latestPage + 1) * PER_PAGE));
-    syncPager();
-  }
-
-  function syncPager() {
-    if (!pager) return;
-    var show = mode === "latest";
-    pager.hidden = !show;
-    if (!show) return;
-    prevBtn.disabled = latestPage === 0;
-    nextBtn.disabled = (latestPage + 1) * PER_PAGE >= latestAll.length;
-  }
-
-  function showFeatured() {
-    loadIndex()
-      .then(function (all) {
-        var rows = postsOf(all).filter(function (p) { return p.featured; }).slice(0, 5);
-        if (!rows.length) {
-          showLatest();
-          return;
-        }
-        render(rows);
-        mode = "featured";
-        syncToggle();
-      })
-      .catch(function () {});
-  }
-
-  function syncToggle() {
-    if (featuredBtn) {
-      featuredBtn.classList.toggle("is-active", mode === "featured");
-      featuredBtn.setAttribute("aria-pressed", mode === "featured" ? "true" : "false");
-    }
-    if (latestBtn) {
-      latestBtn.classList.toggle("is-active", mode === "latest");
-      latestBtn.setAttribute("aria-pressed", mode === "latest" ? "true" : "false");
-    }
-    syncPager();
   }
 
   function shuffle(a) {
@@ -195,8 +116,8 @@
       var img = document.createElement("img");
       img.src = p.thumb;
       img.alt = "";
-      img.width = 220;
-      img.height = 220;
+      img.width = 128;
+      img.height = 128;
       img.loading = "lazy";
       img.decoding = "async";
       thumb.appendChild(img);
@@ -248,42 +169,11 @@
     list.classList.add("is-random");
   }
 
-  if (seg) {
-    seg.addEventListener("click", function (e) {
-      var b = e.target.closest(".seg-btn");
-      if (!b || !b.dataset.mode) return;
-      if (b.dataset.mode === "latest") {
-        showLatest();
-      } else {
-        showFeatured();
-      }
-    });
-  }
-
-  if (prevBtn && nextBtn) {
-    prevBtn.addEventListener("click", function () {
-      if (latestPage > 0) {
-        latestPage -= 1;
-        renderPage();
-      }
-    });
-    nextBtn.addEventListener("click", function () {
-      if ((latestPage + 1) * PER_PAGE < latestAll.length) {
-        latestPage += 1;
-        renderPage();
-      }
-    });
-  }
-
-  syncToggle();
-
   btn.addEventListener("click", function () {
     loadIndex()
       .then(function (all) {
         current = pick5(all);
         render(current);
-        mode = "random";
-        syncToggle();
       })
       .catch(function () {});
   });

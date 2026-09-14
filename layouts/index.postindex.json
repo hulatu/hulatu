@@ -9,14 +9,7 @@
       "date": {{ $page.Date.Format "2006-01-02" | jsonify }},
       "summary": {{ $page.Summary | plainify | truncate 90 | jsonify }},
       "thumb": {{ with $page.Params.cover }}
-        {{- $name := replace (path.Base .) "%20" "_" -}}
-        {{- $stem := strings.TrimSuffix (path.Ext $name) $name -}}
-        {{- $thumb := printf "static/img/thumbs/%s.webp" $stem -}}
-        {{- if fileExists $thumb -}}
-          {{- printf "/img/thumbs/%s.webp" $stem | jsonify -}}
-        {{- else -}}
-          {{- . | jsonify -}}
-        {{- end -}}
+        {{- partial "thumb-src.html" $page | jsonify -}}
       {{- else }}""{{- end }},
       "cat": {{ with $page.GetTerms "categories" }}{{ with index . 0 }}{{ .Title | jsonify }}{{ else }}""{{ end }}{{ else }}""{{ end }},
       "featured": {{ with $page.Params.featured }}true{{ else }}false{{ end }}

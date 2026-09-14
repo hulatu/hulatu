@@ -46,6 +46,10 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   email = "flyhulatu@gmail.com"
   avatar = "/images/avatar.webp"
 
+  # 自有图片 CDN：封面/缩略图/正文图片通过 Cloudflare Image Transformations 动态压缩
+  [params.imageCDN]
+    host = "img.hulatu.com"
+
   # 打赏：把微信/支付宝赞赏码图片放进 static/img/ 并填好路径；
   # 或用第三方平台（如爱发电）填 url。全部留空时页面不显示。
   [params.donate]
@@ -98,27 +102,8 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   isPlainText = true
   notAlternative = true
 
-# 替代订阅格式：Atom / JSON Feed（仅全站首页输出）
-[outputFormats.AtomFeed]
-  mediaType = "application/atom+xml"
-  baseName = "atom"
-  isPlainText = true
-  notAlternative = true
-
-[outputFormats.JsonFeed]
-  mediaType = "application/feed+json"
-  baseName = "feed"
-  isPlainText = true
-  notAlternative = true
-
-[mediaTypes]
-  [mediaTypes."application/atom+xml"]
-    suffixes = ["xml"]
-  [mediaTypes."application/feed+json"]
-    suffixes = ["json"]
-
 [outputs]
-  home = ["HTML", "RSS", "SearchIndex", "PostIndex", "AtomFeed", "JsonFeed"]
+  home = ["HTML", "RSS", "SearchIndex", "PostIndex"]
 
 [markup]
   [markup.goldmark]
@@ -143,19 +128,11 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     name = "分类"
     url = "/categories/"
     weight = 3
-  # 系列（/series/）刻意不放在导航栏，改到页脚图标区：layouts/partials/footer.html
-  [[menu.main]]
-    name = "工具"
-    url = "/tools/"
-    weight = 4
+  # 系列（/series/）、工具（/tools/）、数据（/stats/）刻意不放在导航栏，改到页脚图标区：layouts/partials/footer.html
   [[menu.main]]
     name = "周刊"
     url = "/weekly/"
     weight = 5
-  [[menu.main]]
-    name = "数据"
-    url = "/stats/"
-    weight = 6
   [[menu.main]]
     name = "留言"
     url = "/guestbook/"

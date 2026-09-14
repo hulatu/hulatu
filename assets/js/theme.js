@@ -21,7 +21,4 @@
     });
   }
 
-  document.addEventListener("pjax:complete", function () {
-    applyTheme(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
-  });
 })();

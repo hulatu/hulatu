@@ -382,10 +382,6 @@
     }
   }
 
-  if (!window.__dataPageBound) {
-    window.__dataPageBound = true;
-    document.addEventListener("pjax:complete", init);
-  }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {

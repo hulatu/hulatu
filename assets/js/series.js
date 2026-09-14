@@ -91,5 +91,4 @@
   } else {
     run();
   }
-  document.addEventListener("pjax:complete", run);
 })();

@@ -68,7 +68,7 @@
     if (!list.length) return;
     index = (i + list.length) % list.length;
     var el = list[index];
-    img.src = el.currentSrc || el.src;
+    img.src = el.getAttribute("data-full") || el.currentSrc || el.src;
     img.alt = el.alt || "";
     countEl.textContent = (index + 1) + " / " + list.length;
     prevBtn.disabled = list.length < 2;
@@ -113,8 +113,4 @@
   });
 
   document.addEventListener("DOMContentLoaded", bind);
-  document.addEventListener("pjax:complete", function () {
-    if (overlay && !overlay.hasAttribute("hidden")) close();
-    bind();
-  });
 })();

@@ -2,8 +2,8 @@
 title: PaperMod 主题仿 BearBlog 的极简化
 categories: ["工具"]
 tags: ["博客", "Hugo"]
-cover: "https://docs.bearblog.dev/static/og-image.png"
-coverAlt: "PaperMod 主题仿 BearBlog 的极简化 封面图"
+cover: "https://img.hulatu.com/post/jnJhEY.webp"
+coverAlt: "Blog-Beautification-PaperMod——BearBlog"
 date: 2026-01-24T11:23:53+08:00  
 slug: Blog-Beautification-PaperMod——BearBlog  
 summary: 你在意的博客布局，可能只有你自己关注。  

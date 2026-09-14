@@ -44,7 +44,7 @@
 
     <section class="about-section">
       <h2>订阅</h2>
-      <p class="about-section-desc">本站支持四种订阅格式，任选其一即可。</p>
+      <p class="about-section-desc">本站支持两种订阅方式，任选其一即可。</p>
       {{ partial "about-link-list" (dict "items" $a.subscribe) }}
     </section>
 
@@ -56,16 +56,6 @@
     <section class="about-section">
       <h2>联系</h2>
       {{ partial "about-link-list" (dict "items" $a.contacts) }}
-    </section>
-
-    <section class="about-section">
-      <h2>朋友</h2>
-      {{ partial "about-link-list" (dict "items" $a.friends) }}
-    </section>
-
-    <section class="about-section">
-      <h2>博客圈与组织</h2>
-      {{ partial "about-link-list" (dict "items" $a.communities) }}
     </section>
   </div>
 

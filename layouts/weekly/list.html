@@ -1,5 +1,6 @@
 {{ define "main" }}
 {{- $img := .Params.headerImage | default "https://img.hulatu.com/post/Qp1U6E.jpg" -}}
+{{- $img = partial "cf-image.html" (dict "src" $img "params" "width=1200,height=630,fit=cover,format=auto,quality=80,metadata=none") -}}
 {{- $all := .Pages.ByDate.Reverse -}}
 {{- $total := len $all -}}
 {{- $latest := false -}}
@@ -41,7 +42,7 @@
 <section class="issue-grid">
   {{ range $paginator.Pages }}
     {{- $issue := partial "issue-num.html" . -}}
-    {{- $thumb := partial "thumb-src.html" . -}}
+    {{- $thumb := partial "weekly-thumb-src.html" . -}}
     <a class="issue-card" href="{{ .Permalink }}">
       <span class="issue-card-media">
         {{- if $thumb -}}

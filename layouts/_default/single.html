@@ -11,15 +11,12 @@
   {{- $relatedPosts = first 3 (where $relatedCandidates "Permalink" "!=" .Permalink) -}}
 {{- end -}}
 
-<div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
-
 <article class="post-single {{ if and $hasToc (not $isWeekly) }}has-toc{{ end }}">
     {{- with $seriesName }}<span class="series-marker" data-series="{{ . }}" hidden></span>{{ end }}
     {{ with .Params.cover }}
-      {{/* 先去掉可能的前导斜杠，让 assets 与 static 用同一套路径约定 */}}
+      {{/* 本地 assets 图优先走 Hugo 构建期压缩；外链封面交给 Cloudflare Image Transformations */}}
       {{ $cover := resources.Get (strings.TrimPrefix "/" .) }}
       {{ if $cover }}
-        {{/* 图在 assets/：走管道，缩到 1200 宽 + 转 webp，体积通常砍到原图 1/5~1/10 */}}
         {{ $r := $cover.Resize "1200x webp q82" }}
         <img class="post-cover"
              src="{{ $r.RelPermalink }}"
@@ -28,9 +25,10 @@
              loading="eager" fetchpriority="high" decoding="async"
              alt="{{ with $.Params.coverAlt }}{{ . }}{{ else }}{{ $.Title }}{{ end }}">
       {{ else }}
-        {{/* 图还在 static/：管道够不着，先直出，但补抢跑属性，至少让 LCP 图优先下载 */}}
+        {{ $cf := partial "cf-image.html" (dict "src" . "params" "width=1200,height=630,fit=cover,format=auto,quality=80,metadata=none") }}
         <img class="post-cover"
-             src="{{ . | relURL }}"
+             src="{{ $cf | relURL }}"
+             data-full="{{ . | relURL }}"
              width="1200" height="630"
              role="button" tabindex="0" aria-label="查看大图"
              loading="eager" fetchpriority="high" decoding="async"

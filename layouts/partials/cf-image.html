@@ -1,0 +1,16 @@
+{{- /*
+  返回经过 Cloudflare Image Transformations 的图片 URL。
+  只处理自有图片域名 img.hulatu.com，其余 URL 原样返回，避免误伤外链或本地静态图。
+  用法：
+    partial "cf-image.html" (dict "src" .Params.cover "params" "width=1200,format=auto,quality=80")
+*/ -}}
+{{- $src := .src | default "" -}}
+{{- $params := .params | default "width=1200,format=auto,quality=80" -}}
+{{- $host := site.Params.imageCDN.host | default "img.hulatu.com" -}}
+{{- $prefix := printf "https://%s/" $host -}}
+{{- if and $src (strings.HasPrefix $src $prefix) -}}
+  {{- $path := strings.TrimPrefix $prefix $src -}}
+  {{- printf "%scdn-cgi/image/%s/%s" $prefix $params $path -}}
+{{- else -}}
+  {{- $src -}}
+{{- end -}}

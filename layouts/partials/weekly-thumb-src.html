@@ -1,0 +1,9 @@
+{{- /* 返回周刊卡片封面 URL：外链封面交给 Cloudflare 转成 600x338，本地路径原样返回 */ -}}
+{{- $src := "" -}}
+{{- with .Params.cover -}}
+  {{- $src = . -}}
+{{- end -}}
+{{- if $src -}}
+  {{- $src = partial "cf-image.html" (dict "src" $src "params" "width=600,height=338,fit=cover,format=auto,quality=80,metadata=none") -}}
+{{- end -}}
+{{- return $src -}}

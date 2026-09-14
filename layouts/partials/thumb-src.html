@@ -1,5 +1,5 @@
-{{- /* 返回一篇文章列表缩略图的 URL：优先用 static/img/thumbs/ 下同名 webp，
-       否则回退到封面原图；没有封面时返回空串。 */ -}}
+{{- /* 返回文章列表缩略图 URL：优先用 static/img/thumbs/ 下同名 webp；
+       否则回退到封面图，并通过 Cloudflare 转成 128x128 小图；没有封面时返回空串。 */ -}}
 {{- $src := "" -}}
 {{- with .Params.cover -}}
   {{- $name := replace (path.Base .) "%20" "_" -}}
@@ -10,5 +10,8 @@
   {{- else -}}
     {{- $src = . -}}
   {{- end -}}
+{{- end -}}
+{{- if $src -}}
+  {{- $src = partial "cf-image.html" (dict "src" $src "params" "width=128,height=128,fit=cover,format=auto,quality=75,metadata=none") -}}
 {{- end -}}
 {{- return $src -}}

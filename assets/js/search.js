@@ -201,7 +201,7 @@
       }
     });
   }
-  results.addEventListener('click', (e) => { if (e.target.closest('a')) close(); }); // 修复：pjax 跳转时收起弹层
+  results.addEventListener('click', (e) => { if (e.target.closest('a')) close(); });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();
     if (e.key === '/' && box.hidden && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
