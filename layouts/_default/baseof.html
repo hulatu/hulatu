@@ -34,6 +34,10 @@
   <link rel="preconnect" href="https://giscus.app">
   <link rel="dns-prefetch" href="https://giscus.app">
   {{ end }}
+  {{ if site.Params.analytics.umami }}
+  <link rel="preconnect" href="https://cloud.umami.is">
+  <link rel="dns-prefetch" href="https://cloud.umami.is">
+  {{ end }}
   <link rel="preconnect" href="https://img.hulatu.com">
   <link rel="dns-prefetch" href="https://img.hulatu.com">
   <link rel="icon" type="image/svg+xml" href="{{ site.Params.assets.favicon | default "/logo.svg" | relURL }}">
@@ -47,6 +51,7 @@
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   <link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | relURL }}" title="{{ site.Title }}">
   {{ partial "head-meta.html" . }}
+  {{ partial "analytics.html" . }}
   <!-- 提前读取主题偏好，避免深色模式下出现"白屏闪烁" -->
   <script>
     (function () {

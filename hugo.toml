@@ -149,3 +149,9 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 [taxonomies]
   category = "categories"
   tag = "tags"
+
+# 隐私友好的轻量统计，目前只使用 Umami
+# umami 填脚本地址，umamiId 填站点 ID
+[params.analytics]
+  umami = "https://cloud.umami.is/script.js"
+  umamiId = "b191cc39-861f-43c0-b750-b1e090fa9472"

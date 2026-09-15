@@ -1,0 +1,5 @@
+{{- with site.Params.analytics -}}
+  {{- with .umami -}}
+    <script defer src="{{ . }}" data-website-id="{{ site.Params.analytics.umamiId }}"></script>
+  {{- end -}}
+{{- end -}}
