@@ -2,8 +2,7 @@
 {{ $toc := .TableOfContents}}
 {{ $hasToc := in $toc "<li" }}
 {{ $isWeekly := eq .Type "weekly" }}
-{{- $chars := .Plain | strings.RuneCount -}}
-{{- $readMins := div (add $chars 299) 300 -}}
+{{- $stats := partial "post-stats.html" . -}}
 {{- $relatedPosts := slice -}}
 {{- if in (slice "posts" "weekly") .Type -}}
   {{- $relatedCandidates := where (site.RegularPages.Related .) "Type" "in" (slice "posts" "weekly") -}}
@@ -41,9 +40,9 @@
     <div class="post-meta">
       <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
       <span class="post-meta-sep">·</span>
-      <span>约 {{ $chars }} 字</span>
+      <span>约 {{ $stats.chars }} 字</span>
       <span class="post-meta-sep">·</span>
-      <span>约 {{ $readMins }} 分钟</span>
+      <span>约 {{ $stats.mins }} 分钟</span>
       {{ if ne .Date .Lastmod }}
         <span class="post-meta-sep">·</span>
         <span>更新于 {{ .Lastmod.Format "2006-01-02" }}</span>

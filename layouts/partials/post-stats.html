@@ -1,0 +1,3 @@
+{{- $chars := .Plain | strings.RuneCount -}}
+{{- $mins := div (add $chars 299) 300 -}}
+{{- return (dict "chars" $chars "mins" $mins) -}}

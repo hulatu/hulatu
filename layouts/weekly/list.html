@@ -57,9 +57,8 @@
         {{- with .Summary }}<span class="issue-card-summary">{{ . | plainify | truncate 64 }}</span>{{ end }}
         <span class="issue-card-meta">
           <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-          {{- $chars := .Plain | strings.RuneCount -}}
-          {{- $readMins := div (add $chars 299) 300 -}}
-          <span>约 {{ $readMins }} 分钟</span>
+          {{- $stats := partial "post-stats.html" . -}}
+          <span>约 {{ $stats.mins }} 分钟</span>
         </span>
       </span>
     </a>

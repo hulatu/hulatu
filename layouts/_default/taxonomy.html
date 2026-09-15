@@ -7,9 +7,8 @@
       <span class="minimal-title">{{ .Title }}</span>
       <span class="minimal-meta">
         <time class="minimal-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-        {{- $chars := .Plain | strings.RuneCount -}}
-        {{- $readMins := div (add $chars 299) 300 -}}
-        <span class="minimal-read">约 {{ $readMins }} 分钟</span>
+        {{- $stats := partial "post-stats.html" . -}}
+        <span class="minimal-read">约 {{ $stats.mins }} 分钟</span>
       </span>
     </a>
   {{ else }}

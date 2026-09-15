@@ -4,7 +4,7 @@ categories: ["工具"]
 tags: ["AI", "效率", "工具"]
 date: 2026-01-26T09:59:07+08:00      
 cover: "https://img.hulatu.com/post/ai.webp"                  
-coverAlt: "如何更好的使用 AI 工具 封面图"
+coverAlt: "How-to-better-use-AI-tools"
 slug: How-to-better-use-AI-tools                                                                  
 summary: AI 也可以为我们更好的服务。                             
 draft: false 

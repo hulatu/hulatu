@@ -5,10 +5,9 @@
 {{- else if .Description -}}
   {{- $desc = .Description -}}
 {{- end -}}
+{{- $isArticle := and .IsPage (in (slice "posts" "weekly") .Type) -}}
 {{- $img := "/img/og-card.png" -}}
-{{- if and .IsPage (in (slice "posts" "weekly") .Type) -}}
-  {{- /* 每篇文章的分享图由 scripts/og-images.py 生成到 static/og/（提交进 git）。
-         先确认文件真的在，否则退回默认卡片 —— 免得分享图变成死链。 */ -}}
+{{- if $isArticle -}}
   {{- with .Params.slug -}}
     {{- $name := printf "%s-%s.webp" ($.Date.Format "20060102") . -}}
     {{- if fileExists (printf "static/og/%s" $name) -}}
@@ -17,39 +16,53 @@
   {{- end -}}
 {{- else -}}
   {{- with .Params.cover }}{{ $img = . }}{{ end -}}
+  {{- with .Params.headerImage }}{{ $img = . }}{{ end -}}
 {{- end -}}
 {{- $absImg := $img -}}
 {{- if not (strings.HasPrefix $img "http") -}}
   {{- $absImg = printf "%s%s" site.BaseURL (strings.TrimPrefix "/" $img) -}}
 {{- end -}}
-{{- $type := "website" -}}
-{{- if .IsPage }}{{ $type = "article" }}{{ end -}}
+{{- $imgAlt := $title -}}
+{{- if and $isArticle .Params.coverAlt }}{{ $imgAlt = .Params.coverAlt }}{{ end -}}
 
 <link rel="canonical" href="{{ .Permalink }}">
 <meta name="author" content="{{ site.Params.author }}">
 
 <meta property="og:site_name" content="{{ site.Title }}">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:title" content="{{ $title }}">
 <meta property="og:description" content="{{ $desc }}">
-<meta property="og:type" content="{{ $type }}">
+<meta property="og:type" content="{{ if $isArticle }}article{{ else }}website{{ end }}">
 <meta property="og:url" content="{{ .Permalink }}">
 <meta property="og:image" content="{{ $absImg }}">
-{{ if .IsPage }}
+<meta property="og:image:alt" content="{{ $imgAlt }}">
+{{ if $isArticle }}
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
   {{ if ne .Date .Lastmod }}<meta property="article:modified_time" content="{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}">{{ end }}
+  {{ with .GetTerms "categories" }}{{ range . }}<meta property="article:section" content="{{ .Title }}">{{ end }}{{ end }}
   {{ with .GetTerms "tags" }}{{ range . }}<meta property="article:tag" content="{{ .Title }}">{{ end }}{{ end }}
 {{ end }}
 
-<meta name="twitter:card" content="{{ if or .Params.cover (and .IsPage (in (slice "posts" "weekly") .Type)) }}summary_large_image{{ else }}summary{{ end }}">
+<meta name="twitter:card" content="{{ if or $isArticle .Params.cover .Params.headerImage .IsHome }}summary_large_image{{ else }}summary{{ end }}">
 <meta name="twitter:title" content="{{ $title }}">
 <meta name="twitter:description" content="{{ $desc }}">
 <meta name="twitter:image" content="{{ $absImg }}">
+<meta name="twitter:image:alt" content="{{ $imgAlt }}">
 
 {{- $author := dict "@type" "Person" "name" site.Params.author -}}
-{{- if .IsPage -}}
+{{- $logo := dict "@type" "ImageObject" "url" (site.Params.assets.apple_touch_icon | absURL) -}}
+{{- $publisher := dict "@type" "Organization" "name" site.Title "url" site.BaseURL "logo" $logo -}}
+{{- if $isArticle -}}
+  {{- $cats := slice -}}
+  {{- range .GetTerms "categories" }}{{ $cats = $cats | append .Title }}{{ end -}}
+  {{- $tags := slice -}}
+  {{- range .GetTerms "tags" }}{{ $tags = $tags | append .Title }}{{ end -}}
   {{- $ld := dict
     "@context" "https://schema.org"
     "@type" "BlogPosting"
+    "mainEntityOfPage" (dict "@type" "WebPage" "@id" .Permalink)
     "headline" .Title
     "description" $desc
     "image" $absImg
@@ -57,8 +70,25 @@
     "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00")
     "dateModified" (.Lastmod.Format "2006-01-02T15:04:05Z07:00")
     "author" $author
+    "publisher" $publisher
+    "inLanguage" site.Language.Locale
+    "wordCount" (.Plain | strings.RuneCount)
+    "articleSection" $cats
+    "keywords" $tags
+    "isAccessibleForFree" true
   -}}
   <script type="application/ld+json">{{ jsonify $ld | safeJS }}</script>
+{{- else if eq .RelPermalink "/about/" -}}
+  {{- $person := dict
+    "@context" "https://schema.org"
+    "@type" "Person"
+    "name" site.Params.author
+    "url" site.BaseURL
+    "description" site.Params.description
+    "jobTitle" (.Params.about.role | default "研究生")
+    "homeLocation" (.Params.about.location | default "郑州")
+  -}}
+  <script type="application/ld+json">{{ jsonify $person | safeJS }}</script>
 {{- else -}}
   {{- $ld := dict
     "@context" "https://schema.org"
@@ -66,6 +96,8 @@
     "name" site.Title
     "url" site.BaseURL
     "description" site.Params.description
+    "inLanguage" site.Language.Locale
+    "publisher" $publisher
   -}}
   <script type="application/ld+json">{{ jsonify $ld | safeJS }}</script>
 {{- end -}}

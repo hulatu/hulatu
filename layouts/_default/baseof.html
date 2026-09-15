@@ -5,7 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {{- $pageTitle := partial "page-title.html" . -}}
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ $pageTitle }} - {{ site.Title }}{{ end }}</title>
-  <meta name="description" content="{{ if .Description }}{{ .Description }}{{ else if .IsPage }}{{ .Summary | plainify | truncate 160 }}{{ else }}{{ site.Params.description }}{{ end }}">
+  {{- $metaDesc := site.Params.description -}}
+  {{- if .Description -}}
+    {{- $metaDesc = .Description -}}
+  {{- else if .IsPage -}}
+    {{- $metaDesc = (.Summary | plainify | truncate 160) | default site.Params.description -}}
+  {{- else if eq .Kind "term" -}}
+    {{- $metaDesc = printf "%s：收录 %d 篇相关文章" .Title (len .Pages) -}}
+  {{- else if eq .Kind "taxonomy" -}}
+    {{- $metaDesc = printf "%s：按主题浏览站内文章" .Title -}}
+  {{- end -}}
+  <meta name="description" content="{{ $metaDesc }}">
   {{- $noindex := eq .Data.Plural "tags" -}}
   {{- if and (in (slice "home" "section" "taxonomy" "term") .Kind) (gt .Paginator.PageNumber 1) -}}
     {{- $noindex = true -}}
@@ -51,9 +61,10 @@
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#main">跳到主内容</a>
   {{ partial "header.html" . }}
 
-  <main class="container{{ if .IsHome }} is-home{{ end }}">
+  <main id="main" class="container{{ if .IsHome }} is-home{{ end }}">
     {{ block "main" . }}{{ end }}
   </main>
   {{ partial "footer.html" . }}

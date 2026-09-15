@@ -37,7 +37,6 @@
           { name: 'title', weight: 0.5 },
           { name: 'categories', weight: 0.1 },
           { name: 'summary', weight: 0.15 },
-          { name: 'content', weight: 0.05 },
         ],
         threshold: 0.35,
         ignoreLocation: true,   // 关键修复：匹配在正文深处也有效，中文搜索的命门
@@ -112,7 +111,7 @@
 
   // 从正文里截取命中处前后的一段上下文，而不是永远显示开头
   function snippet(p, q) {
-    const body = p.content || p.summary || '';
+    const body = p.summary || '';
     const i = body.toLowerCase().indexOf(q.toLowerCase());
     if (i < 0) return esc(p.summary || p.date || '');
     const s = Math.max(0, i - 20), e = Math.min(body.length, i + q.length + 50);

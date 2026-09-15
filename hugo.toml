@@ -1,6 +1,7 @@
 baseURL = "https://hulatu.com/"
 locale = "zh-CN"
 title = "胡拉图说"
+hasCJKLanguage = true
 enableRobotsTXT = true
 copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 
