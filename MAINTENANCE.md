@@ -27,14 +27,6 @@ hugo new content/weekly/周刊-第N期.md       # 周刊
 
 发布前把 `draft` 改成 `false`，然后 `./deploy.sh`。
 
-### 新建短笔记 / 更新此刻
-
-```bash
-hugo new content/notes/一条新笔记.md   # 短笔记
-```
-
-「此刻」页面的内容直接编辑 `content/now.md`。完整数字花园规划见 `docs/digital-garden.md`。
-
 ### 备份
 
 ```bash
