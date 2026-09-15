@@ -136,7 +136,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     name = "分类"
     url = "/categories/"
     weight = 3
-  # 系列（/series/）、工具（/tools/）、数据（/stats/）刻意不放在导航栏，改到页脚图标区：layouts/partials/footer.html
+  # 系列（/series/）、工具（/tools/）刻意不放在导航栏，改到页脚图标区：layouts/partials/footer.html
   [[menu.main]]
     name = "周刊"
     url = "/weekly/"

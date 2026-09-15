@@ -94,7 +94,7 @@
 # 4) 旧栏目/订阅入口
 /archives/ /archive/ 301
 /daily/ /archive/ 301
-/running/ /stats/ 301
+/running/ https://run.hulatu.com/ 301
 /feed.xml /index.xml 301
 /index.json / 301
 
