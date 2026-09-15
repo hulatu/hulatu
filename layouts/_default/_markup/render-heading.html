@@ -1,0 +1,4 @@
+<h{{ .Level }} id="{{ .Anchor }}"{{ range $k, $v := .Attributes }}{{ if ne $k "id" }} {{ $k }}="{{ $v }}"{{ end }}{{ end }}>
+  {{ .Text | safeHTML }}
+  <a class="heading-anchor" href="#{{ .Anchor }}" aria-label="链接到本节" title="链接到本节">#</a>
+</h{{ .Level }}>

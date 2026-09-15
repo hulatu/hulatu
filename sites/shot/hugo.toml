@@ -1,0 +1,21 @@
+baseURL = "https://shot.hulatu.com/"
+title = "胡拉图 · Shot"
+locale = "zh-CN"
+hasCJKLanguage = true
+enableRobotsTXT = true
+disableKinds = ["taxonomy", "term"]
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[minify]
+  disableXML = true
+  minifyOutput = true
+
+[permalinks]
+  shots = "/:year/:month/:slug/"
+
+[outputs]
+  home = ["HTML"]
+  page = ["HTML"]
+  section = ["HTML"]

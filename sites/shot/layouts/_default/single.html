@@ -1,0 +1,21 @@
+{{ define "main" }}
+<article class="shot-single">
+  <a class="back" href="{{ "/" | relURL }}">← 全部 Shot</a>
+
+  <header class="shot-head">
+    <h1>{{ .Title }}</h1>
+    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+    {{ with .Params.location }}<span class="shot-location">{{ . }}</span>{{ end }}
+  </header>
+
+  <figure class="shot-full">
+    {{ with .Params.image }}
+      {{- $src := partial "cf-image.html" (dict "src" . "params" "width=1800,fit=scale-down,format=auto,quality=90,metadata=none") -}}
+      <img src="{{ $src }}" alt="{{ $.Title }}" loading="lazy" decoding="async">
+    {{ end }}
+    {{ with .Params.caption }}<figcaption>{{ . }}</figcaption>{{ end }}
+  </figure>
+
+  <div class="shot-content">{{ .Content }}</div>
+</article>
+{{ end }}

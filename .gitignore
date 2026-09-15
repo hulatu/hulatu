@@ -6,6 +6,11 @@ assets/jsconfig.json
 hugo_stats.json
 .hugo_build.lock
 
+# 子站点构建产物
+sites/*/public/
+sites/*/resources/
+sites/*/.hugo_build.lock
+
 # Mac 系统文件
 .DS_Store
 *~

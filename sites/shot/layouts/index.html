@@ -1,0 +1,31 @@
+{{ define "main" }}
+{{- $shots := sort (where site.RegularPages "Type" "shots") "Date" "desc" -}}
+
+<header class="site-head">
+  <a class="home-link" href="https://hulatu.com/">← hulatu.com</a>
+  <h1>{{ .Title }}</h1>
+  <p>{{ .Description }}</p>
+</header>
+
+{{ if $shots }}
+  <section class="shot-grid">
+    {{ range $shots }}
+      <a class="shot-card" href="{{ .RelPermalink }}">
+        <span class="shot-media">
+          {{ with .Params.image }}
+            {{- $src := partial "cf-image.html" (dict "src" . "params" "width=800,fit=cover,format=auto,quality=82,metadata=none") -}}
+            <img src="{{ $src }}" alt="{{ $.Title }}" loading="lazy" decoding="async">
+          {{ end }}
+        </span>
+        <span class="shot-body">
+          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+          <span class="shot-title">{{ .Title }}</span>
+          {{ with .Params.caption }}<span class="shot-caption">{{ . }}</span>{{ end }}
+        </span>
+      </a>
+    {{ end }}
+  </section>
+{{ else }}
+  <p class="empty">还没有 Shot。运行 <code>hugo new content/shots/第一条.md</code> 开始。</p>
+{{ end }}
+{{ end }}

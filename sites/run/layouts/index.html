@@ -1,0 +1,131 @@
+{{- $data := hugo.Data.runs | default dict -}}
+{{- $activities := $data.activities | default slice -}}
+{{- $activities = sort $activities "date" "desc" -}}
+
+{{- $count := len $activities -}}
+{{- $totalDistance := 0.0 -}}
+{{- $totalSeconds := 0.0 -}}
+{{- range $a := $activities -}}
+  {{- $totalDistance = math.Add $totalDistance (float $a.distance_km) -}}
+  {{- $totalSeconds = math.Add $totalSeconds (float $a.duration_s) -}}
+{{- end -}}
+
+{{- $avgPace := 0.0 -}}
+{{- if and (gt $totalDistance 0.0) (gt $totalSeconds 0.0) -}}
+  {{- $avgPace = math.Div $totalSeconds (math.Mul $totalDistance 60.0) -}}
+{{- end -}}
+
+{{- $months := dict -}}
+{{- range $a := $activities -}}
+  {{- $key := substr $a.date 0 7 -}}
+  {{- $cur := index $months $key | default (dict "distance" 0.0 "count" 0) -}}
+  {{- $cur = merge $cur (dict "distance" (math.Add (float (index $cur "distance")) (float $a.distance_km)) "count" (add (int (index $cur "count")) 1)) -}}
+  {{- $months = merge $months (dict $key $cur) -}}
+{{- end -}}
+
+{{- $monthKeys := slice -}}
+{{- range $k, $v := $months -}}
+  {{- $monthKeys = $monthKeys | append $k -}}
+{{- end -}}
+{{- $monthKeys = sort $monthKeys "value" "desc" -}}
+{{- $maxDistance := 0.0 -}}
+{{- range $k := $monthKeys -}}
+  {{- $m := index $months $k -}}
+  {{- $maxDistance = math.Max $maxDistance (float (index $m "distance")) -}}
+{{- end -}}
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ site.Title }}</title>
+  <meta name="description" content="{{ .Description | default site.Title }}">
+  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <a class="home-link" href="https://hulatu.com/">← hulatu.com</a>
+
+    <header class="page-head">
+      <h1>{{ .Title }}</h1>
+      <p>{{ .Description }}</p>
+    </header>
+
+    <section class="summary-grid">
+      <div class="summary-card">
+        <span class="summary-label">累计跑步</span>
+        <span class="summary-value">{{ $count }}<span class="summary-unit"> 次</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">累计里程</span>
+        <span class="summary-value">{{ printf "%.1f" $totalDistance }}<span class="summary-unit"> km</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">累计时长</span>
+        <span class="summary-value">{{ printf "%.1f" (math.Div $totalSeconds 3600.0) }}<span class="summary-unit"> 小时</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">平均配速</span>
+        <span class="summary-value">{{ if gt $avgPace 0.0 }}{{ printf "%.2f" $avgPace }}{{ else }}—{{ end }}<span class="summary-unit"> min/km</span></span>
+      </div>
+    </section>
+
+    <h2 class="section-title">月度里程</h2>
+    {{ if $monthKeys }}
+      <div class="chart">
+        {{ range $key := first 12 $monthKeys }}
+          {{- $m := index $months $key -}}
+          {{- $distance := float (index $m "distance") -}}
+          {{- $height := 0 -}}
+          {{- if gt $maxDistance 0.0 -}}
+            {{- $height = math.Round (math.Mul (math.Div $distance $maxDistance) 100.0) -}}
+          {{- end -}}
+          <div class="month">
+            <div class="month-bar" style="height: {{ $height }}%"></div>
+            <span class="month-value">{{ printf "%.1f" $distance }}</span>
+            <span class="month-key">{{ substr $key 5 2 }}月</span>
+          </div>
+        {{ end }}
+      </div>
+    {{ else }}
+      <p>还没有跑步记录。</p>
+    {{ end }}
+
+    <h2 class="section-title">最近记录</h2>
+    {{ if $activities }}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>距离</th>
+              <th>时长</th>
+              <th>配速</th>
+              <th>平均心率</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ range first 20 $activities }}
+              <tr>
+                <td>{{ .date }}</td>
+                <td>{{ printf "%.2f" .distance_km }} km</td>
+                <td>{{ printf "%.0f" (math.Div (float .duration_s) 60.0) }} 分钟</td>
+                <td>{{ if gt (float .distance_km) 0.0 }}{{ printf "%.2f" (math.Div (float .duration_s) (math.Mul (float .distance_km) 60.0)) }}{{ else }}—{{ end }}</td>
+                <td>{{ with .avg_hr }}{{ . }}{{ else }}—{{ end }}</td>
+              </tr>
+            {{ end }}
+          </tbody>
+        </table>
+      </div>
+    {{ else }}
+      <p>还没有跑步记录。</p>
+    {{ end }}
+
+    {{ with $data.updated }}
+      <p class="updated">数据更新于 {{ . }}</p>
+    {{ end }}
+  </main>
+</body>
+</html>

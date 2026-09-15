@@ -1,0 +1,17 @@
+baseURL = "https://run.hulatu.com/"
+title = "胡拉图 · 跑步"
+locale = "zh-CN"
+hasCJKLanguage = true
+enableRobotsTXT = true
+dataDir = "data"
+disableKinds = ["taxonomy", "term"]
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[minify]
+  disableXML = true
+  minifyOutput = true
+
+[outputs]
+  home = ["HTML"]
