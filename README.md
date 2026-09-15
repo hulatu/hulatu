@@ -7,7 +7,7 @@
 - **导航栏**：关于 / 归档 / 分类 / 工具 / 周刊 / 数据 / 留言 + 搜索、深浅色切换、RSS
 - **页脚**：版权 / 图标链接（系列、朋友、书影音、GitHub、邮箱、隐私政策）/ Powered by Hugo
 - **首页**：精选 / 时间两种排列 + 随机 5 篇；时间模式下底部左右箭头翻页
-- **文章页**：阅读进度、目录 + 标签云侧栏（手机端目录变底部抽屉）、相关文章、上一篇/下一篇、随机一篇、复制链接、CC 协议、编辑此页（直接跳 GitHub 上的源文件）
+- **文章页**：阅读进度、目录 + 标签云侧栏（手机端目录变底部抽屉）、相关文章、上一篇/下一篇、复制链接、CC 协议、编辑此页（直接跳 GitHub 上的源文件）
 - **真搜索功能**：基于 [Fuse.js](https://www.fusejs.io/) 的客户端模糊搜索，构建时自动生成 `search-index.json`，按 `/` 或 ⌘/Ctrl+K 唤起；命中词全部高亮，↑↓ 选结果、Enter 打开
 - **评论系统**：接入 [giscus](https://giscus.app)（基于 GitHub Discussions），跟随深浅色主题
 - **无刷新导航**：站内跳转只替换正文，不整页刷新（pjax）
@@ -103,7 +103,7 @@ hugo new content/posts/my-first-post.md
 | 页脚信息 | `layouts/partials/footer.html` |
 | 颜色 / 字体 / 间距 | `assets/css/style.css` 顶部的 CSS 变量 |
 | 周刊每页文章数量 | `hugo.toml` 里 `[pagination]` 的 `pagerSize` |
-| 网站图标（favicon） | 换成 `static/` 下的图片，改 `hugo.toml` 的 `[params.assets]` |
+| 网站图标（favicon） | 站点图标和导航 Logo 统一使用 `static/logo.svg`，iOS 图标使用 `static/apple-touch-icon.png` |
 | 个人头像 | 把图片放进 `static/images/`，然后在 `hugo.toml` 的 `params.avatar` 填 `/images/文件名.jpg`；不填则自动显示首字母头像 |
 | 文章封面图 | 在文章 front matter 加 `cover` 字段（远程 URL 或本地路径均可） |
 | 相关文章数量与匹配 | `hugo.toml` 里 `[related]` 段 |

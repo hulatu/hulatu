@@ -13,16 +13,13 @@
   {{- $src = partial "cf-image.html" (dict "src" .Destination "params" "width=1200,fit=scale-down,format=auto,quality=80,metadata=none") -}}
 {{- end -}}
 <figure class="article-image">
-  <a href="{{ .Destination }}">
-    <img
-      src="{{ $src }}"
-      data-full="{{ .Destination }}"
-      alt="{{ .Text }}"
-      loading="lazy" decoding="async"
-      {{ with $w }}width="{{ . }}"{{ end }}
-      {{ with $h }}height="{{ . }}"{{ end }}
-    >
-  </a>
+  <img
+    src="{{ $src }}"
+    alt="{{ .Text }}"
+    loading="lazy" decoding="async"
+    {{ with $w }}width="{{ . }}"{{ end }}
+    {{ with $h }}height="{{ . }}"{{ end }}
+  >
   {{ if .Text }}
   <figcaption>
     {{ .Text }}

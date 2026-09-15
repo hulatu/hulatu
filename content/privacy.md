@@ -24,13 +24,7 @@ date: 2026-09-13
 - Cloudflare Pages（`hulatu.com`）：<https://www.cloudflare.com/privacypolicy/>
 - GitHub Pages（`flyhulatu.github.io`）：<https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement>
 
-### 2. 访问统计 Umami
-
-本站使用 Umami Cloud（`cloud.umami.is`）做匿名访问统计。Umami 不设置 Cookie、不采集个人身份信息，仅统计页面浏览量、来源、设备类型、浏览器、国家/地区等聚合数据，数据存储在 Umami 的服务器上。
-
-- 隐私政策：<https://umami.is/privacy>
-
-### 3. 评论系统 giscus
+### 2. 评论系统 giscus
 
 文章评论使用 giscus，评论内容存储在 GitHub Discussions（仓库 `hulatu/hulatu`）。加载评论时，浏览器会请求 `giscus.app` 与 GitHub 的接口。
 
@@ -39,11 +33,11 @@ date: 2026-09-13
 - giscus 项目：<https://giscus.app>
 - GitHub 隐私政策：<https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement>
 
-### 4. 图片与静态资源
+### 3. 图片与静态资源
 
 文章图片主要托管在自有域名 `img.hulatu.com`，属于本站自有资源，不向第三方传输你的浏览信息。
 
-### 5. 外链
+### 4. 外链
 
 文章内容会链接到外部网站（如微信公众号、B 站、知乎等）。点击外链跳转后，你的信息由对应网站处理，请参考其各自的隐私政策；本站无法控制这些外部站点。
 
@@ -51,7 +45,6 @@ date: 2026-09-13
 
 本站自身不使用 Cookie。第三方服务的情况：
 
-- Umami：不使用 Cookie。
 - giscus：主要使用 LocalStorage 保存主题；当你在 giscus 内登录 GitHub 时，GitHub 可能在 `github.com` 域名下设置自己的 Cookie。
 
 ## 四、评论内容的处理
@@ -61,7 +54,7 @@ date: 2026-09-13
 
 ## 五、你的权利
 
-由于本站不主动收集个人身份信息，我无法也不打算基于这些数据识别你。若你对第三方（Cloudflare、GitHub、Umami）处理的数据有疑问或想行使相关权利，可直接联系对应服务方；我也可以协助说明本站的接入方式。
+由于本站不主动收集个人身份信息，我无法也不打算基于这些数据识别你。若你对第三方（Cloudflare、GitHub）处理的数据有疑问或想行使相关权利，可直接联系对应服务方；我也可以协助说明本站的接入方式。
 
 ## 六、联系方式
 

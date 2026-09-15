@@ -5,7 +5,7 @@
       <a class="site-brand" href="{{ "/" | relURL }}" aria-label="{{ site.Title }} 首页">
         <img
           class="site-logo"
-          src="{{ "logo.png" | relURL }}"
+          src="{{ site.Params.assets.favicon | default "/logo.svg" | relURL }}"
           alt=""
           width="128"
           height="128"

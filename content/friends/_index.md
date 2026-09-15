@@ -14,6 +14,8 @@ friends:
 communities:
   - name: "博友圈"
     url: "https://www.boyouquan.com"
+  - name: "有个站"
+    url: "https://www.ygz.ink/"
   - name: "笔墨迹"
     url: "https://blogscn.fun/"
   - name: "博客集"

@@ -1,8 +1,6 @@
 (function () {
   "use strict";
 
-  var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
   /* ---------- 移动端菜单 ---------- */
   var burger = document.getElementById("nav-burger");
   var nav = document.getElementById("site-nav");
@@ -48,39 +46,6 @@
     window.addEventListener("scroll", onScrollHeader, { passive: true });
     updateHeader();
   }
-
-  /* ---------- 滚动轻量浮现（仅一次，尊重减弱动效） ---------- */
-  var revealObserver = null;
-
-  function initReveal() {
-    if (reducedMotion || !("IntersectionObserver" in window)) return;
-    if (revealObserver) revealObserver.disconnect();
-
-    revealObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("reveal-visible");
-        revealObserver.unobserve(entry.target);
-      });
-    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
-
-    document.querySelectorAll(".post-list .post-row, .stat-card, .data-panel")
-      .forEach(function (el) {
-        if (el.classList.contains("reveal-visible")) return;
-        el.classList.add("reveal-in");
-        var rect = el.getBoundingClientRect();
-        if (rect.top < window.innerHeight - 90) {
-          el.classList.add("reveal-visible");
-          return;
-        }
-        if (!el.classList.contains("reveal-pending")) {
-          el.classList.add("reveal-pending");
-        }
-        revealObserver.observe(el);
-      });
-  }
-
-  document.addEventListener("DOMContentLoaded", initReveal);
 
   /* ---------- 键盘快捷键 ---------- */
   document.addEventListener("keydown", function (e) {

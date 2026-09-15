@@ -184,7 +184,7 @@ def main():
         subprocess.run(
             [
                 "magick",
-                os.path.join(ROOT, "static", "logo.png"),
+                os.path.join(ROOT, "static", "logo.svg"),
                 "-resize",
                 "64x64",
                 logo_resized,

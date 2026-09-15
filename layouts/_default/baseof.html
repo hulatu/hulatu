@@ -9,19 +9,22 @@
   {{- if eq .Data.Plural "tags" }}
   <meta name="robots" content="noindex, follow">
   {{- end }}
+  {{- $giscusPage := false -}}
+  {{- if site.Params.giscus.repo -}}
+    {{- if or (and .IsPage (in (slice "posts" "weekly") .Type) (ne .Params.comments false)) (eq .RelPermalink "/guestbook/") -}}
+      {{- $giscusPage = true -}}
+    {{- end -}}
+  {{- end -}}
   <meta name="theme-color" content="#f6f6f8">
+  {{ if $giscusPage }}
   <link rel="preconnect" href="https://giscus.app">
   <link rel="dns-prefetch" href="https://giscus.app">
-  <link rel="preconnect" href="https://cloud.umami.is">
-  <link rel="dns-prefetch" href="https://cloud.umami.is">
+  {{ end }}
   <link rel="preconnect" href="https://img.hulatu.com">
   <link rel="dns-prefetch" href="https://img.hulatu.com">
-  <link rel="icon" type="image/x-icon" href="{{ "favicon.ico" | relURL }}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ site.Params.assets.favicon16x16 | default "/favicon.png" | relURL }}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ site.Params.assets.favicon32x32 | default "/favicon.png" | relURL }}">
-  <link rel="icon" type="image/png" sizes="96x96" href="{{ site.Params.assets.favicon96x96 | default "/favicon.png" | relURL }}">
-  <link rel="apple-touch-icon" href="{{ site.Params.assets.apple_touch_icon | default "/favicon.png" | relURL }}">
-  <link rel="mask-icon" href="{{ site.Params.assets.safari_pinned_tab | default "/favicon.png" | relURL }}" color="#c73e2f">
+  <link rel="icon" type="image/svg+xml" href="{{ site.Params.assets.favicon | default "/logo.svg" | relURL }}">
+  <link rel="apple-touch-icon" href="{{ site.Params.assets.apple_touch_icon | default "/apple-touch-icon.png" | relURL }}">
+  <link rel="mask-icon" href="{{ site.Params.assets.safari_pinned_tab | default "/logo.svg" | relURL }}" color="#c73e2f">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="{{ site.Title }}">
@@ -30,7 +33,6 @@
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   <link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | relURL }}" title="{{ site.Title }}">
   {{ partial "head-meta.html" . }}
-  {{ partial "analytics.html" . }}
   <!-- 提前读取主题偏好，避免深色模式下出现"白屏闪烁" -->
   <script>
     (function () {
