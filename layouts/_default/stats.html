@@ -43,7 +43,7 @@
 {{- /* ===== 跑步数据（来自 data/runs.json，Garmin 自动同步） ===== */ -}}
 {{- $runs := slice -}}
 {{- $updated := "" -}}
-{{- with hugo.Data.runs -}}
+{{- with site.Data.runs -}}
   {{- $updated = .updated | default "" -}}
   {{- with .activities }}{{ $runs = . }}{{ end -}}
 {{- end -}}

@@ -1,4 +1,4 @@
-{{- $data := hugo.Data.runs | default dict -}}
+{{- $data := site.Data.runs | default dict -}}
 {{- $activities := $data.activities | default slice -}}
 {{- $activities = sort $activities "date" "desc" -}}
 
