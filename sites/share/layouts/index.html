@@ -1,0 +1,38 @@
+{{ define "main" }}
+{{- $posts := sort site.RegularPages "Date" "desc" -}}
+
+<a class="home-link" href="https://hulatu.com/">← hulatu.com</a>
+
+<header class="page-head">
+  <h1>{{ .Title }}</h1>
+  <p>{{ .Description }}</p>
+</header>
+
+{{ if $posts }}
+  {{- $catMap := dict -}}
+  {{- $cats := slice -}}
+  {{- range $posts -}}
+    {{- $cat := .Params.category | default "未分类" -}}
+    {{- if not (index $catMap $cat) -}}
+      {{- $catMap = merge $catMap (dict $cat true) -}}
+      {{- $cats = $cats | append $cat -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $cats = sort $cats -}}
+
+  <div class="filters" aria-label="按分类筛选">
+    <button type="button" class="filter-chip is-active" data-category="all">全部 <span>{{ len $posts }}</span></button>
+    {{ range $cats }}
+      <button type="button" class="filter-chip" data-category="{{ . }}">{{ . }}</button>
+    {{ end }}
+  </div>
+
+  <section class="share-grid">
+    {{ range $posts }}
+      {{ partial "share-card.html" . }}
+    {{ end }}
+  </section>
+{{ else }}
+  <p class="empty">还没有投稿。运行 <code>hugo new content/posts/一条推荐.md</code> 开始。</p>
+{{ end }}
+{{ end }}

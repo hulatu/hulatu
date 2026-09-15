@@ -1,0 +1,20 @@
+{{ define "main" }}
+{{- $posts := sort .Pages "Date" "desc" -}}
+
+<a class="home-link" href="{{ "/" | relURL }}">← 经验分享首页</a>
+
+<header class="page-head">
+  <h1>{{ .Title }}</h1>
+  <p>{{ .Description }}</p>
+</header>
+
+{{ if $posts }}
+  <section class="share-grid">
+    {{ range $posts }}
+      {{ partial "share-card.html" . }}
+    {{ end }}
+  </section>
+{{ else }}
+  <p class="empty">还没有投稿。</p>
+{{ end }}
+{{ end }}

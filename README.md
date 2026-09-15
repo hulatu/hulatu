@@ -17,7 +17,7 @@
 - **系列 / 专栏**：`/series/` 聚合页，每个系列有简介、按顺序的目录和「已读 x/N」阅读进度（进度存在本地，无需后端）
 - **周刊**：独立栏目 + 专栏头图 + 期号徽章 + 每期「本期目录」+ 每页 5 期的箭头翻页 + 专属 RSS
 - **订阅**：RSS 2.0，含主源与周刊专线
-- **延伸子站**：`run.hulatu.com`（跑步数据）和 `shot.hulatu.com`（朋友圈式分享），源码在 `sites/`
+- **延伸子站**：`run.hulatu.com`（跑步数据）、`shot.hulatu.com`（朋友圈式分享）和 `share.hulatu.com`（好物与经验分享），源码在 `sites/`
 - **SEO**：canonical、Open Graph、Twitter Card、JSON-LD、sitemap、robots、旧链接 301 跳转
 
 ## 📁 目录结构

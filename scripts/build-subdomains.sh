@@ -23,6 +23,15 @@ echo "==> 构建 shot.hulatu.com"
   --minify \
   --destination "$ROOT/sites/shot/public"
 
+echo "==> 构建 share.hulatu.com"
+"$HUGO_BIN" \
+  --source sites/share \
+  --cacheDir "$CACHE_ROOT/share" \
+  --gc \
+  --minify \
+  --destination "$ROOT/sites/share/public"
+
 echo "完成："
 echo "  run   -> sites/run/public"
 echo "  shot  -> sites/shot/public"
+echo "  share -> sites/share/public"

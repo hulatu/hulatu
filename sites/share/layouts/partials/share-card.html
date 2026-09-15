@@ -1,0 +1,24 @@
+{{- $verdictClass := "neutral" -}}
+{{- if eq .Params.verdict "推荐" }}{{ $verdictClass = "good" }}{{ end -}}
+{{- if eq .Params.verdict "避雷" }}{{ $verdictClass = "bad" }}{{ end -}}
+<a class="share-card" href="{{ .RelPermalink }}" data-category="{{ .Params.category | default "未分类" }}">
+  {{ with .Params.image }}
+    <span class="share-media">
+      {{- $src := partial "cf-image.html" (dict "src" . "params" "width=800,fit=cover,format=auto,quality=82,metadata=none") -}}
+      <img src="{{ $src }}" alt="{{ $.Title }}" loading="lazy" decoding="async">
+    </span>
+  {{ end }}
+  <span class="share-body">
+    <span class="share-topline">
+      <span class="share-category">{{ .Params.category | default "未分类" }}</span>
+      <span class="verdict {{ $verdictClass }}">{{ .Params.verdict | default "未评价" }}</span>
+    </span>
+    <span class="share-title">{{ .Title }}</span>
+    {{ with .Params.item }}<span class="share-item">{{ . }}</span>{{ end }}
+    <span class="share-meta">
+      {{ with .Params.score }}<span>{{ . }} / 5</span>{{ end }}
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+      {{ with .Params.author }}<span>by {{ . }}</span>{{ end }}
+    </span>
+  </span>
+</a>

@@ -41,13 +41,13 @@ BACKUP_DEST="/Volumes/SSD/hulatu-blog" bash scripts/backup-blog.sh
 
 ### 子站点
 
-`run.hulatu.com` 和 `shot.hulatu.com` 是两个独立 Hugo 站点，源码分别在 `sites/run/` 和 `sites/shot/`。本地一起构建：
+`run.hulatu.com`、`shot.hulatu.com` 和 `share.hulatu.com` 是独立 Hugo 站点，源码分别在 `sites/run/`、`sites/shot/` 和 `sites/share/`。本地一起构建：
 
 ```bash
 bash scripts/build-subdomains.sh
 ```
 
-Cloudflare Pages 需要为两个子域名分别创建项目，具体配置见 `sites/README.md`。
+Cloudflare Pages 需要为各子域名分别创建项目，具体配置见 `sites/README.md`。
 
 跑步子站的数据来自 `data/runs.json`，`scripts/sync-garmin.py` 同步时也会更新 `sites/run/data/runs.json`。
 

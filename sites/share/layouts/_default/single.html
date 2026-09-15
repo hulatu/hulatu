@@ -1,0 +1,59 @@
+{{ define "main" }}
+{{- $verdictClass := "neutral" -}}
+{{- if eq .Params.verdict "推荐" }}{{ $verdictClass = "good" }}{{ end -}}
+{{- if eq .Params.verdict "避雷" }}{{ $verdictClass = "bad" }}{{ end -}}
+
+<article class="share-single">
+  <a class="back" href="{{ "/" | relURL }}">← 全部经验分享</a>
+
+  <header class="single-head">
+    <div class="single-category">{{ .Params.category | default "未分类" }}</div>
+    <h1>{{ .Title }}</h1>
+    {{ with .Params.item }}<p class="single-item">{{ . }}</p>{{ end }}
+
+    <div class="single-meta">
+      <span class="verdict {{ $verdictClass }}">{{ .Params.verdict | default "未评价" }}</span>
+      {{ with .Params.score }}<span class="score">{{ . }} / 5</span>{{ end }}
+      {{ with .Params.bought }}<span>{{ . }}</span>{{ end }}
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+      {{ with .Params.author }}<span>by {{ . }}</span>{{ end }}
+    </div>
+  </header>
+
+  {{ with .Params.image }}
+    <figure class="single-figure">
+      {{- $src := partial "cf-image.html" (dict "src" . "params" "width=1600,fit=scale-down,format=auto,quality=90,metadata=none") -}}
+      <img src="{{ $src }}" alt="{{ $.Title }}" loading="lazy" decoding="async">
+    </figure>
+  {{ end }}
+
+  <div class="single-content">
+    {{ .Content }}
+  </div>
+
+  {{ if or .Params.pros .Params.cons }}
+    <section class="pros-cons">
+      {{ with .Params.pros }}
+        <div class="pros">
+          <h2>优点</h2>
+          <ul>
+            {{ range . }}<li>{{ . }}</li>{{ end }}
+          </ul>
+        </div>
+      {{ end }}
+      {{ with .Params.cons }}
+        <div class="cons">
+          <h2>缺点 / 注意</h2>
+          <ul>
+            {{ range . }}<li>{{ . }}</li>{{ end }}
+          </ul>
+        </div>
+      {{ end }}
+    </section>
+  {{ end }}
+
+  {{ if .Params.affiliate }}
+    <p class="disclosure">利益披露：本文可能包含返利或推广链接，但不影响作者的实际体验判断。</p>
+  {{ end }}
+</article>
+{{ end }}

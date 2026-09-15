@@ -1,0 +1,9 @@
+{{- $src := .src | default "" -}}
+{{- $params := .params | default "width=1200,fit=scale-down,format=auto,quality=85,metadata=none" -}}
+{{- $prefix := "https://img.hulatu.com/" -}}
+{{- if and $src (strings.HasPrefix $src $prefix) -}}
+  {{- $path := strings.TrimPrefix $prefix $src -}}
+  {{- printf "%scdn-cgi/image/%s/%s" $prefix $params $path -}}
+{{- else -}}
+  {{- $src -}}
+{{- end -}}
