@@ -23,27 +23,19 @@
         <span class="series-stat">最近更新 · <strong>{{ $latest.Date.Format "2006-01-02" }}</strong></span>
       {{- end -}}
     </div>
-    {{- if $count -}}
-    <div class="series-progress" id="series-progress" data-series="{{ $name }}">
-      <div class="series-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="{{ $count }}" aria-valuenow="0" aria-label="系列阅读进度">
-        <span class="series-progress-fill" id="series-progress-fill"></span>
-      </div>
-      <span class="series-progress-text" id="series-progress-text">已读 0 / {{ $count }}</span>
-    </div>
-    {{- end -}}
   </header>
 
   {{ with .Content }}<div class="series-intro">{{ . }}</div>{{ end }}
 
   {{ if $count }}
-  <section class="series-catalog" id="series-catalog" data-series="{{ $name }}">
+  <section class="series-catalog">
     <h2 class="series-catalog-title">按顺序阅读</h2>
     <ol class="series-list">
       {{- range $i, $p := $items -}}
         {{- $chars := $p.Plain | strings.RuneCount -}}
         {{- $readMins := div (add $chars 299) 300 -}}
         <li class="series-item">
-          <a class="series-item-link" href="{{ $p.Permalink }}" data-url="{{ $p.RelPermalink }}">
+          <a class="series-item-link" href="{{ $p.Permalink }}">
             <span class="series-item-num">{{ add $i 1 }}</span>
             <span class="series-item-main">
               <span class="series-item-title">{{ $p.Title }}</span>
@@ -54,11 +46,6 @@
                   {{- range first 1 . -}}<span class="series-item-cat">{{ .Title }}</span>{{- end -}}
                 {{- end -}}
               </span>
-            </span>
-            <span class="series-item-check" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
             </span>
           </a>
         </li>

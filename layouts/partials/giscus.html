@@ -1,0 +1,47 @@
+{{- if site.Params.giscus.repo -}}
+  {{- with .title }}<h2 class="giscus-title">{{ . }}</h2>{{ end }}
+  <div id="giscus-slot"
+    data-repo="{{ site.Params.giscus.repo }}"
+    data-repo-id="{{ site.Params.giscus.repoId }}"
+    data-category="{{ site.Params.giscus.category }}"
+    data-category-id="{{ site.Params.giscus.categoryId }}"
+    data-mapping="{{ site.Params.giscus.mapping | default "pathname" }}"
+    data-strict="0"
+    data-reactions-enabled="{{ if site.Params.giscus.reactions }}1{{ else }}0{{ end }}"
+    data-emit-metadata="0"
+    data-input-position="{{ if .inputPosition }}{{ .inputPosition }}{{ else }}{{ site.Params.giscus.inputPosition | default "bottom" }}{{ end }}"
+    data-theme="preferred_color_scheme"
+    data-lang="{{ site.Params.giscus.lang | default "zh-CN" }}"></div>
+  <p class="giscus-loading" id="giscus-loading" hidden aria-live="polite">正在加载评论…</p>
+  <button type="button" class="post-pill giscus-load-btn" id="giscus-load-btn">显示评论</button>
+  <script>
+  (function () {
+    var slot = document.getElementById('giscus-slot');
+    var btn = document.getElementById('giscus-load-btn');
+    var loading = document.getElementById('giscus-loading');
+    if (!slot || !btn) return;
+    function load() {
+      btn.hidden = true;
+      if (loading) loading.hidden = false;
+      var s = document.createElement('script');
+      s.src = 'https://giscus.app/client.js';
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      s.setAttribute('data-loading', 'lazy');
+      for (var k in slot.dataset) {
+        s.setAttribute('data-' + k.replace(/([A-Z])/g, '-$1').toLowerCase(), slot.dataset[k]);
+      }
+      slot.appendChild(s);
+      if (loading) {
+        var timer = setInterval(function () {
+          if (slot && slot.querySelector('iframe.giscus-frame')) {
+            loading.hidden = true;
+            clearInterval(timer);
+          }
+        }, 300);
+      }
+    }
+    btn.addEventListener('click', load);
+  })();
+  </script>
+{{- end -}}

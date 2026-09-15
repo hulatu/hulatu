@@ -2,7 +2,6 @@
 {{ $toc := .TableOfContents}}
 {{ $hasToc := in $toc "<li" }}
 {{ $isWeekly := eq .Type "weekly" }}
-{{- $seriesName := partial "series-name.html" . -}}
 {{- $chars := .Plain | strings.RuneCount -}}
 {{- $readMins := div (add $chars 299) 300 -}}
 {{- $relatedPosts := slice -}}
@@ -11,8 +10,7 @@
   {{- $relatedPosts = first 3 (where $relatedCandidates "Permalink" "!=" .Permalink) -}}
 {{- end -}}
 
-<article class="post-single {{ if and $hasToc (not $isWeekly) }}has-toc{{ end }}">
-    {{- with $seriesName }}<span class="series-marker" data-series="{{ . }}" hidden></span>{{ end }}
+<article class="post-single {{ if $hasToc }}has-toc{{ end }}">
     {{ with .Params.cover }}
       {{/* 本地 assets 图优先走 Hugo 构建期压缩；外链封面交给 Cloudflare Image Transformations */}}
       {{ $cover := resources.Get (strings.TrimPrefix "/" .) }}
@@ -58,7 +56,7 @@
       {{- $seriesPages := where (where site.RegularPages "Type" "series") "Params.seriesName" .Params.series -}}
       {{- $seriesPage := false -}}
       {{- if $seriesPages }}{{ $seriesPage = index $seriesPages 0 }}{{ end -}}
-      <div class="post-series-link" data-series="{{ .Params.series }}">
+      <div class="post-series-link">
         本系列 · {{ with $seriesPage }}<a href="{{ .RelPermalink }}">{{ $.Params.series }}</a>{{ else }}{{ $.Params.series }}{{ end }} · 第 {{ $seriesIdx }}/{{ len $seriesPosts }} 篇
       </div>
     {{ end }}
@@ -76,7 +74,7 @@
     </div>
   </header>
 
-  {{ if and $hasToc (not $isWeekly) }}
+  {{ if $hasToc }}
   <div class="post-rail">
     <aside class="post-toc">
       <nav class="post-toc-nav">
@@ -86,9 +84,9 @@
   </div>
   {{ end }}
 
-  {{ if and $hasToc (not $isWeekly) }}
+  {{ if $hasToc }}
   <button type="button" class="toc-btn" id="toc-btn" aria-label="打开目录" aria-expanded="false" aria-controls="toc-drawer">
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <line x1="4" y1="6" x2="20" y2="6"></line>
       <line x1="4" y1="12" x2="20" y2="12"></line>
       <line x1="4" y1="18" x2="20" y2="18"></line>
@@ -101,7 +99,7 @@
       <div class="toc-drawer-head">
         <span class="toc-drawer-title">目录</span>
         <button type="button" class="toc-drawer-close" data-toc-close aria-label="关闭目录">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">
             <line x1="6" y1="6" x2="18" y2="18"></line>
             <line x1="18" y1="6" x2="6" y2="18"></line>
           </svg>
@@ -136,13 +134,6 @@
   </script>
   {{ end }}
 
-  {{ if and $isWeekly $hasToc }}
-  <section class="issue-toc" aria-labelledby="issue-toc-title">
-    <h2 class="issue-toc-title" id="issue-toc-title">本期目录</h2>
-    <nav class="issue-toc-nav">{{ $toc | safeHTML }}</nav>
-  </section>
-  {{ end }}
-
   <div class="post-content">
     {{ .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table" "</table></div>" | safeHTML }}
   </div>
@@ -153,7 +144,7 @@
     <a class="post-pill post-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener" title="本文采用 CC BY-NC-SA 4.0 协议">CC BY-NC-SA 4.0</a>
     <span class="post-actions-right">
       <button type="button" class="post-pill copy-link-btn" id="copy-link-btn">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
         </svg>
@@ -270,47 +261,7 @@
 
   {{ if and site.Params.giscus.repo (ne .Params.comments false) }}
   <section class="giscus-wrap">
-    <h2 class="giscus-title">评论</h2>
-    <div id="giscus-slot"
-      data-repo="{{ site.Params.giscus.repo }}"
-      data-repo-id="{{ site.Params.giscus.repoId }}"
-      data-category="{{ site.Params.giscus.category }}"
-      data-category-id="{{ site.Params.giscus.categoryId }}"
-      data-mapping="{{ site.Params.giscus.mapping }}"
-      data-strict="0"
-      data-reactions-enabled="{{ if site.Params.giscus.reactions }}1{{ else }}0{{ end }}"
-      data-emit-metadata="0"
-      data-input-position="{{ site.Params.giscus.inputPosition }}"
-      data-theme="preferred_color_scheme"
-      data-lang="{{ site.Params.giscus.lang }}"></div>
-    <p class="giscus-loading" id="giscus-loading" aria-live="polite">正在加载评论…</p>
-    <script>
-    (function () {
-      var slot = document.getElementById('giscus-slot');
-      var loading = document.getElementById('giscus-loading');
-      var io = new IntersectionObserver(function (es) {
-        if (!es[0].isIntersecting) return;
-        var s = document.createElement('script');
-        s.src = 'https://giscus.app/client.js';
-        s.async = true;
-        s.crossOrigin = 'anonymous';
-        for (var k in slot.dataset) {
-          s.setAttribute('data-' + k.replace(/([A-Z])/g, '-$1').toLowerCase(), slot.dataset[k]);
-        }
-        slot.appendChild(s);
-        io.disconnect();
-      }, { rootMargin: '300px' });
-      io.observe(slot);
-      if (loading) {
-        var timer = setInterval(function () {
-          if (slot && slot.querySelector('iframe')) {
-            loading.hidden = true;
-            clearInterval(timer);
-          }
-        }, 300);
-      }
-    })();
-    </script>
+    {{ partial "giscus.html" (dict "title" "评论") }}
   </section>
   {{ end }}
 {{ end }}

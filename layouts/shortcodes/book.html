@@ -1,7 +1,1 @@
-<figure class="media-card">
-  {{ with .Get "cover" }}<img class="media-cover" src="{{ . | relURL }}" alt="{{ $.Get "title" }}" loading="lazy" decoding="async">{{ end }}
-  <figcaption class="media-body">
-    <p class="media-title">{{ .Get "title" }}</p>
-    {{ with .Get "creator" }}<p class="media-creator">{{ . }}</p>{{ end }}
-  </figcaption>
-</figure>
+{{ partial "media-card.html" . }}

@@ -117,7 +117,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
       unsafe = true
   [markup.tableOfContents]
     startLevel = 2
-    endLevel = 4
+    endLevel = 6
   [markup.highlight]
     noClasses = false     
 
