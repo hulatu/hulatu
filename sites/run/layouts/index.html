@@ -1,38 +1,43 @@
 {{- $data := site.Data.runs | default dict -}}
-{{- $activities := $data.activities | default slice -}}
-{{- $activities = sort $activities "date" "desc" -}}
+{{- $stats := $data.stats | default dict -}}
+{{- $totals := $stats.totals | default dict -}}
+{{- $best := $stats.best | default dict -}}
+{{- $recent7 := $stats.recent7 | default dict -}}
+{{- $recent30 := $stats.recent30 | default dict -}}
+{{- $monthly := $stats.monthly | default slice -}}
+{{- $yearly := $stats.yearly | default slice -}}
+{{- $byYear := $stats.by_year | default slice -}}
 
-{{- $count := len $activities -}}
 {{- $totalDistance := 0.0 -}}
-{{- $totalSeconds := 0.0 -}}
-{{- range $a := $activities -}}
-  {{- $totalDistance = math.Add $totalDistance (float $a.distance_km) -}}
-  {{- $totalSeconds = math.Add $totalSeconds (float $a.duration_s) -}}
-{{- end -}}
+{{- $totalDuration := 0.0 -}}
+{{- $totalCalories := 0 -}}
+{{- $totalHr := 0 -}}
+{{- $totalPace := "" -}}
+{{- $totalCount := 0 -}}
+{{- with index $totals "count" }}{{ $totalCount = int . }}{{ end -}}
+{{- with index $totals "distance_km" }}{{ $totalDistance = float . }}{{ end -}}
+{{- with index $totals "duration_s" }}{{ $totalDuration = float . }}{{ end -}}
+{{- with index $totals "calories" }}{{ $totalCalories = int . }}{{ end -}}
+{{- with index $totals "avg_hr" }}{{ $totalHr = int . }}{{ end -}}
+{{- with index $totals "pace" }}{{ $totalPace = . }}{{ end -}}
 
-{{- $avgPace := 0.0 -}}
-{{- if and (gt $totalDistance 0.0) (gt $totalSeconds 0.0) -}}
-  {{- $avgPace = math.Div $totalSeconds (math.Mul $totalDistance 60.0) -}}
-{{- end -}}
+{{- $longest := dict -}}
+{{- $fastest := dict -}}
+{{- $mostCalories := dict -}}
+{{- $highestHr := dict -}}
+{{- with index $best "longest" }}{{ $longest = . }}{{ end -}}
+{{- with index $best "fastest" }}{{ $fastest = . }}{{ end -}}
+{{- with index $best "most_calories" }}{{ $mostCalories = . }}{{ end -}}
+{{- with index $best "highest_hr" }}{{ $highestHr = . }}{{ end -}}
 
-{{- $months := dict -}}
-{{- range $a := $activities -}}
-  {{- $key := substr $a.date 0 7 -}}
-  {{- $cur := index $months $key | default (dict "distance" 0.0 "count" 0) -}}
-  {{- $cur = merge $cur (dict "distance" (math.Add (float (index $cur "distance")) (float $a.distance_km)) "count" (add (int (index $cur "count")) 1)) -}}
-  {{- $months = merge $months (dict $key $cur) -}}
-{{- end -}}
-
-{{- $monthKeys := slice -}}
-{{- range $k, $v := $months -}}
-  {{- $monthKeys = $monthKeys | append $k -}}
-{{- end -}}
-{{- $monthKeys = sort $monthKeys "value" "desc" -}}
 {{- $maxDistance := 0.0 -}}
-{{- range $k := $monthKeys -}}
-  {{- $m := index $months $k -}}
-  {{- $maxDistance = math.Max $maxDistance (float (index $m "distance")) -}}
+{{- range $m := $monthly -}}
+  {{- $d := float (index $m "distance_km") -}}
+  {{- if gt $d $maxDistance }}{{ $maxDistance = $d }}{{ end -}}
 {{- end -}}
+
+{{- $firstYear := "" -}}
+{{- with index $byYear 0 }}{{ $firstYear = index . "year" }}{{ end -}}
 
 <!doctype html>
 <html lang="zh-CN">
@@ -53,10 +58,10 @@
       <p>{{ .Description }}</p>
     </header>
 
-    <section class="summary-grid">
+    <section class="summary-grid" aria-label="跑步总览">
       <div class="summary-card">
         <span class="summary-label">累计跑步</span>
-        <span class="summary-value">{{ $count }}<span class="summary-unit"> 次</span></span>
+        <span class="summary-value">{{ $totalCount }}<span class="summary-unit"> 次</span></span>
       </div>
       <div class="summary-card">
         <span class="summary-label">累计里程</span>
@@ -64,28 +69,103 @@
       </div>
       <div class="summary-card">
         <span class="summary-label">累计时长</span>
-        <span class="summary-value">{{ printf "%.1f" (math.Div $totalSeconds 3600.0) }}<span class="summary-unit"> 小时</span></span>
+        <span class="summary-value">{{ printf "%.1f" (math.Div $totalDuration 3600.0) }}<span class="summary-unit"> 小时</span></span>
       </div>
       <div class="summary-card">
         <span class="summary-label">平均配速</span>
-        <span class="summary-value">{{ if gt $avgPace 0.0 }}{{ printf "%.2f" $avgPace }}{{ else }}—{{ end }}<span class="summary-unit"> min/km</span></span>
+        <span class="summary-value">{{ if $totalPace }}{{ $totalPace }}{{ else }}—{{ end }}<span class="summary-unit"> min/km</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">累计消耗</span>
+        <span class="summary-value">{{ printf "%d" $totalCalories }}<span class="summary-unit"> kcal</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">平均心率</span>
+        <span class="summary-value">{{ printf "%d" $totalHr }}<span class="summary-unit"> bpm</span></span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">最长单次</span>
+        <span class="summary-value">{{ with index $longest "distance_km" }}{{ printf "%.2f" . }}{{ else }}—{{ end }}<span class="summary-unit"> km</span></span>
+        <span class="summary-sub">{{ with index $longest "date" }}{{ . }}{{ end }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">最快平均配速</span>
+        <span class="summary-value">{{ with index $fastest "pace" }}{{ . }}{{ else }}—{{ end }}<span class="summary-unit"> min/km</span></span>
+        <span class="summary-sub">{{ with index $fastest "date" }}{{ . }}{{ end }}</span>
       </div>
     </section>
 
+    <h2 class="section-title">近期状态</h2>
+    <section class="summary-grid" aria-label="近期状态">
+      <div class="summary-card">
+        <span class="summary-label">近 7 天</span>
+        <span class="summary-value">{{ index $recent7 "count" | default 0 }}<span class="summary-unit"> 次</span></span>
+        <span class="summary-sub">{{ printf "%.1f" (float (index $recent7 "distance_km" | default 0)) }} km{{ with index $recent7 "pace" }} · {{ . }}{{ end }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">近 30 天</span>
+        <span class="summary-value">{{ index $recent30 "count" | default 0 }}<span class="summary-unit"> 次</span></span>
+        <span class="summary-sub">{{ printf "%.1f" (float (index $recent30 "distance_km" | default 0)) }} km{{ with index $recent30 "pace" }} · {{ . }}{{ end }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">当前连续</span>
+        <span class="summary-value">{{ $stats.streak_current | default 0 }}<span class="summary-unit"> 天</span></span>
+        <span class="summary-sub">截至最新一条记录</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">最长连续</span>
+        <span class="summary-value">{{ $stats.streak_longest | default 0 }}<span class="summary-unit"> 天</span></span>
+        <span class="summary-sub">有跑步记录的天数</span>
+      </div>
+    </section>
+
+    <h2 class="section-title">个人纪录</h2>
+    <section class="summary-grid" aria-label="个人纪录">
+      <div class="summary-card">
+        <span class="summary-label">最长距离</span>
+        <span class="summary-value">{{ with index $longest "distance_km" }}{{ printf "%.2f" . }}{{ else }}—{{ end }}<span class="summary-unit"> km</span></span>
+        <span class="summary-sub">{{ with index $longest "date" }}{{ . }}{{ end }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">最快平均配速</span>
+        <span class="summary-value">{{ with index $fastest "pace" }}{{ . }}{{ else }}—{{ end }}<span class="summary-unit"> min/km</span></span>
+        <span class="summary-sub">{{ with index $fastest "date" }}{{ . }}{{ end }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">单次最多消耗</span>
+        <span class="summary-value">{{ with index $mostCalories "calories" }}{{ printf "%d" (int .) }}{{ else }}—{{ end }}<span class="summary-unit"> kcal</span></span>
+        <span class="summary-sub">{{ with index $mostCalories "date" }}{{ . }}{{ end }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">最高平均心率</span>
+        <span class="summary-value">{{ with index $highestHr "avg_hr" }}{{ printf "%d" (int .) }}{{ else }}—{{ end }}<span class="summary-unit"> bpm</span></span>
+        <span class="summary-sub">{{ with index $highestHr "date" }}{{ . }}{{ end }}</span>
+      </div>
+    </section>
+
+    <h2 class="section-title">年度汇总</h2>
+    <section class="summary-grid year-grid" aria-label="年度汇总">
+      {{ range $year := $yearly }}
+        <div class="summary-card year-card">
+          <span class="summary-label">{{ index $year "year" }} 年</span>
+          <span class="summary-value">{{ printf "%.1f" (float (index $year "distance_km")) }}<span class="summary-unit"> km</span></span>
+          <span class="summary-sub">{{ index $year "count" }} 次 · 配速 {{ with index $year "pace" }}{{ . }}{{ end }}</span>
+        </div>
+      {{ end }}
+    </section>
+
     <h2 class="section-title">月度里程</h2>
-    {{ if $monthKeys }}
-      <div class="chart">
-        {{ range $key := first 12 $monthKeys }}
-          {{- $m := index $months $key -}}
-          {{- $distance := float (index $m "distance") -}}
+    {{ if $monthly }}
+      <div class="chart" role="img" aria-label="每月跑步距离">
+        {{ range $m := $monthly }}
+          {{- $distance := float (index $m "distance_km") -}}
           {{- $height := 0 -}}
-          {{- if gt $maxDistance 0.0 -}}
-            {{- $height = math.Round (math.Mul (math.Div $distance $maxDistance) 100.0) -}}
-          {{- end -}}
-          <div class="month">
+          {{- if gt $maxDistance 0.0 }}{{ $height = math.Round (math.Mul (math.Div $distance $maxDistance) 100.0) }}{{ end -}}
+          {{- $key := printf "%s-%s" (substr (index $m "month") 2 2) (substr (index $m "month") 5 2) -}}
+          <div class="month" title="{{ index $m "month" }} · {{ index $m "count" }} 次 · {{ printf "%.1f" $distance }} km · 配速 {{ with index $m "pace" }}{{ . }}{{ end }}">
             <div class="month-bar" style="height: {{ $height }}%"></div>
             <span class="month-value">{{ printf "%.1f" $distance }}</span>
-            <span class="month-key">{{ substr $key 5 2 }}月</span>
+            <span class="month-key">{{ $key }}</span>
           </div>
         {{ end }}
       </div>
@@ -93,32 +173,45 @@
       <p>还没有跑步记录。</p>
     {{ end }}
 
-    <h2 class="section-title">最近记录</h2>
-    {{ if $activities }}
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>日期</th>
-              <th>距离</th>
-              <th>时长</th>
-              <th>配速</th>
-              <th>平均心率</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{ range first 20 $activities }}
-              <tr>
-                <td>{{ .date }}</td>
-                <td>{{ printf "%.2f" .distance_km }} km</td>
-                <td>{{ printf "%.0f" (math.Div (float .duration_s) 60.0) }} 分钟</td>
-                <td>{{ if gt (float .distance_km) 0.0 }}{{ printf "%.2f" (math.Div (float .duration_s) (math.Mul (float .distance_km) 60.0)) }}{{ else }}—{{ end }}</td>
-                <td>{{ with .avg_hr }}{{ . }}{{ else }}—{{ end }}</td>
-              </tr>
-            {{ end }}
-          </tbody>
-        </table>
-      </div>
+    <h2 class="section-title">全部记录</h2>
+    {{ if $byYear }}
+      {{ range $group := $byYear }}
+        {{- $year := index $group "year" -}}
+        {{- $summary := index $group "summary" -}}
+        <details class="run-year" {{ if eq $year $firstYear }}open{{ end }}>
+          <summary>
+            <span class="run-year-name">{{ $year }} 年</span>
+            <span class="run-year-meta">{{ index $summary "count" }} 次 · {{ printf "%.1f" (float (index $summary "distance_km")) }} km · 配速 {{ with index $summary "pace" }}{{ . }}{{ end }}</span>
+          </summary>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>日期</th>
+                  <th>距离</th>
+                  <th>用时</th>
+                  <th>配速</th>
+                  <th>平均心率</th>
+                  <th>消耗</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{ range index $group "activities" }}
+                  {{- $d := int .duration_s -}}
+                  <tr>
+                    <td>{{ .date }}</td>
+                    <td>{{ printf "%.2f" .distance_km }} km</td>
+                    <td>{{ if ge $d 3600 }}{{ printf "%d:%02d:%02d" (div $d 3600) (mod (div $d 60) 60) (mod $d 60) }}{{ else }}{{ printf "%d:%02d" (div $d 60) (mod $d 60) }}{{ end }}</td>
+                    <td>{{ with .pace }}{{ . }}{{ else }}—{{ end }}</td>
+                    <td>{{ with .avg_hr }}{{ . }}{{ else }}—{{ end }}</td>
+                    <td>{{ with .calories }}{{ printf "%d" (int .) }} kcal{{ else }}—{{ end }}</td>
+                  </tr>
+                {{ end }}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      {{ end }}
     {{ else }}
       <p>还没有跑步记录。</p>
     {{ end }}

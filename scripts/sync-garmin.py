@@ -27,7 +27,7 @@ import json
 import os
 import sys
 import base64
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -115,6 +115,181 @@ def to_item(activity: dict, allowed_types: set[str]) -> dict | None:
 def fingerprint(item: dict) -> tuple:
     """生成除活动 id 外的内容指纹，用于防止 Garmin 返回不同 id 的重复记录。"""
     return tuple(sorted((k, str(v)) for k, v in item.items() if k != "id"))
+
+
+def _pace_seconds(item: dict) -> int | None:
+    distance_km = float(item.get("distance_km") or 0)
+    duration_s = float(item.get("duration_s") or 0)
+    if distance_km <= 0 or duration_s <= 0:
+        return None
+    return int(round(duration_s / distance_km))
+
+
+def _format_pace(seconds: int | None) -> str | None:
+    if seconds is None:
+        return None
+    seconds = int(round(seconds))
+    return f"{seconds // 60}:{seconds % 60:02d}"
+
+
+def add_pace(item: dict) -> dict:
+    """给单条跑步记录补充配速字段，供 run.hulatu.com 直接展示。"""
+    enriched = dict(item)
+    pace = _pace_seconds(item)
+    if pace is not None:
+        enriched["pace_s"] = pace
+        enriched["pace"] = _format_pace(pace)
+    return enriched
+
+
+def _record(item: dict) -> dict:
+    return {
+        "id": item.get("id"),
+        "date": item.get("date"),
+        "distance_km": item.get("distance_km"),
+        "duration_s": item.get("duration_s"),
+        "pace_s": item.get("pace_s"),
+        "pace": item.get("pace"),
+        "avg_hr": item.get("avg_hr"),
+        "calories": item.get("calories"),
+    }
+
+
+def _summarise(items: list[dict], year: str | None = None, month: str | None = None) -> dict:
+    count = len(items)
+    distance = round(sum(float(i.get("distance_km") or 0) for i in items), 2)
+    duration = int(round(sum(float(i.get("duration_s") or 0) for i in items)))
+    calories = int(round(sum(float(i.get("calories") or 0) for i in items)))
+    hr_values = [int(i["avg_hr"]) for i in items if i.get("avg_hr")]
+    avg_hr = round(sum(hr_values) / len(hr_values)) if hr_values else None
+    pace_s = _pace_seconds({"distance_km": distance, "duration_s": duration})
+    summary: dict = {
+        "count": count,
+        "distance_km": distance,
+        "duration_s": duration,
+        "calories": calories,
+        "avg_hr": avg_hr,
+        "pace_s": pace_s,
+        "pace": _format_pace(pace_s),
+    }
+    if year is not None:
+        summary["year"] = year
+    if month is not None:
+        summary["month"] = month
+    return summary
+
+
+def compute_stats(activities: list[dict]) -> dict:
+    """生成 run.hulatu.com 需要的派生统计数据。"""
+    enriched = [add_pace(item) for item in activities]
+    enriched.sort(key=lambda x: (x.get("date", ""), str(x.get("id", ""))))
+
+    totals = _summarise(enriched)
+    totals["latest_date"] = enriched[-1]["date"] if enriched else None
+    if not enriched:
+        return {
+            "totals": totals,
+            "best": {},
+            "recent7": _summarise([]),
+            "recent30": _summarise([]),
+            "streak_current": 0,
+            "streak_longest": 0,
+            "yearly": [],
+            "monthly": [],
+            "by_year": [],
+        }
+
+    longest = max(enriched, key=lambda x: float(x.get("distance_km") or 0))
+    fastest_candidates = [x for x in enriched if x.get("pace_s")]
+    fastest = min(fastest_candidates, key=lambda x: x["pace_s"]) if fastest_candidates else {}
+    most_calories_candidates = [x for x in enriched if x.get("calories")]
+    most_calories = (
+        max(most_calories_candidates, key=lambda x: x["calories"])
+        if most_calories_candidates
+        else {}
+    )
+    highest_hr_candidates = [x for x in enriched if x.get("avg_hr")]
+    highest_hr = (
+        max(highest_hr_candidates, key=lambda x: x["avg_hr"])
+        if highest_hr_candidates
+        else {}
+    )
+
+    latest = date.fromisoformat(enriched[-1]["date"])
+    start7 = latest - timedelta(days=6)
+    start30 = latest - timedelta(days=29)
+    recent7 = [
+        x for x in enriched if start7 <= date.fromisoformat(x["date"]) <= latest
+    ]
+    recent30 = [
+        x for x in enriched if start30 <= date.fromisoformat(x["date"]) <= latest
+    ]
+
+    dates = sorted({date.fromisoformat(x["date"]) for x in enriched})
+    streak_current = 0
+    cursor = latest
+    date_set = set(dates)
+    while cursor in date_set:
+        streak_current += 1
+        cursor -= timedelta(days=1)
+
+    streak_longest = 0
+    current_streak = 0
+    previous: date | None = None
+    for run_date in dates:
+        if previous is not None and (run_date - previous).days == 1:
+            current_streak += 1
+        else:
+            current_streak = 1
+        streak_longest = max(streak_longest, current_streak)
+        previous = run_date
+
+    year_groups: dict[str, list[dict]] = {}
+    month_groups: dict[str, list[dict]] = {}
+    for item in enriched:
+        run_date = item["date"]
+        year_groups.setdefault(run_date[:4], []).append(item)
+        month_groups.setdefault(run_date[:7], []).append(item)
+
+    yearly = [
+        _summarise(year_groups[year], year=year)
+        for year in sorted(year_groups, reverse=True)
+    ]
+    monthly = [
+        _summarise(month_groups[month], month=month)
+        for month in sorted(month_groups)
+    ]
+
+    descending = sorted(
+        enriched, key=lambda x: (x.get("date", ""), str(x.get("id", ""))), reverse=True
+    )
+    by_year = []
+    for summary in yearly:
+        year = summary["year"]
+        by_year.append(
+            {
+                "year": year,
+                "summary": summary,
+                "activities": [_record(x) for x in descending if x["date"][:4] == year],
+            }
+        )
+
+    return {
+        "totals": totals,
+        "best": {
+            "longest": _record(longest),
+            "fastest": _record(fastest) if fastest else {},
+            "most_calories": _record(most_calories) if most_calories else {},
+            "highest_hr": _record(highest_hr) if highest_hr else {},
+        },
+        "recent7": _summarise(recent7),
+        "recent30": _summarise(recent30),
+        "streak_current": streak_current,
+        "streak_longest": streak_longest,
+        "yearly": yearly,
+        "monthly": monthly,
+        "by_year": by_year,
+    }
 
 
 def main() -> None:
@@ -233,7 +408,8 @@ def main() -> None:
 
     merged = sorted(merged_rows, key=lambda x: (x["date"], x["id"]))
     data["updated"] = datetime.now().astimezone().isoformat(timespec="seconds")
-    data["activities"] = merged
+    data["activities"] = [add_pace(item) for item in merged]
+    data["stats"] = compute_stats(data["activities"])
 
     DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     DATA_FILE.write_text(
