@@ -61,7 +61,7 @@ hugo server -D
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
 | 深浅色 | `assets/js/theme.js` + `assets/css/style.css` 的 `[data-theme="dark"]` |
 | 打赏 / 关注公众号 | `hugo.toml` 的 `[params.donate]`、`[params.wechat]` |
-| 订阅格式 | `layouts/_default/rss.xml`、`atomfeed.xml`、`jsonfeed.json` |
+| 订阅格式 | `layouts/_default/rss.xml`（主源 + 周刊 section 源） |
 
 ### 颜色 / 字体 / 间距
 

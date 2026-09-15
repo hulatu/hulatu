@@ -1,6 +1,7 @@
 ---
 title: "友链"
 description: "一些我喜欢逛的博客，和愿意保持连接的人。"
+outputs: ["HTML"]
 intro: "这里收录我常读、喜欢，以及互相交换过链接的朋友们。"
 friends:
   - name: "花墨"

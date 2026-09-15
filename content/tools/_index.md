@@ -1,6 +1,7 @@
 ---
 title: "工具"
 description: "我一直在用、并且真心推荐的工具清单。"
+outputs: ["HTML"]
 groups:
   - name: "科研"
     tools:
