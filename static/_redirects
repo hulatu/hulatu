@@ -81,6 +81,16 @@
 /posts/2025/12/14/paper-management/ /posts/2025/12/14/review-topic/ 301
 /posts/2025/12/15/paper-management/ /posts/2025/12/15/review-references/ 301
 
+# 3b) 其他改过 slug 的文章
+/posts/2025/12/08/file-synchronization-file-management/ /posts/2025/12/08/document-management/ 301
+/posts/2025/12/08/File-Synchronization-File-Management/ /posts/2025/12/08/document-management/ 301
+
+# 3c) 旧 blog 栏目 → 现行文章
+/blog/days-without-a-fitness-watch/ /posts/2026/06/21/days-without-a-fitness-watch/ 301
+/blog/第一次进健身房，深蹲破/ /posts/2026/07/06/squat-breakthrough-100-kg/ 301
+/blog/%E7%AC%AC%E4%B8%80%E6%AC%A1%E8%BF%9B%E5%81%A5%E8%BA%AB%E6%88%BF%EF%BC%8C%E6%B7%B1%E8%B9%B2%E7%A0%B4/ /posts/2026/07/06/squat-breakthrough-100-kg/ 301
+/blog/ /archive/ 301
+
 # 4) 旧栏目/订阅入口
 /archives/ /archive/ 301
 /daily/ /archive/ 301

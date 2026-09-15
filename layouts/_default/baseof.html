@@ -6,7 +6,11 @@
   {{- $pageTitle := partial "page-title.html" . -}}
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ $pageTitle }} - {{ site.Title }}{{ end }}</title>
   <meta name="description" content="{{ if .Description }}{{ .Description }}{{ else if .IsPage }}{{ .Summary | plainify | truncate 160 }}{{ else }}{{ site.Params.description }}{{ end }}">
-  {{- if eq .Data.Plural "tags" }}
+  {{- $noindex := eq .Data.Plural "tags" -}}
+  {{- if and (in (slice "home" "section" "taxonomy" "term") .Kind) (gt .Paginator.PageNumber 1) -}}
+    {{- $noindex = true -}}
+  {{- end -}}
+  {{- if $noindex }}
   <meta name="robots" content="noindex, follow">
   {{- end }}
   {{- $giscusPage := false -}}
