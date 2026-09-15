@@ -9,7 +9,8 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   pagerSize = 6
 
 [services.rss]
-  limit = 10
+  # -1 表示不限制条目数，输出全部 posts 和 weekly 文章
+  limit = -1
 
 [related]
   threshold = 60

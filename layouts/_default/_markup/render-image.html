@@ -8,14 +8,19 @@
   {{- end -}}
 {{- end -}}
 {{- $src := .Destination -}}
+{{- $full := .Destination -}}
 {{- $isGif := strings.HasSuffix (strings.ToLower .Destination) ".gif" -}}
 {{- if and (not $isGif) (hasPrefix .Destination "http") -}}
   {{- $src = partial "cf-image.html" (dict "src" .Destination "params" "width=1200,fit=scale-down,format=auto,quality=80,metadata=none") -}}
+  {{- $full = partial "cf-image.html" (dict "src" .Destination "params" "width=2400,fit=scale-down,format=auto,quality=90,metadata=none") -}}
 {{- end -}}
 <figure class="article-image">
   <img
     src="{{ $src }}"
     alt="{{ .Text }}"
+    data-lightbox
+    data-full="{{ $full }}"
+    data-caption="{{ .Text }}"
     loading="lazy" decoding="async"
     {{ with $w }}width="{{ . }}"{{ end }}
     {{ with $h }}height="{{ . }}"{{ end }}
