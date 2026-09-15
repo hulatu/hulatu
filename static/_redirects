@@ -106,3 +106,24 @@
 /posts/2026/02/07/Still-prefer-running /posts/2026/02/07/still-prefer-running/ 301
 /Guestbook/ /guestbook/ 301
 /GUESTBOOK/ /guestbook/ 301
+
+# 7) GSC 2026-09-15 导出：仍返回 404 的历史路径
+/posts/2025/12/15/paper-management /posts/2025/12/15/review-references/ 301
+/posts/2025/12/14/paper-management /posts/2025/12/14/review-topic/ 301
+/posts/2025/12/08/file-synchronization-file-management /posts/2025/12/08/document-management/ 301
+/posts/2026/01/04/newsletter-weekly /posts/2026/01/04/newsletter-weekly-3/ 301
+/posts/2026/01/11/newsletter-weekly /posts/2026/01/11/newsletter-weekly-4/ 301
+/posts/2025/12/28/newsletter-weekly /posts/2025/12/28/newsletter-weekly-2/ 301
+
+/docs/do-not-escape/ /posts/2026/08/01/do-not-escape/ 301
+/posts/do-not-escape/ /posts/2026/08/01/do-not-escape/ 301
+/posts/how-to-start-doing-self-media/ /posts/2026/07/28/how-to-start-doing-self-media/ 301
+/posts/image-hosting-service-blog/ /posts/2026/01/18/image-hosting-service-blog/ 301
+/posts/teacher-zhang-xue-feng/ /posts/2026/03/25/teacher-zhang-xue-feng/ 301
+
+/daily/年会开完解放自我/ /posts/2026/02/05/the-annual-meeting-has-ended./ 301
+/daily/%E5%B9%B4%E4%BC%9A%E5%BC%80%E5%AE%8C%E8%A7%A3%E6%94%BE%E8%87%AA%E6%88%91/ /posts/2026/02/05/the-annual-meeting-has-ended./ 301
+
+/hugo/ /tags/hugo/ 301
+/bear/ /posts/2026/01/24/blog-beautification-papermodbearblog/ 301
+/links/ /friends/ 301
