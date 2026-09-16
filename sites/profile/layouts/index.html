@@ -32,7 +32,6 @@
       <section class="profile-group">
         <header class="group-head">
           <h2>{{ $group.name }}</h2>
-          <span class="group-line" aria-hidden="true"></span>
           <span class="group-count">{{ len $group.links }}</span>
         </header>
 
@@ -68,7 +67,6 @@
 
   <footer class="profile-footer">
     <span>{{ $profile.footer | default "hulatu.com" }}</span>
-    <span class="footer-rule" aria-hidden="true"></span>
     <span>个人主页 / Personal Index</span>
   </footer>
 </div>

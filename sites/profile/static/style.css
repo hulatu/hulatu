@@ -159,6 +159,7 @@ main {
 .group-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
 }
@@ -169,12 +170,6 @@ main {
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.12em;
-}
-
-.group-line {
-  flex: 1;
-  height: 1px;
-  background: var(--line);
 }
 
 .group-count {
@@ -278,12 +273,6 @@ main {
   font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
   font-size: 0.72rem;
   letter-spacing: 0.06em;
-}
-
-.footer-rule {
-  width: 28px;
-  height: 1px;
-  background: var(--line);
 }
 
 @media (min-width: 760px) {
