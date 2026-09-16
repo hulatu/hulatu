@@ -83,5 +83,25 @@
       <circle cx="16" cy="10" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/>
       <path d="M4.5 20c.4-2.6 2.1-4 4.5-4s4.1 1.4 4.5 4M14 14.6c2.4-.2 4.3 1.1 4.7 3.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
     </symbol>
+
+    <symbol id="home" viewBox="0 0 24 24">
+      <path d="M4 10.5 12 4l8 6.5V20h-6v-5h-4v5H4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    </symbol>
+
+    <symbol id="directory" viewBox="0 0 24 24">
+      <rect x="4" y="4.5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M8 8h8M8 12h8M8 16h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="social" viewBox="0 0 24 24">
+      <circle cx="5" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <circle cx="19" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <circle cx="19" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="m7 10.8 10-2.6M7 13.2l10 2.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="data" viewBox="0 0 24 24">
+      <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
   </defs>
 </svg>
