@@ -2,7 +2,111 @@
   "name": "胡拉图",
   "avatar": "https://hulatu.com/images/avatar.webp",
   "bio": "食品研究生 · 写作 · 跑步 · 折腾电子产品",
+  "location": "中国 · 台北",
+  "status": "研三 · 在实验、写作与跑步之间",
   "footer": "hulatu.com",
+  "projects": [
+    {
+      "label": "博客系统",
+      "url": "https://hulatu.com/",
+      "desc": "Hugo + Cloudflare Pages"
+    },
+    {
+      "label": "Garmin 数据同步",
+      "url": "https://run.hulatu.com/",
+      "desc": "Python 同步跑步数据"
+    },
+    {
+      "label": "Profile 个人主页",
+      "url": "https://profile.hulatu.com/",
+      "desc": "你正在看的页面"
+    },
+    {
+      "label": "经验分享",
+      "url": "https://share.hulatu.com/",
+      "desc": "静态投稿与好物推荐"
+    },
+    {
+      "label": "简历 / 作品集",
+      "url": "",
+      "desc": "待上传到主站或 R2"
+    }
+  ],
+  "subscriptions": [
+    {
+      "label": "RSS 全站",
+      "url": "https://hulatu.com/index.xml",
+      "desc": "文章与周刊"
+    },
+    {
+      "label": "Telegram",
+      "url": "https://t.me/flyhulatu",
+      "desc": "联系与更新"
+    },
+    {
+      "label": "公众号",
+      "url": "",
+      "desc": "公众号：胡拉图说"
+    }
+  ],
+  "workflow": [
+    "Mac",
+    "iPhone",
+    "Typora",
+    "Hugo",
+    "Cloudflare Pages",
+    "Python",
+    "Garmin 255"
+  ],
+  "media_recent": [
+    {
+      "type": "书",
+      "title": "纳瓦尔宝典",
+      "creator": "埃里克·乔根森",
+      "url": "https://hulatu.com/media/"
+    },
+    {
+      "type": "影",
+      "title": "疯狂的赛车",
+      "creator": "宁浩",
+      "url": "https://hulatu.com/media/"
+    },
+    {
+      "type": "影",
+      "title": "楚门的世界",
+      "creator": "彼得·威尔",
+      "url": "https://hulatu.com/media/"
+    }
+  ],
+  "garden": [
+    {
+      "name": "hulatu.com",
+      "desc": "博客与主站",
+      "children": [
+        {
+          "name": "run.hulatu.com",
+          "desc": "跑步数据"
+        },
+        {
+          "name": "shot.hulatu.com",
+          "desc": "瞬间"
+        },
+        {
+          "name": "share.hulatu.com",
+          "desc": "经验分享"
+        },
+        {
+          "name": "profile.hulatu.com",
+          "desc": "个人主页"
+        }
+      ]
+    },
+    {
+      "name": "img.hulatu.com",
+      "desc": "图片 CDN / R2",
+      "children": []
+    }
+  ],
   "groups": [
     {
       "name": "主站",
@@ -18,6 +122,47 @@
           "icon": "github",
           "url": "https://github.com/hulatu",
           "desc": "代码与博客源码"
+        }
+      ]
+    },
+    {
+      "name": "站内与联系",
+      "links": [
+        {
+          "label": "关于我",
+          "icon": "user",
+          "url": "https://hulatu.com/about/",
+          "desc": "个人介绍与联系方式"
+        },
+        {
+          "label": "书影音",
+          "icon": "media",
+          "url": "https://hulatu.com/media/",
+          "desc": "读过的书、看过的影像"
+        },
+        {
+          "label": "工具",
+          "icon": "tools",
+          "url": "https://hulatu.com/tools/",
+          "desc": "软件、设备与工作流"
+        },
+        {
+          "label": "友链",
+          "icon": "friends",
+          "url": "https://hulatu.com/friends/",
+          "desc": "常看的朋友与网站"
+        },
+        {
+          "label": "RSS",
+          "icon": "rss",
+          "url": "https://hulatu.com/index.xml",
+          "desc": "订阅全站文章"
+        },
+        {
+          "label": "邮箱",
+          "icon": "mail",
+          "url": "mailto:flyhulatu@gmail.com",
+          "desc": "flyhulatu@gmail.com"
         }
       ]
     },

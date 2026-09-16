@@ -16,13 +16,13 @@
       <div class="identity-text">
         <h1>{{ $profile.name | default site.Title }}</h1>
         {{ with $profile.bio }}<p class="profile-bio">{{ . }}</p>{{ end }}
+        {{ with $profile.status }}<p class="profile-status">{{ . }}</p>{{ end }}
       </div>
     </div>
 
     <div class="presence" aria-label="当前状态">
       <span class="presence-dot" aria-hidden="true"></span>
-      <span>ONLINE</span>
-      <span class="presence-sep" aria-hidden="true">/</span>
+      {{ with $profile.location }}<span>{{ . }}</span><span class="presence-sep" aria-hidden="true">/</span>{{ end }}
       <span>GMT+8</span>
     </div>
   </header>
@@ -64,6 +64,140 @@
       </section>
     {{ end }}
   </div>
+
+  {{ with $profile.projects }}
+    <section class="profile-extra">
+      <header class="group-head">
+        <h2>精选项目</h2>
+        <span class="group-count">{{ len $profile.projects }}</span>
+      </header>
+      <div class="profile-grid">
+        {{ range $project := $profile.projects }}
+          {{ if $project.url }}
+            <a class="profile-tile" href="{{ $project.url }}" target="_blank" rel="noopener">
+              <span class="tile-icon">{{ partial "profile-icon.html" (dict "name" "link") }}</span>
+              <span class="tile-text">
+                <span class="tile-label">{{ $project.label }}</span>
+                {{ with $project.desc }}<span class="tile-desc">{{ . }}</span>{{ end }}
+              </span>
+              <span class="tile-arrow" aria-hidden="true">↗</span>
+            </a>
+          {{ else }}
+            <span class="profile-tile is-empty">
+              <span class="tile-icon">{{ partial "profile-icon.html" (dict "name" "link") }}</span>
+              <span class="tile-text">
+                <span class="tile-label">{{ $project.label }}</span>
+                {{ with $project.desc }}<span class="tile-desc">{{ . }}</span>{{ end }}
+              </span>
+            </span>
+          {{ end }}
+        {{ end }}
+      </div>
+    </section>
+  {{ end }}
+
+  {{ with site.Data.run_summary }}
+    <section class="profile-extra">
+      <header class="group-head">
+        <h2>跑步摘要</h2>
+        <a class="more-link" href="https://run.hulatu.com/" target="_blank" rel="noopener">完整数据 ↗</a>
+      </header>
+      <div class="run-summary-grid">
+        <div>
+          <span>累计跑步</span>
+          <strong>{{ .count }} 次</strong>
+        </div>
+        <div>
+          <span>累计里程</span>
+          <strong>{{ printf "%.1f" .distance_km }} km</strong>
+        </div>
+        <div>
+          <span>平均配速</span>
+          <strong>{{ .avg_pace }}</strong>
+        </div>
+        <div>
+          <span>最近记录</span>
+          <strong>{{ .latest_date }}</strong>
+        </div>
+      </div>
+    </section>
+  {{ end }}
+
+  {{ with $profile.subscriptions }}
+    <section class="profile-extra">
+      <header class="group-head">
+        <h2>内容订阅</h2>
+      </header>
+      <div class="chip-list">
+        {{ range $sub := $profile.subscriptions }}
+          {{ if $sub.url }}
+            <a class="chip" href="{{ $sub.url }}" target="_blank" rel="noopener">
+              <span>{{ $sub.label }}</span>
+              <span>{{ $sub.desc }}</span>
+            </a>
+          {{ else }}
+            <span class="chip is-empty">
+              <span>{{ $sub.label }}</span>
+              <span>{{ $sub.desc }}</span>
+            </span>
+          {{ end }}
+        {{ end }}
+      </div>
+    </section>
+  {{ end }}
+
+  {{ with $profile.workflow }}
+    <section class="profile-extra">
+      <header class="group-head">
+        <h2>设备与工作流</h2>
+      </header>
+      <div class="chip-list">
+        {{ range . }}<span class="chip">{{ . }}</span>{{ end }}
+      </div>
+    </section>
+  {{ end }}
+
+  {{ with $profile.media_recent }}
+    <section class="profile-extra">
+      <header class="group-head">
+        <h2>最近书影音</h2>
+        <a class="more-link" href="https://hulatu.com/media/" target="_blank" rel="noopener">全部 ↗</a>
+      </header>
+      <div class="mini-list">
+        {{ range $item := $profile.media_recent }}
+          <a class="mini-item" href="{{ $item.url }}" target="_blank" rel="noopener">
+            <span class="mini-type">{{ $item.type }}</span>
+            <span class="mini-title">{{ $item.title }}</span>
+            <span class="mini-meta">{{ $item.creator }}</span>
+          </a>
+        {{ end }}
+      </div>
+    </section>
+  {{ end }}
+
+  {{ with $profile.garden }}
+    <section class="profile-extra">
+      <header class="group-head">
+        <h2>数字花园导览</h2>
+      </header>
+      <div class="garden-map">
+        {{ range $root := $profile.garden }}
+          <div class="garden-root">
+            <span class="garden-dot" aria-hidden="true"></span>
+            <a href="https://{{ $root.name }}/" target="_blank" rel="noopener"><strong>{{ $root.name }}</strong></a>
+            <span>{{ $root.desc }}</span>
+          </div>
+          {{ range $child := $root.children }}
+            <div class="garden-child">
+              <span class="garden-branch" aria-hidden="true"></span>
+              <a href="https://{{ $child.name }}/" target="_blank" rel="noopener">{{ $child.name }}</a>
+              <span>{{ $child.desc }}</span>
+            </div>
+          {{ end }}
+        {{ end }}
+      </div>
+    </section>
+  {{ end }}
 
   <footer class="profile-footer">
     <span>{{ $profile.footer | default "hulatu.com" }}</span>

@@ -33,6 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA_FILE = ROOT / "data" / "runs.json"
 RUN_SITE_DATA_FILE = ROOT / "sites" / "run" / "data" / "runs.json"
+PROFILE_RUN_SUMMARY_FILE = ROOT / "sites" / "profile" / "data" / "run_summary.json"
 
 
 def _token_text_indicates_cn(token_text: str) -> bool:
@@ -418,6 +419,20 @@ def main() -> None:
     RUN_SITE_DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     RUN_SITE_DATA_FILE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+
+    totals = data.get("stats", {}).get("totals", {})
+    profile_summary = {
+        "count": totals.get("count", len(merged)),
+        "distance_km": totals.get("distance_km", 0),
+        "avg_pace": totals.get("pace") or "—",
+        "latest_date": totals.get("latest_date") or (merged[-1]["date"] if merged else ""),
+        "updated": (merged[-1]["date"] if merged else datetime.now().date().isoformat()),
+    }
+    PROFILE_RUN_SUMMARY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PROFILE_RUN_SUMMARY_FILE.write_text(
+        json.dumps(profile_summary, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
     )
     print(f"同步完成：新增 {added} 条，共 {len(merged)} 条跑步记录")
 
