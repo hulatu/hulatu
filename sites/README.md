@@ -69,7 +69,7 @@ sites/profile/public
 
 | 设置项 | 值 |
 |---|---|
-| Build command | `hugo --source sites/profile --cacheDir "$(pwd)/.hugo_cache/profile" --gc --minify --destination "$(pwd)/sites/profile/public"` |
+| Build command | `python3 scripts/fetch-profile-content.py && hugo --source sites/profile --cacheDir "$(pwd)/.hugo_cache/profile" --gc --minify --destination "$(pwd)/sites/profile/public"` |
 | Build output directory | `sites/profile/public` |
 | Root directory | `/` |
 | Custom domain | `profile.hulatu.com` |

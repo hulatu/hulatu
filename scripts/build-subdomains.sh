@@ -7,6 +7,9 @@ cd "$ROOT"
 CACHE_ROOT="${HUGO_CACHE_DIR:-$ROOT/.hugo_cache/subdomains}"
 HUGO_BIN="${HUGO_BIN:-hugo}"
 
+echo "==> 更新 profile 动态内容快照"
+python3 "$ROOT/scripts/fetch-profile-content.py"
+
 echo "==> 构建 run.hulatu.com"
 "$HUGO_BIN" \
   --source sites/run \

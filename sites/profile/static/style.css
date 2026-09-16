@@ -178,6 +178,41 @@ main {
   min-width: 0;
 }
 
+.latest-section {
+  margin-bottom: 30px;
+}
+
+.latest-list {
+  border-top: var(--hairline) solid var(--line);
+}
+
+.latest-item {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: var(--hairline) solid var(--line);
+}
+
+.latest-item time {
+  color: var(--muted);
+  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 0.72rem;
+}
+
+.latest-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.latest-arrow {
+  color: var(--muted);
+  transition: color var(--dur-fast) var(--ease-swift), transform var(--dur-fast) var(--ease-spring);
+}
+
 .section-label {
   display: flex;
   align-items: baseline;
@@ -328,6 +363,32 @@ main {
 
 .aside-block + .aside-block {
   margin-top: 16px;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.photo-card {
+  display: block;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--line);
+  border: var(--hairline) solid var(--line);
+  border-radius: 12px;
+}
+
+.photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 300ms var(--ease-spring);
+}
+
+a.photo-card:hover img {
+  transform: scale(1.035);
 }
 
 .more-link {
@@ -496,7 +557,8 @@ main {
 .profile-tile:focus-visible,
 .compact-item:focus-visible,
 .media-card:focus-visible,
-.chip:focus-visible {
+.chip:focus-visible,
+.latest-item:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -526,6 +588,15 @@ main {
   a.chip:hover {
     color: var(--accent);
     border-color: var(--accent-border);
+  }
+
+  a.latest-item:hover .latest-title {
+    color: var(--accent);
+  }
+
+  a.latest-item:hover .latest-arrow {
+    color: var(--accent);
+    transform: translate(2px, -2px);
   }
 }
 
@@ -663,6 +734,11 @@ a.chip:active {
 
   .profile-group + .profile-group {
     margin-top: 22px;
+  }
+
+  .latest-item {
+    grid-template-columns: 78px minmax(0, 1fr) auto;
+    gap: 9px;
   }
 }
 

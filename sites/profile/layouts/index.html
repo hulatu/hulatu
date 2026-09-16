@@ -29,6 +29,26 @@
 
   <div class="profile-layout">
     <div class="profile-main">
+      {{ with site.Data.latest_posts }}
+        {{ if .posts }}
+          <section class="latest-section">
+            <header class="aside-head">
+              <h2>最新文章</h2>
+              <a class="more-link" href="https://hulatu.com/" target="_blank" rel="noopener">全部 ↗</a>
+            </header>
+            <div class="latest-list">
+              {{ range .posts }}
+                <a class="latest-item" href="{{ .url }}" target="_blank" rel="noopener">
+                  <time datetime="{{ .date }}">{{ .date }}</time>
+                  <span class="latest-title">{{ .title }}</span>
+                  <span class="latest-arrow" aria-hidden="true">↗</span>
+                </a>
+              {{ end }}
+            </div>
+          </section>
+        {{ end }}
+      {{ end }}
+
       <div class="section-label">
         <span>目录</span>
         <span>Directory</span>
@@ -74,6 +94,24 @@
         <span>更多信息</span>
         <span>More</span>
       </div>
+
+      {{ with site.Data.selected_photos }}
+        {{ if .photos }}
+          <section class="aside-block">
+            <header class="aside-head">
+              <h2>精选瞬间</h2>
+              <a class="more-link" href="https://shot.hulatu.com/" target="_blank" rel="noopener">全部 ↗</a>
+            </header>
+            <div class="photo-grid">
+              {{ range .photos }}
+                <a class="photo-card" href="{{ .url }}" target="_blank" rel="noopener">
+                  <img src="{{ .image }}" alt="{{ .title }}" loading="lazy" decoding="async">
+                </a>
+              {{ end }}
+            </div>
+          </section>
+        {{ end }}
+      {{ end }}
 
       {{ with site.Data.run_summary }}
         <section class="aside-block">
