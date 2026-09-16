@@ -9,11 +9,13 @@
       "links": [
         {
           "label": "博客",
+          "icon": "blog",
           "url": "https://hulatu.com/",
           "desc": "长文、周刊、关于我"
         },
         {
           "label": "GitHub",
+          "icon": "github",
           "url": "https://github.com/hulatu",
           "desc": "代码与博客源码"
         }
@@ -24,26 +26,31 @@
       "links": [
         {
           "label": "公众号",
+          "icon": "wechat",
           "url": "",
           "desc": "待填写公众号文章或二维码链接"
         },
         {
           "label": "少数派",
+          "icon": "sspai",
           "url": "",
           "desc": "待填写个人主页链接"
         },
         {
           "label": "即刻",
+          "icon": "jike",
           "url": "",
           "desc": "待填写个人主页链接"
         },
         {
           "label": "小红书",
+          "icon": "xiaohongshu",
           "url": "",
           "desc": "待填写个人主页链接"
         },
         {
           "label": "Telegram",
+          "icon": "telegram",
           "url": "",
           "desc": "待填写频道或个人链接"
         }
@@ -54,16 +61,19 @@
       "links": [
         {
           "label": "跑步",
+          "icon": "run",
           "url": "https://run.hulatu.com/",
           "desc": "Garmin 跑步数据"
         },
         {
           "label": "瞬间",
+          "icon": "shot",
           "url": "https://shot.hulatu.com/",
           "desc": "朋友圈式图片分享"
         },
         {
           "label": "经验分享",
+          "icon": "share",
           "url": "https://share.hulatu.com/",
           "desc": "好物与真实体验"
         }

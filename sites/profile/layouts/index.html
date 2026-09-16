@@ -1,41 +1,75 @@
 {{ define "main" }}
 {{- $profile := site.Data.profile | default dict -}}
 
-<header class="profile-head">
-  {{ with $profile.avatar }}
-    <img class="profile-avatar" src="{{ . }}" alt="{{ $profile.name | default site.Title }}" width="96" height="96" decoding="async">
-  {{ end }}
-  <h1>{{ $profile.name | default site.Title }}</h1>
-  {{ with $profile.bio }}<p class="profile-bio">{{ . }}</p>{{ end }}
-</header>
-
-{{ range $group := $profile.groups }}
-  <section class="profile-group">
-    <h2 class="group-title">{{ $group.name }}</h2>
-    <div class="profile-links">
-      {{ range $link := $group.links }}
-        {{ if $link.url }}
-          <a class="profile-link" href="{{ $link.url }}" target="_blank" rel="noopener">
-            <span class="profile-link-main">
-              <span class="profile-link-label">{{ $link.label }}</span>
-              {{ with $link.desc }}<span class="profile-link-desc">{{ . }}</span>{{ end }}
-            </span>
-            <span class="profile-link-arrow" aria-hidden="true">↗</span>
-          </a>
-        {{ else }}
-          <span class="profile-link is-empty">
-            <span class="profile-link-main">
-              <span class="profile-link-label">{{ $link.label }}</span>
-              {{ with $link.desc }}<span class="profile-link-desc">{{ . }}</span>{{ end }}
-            </span>
-          </span>
-        {{ end }}
-      {{ end }}
+<div class="profile-frame">
+  <header class="profile-head">
+    <div class="profile-stamp">
+      <span class="stamp-mark" aria-hidden="true"></span>
+      <span>PROFILE.HULATU.COM</span>
     </div>
-  </section>
-{{ end }}
 
-<footer class="profile-footer">
-  <span>{{ $profile.footer | default "hulatu.com" }}</span>
-</footer>
+    <div class="identity">
+      {{ with $profile.avatar }}
+        <img class="profile-avatar" src="{{ . }}" alt="{{ $profile.name | default site.Title }}" width="112" height="112" decoding="async">
+      {{ end }}
+
+      <div class="identity-text">
+        <h1>{{ $profile.name | default site.Title }}</h1>
+        {{ with $profile.bio }}<p class="profile-bio">{{ . }}</p>{{ end }}
+      </div>
+    </div>
+
+    <div class="presence" aria-label="当前状态">
+      <span class="presence-dot" aria-hidden="true"></span>
+      <span>ONLINE</span>
+      <span class="presence-sep" aria-hidden="true">/</span>
+      <span>GMT+8</span>
+    </div>
+  </header>
+
+  <div class="profile-groups">
+    {{ range $group := $profile.groups }}
+      <section class="profile-group">
+        <header class="group-head">
+          <h2>{{ $group.name }}</h2>
+          <span class="group-line" aria-hidden="true"></span>
+          <span class="group-count">{{ len $group.links }}</span>
+        </header>
+
+        <div class="profile-grid">
+          {{ range $link := $group.links }}
+            {{ if $link.url }}
+              <a class="profile-tile" href="{{ $link.url }}" target="_blank" rel="noopener">
+                <span class="tile-icon">
+                  {{ partial "profile-icon.html" (dict "name" $link.icon) }}
+                </span>
+                <span class="tile-text">
+                  <span class="tile-label">{{ $link.label }}</span>
+                  {{ with $link.desc }}<span class="tile-desc">{{ . }}</span>{{ end }}
+                </span>
+                <span class="tile-arrow" aria-hidden="true">↗</span>
+              </a>
+            {{ else }}
+              <span class="profile-tile is-empty">
+                <span class="tile-icon">
+                  {{ partial "profile-icon.html" (dict "name" $link.icon) }}
+                </span>
+                <span class="tile-text">
+                  <span class="tile-label">{{ $link.label }}</span>
+                  {{ with $link.desc }}<span class="tile-desc">{{ . }}</span>{{ end }}
+                </span>
+              </span>
+            {{ end }}
+          {{ end }}
+        </div>
+      </section>
+    {{ end }}
+  </div>
+
+  <footer class="profile-footer">
+    <span>{{ $profile.footer | default "hulatu.com" }}</span>
+    <span class="footer-rule" aria-hidden="true"></span>
+    <span>个人主页 / Personal Index</span>
+  </footer>
+</div>
 {{ end }}

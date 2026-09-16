@@ -1,24 +1,35 @@
 :root {
   color-scheme: light dark;
-  --bg: #f6f6f8;
-  --surface: #ffffff;
-  --ink: #1d1d1f;
-  --muted: #66666c;
-  --line: #e4e4e9;
-  --accent: #c73e2f;
-  --radius: 16px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(0, 0, 0, 0.08);
+  --paper: #efefeb;
+  --surface: #fbfbf8;
+  --surface-2: #f2f2ee;
+  --ink: #191a1d;
+  --muted: #6f7076;
+  --line: #d7d7d2;
+  --grid: rgba(25, 26, 29, 0.045);
+  --accent: #d14334;
+  --accent-ink: #ffffff;
+  --green: #2e7d5b;
+  --blue: #4f6d8f;
+  --icon-bg: #e7e7e1;
+  --shadow: 0 12px 40px rgba(25, 26, 29, 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b0b10;
-    --surface: #1c1c1f;
-    --ink: #f5f5f7;
-    --muted: #a1a1a8;
-    --line: #2c2c31;
-    --accent: #ef7b64;
-    --shadow: 0 8px 20px rgba(0, 0, 0, 0.35), 0 24px 64px rgba(0, 0, 0, 0.45);
+    --paper: #0f1012;
+    --surface: #17181b;
+    --surface-2: #1e1f23;
+    --ink: #f1f0ec;
+    --muted: #a0a1a7;
+    --line: #2b2c31;
+    --grid: rgba(241, 240, 236, 0.045);
+    --accent: #f26b58;
+    --accent-ink: #160b0a;
+    --green: #67bd92;
+    --blue: #85a7c8;
+    --icon-bg: #25262b;
+    --shadow: 0 16px 48px rgba(0, 0, 0, 0.42);
   }
 }
 
@@ -26,113 +37,312 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  min-height: 100vh;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   line-height: 1.6;
 }
 
 main {
-  width: min(560px, calc(100% - 32px));
+  width: min(880px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 64px 0 48px;
+  padding: 56px 0 48px;
+}
+
+.profile-frame {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
 }
 
 .profile-head {
-  text-align: center;
+  position: relative;
+  padding: 26px 28px 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-stamp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 34px;
+  color: var(--muted);
+  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+}
+
+.stamp-mark {
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 22px;
 }
 
 .profile-avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
+  flex: none;
+  width: 112px;
+  height: 112px;
   object-fit: cover;
-  box-shadow: var(--shadow);
-}
-
-.profile-head h1 {
-  margin: 18px 0 6px;
-  font-size: clamp(1.8rem, 5vw, 2.4rem);
-  letter-spacing: 0.02em;
-}
-
-.profile-bio {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.profile-group {
-  margin-top: 30px;
-}
-
-.group-title {
-  margin: 0 0 12px;
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-}
-
-.profile-links {
-  display: grid;
-  gap: 10px;
-}
-
-.profile-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 16px;
-  background: var(--surface);
+  border-radius: 28px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 10px 30px rgba(25, 26, 29, 0.12);
 }
 
-.profile-link:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
-}
-
-.profile-link.is-empty {
-  opacity: 0.62;
-  border-style: dashed;
-  box-shadow: none;
-  cursor: default;
-}
-
-.profile-link-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.identity-text {
   min-width: 0;
 }
 
-.profile-link-label {
+.identity-text h1 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+  font-size: clamp(2.15rem, 7vw, 4rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.profile-bio {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+.presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  padding: 7px 10px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.presence-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 14%, transparent);
+}
+
+.presence-sep {
+  opacity: 0.5;
+}
+
+.profile-groups {
+  padding: 8px 28px 30px;
+}
+
+.profile-group {
+  margin-top: 26px;
+}
+
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.group-head h2 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.group-line {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.group-count {
+  color: var(--accent);
+  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 0.74rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 156px;
+  padding: 17px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.profile-tile:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+  background: var(--surface-2);
+}
+
+.profile-tile.is-empty {
+  cursor: default;
+  border-style: dashed;
+  opacity: 0.58;
+}
+
+.profile-tile.is-empty:hover {
+  transform: none;
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+.tile-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  color: var(--accent);
+  background: var(--icon-bg);
+  border-radius: 13px;
+}
+
+.profile-icon {
+  width: 25px;
+  height: 25px;
+}
+
+.tile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.tile-label {
   font-weight: 650;
-}
-
-.profile-link-desc {
-  color: var(--muted);
-  font-size: 0.82rem;
-}
-
-.profile-link-arrow {
-  flex: none;
-  color: var(--muted);
   font-size: 1rem;
 }
 
-.profile-footer {
-  margin-top: 38px;
-  text-align: center;
+.tile-desc {
   color: var(--muted);
   font-size: 0.8rem;
+  line-height: 1.4;
 }
 
-@media (max-width: 520px) {
-  main { padding: 48px 0 40px; }
+.tile-arrow {
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  color: var(--muted);
+  font-size: 1rem;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.profile-tile:hover .tile-arrow {
+  color: var(--accent);
+  transform: translate(2px, -2px);
+}
+
+.profile-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px 28px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.footer-rule {
+  width: 28px;
+  height: 1px;
+  background: var(--line);
+}
+
+@media (min-width: 760px) {
+  .profile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  main {
+    width: min(100% - 20px, 880px);
+    padding: 20px 0 24px;
+  }
+
+  .profile-frame {
+    border-radius: 18px;
+  }
+
+  .profile-head {
+    padding: 22px 20px 24px;
+  }
+
+  .profile-stamp {
+    margin-bottom: 26px;
+  }
+
+  .identity {
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .profile-avatar {
+    width: 82px;
+    height: 82px;
+    border-radius: 20px;
+  }
+
+  .profile-groups {
+    padding: 8px 20px 24px;
+  }
+
+  .profile-group {
+    margin-top: 22px;
+  }
+}
+
+@media (max-width: 420px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-tile {
+    min-height: 128px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-tile,
+  .tile-arrow {
+    transition: none;
+  }
 }
