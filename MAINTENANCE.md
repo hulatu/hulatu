@@ -41,7 +41,7 @@ BACKUP_DEST="/Volumes/SSD/hulatu-blog" bash scripts/backup-blog.sh
 
 ### 子站点
 
-`run.hulatu.com`、`shot.hulatu.com` 和 `share.hulatu.com` 是独立 Hugo 站点，源码分别在 `sites/run/`、`sites/shot/` 和 `sites/share/`。本地一起构建：
+`run.hulatu.com`、`shot.hulatu.com`、`share.hulatu.com` 和 `profile.hulatu.com` 是独立 Hugo 站点，源码分别在 `sites/run/`、`sites/shot/`、`sites/share/` 和 `sites/profile/`。本地一起构建：
 
 ```bash
 bash scripts/build-subdomains.sh

@@ -1,0 +1,41 @@
+{{ define "main" }}
+{{- $profile := site.Data.profile | default dict -}}
+
+<header class="profile-head">
+  {{ with $profile.avatar }}
+    <img class="profile-avatar" src="{{ . }}" alt="{{ $profile.name | default site.Title }}" width="96" height="96" decoding="async">
+  {{ end }}
+  <h1>{{ $profile.name | default site.Title }}</h1>
+  {{ with $profile.bio }}<p class="profile-bio">{{ . }}</p>{{ end }}
+</header>
+
+{{ range $group := $profile.groups }}
+  <section class="profile-group">
+    <h2 class="group-title">{{ $group.name }}</h2>
+    <div class="profile-links">
+      {{ range $link := $group.links }}
+        {{ if $link.url }}
+          <a class="profile-link" href="{{ $link.url }}" target="_blank" rel="noopener">
+            <span class="profile-link-main">
+              <span class="profile-link-label">{{ $link.label }}</span>
+              {{ with $link.desc }}<span class="profile-link-desc">{{ . }}</span>{{ end }}
+            </span>
+            <span class="profile-link-arrow" aria-hidden="true">↗</span>
+          </a>
+        {{ else }}
+          <span class="profile-link is-empty">
+            <span class="profile-link-main">
+              <span class="profile-link-label">{{ $link.label }}</span>
+              {{ with $link.desc }}<span class="profile-link-desc">{{ . }}</span>{{ end }}
+            </span>
+          </span>
+        {{ end }}
+      {{ end }}
+    </div>
+  </section>
+{{ end }}
+
+<footer class="profile-footer">
+  <span>{{ $profile.footer | default "hulatu.com" }}</span>
+</footer>
+{{ end }}

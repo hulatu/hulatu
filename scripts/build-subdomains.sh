@@ -31,7 +31,16 @@ echo "==> 构建 share.hulatu.com"
   --minify \
   --destination "$ROOT/sites/share/public"
 
+echo "==> 构建 profile.hulatu.com"
+"$HUGO_BIN" \
+  --source sites/profile \
+  --cacheDir "$CACHE_ROOT/profile" \
+  --gc \
+  --minify \
+  --destination "$ROOT/sites/profile/public"
+
 echo "完成："
 echo "  run   -> sites/run/public"
 echo "  shot  -> sites/shot/public"
 echo "  share -> sites/share/public"
+echo "  profile -> sites/profile/public"

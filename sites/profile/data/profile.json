@@ -1,0 +1,73 @@
+{
+  "name": "胡拉图",
+  "avatar": "https://hulatu.com/images/avatar.webp",
+  "bio": "食品研究生 · 写作 · 跑步 · 折腾电子产品",
+  "footer": "hulatu.com",
+  "groups": [
+    {
+      "name": "主站",
+      "links": [
+        {
+          "label": "博客",
+          "url": "https://hulatu.com/",
+          "desc": "长文、周刊、关于我"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/hulatu",
+          "desc": "代码与博客源码"
+        }
+      ]
+    },
+    {
+      "name": "内容平台",
+      "links": [
+        {
+          "label": "公众号",
+          "url": "",
+          "desc": "待填写公众号文章或二维码链接"
+        },
+        {
+          "label": "少数派",
+          "url": "",
+          "desc": "待填写个人主页链接"
+        },
+        {
+          "label": "即刻",
+          "url": "",
+          "desc": "待填写个人主页链接"
+        },
+        {
+          "label": "小红书",
+          "url": "",
+          "desc": "待填写个人主页链接"
+        },
+        {
+          "label": "Telegram",
+          "url": "",
+          "desc": "待填写频道或个人链接"
+        }
+      ]
+    },
+    {
+      "name": "生活与数据",
+      "links": [
+        {
+          "label": "跑步",
+          "url": "https://run.hulatu.com/",
+          "desc": "Garmin 跑步数据"
+        },
+        {
+          "label": "瞬间",
+          "url": "https://shot.hulatu.com/",
+          "desc": "朋友圈式图片分享"
+        },
+        {
+          "label": "经验分享",
+          "url": "https://share.hulatu.com/",
+          "desc": "好物与真实体验"
+        }
+      ]
+    }
+  ]
+}

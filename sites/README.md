@@ -5,6 +5,7 @@
 - `sites/run`：`run.hulatu.com`，展示 Garmin 跑步数据。
 - `sites/shot`：`shot.hulatu.com`，朋友圈式图片分享。
 - `sites/share`：`share.hulatu.com`，好物与经验分享。
+- `sites/profile`：`profile.hulatu.com`，个人主页与各平台入口。
 
 ## 本地构建
 
@@ -18,6 +19,7 @@ bash scripts/build-subdomains.sh
 sites/run/public
 sites/shot/public
 sites/share/public
+sites/profile/public
 ```
 
 ## Cloudflare Pages 配置
@@ -34,7 +36,7 @@ sites/share/public
 
 资源范围包含 `hulatu.com` 这个 zone；Pages 资源范围包含 `hulatu` 这个 account。
 
-用这个 token 可以创建 Pages 项目、把自定义域名绑定到项目、写入 `run` / `shot` / `share` 的 CNAME。没有 Pages Edit 权限时，Cloudflare API 会返回 `10000 Authentication error`；没有 Zone Read 时 `/zones` 会是空列表。
+用这个 token 可以创建 Pages 项目、把自定义域名绑定到项目、写入 `run` / `shot` / `share` / `profile` 的 CNAME。没有 Pages Edit 权限时，Cloudflare API 会返回 `10000 Authentication error`；没有 Zone Read 时 `/zones` 会是空列表。
 
 ### run.hulatu.com
 
@@ -63,4 +65,13 @@ sites/share/public
 | Root directory | `/` |
 | Custom domain | `share.hulatu.com` |
 
-DNS 中 `run`、`shot` 和 `share` 的 CNAME 记录，按 Cloudflare Pages 给的目标地址填写。
+### profile.hulatu.com
+
+| 设置项 | 值 |
+|---|---|
+| Build command | `hugo --source sites/profile --cacheDir "$(pwd)/.hugo_cache/profile" --gc --minify --destination "$(pwd)/sites/profile/public"` |
+| Build output directory | `sites/profile/public` |
+| Root directory | `/` |
+| Custom domain | `profile.hulatu.com` |
+
+DNS 中 `run`、`shot`、`share` 和 `profile` 的 CNAME 记录，按 Cloudflare Pages 给的目标地址填写。

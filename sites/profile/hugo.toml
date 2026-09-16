@@ -1,0 +1,16 @@
+baseURL = "https://profile.hulatu.com/"
+title = "胡拉图"
+locale = "zh-CN"
+hasCJKLanguage = true
+enableRobotsTXT = true
+disableKinds = ["taxonomy", "term"]
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[minify]
+  disableXML = true
+  minifyOutput = true
+
+[outputs]
+  home = ["HTML"]
