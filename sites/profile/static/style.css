@@ -1,43 +1,54 @@
 :root {
   color-scheme: light dark;
-  --paper: #efefeb;
-  --surface: #fbfbf8;
-  --surface-2: #f2f2ee;
-  --ink: #191a1d;
-  --muted: #6f7076;
-  --line: #d7d7d2;
-  --grid: rgba(25, 26, 29, 0.045);
-  --accent: #d14334;
+  --paper: #f6f6f8;
+  --surface: #ffffff;
+  --surface-2: #ececf1;
+  --ink: #1d1d1f;
+  --ink-soft: #3f3f45;
+  --muted: #56565c;
+  --line: #e4e4e9;
+  --line-strong: #d3d3da;
+  --accent: #c73e2f;
+  --accent-ink: #a83226;
+  --accent-soft: #fbeae7;
+  --on-accent: #fff8f5;
   --green: #2e7d5b;
-  --icon-bg: #e7e7e1;
-  --shadow: 0 12px 40px rgba(25, 26, 29, 0.08);
+  --icon-bg: var(--surface-2);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 14px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08), 0 24px 64px rgba(0, 0, 0, 0.13);
   --hairline: 1px;
-  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
-  --accent-border: color-mix(in srgb, var(--accent) 38%, var(--line));
-  --accent-media-border: color-mix(in srgb, var(--accent) 34%, var(--line));
+  --accent-border: color-mix(in srgb, var(--accent) 32%, var(--line));
+  --accent-media-border: color-mix(in srgb, var(--accent) 28%, var(--line));
   --green-soft: color-mix(in srgb, var(--green) 14%, transparent);
   --ease-swift: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 160ms;
   --dur-normal: 220ms;
+  --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #0f1012;
-    --surface: #17181b;
-    --surface-2: #1e1f23;
-    --ink: #f1f0ec;
-    --muted: #a0a1a7;
-    --line: #2b2c31;
-    --grid: rgba(241, 240, 236, 0.045);
-    --accent: #f26b58;
+    --paper: #0b0b10;
+    --surface: #1c1c1f;
+    --surface-2: #2a2a2f;
+    --ink: #f5f5f7;
+    --ink-soft: #c9c9ce;
+    --muted: #a1a1a8;
+    --line: #2c2c31;
+    --line-strong: #3a3a40;
+    --accent: #ef7b64;
+    --accent-ink: #ff9a86;
+    --accent-soft: #3a1e1a;
+    --on-accent: #250d08;
     --green: #67bd92;
-    --icon-bg: #25262b;
-    --shadow: 0 16px 48px rgba(0, 0, 0, 0.42);
-    --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
-    --accent-border: color-mix(in srgb, var(--accent) 38%, var(--line));
-    --accent-media-border: color-mix(in srgb, var(--accent) 34%, var(--line));
+    --icon-bg: var(--surface-2);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.45), 0 28px 80px rgba(0, 0, 0, 0.55);
+    --accent-border: color-mix(in srgb, var(--accent) 32%, var(--line));
+    --accent-media-border: color-mix(in srgb, var(--accent) 28%, var(--line));
     --green-soft: color-mix(in srgb, var(--green) 14%, transparent);
   }
 }
@@ -48,12 +59,8 @@ body {
   margin: 0;
   min-height: 100vh;
   background-color: var(--paper);
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 24px 24px;
   color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.6;
 }
 
@@ -67,8 +74,8 @@ main {
   overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 24px;
-  box-shadow: var(--shadow);
+  border-radius: 22px;
+  box-shadow: var(--shadow-sm);
 }
 
 .profile-head {
@@ -82,7 +89,7 @@ main {
   gap: 8px;
   margin-bottom: 32px;
   color: var(--muted);
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.12em;
 }
@@ -107,7 +114,7 @@ main {
   object-fit: cover;
   border: 1px solid var(--line);
   border-radius: 28px;
-  box-shadow: 0 10px 30px rgba(25, 26, 29, 0.12);
+  box-shadow: var(--shadow-sm);
 }
 
 .identity-text {
@@ -116,7 +123,7 @@ main {
 
 .identity-text h1 {
   margin: 0;
-  font-family: "Iowan Old Style", "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+  font-family: var(--font-serif);
   font-size: clamp(2.1rem, 6vw, 3.8rem);
   font-weight: 600;
   line-height: 1.05;
@@ -145,7 +152,7 @@ main {
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: 999px;
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.08em;
 }
@@ -197,7 +204,7 @@ main {
 
 .latest-item time {
   color: var(--muted);
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
 }
 
@@ -219,7 +226,7 @@ main {
   gap: 8px;
   margin-bottom: 14px;
   color: var(--muted);
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -278,7 +285,7 @@ main {
 
 .group-count {
   color: var(--accent);
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.74rem;
 }
 
@@ -393,7 +400,7 @@ a.photo-card:hover img {
 
 .more-link {
   color: var(--accent);
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
 }
@@ -460,7 +467,7 @@ a.photo-card:hover img {
 .compact-type {
   flex: none;
   color: var(--accent);
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
 }
 
@@ -471,7 +478,7 @@ a.photo-card:hover img {
 
 .compact-domain {
   color: var(--muted);
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.68rem;
   opacity: 0.78;
 }
@@ -508,7 +515,7 @@ a.photo-card:hover img {
 
 .media-card-type {
   color: var(--accent);
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
 }
 
@@ -673,7 +680,7 @@ a.chip:active {
   padding: 18px 30px;
   color: var(--muted);
   border-top: 1px solid var(--line);
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
 }
