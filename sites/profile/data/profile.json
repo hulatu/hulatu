@@ -28,31 +28,31 @@
           "label": "公众号",
           "icon": "wechat",
           "url": "",
-          "desc": "待填写公众号文章或二维码链接"
+          "desc": "公众号：胡拉图说"
         },
         {
           "label": "少数派",
           "icon": "sspai",
-          "url": "",
-          "desc": "待填写个人主页链接"
+          "url": "https://sspai.com/u/hulatu/posts",
+          "desc": "少数派个人主页"
         },
         {
           "label": "即刻",
           "icon": "jike",
-          "url": "",
-          "desc": "待填写个人主页链接"
+          "url": "https://web.okjike.com/u/25B20BAD-D356-4801-AC0E-093CD1334AF5",
+          "desc": "即刻个人主页"
         },
         {
           "label": "小红书",
           "icon": "xiaohongshu",
-          "url": "",
-          "desc": "待填写个人主页链接"
+          "url": "https://www.xiaohongshu.com/user/profile/68a9d4e5000000001a00fcf9",
+          "desc": "小红书个人主页"
         },
         {
           "label": "Telegram",
           "icon": "telegram",
-          "url": "",
-          "desc": "待填写频道或个人链接"
+          "url": "https://t.me/flyhulatu",
+          "desc": "Telegram"
         }
       ]
     },
