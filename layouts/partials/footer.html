@@ -5,10 +5,12 @@
     <p class="footer-links">
       <a href="{{ "series/" | relURL }}">系列</a>
       <a href="{{ "tools/" | relURL }}">工具</a>
-      <a href="https://profile.hulatu.com/">Profile</a>
-      <a href="{{ "media/" | relURL }}">书影音</a>
+      <a href="https://profile.hulatu.com/">花园</a>
       <a href="{{ "friends/" | relURL }}">友链</a>
       <a href="{{ "privacy/" | relURL }}">隐私</a>
+      {{ if site.Params.email }}
+      <a href="mailto:{{ site.Params.email }}">邮箱</a>
+      {{ end }}
     </p>
 
     <a class="footer-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>

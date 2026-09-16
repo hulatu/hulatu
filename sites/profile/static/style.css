@@ -74,7 +74,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* 轻量纸面噪点：仅在浅色下使用，深色下保持干净 */
+/* 轻量纸面噪点 */
 body::before {
   content: "";
   position: fixed;
@@ -82,12 +82,24 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
-  opacity: 0.028;
+  opacity: 0.038;
   mix-blend-mode: multiply;
 }
 
+/* 视口上下边缘淡出，让内容像纸页在边缘隐入纸面 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, var(--paper), transparent 48px),
+    linear-gradient(to top, var(--paper), transparent 56px);
+}
+
 @media (prefers-color-scheme: dark) {
-  body::before { opacity: 0.05; mix-blend-mode: screen; }
+  body::before { opacity: 0.06; mix-blend-mode: screen; }
 }
 
 main {
@@ -99,7 +111,36 @@ main {
 }
 
 .sheet {
+  position: relative;
   border-top: 1px solid var(--ink);
+  animation: sheet-in 620ms var(--ease) both;
+}
+
+/* 内容两侧的竖向参考线，模拟印刷列参考 */
+.sheet::before,
+.sheet::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  pointer-events: none;
+  background: var(--line);
+  opacity: 0.65;
+}
+
+.sheet::before { left: -20px; }
+.sheet::after { right: -20px; }
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 a {
@@ -149,6 +190,12 @@ a {
   margin-top: 30px;
 }
 
+.masthead-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .masthead-text {
   min-width: 0;
 }
@@ -156,10 +203,10 @@ a {
 .masthead h1 {
   margin: 0;
   font-family: var(--font-serif);
-  font-size: clamp(2.35rem, 9vw, 3.45rem);
+  font-size: clamp(1.7rem, 5vw, 2.3rem);
   font-weight: 600;
-  line-height: 1.04;
-  letter-spacing: -0.035em;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
 .masthead .bio {
@@ -177,11 +224,11 @@ a {
 
 .avatar {
   flex: none;
-  width: 72px;
-  height: 72px;
+  width: 120px;
+  height: 120px;
   object-fit: cover;
   border: 1px solid var(--line-strong);
-  border-radius: 8px;
+  border-radius: 10px;
   filter: saturate(0.94);
 }
 
@@ -296,6 +343,7 @@ a {
   gap: 14px;
   padding: 13px 0;
   border-bottom: var(--hairline) solid var(--line);
+  transition: background-color var(--dur) var(--ease);
 }
 
 .row-cover {
@@ -313,6 +361,7 @@ a {
   height: 100%;
   object-fit: cover;
   filter: saturate(0.9);
+  transition: transform 360ms var(--ease-spring), filter 360ms var(--ease);
 }
 
 .row-body {
@@ -338,6 +387,11 @@ a {
   font-weight: 650;
   font-size: 0.96rem;
   letter-spacing: -0.005em;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-size: 0 1px;
+  background-position: 0 100%;
+  transition: background-size var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
 .row-arrow {
@@ -375,6 +429,7 @@ a {
   gap: 13px;
   padding: 11px 0;
   border-bottom: var(--hairline) solid var(--line);
+  transition: background-color var(--dur) var(--ease);
 }
 
 .link-row:last-child {
@@ -393,6 +448,7 @@ a {
   width: 20px;
   height: 20px;
   color: var(--accent);
+  transition: transform var(--dur) var(--ease-spring);
 }
 
 .profile-icon {
@@ -412,6 +468,7 @@ a {
   flex: none;
   font-weight: 650;
   font-size: 0.94rem;
+  transition: color var(--dur) var(--ease);
 }
 
 .link-desc {
@@ -466,6 +523,7 @@ a {
   gap: 20px;
   padding: 18px 0;
   border-bottom: var(--hairline) solid var(--line);
+  transition: background-color var(--dur) var(--ease);
 }
 
 .stat {
@@ -505,6 +563,7 @@ a {
   gap: 12px;
   padding: 13px 0;
   border-bottom: var(--hairline) solid var(--line);
+  transition: background-color var(--dur) var(--ease);
 }
 
 .row:last-child {
@@ -557,7 +616,8 @@ a {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 6px;
-  transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
 }
 
 .media-type {
@@ -600,6 +660,11 @@ a {
   margin-left: auto;
   color: var(--muted);
   font-size: 0.74rem;
+}
+
+.garden-root a,
+.garden-child a {
+  transition: color var(--dur) var(--ease);
 }
 
 .garden-dot {
@@ -679,10 +744,30 @@ a {
 /* ---------- 交互 ---------- */
 
 @media (hover: hover) and (pointer: fine) {
+  a.blog-row:hover,
+  a.link-row:hover,
+  a.row:hover,
+  .stat-row:hover {
+    background-color: color-mix(in srgb, var(--surface-2) 55%, transparent);
+  }
+
   a.blog-row:hover .row-title,
-  a.link-row:hover .link-label,
   a.row:hover .row-title {
     color: var(--accent);
+    background-size: 100% 1px;
+  }
+
+  a.link-row:hover .link-label {
+    color: var(--accent);
+  }
+
+  a.link-row:hover .link-icon {
+    transform: translateX(2px);
+  }
+
+  a.blog-row:hover .row-cover img {
+    transform: scale(1.06);
+    filter: saturate(1);
   }
 
   a.blog-row:hover .row-arrow,
@@ -692,13 +777,25 @@ a {
     transform: translate(2px, -2px);
   }
 
+  .garden a:hover {
+    color: var(--accent);
+  }
+
   .media-card:hover {
     border-color: var(--line-strong);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
   }
 }
 
 /* ---------- 响应式 ---------- */
+
+@media (max-width: 600px) {
+  .sheet::before,
+  .sheet::after {
+    display: none;
+  }
+}
 
 @media (max-width: 520px) {
   main {
@@ -711,8 +808,8 @@ a {
   }
 
   .avatar {
-    width: 58px;
-    height: 58px;
+    width: 84px;
+    height: 84px;
   }
 
   .section {
@@ -758,9 +855,18 @@ a {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 
+  .sheet {
+    animation: none;
+  }
+
   .row-arrow,
+  .row-cover img,
+  .row-title,
+  .link-icon,
+  .link-label,
   .polaroid,
-  .media-card {
+  .media-card,
+  .garden a {
     transition: none;
   }
 
