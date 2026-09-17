@@ -31,3 +31,6 @@ __pycache__/
 
 # 抖音图文中间产物（hulatu-carousel 输出已改到 ~/Downloads，防止误入库）
 content/**/douyin/
+
+# 本地未发布草稿（暂不进入 Git）
+content/posts/AI.md

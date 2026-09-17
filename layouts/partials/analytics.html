@@ -2,4 +2,7 @@
   {{- with .umami -}}
     <script defer src="{{ . }}" data-website-id="{{ site.Params.analytics.umamiId }}"></script>
   {{- end -}}
+  {{- with .goatcounter -}}
+    <script data-goatcounter="{{ . }}" async src="//gc.zgo.at/count.js"></script>
+  {{- end -}}
 {{- end -}}

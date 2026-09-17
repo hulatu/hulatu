@@ -38,6 +38,10 @@
   <link rel="preconnect" href="https://cloud.umami.is">
   <link rel="dns-prefetch" href="https://cloud.umami.is">
   {{ end }}
+  {{ if site.Params.analytics.goatcounter }}
+  <link rel="preconnect" href="https://gc.zgo.at">
+  <link rel="dns-prefetch" href="https://gc.zgo.at">
+  {{ end }}
   <link rel="preconnect" href="https://img.hulatu.com">
   <link rel="dns-prefetch" href="https://img.hulatu.com">
   <link rel="icon" type="image/svg+xml" href="{{ site.Params.assets.favicon | default "/logo.svg" | relURL }}">
