@@ -7,12 +7,12 @@
 - **导航栏**：关于 / 归档 / 分类 / 周刊 / 留言 + RSS
 - **页脚**：版权 / 花园、友链、隐私政策、邮箱 / CC 协议
 - **首页**：按时间倒序每页 10 篇，底部左右箭头翻页
-- **文章页**：阅读进度、目录 + 标签云侧栏（手机端目录变底部抽屉）、相关文章、上一篇/下一篇、复制链接、CC 协议、编辑此页（直接跳 GitHub 上的源文件）
+- **文章页**：目录（桌面侧栏 / 手机端底部抽屉）、相关文章、上一篇/下一篇、打赏、评论
 - **评论系统**：接入 [giscus](https://giscus.app)（基于 GitHub Discussions），跟随系统深浅色主题
 - **无刷新导航**：站内跳转只替换正文，不整页刷新（pjax）
 - **深色 / 浅色模式**：自动跟随系统，无需手动切换
 - **归档页**：按年份、月份折叠分组展示所有文章
-- **分类 / 标签**：自动生成总览和文章列表，文章页标签云直达
+- **分类 / 标签**：自动生成总览和文章列表
 - **周刊**：独立栏目 + 简单 RSS 订阅 + 最近 10 期列表 + 专属 RSS
 - **订阅**：RSS 2.0，含主源与周刊专线
 - **延伸子站**：`run.hulatu.com`（跑步数据）、`shot.hulatu.com`（朋友圈式分享）、`share.hulatu.com`（好物与经验分享）和 `profile.hulatu.com`（个人主页），源码在 `sites/`
@@ -35,11 +35,11 @@ blog/
 │   └── weekly/                 # 周刊文章
 ├── layouts/                    # 页面模板
 │   ├── _default/
-│   ├── partials/                # 导航栏、页脚、搜索弹窗
+│   ├── partials/                # 导航栏、页脚等公共模板
 │   ├── shortcodes/              # media / media-grid 等短代码
 ├── assets/
 │   ├── css/style.css            # 全站样式
-│   └── js/                      # 主题、搜索等脚本
+│   └── js/                      # 主题、目录等脚本
 ├── scripts/                     # Garmin 同步、正文图片尺寸抓取等脚本
 ├── data/
 │   ├── runs.json                # 跑步数据（供 run.hulatu.com 使用）
@@ -99,7 +99,6 @@ hugo new content/posts/my-first-post.md
 | 相关文章数量与匹配 | `hugo.toml` 里 `[related]` 段 |
 | 目录/标签云侧栏断点 | `assets/css/style.css` 里搜 `1200px` / `899.98px` 媒体查询 |
 | 周刊期号徽章 | 从标题「第 X 期」自动解析，逻辑在 `layouts/partials/issue-num.html` |
-| 文章底部「编辑此页」 | `hugo.toml` 的 `[params.edit]`（`repo` 填博客仓库地址，留空则不显示）；模板在 `layouts/_default/single.html` |
 
 ## 💬 接入 giscus 评论系统
 

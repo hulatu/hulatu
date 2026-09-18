@@ -1,17 +1,17 @@
 ---
 title: "隐私政策"
 hide_title: true
-date: 2026-09-13
+date: 2026-09-18
 ---
 
-本站尊重访问者的隐私。本站是个人博客，不提供账号注册，也**不会主动收集你的姓名、电话、邮箱等个人身份信息**。下面说明访问本站时会涉及的数据处理。
+本站是个人博客，不提供账号注册，也**不会主动收集你的姓名、电话、邮箱等个人身份信息**。下面说明访问本站时会涉及的数据处理。
 
-本政策适用于本站的所有访问地址，包括 `hulatu.com` 与 `flyhulatu.github.io`。
+本政策适用于主站 `hulatu.com`。
 
-## 一、本站直接涉及的信息
+## 一、本站自身的数据处理
 
-- **访问日志**：托管平台会自动记录访问请求（IP 地址、访问时间、浏览器类型、访问的页面等），用于保障服务稳定与安全。这些日志由托管平台保存，本站不自行读取或二次利用。
-- **本地偏好**：本站会在你浏览器的本地存储（LocalStorage）中保存主题（深色/浅色）、阅读进度等偏好，仅用于改善阅读体验，不用于识别身份，也不会发送回本站。
+- **访问日志**：托管平台会自动记录访问请求（IP 地址、访问时间、浏览器类型、访问页面等），用于保障服务稳定与安全。这些日志由托管平台保存，本站不自行读取或二次利用。
+- **本地偏好**：本站深浅色模式自动跟随系统设置，**不使用 Cookie 或 LocalStorage 保存主题、阅读进度等偏好**，也不会通过这些方式识别你的身份。
 
 ## 二、第三方服务
 
@@ -19,12 +19,17 @@ date: 2026-09-13
 
 ### 1. 托管平台
 
-访问请求会经过托管平台的服务器 / CDN：
+主站托管在 Cloudflare Pages：
 
 - Cloudflare Pages（`hulatu.com`）：<https://www.cloudflare.com/privacypolicy/>
-- GitHub Pages（`flyhulatu.github.io`）：<https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement>
 
-### 2. 评论系统 giscus
+### 2. 访问统计
+
+本站使用 GoatCounter 进行隐私友好的轻量访问统计，用于了解文章的浏览情况。
+
+- GoatCounter：<https://www.goatcounter.com/help/privacy>
+
+### 3. 评论系统 giscus
 
 文章评论使用 giscus，评论内容存储在 GitHub Discussions（仓库 `hulatu/hulatu`）。加载评论时，浏览器会请求 `giscus.app` 与 GitHub 的接口。
 
@@ -33,11 +38,11 @@ date: 2026-09-13
 - giscus 项目：<https://giscus.app>
 - GitHub 隐私政策：<https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement>
 
-### 3. 图片与静态资源
+### 4. 图片与静态资源
 
 文章图片主要托管在自有域名 `img.hulatu.com`，属于本站自有资源，不向第三方传输你的浏览信息。
 
-### 4. 外链
+### 5. 外链
 
 文章内容会链接到外部网站（如微信公众号、B 站、知乎等）。点击外链跳转后，你的信息由对应网站处理，请参考其各自的隐私政策；本站无法控制这些外部站点。
 
@@ -45,6 +50,7 @@ date: 2026-09-13
 
 本站自身不使用 Cookie。第三方服务的情况：
 
+- GoatCounter：默认不依赖 Cookie 进行统计。
 - giscus：主要使用 LocalStorage 保存主题；当你在 giscus 内登录 GitHub 时，GitHub 可能在 `github.com` 域名下设置自己的 Cookie。
 
 ## 四、评论内容的处理
@@ -54,7 +60,7 @@ date: 2026-09-13
 
 ## 五、你的权利
 
-由于本站不主动收集个人身份信息，我无法也不打算基于这些数据识别你。若你对第三方（Cloudflare、GitHub）处理的数据有疑问或想行使相关权利，可直接联系对应服务方；我也可以协助说明本站的接入方式。
+由于本站不主动收集个人身份信息，我无法也不打算基于这些数据识别你。若你对第三方（Cloudflare、GoatCounter、GitHub）处理的数据有疑问或想行使相关权利，可直接联系对应服务方；我也可以协助说明本站的接入方式。
 
 ## 六、联系方式
 
