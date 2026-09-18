@@ -44,13 +44,15 @@ blog/
 │   └── index.searchindex.json   # 搜索索引生成模板
 ├── assets/
 │   ├── css/style.css            # 全站样式
-│   └── js/                      # 主题、搜索、pjax 等脚本
-├── scripts/                     # Garmin 跑步数据同步、OG 图生成等脚本
+│   ├── img/thumbs/              # 列表缩略图（构建期缩成 64 / 220 两档，配 srcset 用）
+│   └── js/                      # 主题、搜索等脚本
+├── scripts/                     # Garmin 同步、OG 图生成、图片尺寸抓取等脚本
 ├── data/
 │   ├── runs.json                # 跑步数据（供 run.hulatu.com 使用）
+│   └── image_dims.json          # 正文远程图片的宽高缓存（避免图片加载时页面跳动）
 ├── static/
 │   ├── og/                      # 每篇文章的 OG 分享图（scripts/og-images.py 生成，提交进 git）
-│   ├── img/                     # 缩略图、默认 OG 卡片
+│   ├── img/                     # 默认 OG 卡片
 │   ├── media/                   # 书影音配图
 │   └── js/fuse.min.js           # 搜索用的 Fuse.js
 ├── archetypes/posts.md         # 新建文章的默认模板

@@ -1,6 +1,6 @@
 {{ define "main" }}
 {{- $img := .Params.headerImage | default "https://img.hulatu.com/post/Qp1U6E.jpg" -}}
-{{- $img = partial "cf-image.html" (dict "src" $img "params" "width=1200,height=630,fit=cover,format=auto,quality=80,metadata=none") -}}
+{{- $img = partial "cf-image.html" (dict "src" $img "params" "width=1200,height=630,fit=cover,format=auto,quality=60,metadata=none") -}}
 {{- $all := .Pages.ByDate.Reverse -}}
 {{- $total := len $all -}}
 {{- $latest := false -}}

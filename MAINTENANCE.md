@@ -78,8 +78,10 @@ hugo server -D
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
-| 手动提交发布 | 终端输入 `up` → `publish.sh`（生成 OG 分享图 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
+| 手动提交发布 | 终端输入 `up` → `publish.sh`（生成 OG 分享图 → 抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | OG 分享图 | 生成器 `scripts/og-images.py`，输出到 **`static/og/` 并提交进 git**（Hugo 构建时把 `static/` 复制到 `public/og/`，所以本地和平台构建都有图）。生成时机在 `publish.sh` 里，必须赶在 `git add` 和 `hugo` 之前。`og:image` 元信息在 `layouts/partials/head-meta.html` |
+| 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
+| 列表缩略图 | 原图放 `assets/img/thumbs/`（不是 `static/`，为了能走构建期缩放），由 `layouts/partials/thumb-src.html` 缩出 64 档，`post-thumb.html` 用 `srcset` 输出 64/220 两档。文件名按封面图名自动匹配 |
 | 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
 | 深浅色 | `assets/js/theme.js` + `assets/css/style.css` 的 `[data-theme="dark"]` |
@@ -127,10 +129,11 @@ up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
 
 1. **`bash ./publish.sh`** —— 依次：
    - 生成 OG 分享图：`scripts/og-images.py` → 写 `static/og/`
+   - 抓取正文图片宽高：`scripts/fetch-image-dims.py` → 写 `data/image_dims.json`
    - `git add .` + 提交（commit 信息：博客：新增/修改文章）
    - 推 GitHub → `git pull --rebase` 拉取远端 → 再完整推送
 
-   OG 图要**赶在 `git add` 之前**生成，这样才能跟文章一起提交、被平台构建读到。
+   这两步都要**赶在 `git add` 之前**跑，产物才能跟文章一起提交、被平台构建读到。
 2. **`hugo --minify`** —— 本地构建一份预览到 `public/`。`public/` 在 `.gitignore` 里，不会上传，纯粹给你自己看效果。
 
 > ⚠️ `up` **不会**调用 `./deploy.sh`。`deploy.sh` 是手动脚本，做「干净构建 + livereload 自检」，只写本地 `public/`，不上传也不部署。它同样把 OG 图生成放在 `hugo` 之前。
@@ -211,8 +214,9 @@ weight: 1                  # 总览页排序
 图片约定：
 
 - 封面图用远程图床 URL（当前为 `https://img.hulatu.com/...`）最省流量；本地图放 `static/`。
-- 首页/列表缩略图由构建脚本按封面文件名自动映射到 `static/img/thumbs/<文件名去扩展名>.webp`，文件名里的空格会替换成 `_`。要更新某篇文章的缩略图，替换对应的 `static/img/thumbs/xxx.webp` 即可。
-- 清理孤儿缩略图：对比 `public/post-index.json` 里的 `thumb` 列表与 `static/img/thumbs/` 下的文件，删掉没被引用的。
+- 首页/列表缩略图按封面文件名自动映射到 `assets/img/thumbs/<文件名去扩展名>.webp`，文件名里的空格会替换成 `_`。要更新某篇文章的缩略图，替换对应的 `assets/img/thumbs/xxx.webp` 即可（构建期会自动缩出 64 档）。
+- 清理孤儿缩略图：对比 `public/post-index.json` 里的 `thumb` 列表与 `assets/img/thumbs/` 下的文件，删掉没被引用的。
+- 正文图宽高缓存：新增带图的文章后跑一次 `python3 scripts/fetch-image-dims.py`（`up` 里已自动包含）。漏跑也不会出错，只是那几张图没有宽高属性、加载时会跳动。
 
 可随时安全删除的构建产物（下次构建自动重建）：
 

@@ -25,6 +25,16 @@
 {{- $imgAlt := $title -}}
 {{- if and $isArticle .Params.coverAlt }}{{ $imgAlt = .Params.coverAlt }}{{ end -}}
 
+{{- with .Params.cover -}}
+  {{- $coverLocal := resources.Get (strings.TrimPrefix "/" .) -}}
+  {{- if not $coverLocal -}}
+    {{- $coverCF := partial "cf-image.html" (dict "src" . "params" "width=1200,height=630,fit=cover,format=auto,quality=60,metadata=none") -}}
+    {{- if ne $coverCF . -}}
+<link rel="preload" as="image" href="{{ $coverCF }}" fetchpriority="high">
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 <link rel="canonical" href="{{ .Permalink }}">
 <meta name="author" content="{{ site.Params.author }}">
 

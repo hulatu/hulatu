@@ -9,7 +9,7 @@
       "date": {{ $page.Date.Format "2006-01-02" | jsonify }},
       "summary": {{ $page.Summary | plainify | truncate 90 | jsonify }},
       "thumb": {{ with $page.Params.cover }}
-        {{- partial "thumb-src.html" $page | jsonify -}}
+        {{- (partial "thumb-src.html" $page).src | jsonify -}}
       {{- else }}""{{- end }},
       "cat": {{ with $page.GetTerms "categories" }}{{ with index . 0 }}{{ .Title | jsonify }}{{ else }}""{{ end }}{{ else }}""{{ end }},
       "featured": {{ with $page.Params.featured }}true{{ else }}false{{ end }}

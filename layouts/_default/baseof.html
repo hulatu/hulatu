@@ -34,10 +34,6 @@
   <link rel="preconnect" href="https://giscus.app">
   <link rel="dns-prefetch" href="https://giscus.app">
   {{ end }}
-  {{ if site.Params.analytics.umami }}
-  <link rel="preconnect" href="https://cloud.umami.is">
-  <link rel="dns-prefetch" href="https://cloud.umami.is">
-  {{ end }}
   {{ if site.Params.analytics.goatcounter }}
   <link rel="preconnect" href="https://gc.zgo.at">
   <link rel="dns-prefetch" href="https://gc.zgo.at">
@@ -67,6 +63,26 @@
       var themeMeta = document.querySelector('meta[name="theme-color"]');
       if (themeMeta) themeMeta.setAttribute("content", theme === "dark" ? "#0b0b10" : "#f6f6f8");
     })();
+  </script>
+  <!-- 站内跳转预取：鼠标悬停链接时，浏览器就提前把下一页拿好，点下去几乎是秒开。
+       用的是浏览器原生的 Speculation Rules，不执行任何 JS，也不影响不支持的浏览器。
+       只预取同源页面，跳过 RSS（.xml）和索引文件（.json），避免白下载。 -->
+  <script type="speculationrules">
+  {
+    "prefetch": [
+      {
+        "source": "document",
+        "where": {
+          "and": [
+            { "href_matches": "/*" },
+            { "not": { "href_matches": "/*.xml" } },
+            { "not": { "href_matches": "/*.json" } }
+          ]
+        },
+        "eagerness": "moderate"
+      }
+    ]
+  }
   </script>
 </head>
 <body>

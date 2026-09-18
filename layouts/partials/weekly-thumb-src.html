@@ -4,6 +4,6 @@
   {{- $src = . -}}
 {{- end -}}
 {{- if $src -}}
-  {{- $src = partial "cf-image.html" (dict "src" $src "params" "width=600,height=338,fit=cover,format=auto,quality=80,metadata=none") -}}
+  {{- $src = partial "cf-image.html" (dict "src" $src "params" "width=600,height=338,fit=cover,format=auto,quality=60,metadata=none") -}}
 {{- end -}}
 {{- return $src -}}

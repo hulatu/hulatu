@@ -2816,6 +2816,7 @@ body.toc-open { overflow: hidden; }
 
 .article-image img {
   width: 100%;
+  height: auto;
   display: block;
 }
 

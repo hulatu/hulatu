@@ -39,6 +39,17 @@ else
   echo "    !! 跳过 OG 分享图：没找到可用的 python3" >&2
 fi
 
+# 2b. 抓取正文远程图片的尺寸到 data/image_dims.json，让 <img> 带上宽高，
+#     避免图片加载完页面往下跳。只抓新增图片，已缓存的会跳过（很快）。
+#     没网或失败时保留旧数据，不阻断发布。
+if [ -n "$PYOG" ]; then
+  if ! "$PYOG" scripts/fetch-image-dims.py; then
+    echo "    !! 图片尺寸抓取失败，本次新增图片可能缺少宽高（不影响发布）" >&2
+  fi
+else
+  echo "    !! 跳过图片尺寸抓取：没找到可用的 python3" >&2
+fi
+
 git add .
 if git diff --cached --quiet; then
   echo "    没有需要提交的本地改动"
