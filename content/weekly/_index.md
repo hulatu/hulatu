@@ -2,5 +2,4 @@
 title: "周刊"
 comments: true
 description: "每周天更新：值得一读的文章、好用的工具、只言片语。"
-headerImage: "https://img.hulatu.com/post/Qp1U6E.jpg"
 ---

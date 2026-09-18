@@ -14,8 +14,8 @@ about:
     - "这个博客用来记录观察、思考和一些日常，希望你喜欢。"
     - "博客搭建基于 Hugo 框架，借助 Codex 写的博客主题。简单、轻量、加载迅速。"
   subscribe:
-    - label: "RSS 2.0"
-      note: "通用格式，兼容所有阅读器"
+    - label: "全部文章"
+      note: "包含本站的所有文章"
       url: "https://hulatu.com/index.xml"
     - label: "周刊专线"
       note: "仅包含周刊内容"
@@ -30,7 +30,7 @@ about:
     - label: "小红书"
       url: "https://www.xiaohongshu.com/user/profile/68a9d4e5000000001a00fcf9"
     - label: "公众号"
-      note: "公众号二维码"
+      note: "点开查看二维码"
       url: "https://img.hulatu.com/post/bk7UaF.webp"
   contacts:
     - label: "QQ"
@@ -40,6 +40,6 @@ about:
       note: "点开查看二维码"
       url: "https://img.hulatu.com/post/qbD1Mk.webp"
     - label: "Gmail"
-      note: "flyhulatu@gmail.com"
+      note: "点击给我发邮件"
       url: "mailto:flyhulatu@gmail.com"
 ---

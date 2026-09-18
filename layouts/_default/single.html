@@ -2,7 +2,6 @@
 {{ $toc := .TableOfContents}}
 {{ $hasToc := in $toc "<li" }}
 {{ $isWeekly := eq .Type "weekly" }}
-{{- $stats := partial "post-stats.html" . -}}
 {{- $relatedPosts := slice -}}
 {{- if in (slice "posts" "weekly") .Type -}}
   {{- $relatedCandidates := where (site.RegularPages.Related .) "Type" "in" (slice "posts" "weekly") -}}
@@ -10,25 +9,6 @@
 {{- end -}}
 
 <article class="post-single {{ if $hasToc }}has-toc{{ end }}">
-    {{ with .Params.cover }}
-      {{/* 本地 assets 图优先走 Hugo 构建期压缩；外链封面交给 Cloudflare Image Transformations */}}
-      {{ $cover := resources.Get (strings.TrimPrefix "/" .) }}
-      {{ if $cover }}
-        {{ $r := $cover.Resize "1200x webp q82" }}
-        <img class="post-cover"
-             src="{{ $r.RelPermalink }}"
-             width="{{ $r.Width }}" height="{{ $r.Height }}"
-             loading="eager" fetchpriority="high" decoding="async"
-             alt="{{ with $.Params.coverAlt }}{{ . }}{{ else }}{{ $.Title }}{{ end }}">
-      {{ else }}
-        {{ $cf := partial "cf-image.html" (dict "src" . "params" "width=1200,height=630,fit=cover,format=auto,quality=60,metadata=none") }}
-        <img class="post-cover"
-             src="{{ $cf | relURL }}"
-             width="1200" height="630"
-             loading="eager" fetchpriority="high" decoding="async"
-             alt="{{ with $.Params.coverAlt }}{{ . }}{{ else }}{{ $.Title }}{{ end }}">
-      {{ end }}
-    {{ end }}	
   <header class="post-header">
     {{ if $isWeekly }}
       {{- $issue := partial "issue-num.html" . -}}
@@ -38,38 +18,25 @@
     {{ end }}
     <h1 class="post-title">{{ .Title }}</h1>
     <div class="post-meta">
-      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-      <span class="post-meta-sep">·</span>
-      <span>约 {{ $stats.chars }} 字</span>
-      <span class="post-meta-sep">·</span>
-      <span>约 {{ $stats.mins }} 分钟</span>
-      {{ if ne .Date .Lastmod }}
-        <span class="post-meta-sep">·</span>
-        <span>更新于 {{ .Lastmod.Format "2006-01-02" }}</span>
-      {{ end }}
-    </div>
-    {{ if and .Params.series (not $isWeekly) }}
-      {{- $seriesPosts := sort (where (where site.RegularPages "Type" "in" (slice "posts" "weekly")) "Params.series" .Params.series) "Date" -}}
-      {{- $seriesIdx := 0 -}}
-      {{- range $i, $p := $seriesPosts }}{{ if eq $p.Permalink $.Permalink }}{{ $seriesIdx = add $i 1 }}{{ end }}{{ end -}}
-      {{- $seriesPages := where (where site.RegularPages "Type" "series") "Params.seriesName" .Params.series -}}
-      {{- $seriesPage := false -}}
-      {{- if $seriesPages }}{{ $seriesPage = index $seriesPages 0 }}{{ end -}}
-      <div class="post-series-link">
-        本系列 · {{ with $seriesPage }}<a href="{{ .RelPermalink }}">{{ $.Params.series }}</a>{{ else }}{{ $.Params.series }}{{ end }} · 第 {{ $seriesIdx }}/{{ len $seriesPosts }} 篇
+      <span class="post-meta-main">
+        <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+        {{ if ne .Date .Lastmod }}
+          <span class="post-meta-sep">·</span>
+          <span>更新于 {{ .Lastmod.Format "2006-01-02" }}</span>
+        {{ end }}
+      </span>
+      <div class="post-chips-row">
+        {{ with .GetTerms "categories" }}
+          <span class="post-chips post-chips-cats">
+            {{- range . }}<a class="post-cat-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end -}}
+          </span>
+        {{ end }}
+        {{ with .GetTerms "tags" }}
+          <span class="post-chips post-chips-tags">
+            {{- range . }}<a class="post-tag-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end -}}
+          </span>
+        {{ end }}
       </div>
-    {{ end }}
-    <div class="post-chips-row">
-      {{ with .GetTerms "categories" }}
-        <span class="post-chips post-chips-cats">
-          {{- range . }}<a class="post-cat-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end -}}
-        </span>
-      {{ end }}
-      {{ with .GetTerms "tags" }}
-        <span class="post-chips post-chips-tags">
-          {{- range . }}<a class="post-tag-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end -}}
-        </span>
-      {{ end }}
     </div>
   </header>
 
@@ -139,55 +106,7 @@
 
 </article>
 
-  <div class="post-actions">
-    <a class="post-pill post-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener" title="本文采用 CC BY-NC-SA 4.0 协议">CC BY-NC-SA 4.0</a>
-    <span class="post-actions-right">
-      <button type="button" class="post-pill copy-link-btn" id="copy-link-btn">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-        </svg>
-        <span class="copy-link-label">复制链接</span>
-      </button>
-    </span>
-  </div>
-  <script>
-  (function () {
-    var btn = document.getElementById("copy-link-btn");
-    if (!btn) return;
-    var label = btn.querySelector(".copy-link-label");
-    var done = function () {
-      var old = label.textContent;
-      label.textContent = "已复制 ✓";
-      btn.classList.add("is-copied");
-      setTimeout(function () {
-        label.textContent = old;
-        btn.classList.remove("is-copied");
-      }, 1600);
-    };
-    var fallback = function () {
-      var ta = document.createElement("textarea");
-      ta.value = location.href;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand("copy"); } catch (e) {}
-      document.body.removeChild(ta);
-    };
-    btn.addEventListener("click", function () {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(location.href).then(done, function () {
-          fallback();
-          done();
-        });
-      } else {
-        fallback();
-        done();
-      }
-    });
-  })();
-  </script>
+<hr class="post-end-divider" aria-hidden="true">
 
 {{ if in (slice "posts" "weekly") .Type }}
   {{- if $relatedPosts -}}
@@ -202,60 +121,22 @@
   {{- end -}}
 
   {{- if not $relatedPosts -}}
-  {{- if and .Params.series (not $isWeekly) -}}
-    {{- $allPosts := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
-    {{- $seriesPosts := sort (where $allPosts "Params.series" .Params.series) "Date" -}}
-    {{- $prevIn := false -}}
-    {{- $nextIn := false -}}
-    {{- range $i, $p := $seriesPosts -}}
-      {{- if eq $p.Permalink $.Permalink -}}
-        {{- if gt $i 0 }}{{ $prevIn = index $seriesPosts (sub $i 1) }}{{ end -}}
-        {{- if lt (add $i 1) (len $seriesPosts) }}{{ $nextIn = index $seriesPosts (add $i 1) }}{{ end -}}
-      {{- end -}}
-    {{- end -}}
-    {{- $seriesPages := where (where site.RegularPages "Type" "series") "Params.seriesName" .Params.series -}}
-    {{- $seriesPage := false -}}
-    {{- if $seriesPages }}{{ $seriesPage = index $seriesPages 0 }}{{ end -}}
-    <div class="post-series">
-      <p class="post-series-label">系列 · {{ with $seriesPage }}<a href="{{ .RelPermalink }}">{{ $.Params.series }}</a>{{ else }}{{ $.Params.series }}{{ end }}</p>
-      <nav class="post-nav" aria-label="系列导航">
-        {{ with $prevIn }}
-          <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
-            <span class="post-nav-label">系列上一篇</span>
-            <span class="post-nav-title">{{ .Title }}</span>
-          </a>
-        {{ else }}
-          <span class="post-nav-card is-empty"><span class="post-nav-label">系列第一篇</span></span>
-        {{ end }}
-        {{ with $nextIn }}
-          <a class="post-nav-card post-nav-next" href="{{ .Permalink }}">
-            <span class="post-nav-label">系列下一篇</span>
-            <span class="post-nav-title">{{ .Title }}</span>
-          </a>
-        {{ else }}
-          <span class="post-nav-card is-empty"><span class="post-nav-label">系列最后一篇</span></span>
-        {{ end }}
-      </nav>
-    </div>
-  {{- else -}}
-    <nav class="post-nav" aria-label="文章导航">
-      {{ with .PrevInSection }}
-        <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
-          <span class="post-nav-label">{{ if $isWeekly }}上一期{{ else }}上一篇{{ end }}</span>
-          <span class="post-nav-title">{{ .Title }}</span>
-        </a>
-      {{ end }}
-      {{ with .NextInSection }}
-        <a class="post-nav-card post-nav-next" href="{{ .Permalink }}">
-          <span class="post-nav-label">{{ if $isWeekly }}下一期{{ else }}下一篇{{ end }}</span>
-          <span class="post-nav-title">{{ .Title }}</span>
-        </a>
-      {{ end }}
-    </nav>
-  {{- end -}}
+  <nav class="post-nav" aria-label="文章导航">
+    {{ with .PrevInSection }}
+      <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
+        <span class="post-nav-label">{{ if $isWeekly }}上一期{{ else }}上一篇{{ end }}</span>
+        <span class="post-nav-title">{{ .Title }}</span>
+      </a>
+    {{ end }}
+    {{ with .NextInSection }}
+      <a class="post-nav-card post-nav-next" href="{{ .Permalink }}">
+        <span class="post-nav-label">{{ if $isWeekly }}下一期{{ else }}下一篇{{ end }}</span>
+        <span class="post-nav-title">{{ .Title }}</span>
+      </a>
+    {{ end }}
+  </nav>
   {{- end -}}
 
-  {{ partial "post-follow.html" . }}
   {{ partial "donate.html" . }}
 
   {{ if and site.Params.giscus.repo (ne .Params.comments false) }}

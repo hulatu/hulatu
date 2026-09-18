@@ -16,7 +16,6 @@
 <h1 class="page-title">{{ .Title }}</h1>
 <p class="archive-total">共 <strong>{{ len $posts }}</strong> 篇文章 · 今年写了 <strong>{{ lang.FormatNumber 0 $chars }}</strong> 字</p>
 
-<div class="group-card archive-shell">
 <section class="archive-timeline">
 {{ range $years }}
   {{ $year := . }}
@@ -63,5 +62,4 @@
   <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
 {{ end }}
 </section>
-</div>
 {{ end }}

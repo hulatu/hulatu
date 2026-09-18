@@ -1,101 +1,33 @@
 {{ define "main" }}
-{{- $img := .Params.headerImage | default "https://img.hulatu.com/post/Qp1U6E.jpg" -}}
-{{- $img = partial "cf-image.html" (dict "src" $img "params" "width=1200,height=630,fit=cover,format=auto,quality=60,metadata=none") -}}
 {{- $all := .Pages.ByDate.Reverse -}}
-{{- $total := len $all -}}
-{{- $latest := false -}}
-{{- if $total }}{{ $latest = index $all 0 }}{{ end -}}
+{{- $paginator := .Paginate $all 10 -}}
 
-<header class="column-head">
-  <div class="column-head-media">
-    <img src="{{ $img | relURL }}" alt="" width="1200" height="630" loading="eager" fetchpriority="high" decoding="async">
-  </div>
-  <div class="column-head-body">
-    <p class="column-eyebrow">专栏</p>
-    <h1 class="column-title">{{ .Title }}</h1>
-    {{- with .Description }}<p class="column-desc">{{ . }}</p>{{ end }}
-    <div class="column-stats">
-      <span class="column-stat">共 <strong>{{ $total }}</strong> 期</span>
-      {{- if $latest -}}
-        {{- $li := partial "issue-num.html" $latest -}}
-        <span class="column-stat">最新{{ if $li }} 第 <strong>{{ $li }}</strong> 期{{ end }} · <strong>{{ $latest.Date.Format "2006-01-02" }}</strong></span>
-      {{- end -}}
-    </div>
-  </div>
-</header>
+<div class="weekly-simple">
+  <a class="rss-guide weekly-rss" href="{{ "weekly/index.xml" | relURL }}">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M4 11a9 9 0 0 1 9 9h-2.5A6.5 6.5 0 0 0 4 13.5V11z"></path>
+      <path d="M4 4a16 16 0 0 1 16 16h-2.5A13.5 13.5 0 0 0 4 6.5V4z"></path>
+      <circle cx="5" cy="19" r="2"></circle>
+    </svg>
+    <span class="rss-guide-text">
+      <span class="rss-guide-title">订阅周刊</span>
+      <span class="rss-guide-desc">用 RSS 阅读器接收每一期更新</span>
+    </span>
+    <span class="rss-guide-arrow" aria-hidden="true">→</span>
+  </a>
+</div>
 
-<a class="rss-guide column-rss" href="{{ "weekly/index.xml" | relURL }}">
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-    <path d="M4 11a9 9 0 0 1 9 9h-2.5A6.5 6.5 0 0 0 4 13.5V11z"></path>
-    <path d="M4 4a16 16 0 0 1 16 16h-2.5A13.5 13.5 0 0 0 4 6.5V4z"></path>
-    <circle cx="5" cy="19" r="2"></circle>
-  </svg>
-  <span class="rss-guide-text">
-    <span class="rss-guide-title">订阅周刊</span>
-    <span class="rss-guide-desc">用 RSS 阅读器接收每一期更新</span>
-  </span>
-  <span class="rss-guide-arrow" aria-hidden="true">→</span>
-</a>
-
-{{ $paginator := .Paginate $all 6 }}
 {{ if $paginator.Pages }}
-<section class="issue-grid">
+<section class="minimal-list group-card weekly-list">
   {{ range $paginator.Pages }}
-    {{- $issue := partial "issue-num.html" . -}}
-    {{- $thumb := partial "weekly-thumb-src.html" . -}}
-    <a class="issue-card" href="{{ .Permalink }}">
-      <span class="issue-card-media">
-        {{- if $thumb -}}
-          <img src="{{ $thumb | relURL }}" alt="" width="600" height="338" loading="lazy" decoding="async">
-        {{- else -}}
-          <span class="issue-card-fallback">第 {{ $issue }} 期</span>
-        {{- end -}}
-        {{- if $issue -}}<span class="issue-card-badge">第 {{ $issue }} 期</span>{{ end -}}
-      </span>
-      <span class="issue-card-body">
-        <span class="issue-card-title">{{ .Title }}</span>
-        {{- with .Summary }}<span class="issue-card-summary">{{ . | plainify | truncate 64 }}</span>{{ end }}
-        <span class="issue-card-meta">
-          <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-          {{- $stats := partial "post-stats.html" . -}}
-          <span>约 {{ $stats.mins }} 分钟</span>
-        </span>
-      </span>
+    <a class="minimal-row" href="{{ .Permalink }}">
+      <span class="minimal-title">{{ .Title }}</span>
+      <time class="minimal-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
     </a>
   {{ end }}
 </section>
 {{ else if not .Content }}
   <p class="empty-tip">这里还没有内容，先从第一期开始吧。</p>
 {{ end }}
-
-{{ if gt $paginator.TotalPages 1 }}
-<nav class="list-pager weekly-pager" aria-label="周刊翻页">
-  {{ with $paginator.Prev }}
-    <a class="pager-btn" href="{{ .URL }}" title="上一页" aria-label="上一页">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </a>
-  {{ else }}
-    <span class="pager-btn is-disabled" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-    </span>
-  {{ end }}
-  {{ with $paginator.Next }}
-    <a class="pager-btn" href="{{ .URL }}" title="下一页" aria-label="下一页">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </svg>
-    </a>
-  {{ else }}
-    <span class="pager-btn is-disabled" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="9 18 15 12 9 6"></polyline>
-      </svg>
-    </span>
-  {{ end }}
-</nav>
-{{ end }}
+{{ partial "pager.html" $paginator }}
 {{ end }}

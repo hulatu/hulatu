@@ -18,32 +18,21 @@ git status
 
 # 2. 提交本地全部改动
 echo "==> 2/5 提交本地改动"
-# 2a. 生成 OG 分享图到 static/og/，必须赶在 git add 之前 —— 这些图要跟文章一起提交，
-#     Cloudflare Pages 的平台构建（镜像里没有 ImageMagick）只能靠 static/ 照搬。
-#     没装 magick / 找不到字体时脚本自己跳过，不阻断发布。
-PYOG=""
+PYTHON_BIN=""
 for cand in "$(command -v python3 2>/dev/null)" \
   /opt/homebrew/Caskroom/miniforge/base/bin/python3 \
   /usr/local/bin/python3; do
   if [ -n "$cand" ] && [ -x "$cand" ]; then
-    PYOG="$cand"
+    PYTHON_BIN="$cand"
     break
   fi
 done
 
-if [ -n "$PYOG" ]; then
-  if ! "$PYOG" scripts/og-images.py; then
-    echo "    !! OG 分享图生成失败，本次可能缺少部分分享图" >&2
-  fi
-else
-  echo "    !! 跳过 OG 分享图：没找到可用的 python3" >&2
-fi
-
-# 2b. 抓取正文远程图片的尺寸到 data/image_dims.json，让 <img> 带上宽高，
+# 抓取正文远程图片的尺寸到 data/image_dims.json，让 <img> 带上宽高，
 #     避免图片加载完页面往下跳。只抓新增图片，已缓存的会跳过（很快）。
 #     没网或失败时保留旧数据，不阻断发布。
-if [ -n "$PYOG" ]; then
-  if ! "$PYOG" scripts/fetch-image-dims.py; then
+if [ -n "$PYTHON_BIN" ]; then
+  if ! "$PYTHON_BIN" scripts/fetch-image-dims.py; then
     echo "    !! 图片尺寸抓取失败，本次新增图片可能缺少宽高（不影响发布）" >&2
   fi
 else

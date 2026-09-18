@@ -30,7 +30,7 @@ def _front_matter(text: str) -> tuple[dict, str]:
         return {}, text
     fm_text, body = match.groups()
     fm: dict = {}
-    for key in ("title", "date", "slug", "draft", "cover", "coverAlt"):
+    for key in ("title", "date", "slug", "draft"):
         m = re.search(rf"^{key}:\s*[\"']?(.*?)[\"']?\s*$", fm_text, re.M)
         if m:
             fm[key] = m.group(1).strip()
@@ -65,8 +65,6 @@ def _article_item(path: Path) -> dict | None:
         "date": date,
         "url": url,
         "summary": _clean_summary(body),
-        "cover": fm.get("cover") or "",
-        "cover_alt": fm.get("coverAlt") or "",
     }
 
 

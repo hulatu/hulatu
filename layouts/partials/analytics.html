@@ -3,6 +3,27 @@
     <script defer src="{{ . }}" data-website-id="{{ site.Params.analytics.umamiId }}"></script>
   {{- end -}}
   {{- with .goatcounter -}}
-    <script data-goatcounter="{{ . }}" async src="//gc.zgo.at/count.js"></script>
+    <script>
+      (function () {
+        var loaded = false;
+        function load() {
+          if (loaded) return;
+          loaded = true;
+          var endpoint = "{{ . }}";
+          var s = document.createElement("script");
+          s.async = true;
+          s.src = "//gc.zgo.at/count.js";
+          s.dataset.goatcounter = endpoint;
+          document.body.appendChild(s);
+        }
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(load, { timeout: 2000 });
+        } else {
+          window.addEventListener("scroll", load, { once: true, passive: true });
+          window.addEventListener("pointerdown", load, { once: true, passive: true });
+          setTimeout(load, 3000);
+        }
+      })();
+    </script>
   {{- end -}}
 {{- end -}}

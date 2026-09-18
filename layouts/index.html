@@ -1,197 +1,26 @@
 {{ define "main" }}
-{{ $allPosts := where site.RegularPages "Type" "posts" }}
-{{ $featured := where $allPosts "Params.featured" true }}
-{{ $regular := where $allPosts "Params.featured" "!=" true }}
-{{ $posts := $featured | append $regular }}
-{{ $weekly := where site.RegularPages "Type" "weekly" }}
+{{ $posts := where site.RegularPages "Type" "posts" }}
+{{ $paginator := .Paginate $posts 10 }}
 
 <header class="site-hero">
   <h1 class="hero-line">总得留下点什么吧</h1>
-  <p class="hero-sub">关于运动、健康、工具与生活的一些记录。</p>
+  <p class="hero-sub">关于运动、健康、工具与生活的一些思考、记录。</p>
 </header>
 
 <section id="post-list" class="post-list">
-  {{ if $featured }}
-    {{ range $i, $p := first 5 $featured }}
-      <a class="post-row post-row-home" href="{{ $p.Permalink }}">
-        {{ partial "post-thumb.html" (dict "page" $p "eager" (eq $i 0)) }}
-        <span class="post-row-main">
-          <span class="post-row-title-line">
-            <span class="post-row-title">{{ $p.Title }}</span>
-            <span class="post-row-featured">精选</span>
-          </span>
-          <span class="post-row-summary">{{ $p.Summary | plainify | truncate 90 }}</span>
-        </span>
-        <time class="post-row-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006-01-02" }}</time>
-      </a>
-    {{ end }}
+  {{ range $paginator.Pages }}
+    <a class="post-row post-row-home" href="{{ .Permalink }}">
+      <span class="post-row-title">{{ .Title }}</span>
+      <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+    </a>
   {{ else }}
-    {{ range $i, $p := first 5 $posts }}
-      <a class="post-row post-row-home" href="{{ $p.Permalink }}">
-        {{ partial "post-thumb.html" (dict "page" $p "eager" (eq $i 0)) }}
-        <span class="post-row-main">
-          <span class="post-row-title-line">
-            <span class="post-row-title">{{ $p.Title }}</span>
-            {{ if $p.Params.featured }}<span class="post-row-featured">精选</span>{{ end }}
-          </span>
-          <span class="post-row-summary">{{ $p.Summary | plainify | truncate 90 }}</span>
-        </span>
-        <time class="post-row-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format "2006-01-02" }}</time>
-      </a>
-    {{ else }}
-      <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
-    {{ end }}
+    <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
   {{ end }}
 </section>
 
 <div class="list-toolbar">
-  <div class="home-side-actions">
-    <button type="button" class="random-btn" id="random-btn" title="随机显示 5 篇文章" aria-label="随机显示 5 篇文章">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="16 3 21 3 21 8"></polyline>
-        <line x1="4" y1="20" x2="21" y2="3"></line>
-        <polyline points="21 16 21 21 16 21"></polyline>
-        <line x1="15" y1="15" x2="21" y2="21"></line>
-        <line x1="4" y1="4" x2="9" y2="9"></line>
-      </svg>
-    </button>
-  </div>
-  <a class="home-archive-link" href="{{ "archive/" | relURL }}">查看归档 →</a>
-  <div class="home-side-actions">
-    <button type="button" class="random-btn random-enter-btn" id="random-post-btn" title="随机进入一篇文章" aria-label="随机进入一篇文章">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"></circle>
-        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-      </svg>
-    </button>
-  </div>
+  {{ partial "pager.html" $paginator }}
+  <a class="home-archive-link" href="{{ "archive/" | relURL }}">查看归档</a>
 </div>
-
-<script>
-(function () {
-  var btn = document.getElementById("random-btn");
-  var randomPostBtn = document.getElementById("random-post-btn");
-  var list = document.getElementById("post-list");
-  if (!btn || !list) return;
-
-  var cache = null;
-  var current = [];
-
-  function loadIndex() {
-    if (cache) return Promise.resolve(cache);
-    return fetch("/post-index.json")
-      .then(function (r) { return r.json(); })
-      .then(function (d) { cache = d; return d; });
-  }
-
-  function postsOf(all) {
-    return all.filter(function (p) { return p.type === "posts"; });
-  }
-
-  function shuffle(a) {
-    var c = a.slice();
-    for (var i = c.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var t = c[i]; c[i] = c[j]; c[j] = t;
-    }
-    return c;
-  }
-
-  function pick5(all) {
-    var out = shuffle(all).slice(0, 5);
-    if (current.length === 5) {
-      var same = current.every(function (a, i) { return a.url === out[i].url; });
-      if (same) out = shuffle(all).slice(0, 5);
-    }
-    return out;
-  }
-
-  function makeRow(p) {
-    var a = document.createElement("a");
-    a.className = "post-row post-row-home is-random-row";
-    a.href = p.url;
-
-    var thumb = document.createElement("span");
-    thumb.className = "post-thumb";
-    if (p.thumb) {
-      var img = document.createElement("img");
-      img.src = p.thumb;
-      img.alt = "";
-      img.width = 128;
-      img.height = 128;
-      img.loading = "lazy";
-      img.decoding = "async";
-      thumb.appendChild(img);
-    } else {
-      thumb.classList.add("post-thumb-fallback");
-      thumb.setAttribute("aria-hidden", "true");
-      thumb.textContent = (p.title || "").charAt(0);
-    }
-    a.appendChild(thumb);
-
-    var main = document.createElement("span");
-    main.className = "post-row-main";
-    var line = document.createElement("span");
-    line.className = "post-row-title-line";
-    var title = document.createElement("span");
-    title.className = "post-row-title";
-    title.textContent = p.title;
-    line.appendChild(title);
-    if (p.featured) {
-      var badge = document.createElement("span");
-      badge.className = "post-row-featured";
-      badge.textContent = "精选";
-      line.appendChild(badge);
-    }
-    main.appendChild(line);
-    if (p.summary) {
-      var summary = document.createElement("span");
-      summary.className = "post-row-summary";
-      summary.textContent = p.summary;
-      main.appendChild(summary);
-    }
-
-    a.appendChild(main);
-
-    var date = document.createElement("time");
-    date.className = "post-row-date";
-    date.dateTime = p.date;
-    date.textContent = p.date;
-    a.appendChild(date);
-    return a;
-  }
-
-  function render(rows) {
-    list.innerHTML = "";
-    if (!rows.length) return;
-    rows.forEach(function (p) {
-      list.appendChild(makeRow(p));
-    });
-    list.classList.add("is-random");
-  }
-
-  btn.addEventListener("click", function () {
-    loadIndex()
-      .then(function (all) {
-        current = pick5(all);
-        render(current);
-      })
-      .catch(function () {});
-  });
-
-  if (randomPostBtn) {
-    randomPostBtn.addEventListener("click", function () {
-      loadIndex()
-        .then(function (all) {
-          var posts = postsOf(all);
-          if (!posts.length) return;
-          var p = posts[Math.floor(Math.random() * posts.length)];
-          window.location.assign(p.url);
-        })
-        .catch(function () {});
-    });
-  }
-})();
-</script>
 
 {{ end }}

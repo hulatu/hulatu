@@ -14,9 +14,6 @@ fi
 STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
 
-# OG 图先落到 static/og/，下面的 hugo 构建才会把它们复制进 $STAGE/og/
-python3 scripts/og-images.py
-
 hugo --gc --minify --destination "$STAGE"
 
 if rg -q "livereload" "$STAGE/index.html" 2>/dev/null; then

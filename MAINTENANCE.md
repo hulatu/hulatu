@@ -18,10 +18,7 @@ hugo new content/weekly/周刊-第N期.md       # 周刊
 | `title` | 标题 |
 | `slug` | URL 后缀，改后旧链接会失效（需加 301，见"部署"） |
 | `summary` | 搜索摘要、分享卡片描述 |
-| `cover` | 封面图（远程 URL 或本地路径） |
 | `categories` / `tags` | 分类 / 标签，决定分类页、标签云、相关文章 |
-| `featured` | `true` 会进入首页"精选" |
-| `series` | 系列名，文章底部出现系列导航，并自动归入 `/series/` 聚合页 |
 | `comments` | 填 `false` 可单独关闭这篇文章的评论 |
 | `draft` | `true` 表示草稿，不会发布 |
 
@@ -68,24 +65,17 @@ hugo server -D
 | 页脚、头像、社交链接 | `layouts/partials/footer.html`、`hugo.toml` |
 | 页脚图标链接（系列 / 朋友 / 书影音 / GitHub / 邮箱 / 隐私） | `layouts/partials/footer.html` 的 `.footer-icon-links`，每项是一个内联 SVG，统一规格 `viewBox="0 0 24 24"` / `width=17 height=17` / `stroke-width=2` / `stroke="currentColor"`。图标依次是：**层叠**（系列）、**双人**（朋友）、**胶片**（书影音）、GitHub 标、**信封**（邮箱）、**盾牌对勾**（隐私）。系列刻意不在导航栏，只在这里 |
 | 首页文案（"总得留下点什么吧"） | `layouts/index.html` 顶部 hero |
-| 首页精选/时间/随机逻辑 | `layouts/index.html` 里的内联脚本 |
-| 首页每次展示几篇 | 脚本里的 `PER_PAGE = 5` |
-| 周刊每页几期 | `hugo.toml` 的 `[pagination] pagerSize` |
-| 系列聚合页 / 系列简介 | `content/series/`：`_index.md` 是总览页，每个系列一个同名 md 写简介；模板在 `layouts/series/` |
-| 周刊专栏头图 | `content/weekly/_index.md` 的 `headerImage` |
+| 首页每页展示几篇 | `layouts/index.html` 里的 `.Paginate $posts 10`；周刊在 `layouts/weekly/list.html` 里的 `.Paginate $all 10` |
 | 周刊期号徽章 | 从标题「第 X 期」自动解析，逻辑在 `layouts/partials/issue-num.html` |
 | 文章底部「编辑此页」 | `hugo.toml` 的 `[params.edit]`（`repo` + `branch`，`repo` 留空则整个链接不显示）；链接由 `.File.Path` 拼出，模板在 `layouts/_default/single.html` 的 `.post-actions` |
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
-| 手动提交发布 | 终端输入 `up` → `publish.sh`（生成 OG 分享图 → 抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
-| OG 分享图 | 生成器 `scripts/og-images.py`，输出到 **`static/og/` 并提交进 git**（Hugo 构建时把 `static/` 复制到 `public/og/`，所以本地和平台构建都有图）。生成时机在 `publish.sh` 里，必须赶在 `git add` 和 `hugo` 之前。`og:image` 元信息在 `layouts/partials/head-meta.html` |
+| 手动提交发布 | 终端输入 `up` → `publish.sh`（抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
-| 列表缩略图 | 原图放 `assets/img/thumbs/`（不是 `static/`，为了能走构建期缩放），由 `layouts/partials/thumb-src.html` 缩出 64 档，`post-thumb.html` 用 `srcset` 输出 64/220 两档。文件名按封面图名自动匹配 |
-| 搜索 | 逻辑 `assets/js/search.js`，索引模板 `layouts/index.searchindex.json` |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
-| 深浅色 | `assets/js/theme.js` + `assets/css/style.css` 的 `[data-theme="dark"]` |
-| 打赏 / 关注公众号 | `hugo.toml` 的 `[params.donate]`、`[params.wechat]` |
+| 深浅色 | `assets/js/theme.js` 自动跟随系统 `prefers-color-scheme`，配色变量在 `assets/css/style.css` 的 `[data-theme="dark"]` |
+| 打赏 | `hugo.toml` 的 `[params.donate]` |
 | 订阅格式 | `layouts/_default/rss.xml`（主源 + 周刊 section 源） |
 
 ### 颜色 / 字体 / 间距
@@ -128,15 +118,14 @@ up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
 `up`（函数定义在 `~/.config/zsh/.zshrc`）实际只做两件事：
 
 1. **`bash ./publish.sh`** —— 依次：
-   - 生成 OG 分享图：`scripts/og-images.py` → 写 `static/og/`
    - 抓取正文图片宽高：`scripts/fetch-image-dims.py` → 写 `data/image_dims.json`
    - `git add .` + 提交（commit 信息：博客：新增/修改文章）
    - 推 GitHub → `git pull --rebase` 拉取远端 → 再完整推送
 
-   这两步都要**赶在 `git add` 之前**跑，产物才能跟文章一起提交、被平台构建读到。
+   图片尺寸数据要**赶在 `git add` 之前**跑，产物才能跟文章一起提交、被平台构建读到。
 2. **`hugo --minify`** —— 本地构建一份预览到 `public/`。`public/` 在 `.gitignore` 里，不会上传，纯粹给你自己看效果。
 
-> ⚠️ `up` **不会**调用 `./deploy.sh`。`deploy.sh` 是手动脚本，做「干净构建 + livereload 自检」，只写本地 `public/`，不上传也不部署。它同样把 OG 图生成放在 `hugo` 之前。
+> ⚠️ `up` **不会**调用 `./deploy.sh`。`deploy.sh` 是手动脚本，做「干净构建 + livereload 自检」，只写本地 `public/`，不上传也不部署。
 
 **要上线，只要 push 成功就够了。**
 
@@ -161,33 +150,14 @@ up
 
 说明：跑步数据现在由 GitHub Actions 定时同步；本地如需手动同步，可运行 `python3 scripts/sync-garmin.py`。令牌过期时先重跑 `python3 scripts/garmin-token.py`，然后更新 GitHub Secret。脚本默认只同步跑步（`running`），想加其他运动类型用环境变量 `GARMIN_TYPES=running,cycling`。garminconnect 是非官方接口，Garmin 改版后若失效，留意同步时的报错并按提示调整。
 
-### 系列 / 专栏
-
-- 给文章 front matter 填 `series: "系列名"`，它就会出现在 `/series/` 里；
-- 想让系列有简介和独立页面，在 `content/series/` 下新建一个 md，front matter 写：
-
-```yaml
----
-title: "综述写作"
-seriesName: "综述写作"     # 必须和文章的 series 值一致
-description: "一句话简介，显示在总览卡片上"
-weight: 1                  # 总览页排序
----
-正文写系列简介。
-```
-
-- 周刊会自动归入「周刊」系列：`content/series/周刊.md` 里用 `seriesType: "weekly"` 标记，按 `Type` 汇总，不依赖 `series` 字段（所以早期没填 `series` 的几期也不会漏）；
-- 系列详情页的「已读 x/N」进度存在浏览器 `localStorage`（键名 `series-read`），换设备不跟随，也不需要后端。
-
 ## 三、部署与托管
 
 日常发布走 `up`（见上一节）。**线上部署由 Cloudflare Pages 的 Git 集成完成**：push 到 GitHub 后平台自己构建并发布。本机没有安装 wrangler，也不做手动上传（原因见上一节）。
 
 `deploy.sh` 是一个**手动**的干净构建脚本，做的事：
 
-1. `python3 scripts/og-images.py` 生成 OG 分享图到 `static/og/`（必须排在 `hugo` **之前**，这样才会被复制进产物）；
-2. `hugo --gc --minify` 干净构建到临时目录，并检查产物里没有 livereload 调试脚本；
-3. `rsync -a --delete` 同步到 `public/`。
+1. `hugo --gc --minify` 干净构建到临时目录，并检查产物里没有 livereload 调试脚本；
+2. `rsync -a --delete` 同步到 `public/`。
 
 它只更新本地 `public/`，**不上传、不部署**。想确认构建产物是否干净、或想强制全量重建时用它。
 
@@ -209,13 +179,10 @@ weight: 1                  # 总览页排序
 
 - `sitemap.xml`：应有全部文章、分类、标签页（干净构建后约 260+ 条）。
 - `index.html`：不应包含 `livereload`。
-- `search-index.json`：文章更新后重新构建会重新生成，浏览器端缓存策略已设为不缓存。
 
 图片约定：
 
-- 封面图用远程图床 URL（当前为 `https://img.hulatu.com/...`）最省流量；本地图放 `static/`。
-- 首页/列表缩略图按封面文件名自动映射到 `assets/img/thumbs/<文件名去扩展名>.webp`，文件名里的空格会替换成 `_`。要更新某篇文章的缩略图，替换对应的 `assets/img/thumbs/xxx.webp` 即可（构建期会自动缩出 64 档）。
-- 清理孤儿缩略图：对比 `public/post-index.json` 里的 `thumb` 列表与 `assets/img/thumbs/` 下的文件，删掉没被引用的。
+- 正文图片用远程图床 URL（当前为 `https://img.hulatu.com/...`）最省流量；本地图放 `static/`。
 - 正文图宽高缓存：新增带图的文章后跑一次 `python3 scripts/fetch-image-dims.py`（`up` 里已自动包含）。漏跑也不会出错，只是那几张图没有宽高属性、加载时会跳动。
 
 可随时安全删除的构建产物（下次构建自动重建）：
@@ -231,6 +198,6 @@ rm -rf public resources .hugo_build.lock
 | 新文章发布后首页看不到 | front matter 的 `draft` 还是 `true` |
 | 搜索找不到新文章 | 重新构建（搜索索引是构建时生成的） |
 | 文章页没有"相关文章" | 同标签/同分类的文章太少，低于 `[related]` 的 `threshold = 60` |
-| 周刊翻页数量不对 | 检查 `hugo.toml` 的 `pagerSize` |
+| 首页或周刊翻页数量不对 | 检查 `layouts/index.html` / `layouts/weekly/list.html` 里的 `.Paginate` 第二参数（当前为 10） |
 | 改了 slug 后旧链接 404 | 在 `static/_redirects` 补 301 规则 |
 | 手机上目录按钮没出现 | 文章没有二级以上标题，不会生成目录 |

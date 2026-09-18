@@ -15,21 +15,16 @@
   {{- end -}}
 {{- end -}}
 {{- $src := .Destination -}}
-{{- $full := .Destination -}}
 {{- $src480 := .Destination -}}
 {{- $isGif := strings.HasSuffix (strings.ToLower .Destination) ".gif" -}}
 {{- if and (not $isGif) (hasPrefix .Destination "http") -}}
   {{- $src480 = partial "cf-image.html" (dict "src" .Destination "params" "width=480,fit=scale-down,format=auto,quality=65,metadata=none") -}}
   {{- $src = partial "cf-image.html" (dict "src" .Destination "params" "width=960,fit=scale-down,format=auto,quality=65,metadata=none") -}}
-  {{- $full = partial "cf-image.html" (dict "src" .Destination "params" "width=1920,fit=scale-down,format=auto,quality=75,metadata=none") -}}
 {{- end -}}
 <figure class="article-image">
   <img
     src="{{ $src }}"
     alt="{{ .Text }}"
-    data-lightbox
-    data-full="{{ $full }}"
-    data-caption="{{ .Text }}"
     loading="lazy" decoding="async"
     {{ if ne $src480 .Destination }}srcset="{{ $src480 }} 480w, {{ $src }} 960w" sizes="(max-width: 600px) 480px, 960px"{{ end }}
     {{ with $w }}width="{{ . }}"{{ end }}

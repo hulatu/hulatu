@@ -1,7 +1,7 @@
 {{- $jsFiles := slice -}}
-{{- range (slice "theme" "ui" "scroll-tools" "image-lightbox" "search" "toc" "code-copy" "giscus-theme") -}}
+{{- range (slice "theme" "ui" "toc" "giscus-theme") -}}
   {{- $jsFiles = $jsFiles | append (resources.Get (printf "js/%s.js" .)) -}}
 {{- end -}}
 {{- $bundle := $jsFiles | resources.Concat "js/bundle.js" | minify | fingerprint -}}
 
-<script src="{{ $bundle.RelPermalink }}" integrity="{{ $bundle.Data.Integrity }}" crossorigin="anonymous" data-search-index="{{ "search-index.json" | relURL }}" defer></script>
+<script src="{{ $bundle.RelPermalink }}" integrity="{{ $bundle.Data.Integrity }}" crossorigin="anonymous" defer></script>
