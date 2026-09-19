@@ -5,17 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {{- $pageTitle := partial "page-title.html" . -}}
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ $pageTitle }} - {{ site.Title }}{{ end }}</title>
-  {{- $metaDesc := site.Params.description -}}
-  {{- if .Description -}}
-    {{- $metaDesc = .Description -}}
-  {{- else if .IsPage -}}
-    {{- $metaDesc = (.Summary | plainify | truncate 160) | default site.Params.description -}}
-  {{- else if eq .Kind "term" -}}
-    {{- $metaDesc = printf "%s：收录 %d 篇相关文章" .Title (len .Pages) -}}
-  {{- else if eq .Kind "taxonomy" -}}
-    {{- $metaDesc = printf "%s：按主题浏览站内文章" .Title -}}
-  {{- end -}}
-  <meta name="description" content="{{ $metaDesc }}">
   {{- $noindex := eq .Data.Plural "tags" -}}
   {{- if $noindex }}
   <meta name="robots" content="noindex, follow">

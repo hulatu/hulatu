@@ -27,7 +27,7 @@
 </section>
 {{ else }}
 <h1 class="page-title">{{ .Title }}</h1>
-<section class="category-grid group-card">
+<section class="category-grid">
   {{ range .Pages.ByTitle }}
     <a class="category-card" href="{{ .Permalink }}">
       <span class="category-card-name">{{ .Title }}</span>
