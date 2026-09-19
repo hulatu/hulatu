@@ -39,10 +39,16 @@
   ],
   "subscriptions": [
     {
-      "label": "RSS 全站",
+      "label": "全站文章",
       "url": "https://hulatu.com/index.xml",
-      "desc": "文章与周刊"
+      "desc": "所有文章"
     },
+    {
+      "label": "周刊文章",
+      "url": "https://hulatu.com/weekly/index.xml",
+      "desc": "周刊内容"
+    },
+
     {
       "label": "Telegram",
       "url": "https://t.me/flyhulatu",
@@ -50,7 +56,7 @@
     },
     {
       "label": "公众号",
-      "url": "",
+      "url": "https://img.hulatu.com/post/bk7UaF.webp",
       "desc": "公众号：胡拉图说"
     }
   ],
@@ -180,7 +186,7 @@
         {
           "label": "公众号",
           "icon": "wechat",
-          "url": "",
+          "url": "https://img.hulatu.com/post/bk7UaF.webp",
           "desc": "公众号：胡拉图说"
         },
         {

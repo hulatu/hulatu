@@ -11,7 +11,7 @@
   {{- end }}
   {{- $giscusPage := false -}}
   {{- if site.Params.giscus.repo -}}
-    {{- if or (and .IsPage (in (slice "posts" "weekly") .Type) (ne .Params.comments false)) (eq .RelPermalink "/guestbook/") -}}
+    {{- if and .IsPage (in (slice "posts" "weekly") .Type) (ne .Params.comments false) -}}
       {{- $giscusPage = true -}}
     {{- end -}}
   {{- end -}}

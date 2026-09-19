@@ -120,10 +120,6 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     name = "周刊"
     url = "/weekly/"
     weight = 5
-  [[menu.main]]
-    name = "留言"
-    url = "/guestbook/"
-    weight = 10
 
 [taxonomies]
   category = "categories"
