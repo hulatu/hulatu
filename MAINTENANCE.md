@@ -17,12 +17,12 @@ hugo new content/weekly/周刊-第N期.md       # 周刊
 |---|---|
 | `title` | 标题 |
 | `slug` | URL 后缀，改后旧链接会失效（需加 301，见"部署"） |
-| `summary` | 搜索摘要、分享卡片描述 |
+| `summary` | 摘要、分享卡片描述 |
 | `categories` / `tags` | 分类 / 标签，决定分类页、标签云、相关文章 |
 | `comments` | 填 `false` 可单独关闭这篇文章的评论 |
 | `draft` | `true` 表示草稿，不会发布 |
 
-发布前把 `draft` 改成 `false`，然后 `./deploy.sh`。
+发布前把 `draft` 改成 `false`，然后执行 `./publish.sh`（或终端里的 `up`）。
 
 ### 备份
 
@@ -38,7 +38,7 @@ BACKUP_DEST="/Volumes/SSD/hulatu-blog" bash scripts/backup-blog.sh
 
 ### 子站点
 
-`run.hulatu.com`、`shot.hulatu.com`、`share.hulatu.com` 和 `profile.hulatu.com` 是独立 Hugo 站点，源码分别在 `sites/run/`、`sites/shot/`、`sites/share/` 和 `sites/profile/`。本地一起构建：
+`run.hulatu.com`、`shot.hulatu.com`、`share.hulatu.com` 和 `profile.hulatu.com` 是独立 Hugo 站点，源码分别在 `sites/run/`、`sites/shot/`、`sites/share/` 和 `sites/profile/`。目前 `shot` 和 `share` 还没有实际内容，暂时不上线。本地一起构建：
 
 ```bash
 bash scripts/build-subdomains.sh
@@ -63,13 +63,13 @@ hugo server -D
 | 博客名、描述、作者 | `hugo.toml` 顶部 |
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚、头像、社交链接 | `layouts/partials/footer.html`、`hugo.toml` |
-| 页脚图标链接（系列 / 朋友 / 书影音 / GitHub / 邮箱 / 隐私） | `layouts/partials/footer.html` 的 `.footer-icon-links`，每项是一个内联 SVG，统一规格 `viewBox="0 0 24 24"` / `width=17 height=17` / `stroke-width=2` / `stroke="currentColor"`。图标依次是：**层叠**（系列）、**双人**（朋友）、**胶片**（书影音）、GitHub 标、**信封**（邮箱）、**盾牌对勾**（隐私）。系列刻意不在导航栏，只在这里 |
-| 首页文案（"总得留下点什么吧"） | `layouts/index.html` 顶部 hero |
+| 页脚链接（花园 / 友链 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license` |
+| 首页文案（"一名食品研究生的思考、运动与折腾记录"） | `layouts/index.html` 顶部 hero |
 | 首页每页展示几篇 | `layouts/index.html` 里的 `.Paginate $posts 10`；周刊在 `layouts/weekly/list.html` 里的 `.Paginate $all 10` |
 | 周刊期号徽章 | 从标题「第 X 期」自动解析，逻辑在 `layouts/partials/issue-num.html` |
-| 文章底部「编辑此页」 | `hugo.toml` 的 `[params.edit]`（`repo` + `branch`，`repo` 留空则整个链接不显示）；链接由 `.File.Path` 拼出，模板在 `layouts/_default/single.html` 的 `.post-actions` |
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
-| 标签云（展示几个标签） | `layouts/_default/single.html` 里的 `first 15` |
+| 上一篇 / 下一篇导航 | `layouts/_default/single.html` 里的 `.post-nav` |
+| 标签云（展示哪些标签） | `layouts/_default/taxonomy.html` 里 `site.Taxonomies.tags.ByCount` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1200px`（固定侧栏）和 `899.98px`（移动端隐藏） |
 | 手动提交发布 | 终端输入 `up` → `publish.sh`（抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
@@ -101,9 +101,13 @@ hugo server -D
 
 ### 跑步数据
 
-跑步数据展示在独立的 `run.hulatu.com`。数据链路：Garmin 255 同步到 Garmin Connect → GitHub Actions 定时拉取 → 合并写入 `data/runs.json` 和 `sites/run/data/runs.json` → 仅在数据变化时提交推送 → Cloudflare Pages 构建 `run.hulatu.com`。
+跑步数据展示在独立的 `run.hulatu.com`。数据链路：Garmin 255 同步到 Garmin Connect → GitHub Actions 定时拉取或本机手动同步 → 合并写入 `data/runs.json`、`sites/run/data/runs.json` 和 `sites/profile/data/run_summary.json` → 提交推送 → Cloudflare Pages 构建对应子站。
 
-已取消每日定时任务（GitHub Actions 定时拉取 + 本机 LaunchAgent 自动提交）。现在全部手动：
+GitHub Actions 目前每天 22:00（Asia/Taipei）跑一次 `.github/workflows/sync-garmin.yml`；也可以本机手动同步：
+
+```bash
+python3 scripts/sync-garmin.py
+```
 
 ```bash
 up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
@@ -161,10 +165,9 @@ up
 
 它只更新本地 `public/`，**不上传、不部署**。想确认构建产物是否干净、或想强制全量重建时用它。
 
-托管平台相关的三个文件都在 `static/`，部署时会原样发布：
+托管平台相关的两个文件都在 `static/`，部署时会原样发布：
 
-- `CNAME`：域名绑定。
-- `_headers`：缓存策略（CSS/JS 7 天、图片 30 天、搜索索引不缓存等）。
+- `_headers`：缓存与安全响应头（CSS/JS 长缓存、图片 30 天、RSS 1 小时、`rss.xsl` 的 Content-Type 等）。
 - `_redirects`：旧链接 301 跳转。**以后改文章的 slug 或移动文章，一定要在这里补一条 301**，否则旧链接会 404，搜索引擎收录的地址也会失效。
 
 ## 四、性能与 SEO 维护清单
@@ -177,7 +180,7 @@ up
 
 然后检查 `public/` 里这几样：
 
-- `sitemap.xml`：应有全部文章、分类、标签页（干净构建后约 260+ 条）。
+- `sitemap.xml`：应有全部文章、分类、周刊、友链等页面（标签页已排除，干净构建后约 260+ 条）。
 - `index.html`：不应包含 `livereload`。
 
 图片约定：
@@ -196,7 +199,6 @@ rm -rf public resources .hugo_build.lock
 | 现象 | 原因 / 处理 |
 |---|---|
 | 新文章发布后首页看不到 | front matter 的 `draft` 还是 `true` |
-| 搜索找不到新文章 | 重新构建（搜索索引是构建时生成的） |
 | 文章页没有"相关文章" | 同标签/同分类的文章太少，低于 `[related]` 的 `threshold = 60` |
 | 首页或周刊翻页数量不对 | 检查 `layouts/index.html` / `layouts/weekly/list.html` 里的 `.Paginate` 第二参数（当前为 10） |
 | 改了 slug 后旧链接 404 | 在 `static/_redirects` 补 301 规则 |

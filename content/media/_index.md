@@ -12,7 +12,7 @@ outputs: ["HTML"]
 
 {{< book cover="https://img.hulatu.com/post/IgAOvR.webp" title="纳瓦尔宝典" creator="[美] 埃里克·乔根森">}}
 
-{{< book cover="https://img.hulatu.com/post/IgAOvR.webp" title="禅与摩托车维修艺术" creator="罗伯特·M·波西格">}}
+{{< book cover="https://img.hulatu.com/post/PQ7Y6V.webp" title="禅与摩托车维修艺术" creator="罗伯特·M·波西格">}}
 
 {{< book cover="https://img.hulatu.com/post/Yumr4L.webp" title="一只特立独行的猪" creator="王小波">}}
 

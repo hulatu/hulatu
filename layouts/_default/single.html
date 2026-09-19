@@ -114,7 +114,10 @@
     <h2 class="related-title">相关文章</h2>
     <div class="post-list">
       {{ range $relatedPosts }}
-        {{ partial "post-row.html" . }}
+        <a class="post-row post-row-home" href="{{ .Permalink }}">
+          <span class="post-row-title">{{ .Title }}</span>
+          <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+        </a>
       {{ end }}
     </div>
   </section>

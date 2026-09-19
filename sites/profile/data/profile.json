@@ -25,12 +25,6 @@
       "desc": "你正在看的页面"
     },
     {
-      "label": "经验分享",
-      "domain": "share.hulatu.com",
-      "url": "https://share.hulatu.com/",
-      "desc": "静态投稿与好物推荐"
-    },
-    {
       "label": "简历 / 作品集",
       "domain": "待上传",
       "url": "",
@@ -99,14 +93,6 @@
           "desc": "跑步数据"
         },
         {
-          "name": "shot.hulatu.com",
-          "desc": "瞬间"
-        },
-        {
-          "name": "share.hulatu.com",
-          "desc": "经验分享"
-        },
-        {
           "name": "profile.hulatu.com",
           "desc": "个人主页"
         }
@@ -152,12 +138,6 @@
           "icon": "media",
           "url": "https://hulatu.com/media/",
           "desc": "读过的书、看过的影像"
-        },
-        {
-          "label": "工具",
-          "icon": "tools",
-          "url": "https://hulatu.com/tools/",
-          "desc": "软件、设备与工作流"
         },
         {
           "label": "友链",
@@ -224,18 +204,6 @@
           "icon": "run",
           "url": "https://run.hulatu.com/",
           "desc": "Garmin 跑步数据"
-        },
-        {
-          "label": "瞬间",
-          "icon": "shot",
-          "url": "https://shot.hulatu.com/",
-          "desc": "朋友圈式图片分享"
-        },
-        {
-          "label": "经验分享",
-          "icon": "share",
-          "url": "https://share.hulatu.com/",
-          "desc": "好物与真实体验"
         }
       ]
     }

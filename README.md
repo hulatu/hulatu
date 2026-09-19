@@ -9,13 +9,13 @@
 - **首页**：按时间倒序每页 10 篇，底部左右箭头翻页
 - **文章页**：目录（桌面侧栏 / 手机端底部抽屉）、相关文章、上一篇/下一篇、打赏、评论
 - **评论系统**：接入 [giscus](https://giscus.app)（基于 GitHub Discussions），跟随系统深浅色主题
-- **无刷新导航**：站内跳转只替换正文，不整页刷新（pjax）
+- **站内预取**：用浏览器原生的 Speculation Rules 预取同源链接，点击后更快打开
 - **深色 / 浅色模式**：自动跟随系统，无需手动切换
 - **归档页**：按年份、月份折叠分组展示所有文章
 - **分类 / 标签**：自动生成总览和文章列表
 - **周刊**：独立栏目 + 简单 RSS 订阅 + 最近 10 期列表 + 专属 RSS
 - **订阅**：RSS 2.0，含主源与周刊专线
-- **延伸子站**：`run.hulatu.com`（跑步数据）、`shot.hulatu.com`（朋友圈式分享）、`share.hulatu.com`（好物与经验分享）和 `profile.hulatu.com`（个人主页），源码在 `sites/`
+- **延伸子站**：`run.hulatu.com`（跑步数据）、`profile.hulatu.com`（个人主页）已上线；`shot.hulatu.com`、`share.hulatu.com` 暂未启用，源码在 `sites/`
 - **SEO**：canonical、Open Graph、Twitter Card、JSON-LD、sitemap、robots、旧链接 301 跳转
 
 ## 📁 目录结构
@@ -44,7 +44,9 @@ blog/
 │   ├── runs.json                # 跑步数据（供 run.hulatu.com 使用）
 │   └── image_dims.json          # 正文远程图片的宽高缓存（避免图片加载时页面跳动）
 ├── static/
-│   ├── media/                   # 书影音配图
+│   ├── images/                  # 头像、分享图
+│   ├── img/                     # 本地图片资源
+│   ├── js/                      # 本地脚本
 ├── archetypes/posts.md         # 新建文章的默认模板
 └── hugo.toml                   # 站点配置
 ```

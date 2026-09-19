@@ -47,16 +47,7 @@
     <section class="about-section">
       <h2>网站导览</h2>
       <p class="about-section-desc">本站的主要栏目，按需逛逛。</p>
-      <ul class="about-link-list">
-        {{- range . -}}
-        <li>
-          <a href="{{ .url | relURL }}">
-            <span class="about-link-title">{{ .label }}</span>
-            {{- with .note }}<span class="about-link-note">{{ . }}</span>{{ end -}}
-          </a>
-        </li>
-        {{- end -}}
-      </ul>
+      {{ partial "about-link-list" (dict "items" .) }}
     </section>
     {{- end -}}
 
