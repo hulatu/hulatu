@@ -88,10 +88,16 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 
 
 [outputs]
-  home = ["HTML", "RSS", "JSON"]
+  home = ["HTML", "RSS", "SearchIndex"]
   section = ["HTML", "RSS"]
   taxonomy = ["HTML"]
   term = ["HTML"]
+
+[outputFormats.SearchIndex]
+  mediaType = "application/json"
+  baseName = "search-index"
+  isPlainText = true
+  notAlternative = true
 
 [markup]
   [markup.goldmark]

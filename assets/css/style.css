@@ -2706,6 +2706,16 @@ body.search-open { overflow: hidden; }
   font-size: 0.9rem;
 }
 
+.search-footer {
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
 @media (max-width: 600px) {
   .lightbox-figure { padding: 56px 20px; }
   .lightbox-prev { left: 8px; }

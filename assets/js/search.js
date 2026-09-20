@@ -7,6 +7,7 @@
   var panel = null;
   var input = null;
   var list = null;
+  var footer = null;
   var index = [];
   var loaded = false;
   var results = [];
@@ -23,15 +24,17 @@
       '<div class="search-box" role="dialog" aria-modal="true" aria-label="搜索">' +
         '<div class="search-head">' +
           '<svg class="search-head-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' +
-          '<input class="search-input" type="search" placeholder="搜索文章…" autocomplete="off" spellcheck="false" aria-label="搜索关键词">' +
+          '<input class="search-input" type="search" placeholder="搜索标题、摘要、描述…" autocomplete="off" spellcheck="false" aria-label="搜索关键词">' +
           '<button type="button" class="search-close" data-close aria-label="关闭">Esc</button>' +
         '</div>' +
         '<div class="search-results" role="listbox"></div>' +
+        '<div class="search-footer"></div>' +
       '</div>';
     document.body.appendChild(panel);
 
     input = panel.querySelector(".search-input");
     list = panel.querySelector(".search-results");
+    footer = panel.querySelector(".search-footer");
     panel.querySelector("[data-close]").addEventListener("click", close);
     input.addEventListener("input", function () { render(input.value); });
     input.addEventListener("keydown", onKey);
@@ -71,13 +74,7 @@
 
   function match(item, q) {
     if (!q) return true;
-    var hay = [
-      item.title,
-      item.summary,
-      item.date,
-      (item.categories || []).join(" "),
-      (item.tags || []).join(" ")
-    ].join(" ");
+    var hay = [item.title, item.summary, item.description].join(" ");
     return normalize(hay).indexOf(normalize(q)) !== -1;
   }
 
@@ -102,21 +99,23 @@
 
     if (!loaded) {
       list.innerHTML = '<p class="search-empty">正在加载索引…</p>';
+      footer.textContent = "↑↓ 选择　Enter 打开　Esc 关闭";
       return;
     }
     if (!results.length) {
-      list.innerHTML = '<p class="search-empty">' + (trimmed ? "没有找到相关文章" : "输入关键词，搜索标题、摘要、分类和标签") + "</p>";
+      list.innerHTML = '<p class="search-empty">' + (trimmed ? "没有找到相关文章" : "输入关键词，搜索标题、摘要和描述") + "</p>";
+      footer.textContent = "↑↓ 选择　Enter 打开　Esc 关闭";
       return;
     }
 
     list.innerHTML = results.map(function (item) {
-      var meta = [item.date, (item.categories || []).join(" · ")].filter(Boolean).join(" · ");
       return '<a class="search-result" href="' + escapeHtml(item.url) + '" role="option">' +
         '<span class="search-result-title">' + highlight(item.title, trimmed) + "</span>" +
         '<span class="search-result-summary">' + highlight(item.summary, trimmed) + "</span>" +
-        '<span class="search-result-meta">' + escapeHtml(meta) + "</span>" +
+        '<span class="search-result-meta">' + escapeHtml(item.date || "") + "</span>" +
       "</a>";
     }).join("");
+    footer.textContent = results.length + " 个结果　·　↑↓ 选择　Enter 打开　Esc 关闭";
   }
 
   function setActive(i) {

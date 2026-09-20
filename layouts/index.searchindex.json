@@ -1,17 +1,12 @@
 {{- $posts := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
 {{- $items := slice -}}
 {{- range $posts -}}
-  {{- $cats := .Params.categories -}}
-  {{- if not $cats }}{{ $cats = slice }}{{ end -}}
-  {{- $tags := .Params.tags -}}
-  {{- if not $tags }}{{ $tags = slice }}{{ end -}}
   {{- $item := dict
     "title" .Title
     "summary" (.Summary | plainify | truncate 120)
+    "description" (.Description | plainify)
     "url" .RelPermalink
     "date" (.Date.Format "2006-01-02")
-    "categories" $cats
-    "tags" $tags
   -}}
   {{- $items = $items | append $item -}}
 {{- end -}}
