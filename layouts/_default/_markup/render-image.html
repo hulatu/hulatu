@@ -17,11 +17,13 @@
 {{- $src := .Destination -}}
 {{- $src480 := .Destination -}}
 {{- $isGif := strings.HasSuffix (strings.ToLower .Destination) ".gif" -}}
+{{- $full := .Destination -}}
 {{- if and (not $isGif) (hasPrefix .Destination "http") -}}
   {{- $src480 = partial "cf-image.html" (dict "src" .Destination "params" "width=480,fit=scale-down,format=auto,quality=65,metadata=none") -}}
   {{- $src = partial "cf-image.html" (dict "src" .Destination "params" "width=960,fit=scale-down,format=auto,quality=65,metadata=none") -}}
+  {{- $full = partial "cf-image.html" (dict "src" .Destination "params" "width=1600,fit=scale-down,format=auto,quality=85,metadata=none") -}}
 {{- end -}}
-<figure class="article-image">
+<figure class="article-image" data-full="{{ $full | htmlEscape }}"{{ with .Text }} data-caption="{{ . | htmlEscape }}"{{ end }}>
   <img
     src="{{ $src }}"
     alt="{{ .Text }}"

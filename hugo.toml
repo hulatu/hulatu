@@ -88,7 +88,7 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 
 
 [outputs]
-  home = ["HTML", "RSS"]
+  home = ["HTML", "RSS", "JSON"]
   section = ["HTML", "RSS"]
   taxonomy = ["HTML"]
   term = ["HTML"]
