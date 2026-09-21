@@ -66,5 +66,5 @@ about:
       url: "https://img.hulatu.com/post/qbD1Mk.webp"
     - label: "Gmail"
       note: "点击给我发邮件"
-      url: "mailto:flyhulatu@gmail.com"
+      url: "mailto:hello@hulatu.com"
 ---
