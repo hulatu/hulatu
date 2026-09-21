@@ -3,7 +3,8 @@
 title: "AI 时代，也应该拥抱英语"
 date: 2026-09-17T08:26:56+08:00
 lastmod: 2026-09-17T08:26:56+08:00
-slug: "Embrace-English"
+slug: "embrace-english"
+
 summary: "学好英语，一直都很重要。"
 description: "这篇文章，我结合自身的经历以及接触英文内容的过程，从「习惯、现象、逃避」几个方面，剖析了一些英语相关的心理学过程，希望能更好的呼吁大家，拥抱英语。"
 categories: ["思考"]

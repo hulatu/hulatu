@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var btn = document.getElementById("search-btn");
+  var btn = document.getElementById("search-btn") || document.querySelector("[data-open-search]");
   if (!btn) return;
 
   var panel = null;
@@ -144,7 +144,9 @@
     return t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || (el && el.isContentEditable);
   }
 
-  btn.addEventListener("click", toggle);
+  Array.prototype.forEach.call(document.querySelectorAll("#search-btn, [data-open-search]"), function (t) {
+    t.addEventListener("click", toggle);
+  });
 
   document.addEventListener("keydown", function (e) {
     if (e.key === "/" && !isTyping(e.target)) { e.preventDefault(); open(); }

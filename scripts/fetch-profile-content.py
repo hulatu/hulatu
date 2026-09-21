@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from pathlib import Path
 
 
@@ -47,6 +48,23 @@ def _clean_summary(text: str, limit: int = 88) -> str:
     return text
 
 
+def _slugify(slug: str) -> str:
+    """把 slug 规范成与 Hugo 实际输出一致的小写形式。
+
+    Hugo 默认 disablePathToLower=false，会把 URL 路径小写化、空格转连字符、
+    移除非字母数字的标点，并折叠连续连字符。这里尽量对齐同一规则，
+    避免 front matter 里写了大写或不规范 slug 时生成出 404 的链接。
+    """
+    out: list[str] = []
+    for ch in slug.lower():
+        if ch.isspace():
+            out.append("-")
+        elif ch in "-._~" or unicodedata.category(ch)[0] in ("L", "N"):
+            out.append(ch)
+        # 其余（标点、符号等）直接丢弃，与 Hugo 行为一致
+    return re.sub(r"-+", "-", "".join(out)).strip("-")
+
+
 def _article_item(path: Path) -> dict | None:
     text = path.read_text(encoding="utf-8")
     fm, body = _front_matter(text)
@@ -55,7 +73,7 @@ def _article_item(path: Path) -> dict | None:
     if fm.get("draft", "").lower() == "true":
         return None
     date = fm["date"][:10]
-    slug = fm.get("slug") or path.stem
+    slug = _slugify(fm.get("slug") or path.stem)
     parts = date.split("-")
     if len(parts) != 3:
         return None
@@ -79,7 +97,7 @@ def _shot_item(path: Path) -> dict | None:
     parts = date.split("-")
     if len(parts) != 3:
         return None
-    slug = fm.get("slug") or path.stem
+    slug = _slugify(fm.get("slug") or path.stem)
     return {
         "title": fm["title"],
         "image": fm["image"],

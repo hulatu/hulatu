@@ -5,24 +5,10 @@
   var meta = document.querySelector('meta[name="theme-color"]');
   var mq = window.matchMedia("(prefers-color-scheme: dark)");
   var btn = document.getElementById("theme-btn");
-  var STORAGE_KEY = "theme";
-
-  function applyTheme(theme) {
-    root.setAttribute("data-theme", theme);
-    if (meta) meta.setAttribute("content", theme === "dark" ? "#0b0b10" : "#f6f6f8");
-    updateLabel(theme);
-  }
+  var userSet = false;
 
   function currentTheme() {
     return root.getAttribute("data-theme") === "dark" ? "dark" : "light";
-  }
-
-  function storedTheme() {
-    try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
-  }
-
-  function saveTheme(theme) {
-    try { localStorage.setItem(STORAGE_KEY, theme); } catch (e) {}
   }
 
   function updateLabel(theme) {
@@ -30,6 +16,12 @@
     var label = theme === "dark" ? "切换到浅色模式" : "切换到深色模式";
     btn.setAttribute("aria-label", label);
     btn.setAttribute("title", label);
+  }
+
+  function applyTheme(theme) {
+    root.setAttribute("data-theme", theme);
+    if (meta) meta.setAttribute("content", theme === "dark" ? "#0b0b10" : "#f6f6f8");
+    updateLabel(theme);
   }
 
   function sendTheme(theme) {
@@ -43,16 +35,24 @@
     sendTheme(currentTheme());
   }
 
+  function spin() {
+    if (!btn) return;
+    btn.classList.remove("is-spinning");
+    void btn.offsetWidth; // 强制重排，重新触发动画
+    btn.classList.add("is-spinning");
+  }
+
   function toggle() {
     var next = currentTheme() === "dark" ? "light" : "dark";
-    saveTheme(next);
+    userSet = true;
     applyTheme(next);
     sendTheme(next);
+    spin();
   }
 
   function onChange(event) {
-    // 一旦用户手动选过主题，就不再跟随系统
-    if (storedTheme() === "dark" || storedTheme() === "light") return;
+    // 本次会话内手动切换过后，就不再跟随系统变化；刷新后恢复跟随
+    if (userSet) return;
     var theme = event.matches ? "dark" : "light";
     applyTheme(theme);
     sendTheme(theme);
@@ -64,7 +64,7 @@
     }
   });
 
-  // 页面打开时 data-theme 已由 baseof 的内联脚本设好，这里只同步按钮文案与 giscus
+  // baseof 内联脚本已设好 data-theme，这里只同步按钮文案
   updateLabel(currentTheme());
 
   if (btn) btn.addEventListener("click", toggle);

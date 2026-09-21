@@ -1,7 +1,11 @@
 {{ define "main" }}
 <div class="notfound">
   <p class="notfound-code" aria-hidden="true">404</p>
-  <p class="notfound-text">这里什么也没有。可以看看最近写下的文字。</p>
+  <p class="notfound-text">这里什么也没有。可以回首页，或者搜一下想找的内容。</p>
+  <div class="notfound-actions">
+    <a class="notfound-btn notfound-btn-primary" href="{{ "/" | relURL }}">回首页</a>
+    <button type="button" class="notfound-btn" data-open-search data-index="{{ "search-index.json" | relURL }}">搜索文章</button>
+  </div>
 </div>
 
 <section class="notfound-list">

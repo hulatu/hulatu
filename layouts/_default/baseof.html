@@ -49,15 +49,12 @@
   <link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | relURL }}" title="{{ site.Title }}">
   {{ partial "head-meta.html" . }}
   {{ partial "analytics.html" . }}
-  <!-- 提前读取主题偏好，避免深色模式下出现"白屏闪烁"；
-       优先读用户手动选择（LocalStorage 的 theme），没有才跟随系统 -->
+  <!-- 提前读取系统主题偏好，避免深色模式下出现"白屏闪烁" -->
   <script>
     (function () {
       document.documentElement.classList.add("js");
-      var stored = null;
-      try { stored = localStorage.getItem("theme"); } catch (e) {}
       var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      var theme = (stored === "dark" || stored === "light") ? stored : (prefersDark ? "dark" : "light");
+      var theme = prefersDark ? "dark" : "light";
       document.documentElement.setAttribute("data-theme", theme);
       var themeMeta = document.querySelector('meta[name="theme-color"]');
       if (themeMeta) themeMeta.setAttribute("content", theme === "dark" ? "#0b0b10" : "#f6f6f8");

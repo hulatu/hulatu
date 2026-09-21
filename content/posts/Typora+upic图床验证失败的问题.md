@@ -3,7 +3,8 @@ title: "Typora + Upic图床验证失败的问题"
 categories: ["工具"]
 tags: ["写作", "图片"]
 date: 2026-01-18T22:08:48+08:00  
-slug: "Image-Hosting-Service-Blog"  
+slug: "image-hosting-service-blog"
+
 draft: false  
 summary: "一个格式，解决图片上传图床失败问题。"
 comments: true
