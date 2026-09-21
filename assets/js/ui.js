@@ -149,4 +149,19 @@
       });
     }
   });
+
+  /* ---------- 代码块复制 ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-code-copy]"), function (btn) {
+    btn.addEventListener("click", function () {
+      var block = btn.closest(".code-block");
+      var code = block ? block.querySelector("pre code, pre") : null;
+      if (!code) return;
+      copyText(code.textContent).then(function () {
+        btn.textContent = "已复制";
+        setTimeout(function () { btn.textContent = "复制"; }, 1500);
+      }).catch(function () {
+        showToast("复制失败");
+      });
+    });
+  });
 })();

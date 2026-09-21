@@ -1,0 +1,8 @@
+{{- $title := .Get 0 -}}
+<aside class="callout callout-note">
+  <div class="callout-head">
+    <span class="callout-icon" aria-hidden="true">ℹ️</span>
+    {{- with $title }}<span class="callout-title">{{ . }}</span>{{ end -}}
+  </div>
+  <div class="callout-body">{{ .Inner | markdownify }}</div>
+</aside>

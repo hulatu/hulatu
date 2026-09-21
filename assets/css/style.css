@@ -917,29 +917,46 @@ a.pager-btn { text-decoration: none; }
 
 .post-cat-chip,
 .post-tag-chip {
-  display: inline;
-  font-size: 0.88rem;
-  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22em 0.7em;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  border-radius: var(--radius-pill);
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.post-cat-chip {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
 }
 
 .post-cat-chip::before {
   content: "●";
-  color: var(--accent);
-  font-size: 0.4em;
-  vertical-align: middle;
-  margin-right: 0.22em;
+  font-size: 0.5em;
+  margin-right: 0.35em;
+  color: currentColor;
 }
 
 .post-tag-chip::before {
   content: "#";
+  margin-right: 0.12em;
   color: var(--accent);
-  margin-right: 0.08em;
 }
 
-.post-cat-chip:hover,
+.post-tag-chip {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.post-cat-chip:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
 .post-tag-chip:hover {
+  background: var(--accent-soft);
   color: var(--accent);
 }
 
@@ -1219,6 +1236,74 @@ a[target="_blank"]::after {
 
 .post-content blockquote p:last-child { margin-bottom: 0; }
 
+/* ---------- 提示框（tip / note / warning） ---------- */
+.callout {
+  margin: var(--space-6) 0;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.callout-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.callout-icon { font-size: 1rem; line-height: 1; }
+.callout-title { font-weight: 600; }
+.callout-body > :last-child { margin-bottom: 0; }
+
+.callout-tip { background: rgba(34, 197, 94, 0.08); border-color: #22c55e; }
+.callout-tip .callout-title { color: #16a34a; }
+
+.callout-note { background: rgba(59, 130, 246, 0.08); border-color: #3b82f6; }
+.callout-note .callout-title { color: #2563eb; }
+
+.callout-warning { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; }
+.callout-warning .callout-title { color: #d97706; }
+
+/* ---------- 折叠块 ---------- */
+.fold {
+  margin: var(--space-6) 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.fold summary {
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+  user-select: none;
+}
+
+.fold summary::-webkit-details-marker { display: none; }
+
+.fold summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: var(--space-2);
+  color: var(--accent);
+  transition: transform 0.2s var(--ease);
+}
+
+.fold[open] summary::before { transform: rotate(90deg); }
+
+.fold-body {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px dashed var(--line);
+  color: var(--ink-soft);
+}
+
+.fold-body > :last-child { margin-bottom: 0; }
+
 .post-content img {
   max-width: 100%;
   border-radius: var(--radius);
@@ -1345,6 +1430,67 @@ a[target="_blank"]::after {
   border: none;
   padding: 0;
   color: var(--code-fg);
+}
+
+/* 代码块容器（render-codeblock 包装：语言标签 + 复制按钮） */
+.code-block {
+  margin: var(--space-6) 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--code-bg);
+  overflow: hidden;
+}
+
+.code-block-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45em 0.9em;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.code-block-lang {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.code-block-copy {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2em 0.55em;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.code-block-copy:hover {
+  color: var(--accent);
+  background: var(--surface-2);
+}
+
+/* 容器样式由 .code-block 承担，内层去重 */
+.code-block .highlight,
+.code-block pre {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+}
+
+.code-block .highlight {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.code-block pre {
+  padding: var(--space-4);
+  overflow-x: auto;
 }
 
 /* ---------- 语法高亮（Hugo Chroma） ---------- */

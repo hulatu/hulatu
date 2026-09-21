@@ -1,0 +1,5 @@
+{{- $title := .Get 0 | default "展开详情" -}}
+<details class="fold">
+  <summary>{{ $title }}</summary>
+  <div class="fold-body">{{ .Inner | markdownify }}</div>
+</details>

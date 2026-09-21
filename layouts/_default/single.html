@@ -32,11 +32,17 @@
       <span class="post-meta-main">
         {{- $pubDay := .Date.Format "2006-01-02" -}}
         {{- $modDay := .Lastmod.Format "2006-01-02" -}}
+        {{- $readMinutes := div (add .WordCount 349) 350 -}}
+        {{- if lt $readMinutes 1 }}{{ $readMinutes = 1 }}{{ end -}}
         <time datetime="{{ $pubDay }}">发布于 {{ $pubDay }}</time>
         {{- if ne $pubDay $modDay }}
         <span class="post-meta-sep">·</span>
         <time datetime="{{ $modDay }}">更新于 {{ $modDay }}</time>
         {{- end }}
+        <span class="post-meta-sep">·</span>
+        <span>约 {{ .WordCount }} 字</span>
+        <span class="post-meta-sep">·</span>
+        <span>读 {{ $readMinutes }} 分钟</span>
       </span>
       <div class="post-chips-row">
         {{ with .GetTerms "categories" }}
