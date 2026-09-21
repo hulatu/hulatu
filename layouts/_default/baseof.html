@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {{- $pageTitle := partial "page-title.html" . -}}
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ $pageTitle }} - {{ site.Title }}{{ end }}</title>
-  {{- $isPaged := and .Paginator (gt .Paginator.PageNumber 1) -}}
+  {{- $isPaged := false -}}
+  {{- if eq .Kind "home" -}}
+    {{- $isPaged = gt .Paginator.PageNumber 1 -}}
+  {{- else if and (eq .Kind "section") (eq .Section "weekly") -}}
+    {{- $isPaged = gt .Paginator.PageNumber 1 -}}
+  {{- end -}}
   {{- $noindex := or (eq .Data.Plural "tags") (eq .Kind "404") $isPaged -}}
   {{- if $noindex }}
   <meta name="robots" content="noindex, follow">

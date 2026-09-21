@@ -1134,8 +1134,12 @@ a[target="_blank"]::after {
   margin: var(--space-6) 0;
 }
 
-.post-content .highlight .chroma {
+.post-content .highlight pre {
   background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
 }
 
 .post-content code {
