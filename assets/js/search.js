@@ -103,7 +103,7 @@
       return;
     }
     if (!results.length) {
-      list.innerHTML = '<p class="search-empty">' + (trimmed ? "没有找到相关文章" : "输入关键词，搜索标题、摘要和描述") + "</p>";
+      list.innerHTML = '<p class="search-empty">' + (trimmed ? "没有找到相关文章，试试更短的关键词" : "输入关键词，搜索标题、摘要和描述") + "</p>";
       footer.textContent = "↑↓ 选择　Enter 打开　Esc 关闭";
       return;
     }

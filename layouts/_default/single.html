@@ -10,6 +10,17 @@
 
 <article class="post-single {{ if $hasToc }}has-toc{{ end }}">
   <header class="post-header">
+    <nav class="breadcrumb" aria-label="面包屑">
+      <a href="{{ "/" | relURL }}">首页</a>
+      {{ with .GetTerms "categories" }}
+        {{ range first 1 . }}
+        <span class="breadcrumb-sep" aria-hidden="true">›</span>
+        <a href="{{ .Permalink }}">{{ .Title }}</a>
+        {{ end }}
+      {{ end }}
+      <span class="breadcrumb-sep" aria-hidden="true">›</span>
+      <span class="breadcrumb-current" aria-current="page">{{ .Title }}</span>
+    </nav>
     {{ if $isWeekly }}
       {{- $issue := partial "issue-num.html" . -}}
       {{- if $issue -}}
@@ -108,7 +119,7 @@
 
 </article>
 
-<hr class="post-end-divider" aria-hidden="true">
+<div class="post-end" aria-hidden="true"><span>完</span></div>
 
 {{ if in (slice "posts" "weekly") .Type }}
   {{- if $relatedPosts -}}
