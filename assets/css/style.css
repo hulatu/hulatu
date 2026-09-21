@@ -1444,11 +1444,28 @@ a[target="_blank"]::after {
 .code-block-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.45em 0.9em;
+  gap: var(--space-3);
+  padding: 0.5em 0.9em;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
+
+.code-block-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dot-red { background: #ff5f57; }
+.dot-yellow { background: #febc2e; }
+.dot-green { background: #28c840; }
 
 .code-block-lang {
   font-family: var(--font-mono);
@@ -1459,6 +1476,7 @@ a[target="_blank"]::after {
 }
 
 .code-block-copy {
+  margin-left: auto;
   border: none;
   background: none;
   color: var(--muted);

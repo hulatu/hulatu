@@ -16,13 +16,28 @@ hugo new content/weekly/周刊-第N期.md       # 周刊
 | 字段 | 作用 |
 |---|---|
 | `title` | 标题 |
-| `slug` | URL 后缀，改后旧链接会失效（需加 301，见"部署"） |
+| `slug` | URL 后缀（**统一小写**：Hugo 默认会把 URL 小写化，写大写会跟实际地址对不上）；改后旧链接会失效（想保留旧链接需加 301，见"部署"） |
 | `summary` | 摘要、分享卡片描述 |
 | `categories` / `tags` | 分类 / 标签，决定分类页、标签云、相关文章 |
 | `comments` | 填 `false` 可单独关闭这篇文章的评论 |
 | `draft` | `true` 表示草稿，不会发布 |
 
 发布前把 `draft` 改成 `false`，然后执行 `./publish.sh`（或终端里的 `up`）。
+
+### 文章短代码
+
+正文里可以直接用的排版组件（提示框 + 折叠块）：
+
+| 短代码 | 用途 | 用法 |
+|---|---|---|
+| `tip` | 💡 绿色提示框 | `{{< tip "小技巧" >}}内容{{< /tip >}}` |
+| `note` | ℹ️ 蓝色说明框 | `{{< note "说明" >}}内容{{< /note >}}` |
+| `warning` | ⚠️ 橙色警告框 | `{{< warning "注意" >}}内容{{< /warning >}}` |
+| `fold` | 可展开/收起的折叠块 | `{{< fold "展开查看详情" >}}内容{{< /fold >}}` |
+
+标题参数可以省略（直接 `{{< tip >}}内容{{< /tip >}}`）。内容里支持 Markdown，短代码本身要独占成段。
+
+另有书影音用的 `book` / `books` / `media` / `media-grid`，见 `content/media/_index.md` 的用法。
 
 ### 备份
 
@@ -64,7 +79,7 @@ hugo server -D
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚、头像、社交链接 | `layouts/partials/footer.html`、`hugo.toml` |
 | 页脚链接（花园 / 友链 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license` |
-| 首页文案（"一名食品研究生的思考、运动与折腾记录"） | `layouts/index.html` 顶部 hero |
+| 首页文案（"总得留下点什么吧"） | `layouts/index.html` 顶部的 `.site-hero` |
 | 首页每页展示几篇 | `layouts/index.html` 里的 `.Paginate $posts 10`；周刊在 `layouts/weekly/list.html` 里的 `.Paginate $all 10` |
 | 周刊期号徽章 | 从标题「第 X 期」自动解析，逻辑在 `layouts/partials/issue-num.html` |
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
@@ -74,9 +89,15 @@ hugo server -D
 | 手动提交发布 | 终端输入 `up` → `publish.sh`（抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false` |
-| 深浅色 | `assets/js/theme.js` 自动跟随系统 `prefers-color-scheme`，配色变量在 `assets/css/style.css` 的 `[data-theme="dark"]` |
+| 深浅色 | 默认跟随系统；右上角按钮手动切换（带旋转动效），**不记忆选择**（刷新后回到跟随系统）。逻辑在 `assets/js/theme.js`，配色变量在 `assets/css/style.css` 的 `[data-theme="dark"]` |
 | 打赏 | `hugo.toml` 的 `[params.donate]` |
 | 订阅格式 | `layouts/_default/rss.xml`（主源 + 周刊 section 源） |
+| 阅读时长 / 字数 | `layouts/_default/single.html` 的 `.post-meta-main`，按 350 字/分钟算阅读时长 |
+| 代码块（红绿灯 + 复制） | 结构在 `layouts/_default/_markup/render-codeblock.html`，样式在 `assets/css/style.css` 的 `.code-block`，复制逻辑在 `assets/js/ui.js` |
+| 面包屑 | `layouts/_default/single.html` 的 `.breadcrumb`（首页 › 分类 › 标题） |
+| 阅读进度条 / 返回顶部 / Header 自动隐藏 | 逻辑都在 `assets/js/ui.js`，样式在 `assets/css/style.css`（`.reading-progress`、`.back-top`、`.site-header.is-hidden`） |
+| 完字章 | `layouts/_default/single.html` 的 `.post-end`（印章红「完」字圆章） |
+| 打印样式 | `assets/css/style.css` 末尾的 `@media print`（打印/存 PDF 时隐藏导航、评论等，只留正文） |
 
 ### 颜色 / 字体 / 间距
 
@@ -168,7 +189,7 @@ up
 托管平台相关的两个文件都在 `static/`，部署时会原样发布：
 
 - `_headers`：缓存与安全响应头（CSS/JS 长缓存、图片 30 天、RSS 1 小时、`rss.xsl` 的 Content-Type 等）。
-- `_redirects`：旧链接 301 跳转。**以后改文章的 slug 或移动文章，一定要在这里补一条 301**，否则旧链接会 404，搜索引擎收录的地址也会失效。
+- `_redirects`：旧链接 301 跳转（当前只保留 `/running/ → run.hulatu.com` 这一条）。历史文章路径的 301 已清理，**以后改文章的 slug 或移动文章，想保留旧链接的话在这里补一条 301**，否则旧链接会 404。
 
 ## 四、性能与 SEO 维护清单
 
@@ -203,3 +224,6 @@ rm -rf public resources .hugo_build.lock
 | 首页或周刊翻页数量不对 | 检查 `layouts/index.html` / `layouts/weekly/list.html` 里的 `.Paginate` 第二参数（当前为 10） |
 | 改了 slug 后旧链接 404 | 在 `static/_redirects` 补 301 规则 |
 | 手机上目录按钮没出现 | 文章没有二级以上标题，不会生成目录 |
+| 隐私政策、分类、标签页不被收录 | 这几类页面都加了 `noindex` 并从 sitemap 排除；隐私政策页靠 front matter 的 `noindex: true` 控制 |
+| 分页页 `/page/N/` 不被收录 | `robots.txt` 里 `Disallow: /page/`，阻止抓取分页页 |
+| 隐私政策没出现在首页/归档列表 | 首页和归档只列 `posts`、`weekly` 类型的文章，根目录的普通页面不会混入 |
