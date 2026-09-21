@@ -86,17 +86,6 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   lang = "zh-CN"
   theme = "preferred_color_scheme"
 
-  # 邮件订阅：接入 Buttondown 发周刊 Newsletter。
-  # 先在 https://buttondown.com 注册，从 Settings -> "Embed" 复制订阅表单的
-  # action 地址填到 endpoint，再把 enabled 改成 true，周刊页就会出现订阅表单。
-  [params.newsletter]
-    enabled = false
-    endpoint = "https://buttondown.com/api/emails/embed-subscribe/your-username"
-    title = "邮件订阅周刊"
-    hint = "每周一封：值得一读的文章、好用的工具、只言片语。"
-    button = "订阅"
-
-
 [outputs]
   home = ["HTML", "RSS", "SearchIndex"]
   section = ["HTML", "RSS"]

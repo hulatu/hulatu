@@ -2265,66 +2265,6 @@ svg {
   color: var(--accent);
 }
 
-/* ---------- 周刊 · 邮件订阅 ---------- */
-.weekly-newsletter {
-  margin-top: var(--space-5);
-  padding: var(--space-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-}
-
-.weekly-newsletter-title {
-  margin: 0 0 var(--space-2);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.weekly-newsletter-hint {
-  margin: 0 0 var(--space-4);
-  font-size: 0.86rem;
-  line-height: 1.6;
-  color: var(--muted);
-}
-
-.newsletter-form {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.newsletter-input {
-  flex: 1;
-  min-width: 0;
-  padding: 0.62em 0.9em;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  background: var(--paper);
-  color: var(--ink);
-  font-size: 0.9rem;
-}
-
-.newsletter-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-.newsletter-btn {
-  padding: 0.62em 1em;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.newsletter-btn:hover {
-  background: var(--accent-ink);
-}
-
 .weekly-list .minimal-row {
   padding: 10px var(--space-4);
 }

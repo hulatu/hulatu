@@ -11,16 +11,6 @@
     </svg>
     <span>订阅周刊 RSS</span>
   </a>
-  {{ if and site.Params.newsletter.enabled site.Params.newsletter.endpoint }}
-  <div class="weekly-newsletter">
-    {{ with site.Params.newsletter.title }}<p class="weekly-newsletter-title">{{ . }}</p>{{ end }}
-    {{ with site.Params.newsletter.hint }}<p class="weekly-newsletter-hint">{{ . }}</p>{{ end }}
-    <form class="newsletter-form" action="{{ site.Params.newsletter.endpoint }}" method="post" target="_blank" rel="noopener">
-      <input class="newsletter-input" type="email" name="email" placeholder="你的邮箱地址" required autocomplete="email" aria-label="邮箱地址">
-      <button class="newsletter-btn" type="submit">{{ site.Params.newsletter.button | default "订阅" }}</button>
-    </form>
-  </div>
-  {{ end }}
 </div>
 
 {{ if $paginator.Pages }}
