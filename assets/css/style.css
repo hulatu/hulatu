@@ -72,7 +72,6 @@
   --space-10: 2.5rem;
   --space-11: 2.75rem;
   --space-12: 3rem;
-  --space-13: 3.25rem;
   --space-14: 3.5rem;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 14px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08), 0 24px 64px rgba(0, 0, 0, 0.13);
@@ -727,7 +726,8 @@ a.pager-btn { text-decoration: none; }
   padding: 0.28em 0.7em;
   border-radius: var(--radius-pill);
   background: var(--accent-soft);
-  color: var(--accent);
+  /* 印泥淡痕底上用 accent 只有 4.33:1，达不到 AA；accent-ink 是 5.72:1 */
+  color: var(--accent-ink);
   font-size: var(--text-2xs);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -1003,7 +1003,10 @@ a.pager-btn { text-decoration: none; }
 .post-meta {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  /* 日期/字数靠左，分类和标签贴右边对齐（同一行时两头分开）。
+     万一将来出现超长元信息 + 一堆标签而换行，换行那一行只有标签，
+     space-between 对单项的表现就是靠左，不会出现孤零零一行贴右的怪样子。 */
+  justify-content: space-between;
   flex-wrap: wrap;
   column-gap: var(--space-3);
   row-gap: var(--space-2);
@@ -1262,83 +1265,6 @@ a[target="_blank"]::after {
 }
 
 .post-content blockquote p:last-child { margin-bottom: 0; }
-
-/* ---------- 提示框（tip / note / warning） ---------- */
-.callout {
-  margin: var(--space-6) 0;
-  padding: var(--space-4) var(--space-5);
-  border-radius: var(--radius-sm);
-  border-left: 3px solid;
-  font-size: var(--text-sm);
-  line-height: 1.7;
-}
-
-.callout-head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-1);
-}
-
-.callout-icon { font-size: 1rem; line-height: 1; }
-.callout-title { font-weight: 600; }
-.callout-body > :last-child { margin-bottom: 0; }
-
-/* 三种提示框共用一套推导规则：底色是主色的淡淡一层，边框和标题用主色本身 */
-.callout-tip,
-.callout-note,
-.callout-warning {
-  background: color-mix(in srgb, var(--callout-hue) 9%, transparent);
-  border-color: var(--callout-hue);
-}
-
-.callout-tip .callout-title,
-.callout-note .callout-title,
-.callout-warning .callout-title {
-  color: var(--callout-hue);
-}
-
-.callout-tip { --callout-hue: var(--hue-tip); }
-.callout-note { --callout-hue: var(--hue-note); }
-.callout-warning { --callout-hue: var(--hue-warning); }
-
-/* ---------- 折叠块 ---------- */
-.fold {
-  margin: var(--space-6) 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  overflow: hidden;
-}
-
-.fold summary {
-  padding: var(--space-3) var(--space-4);
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--ink);
-  list-style: none;
-  user-select: none;
-}
-
-.fold summary::-webkit-details-marker { display: none; }
-
-.fold summary::before {
-  content: "▸";
-  display: inline-block;
-  margin-right: var(--space-2);
-  color: var(--accent);
-  transition: transform 0.2s var(--ease);
-}
-
-.fold[open] summary::before { transform: rotate(90deg); }
-
-.fold-body {
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  border-top: 1px dashed var(--line);
-  color: var(--ink-soft);
-}
-
-.fold-body > :last-child { margin-bottom: 0; }
 
 .post-content img {
   max-width: 100%;
@@ -2801,7 +2727,8 @@ svg {
   padding: 0.3em 0.62em;
   border-radius: var(--radius-pill);
   background: var(--accent-soft);
-  color: var(--accent);
+  /* 同上：小字在印泥淡痕底上要用 accent-ink 才够对比度 */
+  color: var(--accent-ink);
   font-size: var(--text-2xs);
   line-height: 1;
   letter-spacing: var(--tracking-label);
@@ -3344,7 +3271,8 @@ body.search-open { overflow: hidden; }
 
 .search-result mark {
   background: var(--accent-soft);
-  color: var(--accent);
+  /* 搜索高亮也是「印泥淡痕底 + 红字」，用 accent-ink 保证小字对比度 */
+  color: var(--accent-ink);
   border-radius: 2px;
   padding: 0 0.08em;
 }

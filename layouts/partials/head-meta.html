@@ -13,6 +13,19 @@
 {{- $defaultShare := site.Params.assets.shareImage | default "/images/share.webp" -}}
 {{- $shareImage := .Params.cover | default $defaultShare -}}
 {{- $shareImageAbs := $shareImage | absURL -}}
+{{- /* 分享图的宽高：只有用站内默认图时读得到（front matter 的 cover 是远程地址）。
+       带上宽高，Facebook / 微信这类平台能更快更稳地渲染大卡片。 */ -}}
+{{- $shareW := 0 -}}
+{{- $shareH := 0 -}}
+{{- if not .Params.cover -}}
+  {{- $shareRel := strings.TrimPrefix "/" $defaultShare -}}
+  {{- if fileExists (printf "static/%s" $shareRel) -}}
+    {{- with imageConfig (printf "static/%s" $shareRel) -}}
+      {{- $shareW = .Width -}}
+      {{- $shareH = .Height -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 
 <link rel="canonical" href="{{ .Permalink }}">
 <meta name="description" content="{{ $desc }}">
@@ -25,6 +38,10 @@
 <meta property="og:type" content="{{ if $isArticle }}article{{ else }}website{{ end }}">
 <meta property="og:url" content="{{ .Permalink }}">
 <meta property="og:image" content="{{ $shareImageAbs }}">
+{{- if $shareW }}
+<meta property="og:image:width" content="{{ $shareW }}">
+<meta property="og:image:height" content="{{ $shareH }}">
+{{- end }}
 <meta property="og:image:alt" content="{{ $title }}">
 {{ if $isArticle }}
   <meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">

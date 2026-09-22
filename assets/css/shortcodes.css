@@ -1,0 +1,83 @@
+/* ============================================================
+   短代码样式（tip / note / warning / fold）
+   这几个组件目前没有文章在用，所以从 style.css 里独立出来，
+   由 layouts/_default/baseof.html 按「这一页有没有用到」决定要不要加载。
+   改短代码样式改这里，别挪回 style.css —— 那等于让所有页面都为它买单。
+   ============================================================ */
+
+/* ---------- 提示框（tip / note / warning） ---------- */
+.callout {
+  margin: var(--space-6) 0;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+
+.callout-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.callout-icon { font-size: 1rem; line-height: 1; }
+.callout-title { font-weight: 600; }
+.callout-body > :last-child { margin-bottom: 0; }
+
+/* 三种提示框共用一套推导规则：底色是主色的淡淡一层，边框和标题用主色本身 */
+.callout-tip,
+.callout-note,
+.callout-warning {
+  background: color-mix(in srgb, var(--callout-hue) 9%, transparent);
+  border-color: var(--callout-hue);
+}
+
+.callout-tip .callout-title,
+.callout-note .callout-title,
+.callout-warning .callout-title {
+  color: var(--callout-hue);
+}
+
+.callout-tip { --callout-hue: var(--hue-tip); }
+.callout-note { --callout-hue: var(--hue-note); }
+.callout-warning { --callout-hue: var(--hue-warning); }
+
+/* ---------- 折叠块 ---------- */
+.fold {
+  margin: var(--space-6) 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.fold summary {
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+  user-select: none;
+}
+
+.fold summary::-webkit-details-marker { display: none; }
+
+.fold summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: var(--space-2);
+  color: var(--accent);
+  transition: transform 0.2s var(--ease);
+}
+
+.fold[open] summary::before { transform: rotate(90deg); }
+
+.fold-body {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px dashed var(--line);
+  color: var(--ink-soft);
+}
+
+.fold-body > :last-child { margin-bottom: 0; }

@@ -34,12 +34,21 @@
   <link rel="icon" type="image/svg+xml" href="{{ site.Params.assets.favicon | default "/logo.svg" | relURL }}">
   <link rel="apple-touch-icon" href="{{ site.Params.assets.apple_touch_icon | default "/apple-touch-icon.png" | relURL }}">
   <link rel="mask-icon" href="{{ site.Params.assets.safari_pinned_tab | default "/logo.svg" | relURL }}" color="#c73e2f">
+  <link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="{{ site.Title }}">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   {{- $css := resources.Get "css/style.css" | minify | fingerprint -}}
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+  {{- /* 短代码（提示框 / 折叠块）的样式单独成文件，只有这一页真的用到才加载。
+         读 .Content 会触发内容渲染，head 里的 $hasImageCDN 本来就已经在读它了。
+         匹配串故意不写结尾的引号：短代码输出的是 `class="callout callout-tip"`，
+         写成 `class="callout"` 是匹配不上的（踩过）。 */ -}}
+  {{- if or (in .Content `class="callout`) (in .Content `class="fold`) -}}
+  {{- $extraCss := resources.Get "css/shortcodes.css" | minify | fingerprint -}}
+  <link rel="stylesheet" href="{{ $extraCss.RelPermalink }}" integrity="{{ $extraCss.Data.Integrity }}">
+  {{- end }}
   <link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | relURL }}" title="{{ site.Title }}">
   {{ partial "head-meta.html" . }}
   {{ partial "analytics.html" . }}

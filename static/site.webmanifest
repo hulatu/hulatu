@@ -1,0 +1,28 @@
+{
+  "name": "胡拉图说",
+  "short_name": "胡拉图说",
+  "description": "一个普通研究生的个人博客：记录思考、分享日常、观察生活，内容包含但不限于运动、健康、成长、科研与工具折腾。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f6f8",
+  "theme_color": "#f6f6f8",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

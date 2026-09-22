@@ -80,6 +80,10 @@ hugo server -D
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚、头像、社交链接 | `layouts/partials/footer.html`、`hugo.toml` |
 | 页脚链接（花园 / 友链 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license` |
+| 标签页图标 / 页头 logo | `hugo.toml` 的 `[params.assets]`：`logo` 给页头那个大 logo（深色模式由 CSS 的 `filter` 反白），`favicon` 给标签页（`static/favicon.svg`，文件里内置了 `prefers-color-scheme` 深色反白）。**两个文件是故意分开的**：favicon 里的反白规则会和页头的 `filter` 叠加成反色，混用会出问题 |
+| 添加到主屏幕（PWA） | `static/site.webmanifest` + `static/icon-192.png` / `icon-512.png`。图标由 `logo.svg` 渲染而来，要重做就用：`magick -background none SVG:static/logo.svg -resize 512x512 -colors 64 -strip -define png:compression-level=9 static/icon-512.png`（`-colors 64` 能把 76KB 压到 30KB，肉眼无差） |
+| 短代码样式（tip / note / warning / fold） | 单独放在 `assets/css/shortcodes.css`，由 `layouts/_default/baseof.html` 判断「这一页有没有用到」再决定加不加这个 `<link>`。**改提示框/折叠块样式要改这个文件，别挪回 style.css**——挪回去等于让全部 320 个页面都为它加载。判断用的是 `in .Content \`class="callout\`` ，匹配串故意不写结尾引号（短代码输出的是 `class="callout callout-tip"`） |
+| 分享卡片图 | `[params.assets] shareImage`。宽高由 `layouts/partials/head-meta.html` 用 `imageConfig` 现读，换图不用改模板；文章 front matter 里写了 `cover` 就用 cover，但远程图读不到尺寸，那两个 meta 就不输出 |
 | 首页文案（"总得留下点什么吧"） | `layouts/index.html` 顶部的 `.site-hero` |
 | 首页每页展示几篇 | `layouts/index.html` 里的 `.Paginate $posts 10`；周刊在 `layouts/weekly/list.html` 里的 `.Paginate $all 10` |
 | 周刊期号徽章 | 从标题「第 X 期」自动解析，逻辑在 `layouts/partials/issue-num.html` |
@@ -96,6 +100,7 @@ hugo server -D
 | 打赏 | `hugo.toml` 的 `[params.donate]` |
 | 订阅格式 | `layouts/_default/rss.xml`。首页主源 `/index.xml` + 周刊源 `/weekly/index.xml`（在 `content/weekly/_index.md` 里用 `outputs` 单独开）；栏目默认不出 RSS，改 `hugo.toml` 的 `[outputs] section`。每个源最多 20 条全文，见 `[services.rss] limit` |
 | 阅读时长 / 字数 | `layouts/_default/single.html` 的 `.post-meta-main`，按 350 字/分钟算阅读时长 |
+| 文章页头部版式 | **日期 / 字数 / 阅读时长在左，分类和标签贴右**（`.post-meta` 用 `justify-content: space-between`，见 `assets/css/style.css`）。这是刻意定的，不是对齐错了。窄屏放不下而换行时，标签会另起一行、从左边开始——那是 `space-between` 对「单独占一行的子项」的正常表现，不用改 |
 | 代码块（红绿灯 + 复制） | 结构在 `layouts/_default/_markup/render-codeblock.html`，样式在 `assets/css/style.css` 的 `.code-block`，复制逻辑在 `assets/js/ui.js` |
 | 面包屑 | `layouts/_default/single.html` 的 `.breadcrumb`（首页 › 分类 › 标题） |
 | 阅读进度条 / 返回顶部 / Header 自动隐藏 | 逻辑都在 `assets/js/ui.js`，样式在 `assets/css/style.css`（`.reading-progress`、`.back-top`、`.site-header.is-hidden`） |
@@ -114,6 +119,11 @@ hugo server -D
 --ink: #1d1d1f;         /* 正文文字 */
 --font-serif: ...;      /* 标题字体 */
 ```
+
+用色的两条硬规则：
+
+- **印泥淡痕底（`--accent-soft`）+ 小字，颜色要用 `--accent-ink`，不要用 `--accent`。** 浅色下 `--accent` 打在 `--accent-soft` 上只有 4.33:1，达不到 WCAG AA 的 4.5；`--accent-ink` 是 5.72:1（深色下 5.57 → 7.40）。分类页角标、周刊徽标、搜索高亮都按这条改过了。
+- 其他组合的对比度都是达标的（正文、次要信息、代码高亮、按钮文字，浅色深色都算过），改配色时保持这个水位即可。
 
 字号统一走一套尺度（16px 基准 × 1.2 比例）：
 
@@ -209,7 +219,7 @@ up
 
 托管平台相关的两个文件都在 `static/`，部署时会原样发布：
 
-- `_headers`：缓存与安全响应头（CSS/JS 长缓存、图片 30 天、RSS 1 小时、`search-index.json` 1 天、`sitemap.xml` 1 小时、`rss.xsl` 的 Content-Type 等）。规则按路径精确匹配，新加文件类型时记得补一条。
+- `_headers`：缓存与安全响应头（CSS/JS 长缓存、图片 30 天、RSS 1 小时、`search-index.json` 1 小时、`sitemap.xml` 1 小时、图标 7 天、`rss.xsl` 的 Content-Type 等）。规则按路径精确匹配，新加文件类型时记得补一条。防嵌套那两条是 `X-Frame-Options: SAMEORIGIN` + `Content-Security-Policy: frame-ancestors 'self'`——**CSP 只写这一个指令**，其余留空才不会限制脚本/样式，不会影响 giscus。注释要写在路径块外面，Cloudflare 只在整行以 `#` 开头时当注释。
 - `_redirects`：旧链接 301 跳转（当前只保留 `/running/ → run.hulatu.com` 这一条）。历史文章路径的 301 已清理，**以后改文章的 slug 或移动文章，想保留旧链接的话在这里补一条 301**，否则旧链接会 404。
 
 ## 四、性能与 SEO 维护清单
@@ -222,7 +232,7 @@ up
 
 然后检查 `public/` 里这几样：
 
-- `sitemap.xml`：应有全部文章、分类、周刊、友链等页面（标签页已排除，干净构建后约 260+ 条）。
+- `sitemap.xml`：应有全部文章、归档、周刊、友链等页面（标签页/分类页/隐私页/`/posts/` 栏目页都已排除，干净构建后 **125 条**）。
 - `index.html`：不应包含 `livereload`。
 - `index.xml`：首页主源，最多 20 条全文（干净构建约 270KB）。如果突然涨到 1MB 级别，说明 `[services.rss] limit` 被改回 `-1` 了——订阅端会跟着一起难受。
 - 全站应该只有 3 个 XML：`index.xml`、`weekly/index.xml`、`sitemap.xml`。多出 `posts/index.xml` 说明 `[outputs] section` 又被改回 `["HTML", "RSS"]`。
@@ -249,6 +259,6 @@ rm -rf public resources .hugo_build.lock
 | 首页或周刊翻页数量不对 | 检查 `layouts/index.html` / `layouts/weekly/list.html` 里的 `.Paginate` 第二参数（当前为 10） |
 | 改了 slug 后旧链接 404 | 在 `static/_redirects` 补 301 规则 |
 | 手机上目录按钮没出现 | 文章没有二级以上标题，不会生成目录 |
-| 隐私政策、分类、标签页不被收录 | 这几类页面都加了 `noindex` 并从 sitemap 排除；隐私政策页靠 front matter 的 `noindex: true` 控制 |
+| 哪些页面不被收录 | 隐私政策、分类页、标签页、`/posts/` 栏目页都不进 sitemap、也带 `noindex`。前两类是模板里按类型判断的（`layouts/_default/baseof.html` 的 `$noindex`），后两类靠 front matter 写 `noindex: true`。**加 noindex 就不要再往 robots.txt 加 Disallow**——Disallow 会让爬虫看不到 noindex，反而更糟 |
 | 分页页 `/page/N/` 不被收录 | `robots.txt` 里 `Disallow: /page/`，阻止抓取分页页 |
 | 隐私政策没出现在首页/归档列表 | 首页和归档只列 `posts`、`weekly` 类型的文章，根目录的普通页面不会混入 |

@@ -67,7 +67,11 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     urlLabel = "去爱发电支持我"
 
 [params.assets]
-  favicon = "/logo.svg"
+  # 页头那个大 logo（深色模式下由 CSS 的 filter 反白）
+  logo = "/logo.svg"
+  # 标签页图标：内置了 prefers-color-scheme 深色适配，和页头 logo 是两个文件，
+  # 别混用——favicon 里的反白规则会和页头的 filter 叠加，变成反色
+  favicon = "/favicon.svg"
   apple_touch_icon = "/apple-touch-icon.png"
   safari_pinned_tab = "/logo.svg"
   shareImage = "/images/share.webp"

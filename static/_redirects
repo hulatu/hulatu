@@ -1,2 +1,10 @@
 # 跑步栏目已独立为子站 run.hulatu.com
 /running/ https://run.hulatu.com/ 301
+
+# 这两篇文章原来的 slug 末尾多了一个句点（URL 结尾是 `.`），已改成不带点的。
+# 旧地址在 Google 那边是 200 收录过的，不补 301 就会变成 404。
+# 两种写法都列上：不带斜杠的那条会被 Cloudflare 先 308 补斜杠，所以两条都收得住。
+/posts/2026/02/13/do-not-handle-others-things-lightly. /posts/2026/02/13/do-not-handle-others-things-lightly/ 301
+/posts/2026/02/13/do-not-handle-others-things-lightly./ /posts/2026/02/13/do-not-handle-others-things-lightly/ 301
+/posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school. /posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school/ 301
+/posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school./ /posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school/ 301
