@@ -1,4 +1,4 @@
-{{- $data := site.Data.runs | default dict -}}
+{{- $data := hugo.Data.runs | default dict -}}
 {{- $stats := $data.stats | default dict -}}
 {{- $totals := $stats.totals | default dict -}}
 {{- $best := $stats.best | default dict -}}

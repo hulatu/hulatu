@@ -1,17 +1,31 @@
 (function () {
   "use strict";
 
-  var figures = Array.prototype.slice.call(document.querySelectorAll(".article-image[data-full]"));
+  var figures = Array.prototype.filter.call(
+    document.querySelectorAll(".article-image"),
+    function (figure) { return !!figure.querySelector("a[href]"); }
+  );
   if (!figures.length) return;
 
   var current = 0;
   var root = null;
+  var releaseTrap = null;
+  var lastFocused = null;
+
+  // 原图地址直接读链接的 href，跟「JS 不可用时会跳到原图」共用同一个来源
+  function sourceOf(figure) {
+    var link = figure.querySelector("a[href]");
+    return link ? link.getAttribute("href") : "";
+  }
 
   function ensure() {
     if (root) return;
     root = document.createElement("div");
     root.className = "lightbox";
     root.hidden = true;
+    root.setAttribute("role", "dialog");
+    root.setAttribute("aria-modal", "true");
+    root.setAttribute("aria-label", "查看大图");
     root.innerHTML =
       '<div class="lightbox-backdrop" data-close></div>' +
       '<button type="button" class="lightbox-btn lightbox-close" data-close aria-label="关闭">' +
@@ -39,7 +53,7 @@
 
   function render() {
     var f = figures[current];
-    root.querySelector(".lightbox-img").src = f.getAttribute("data-full");
+    root.querySelector(".lightbox-img").src = sourceOf(f);
     root.querySelector(".lightbox-img").alt = f.getAttribute("data-caption") || "";
     root.querySelector(".lightbox-caption").textContent = f.getAttribute("data-caption") || "";
     root.querySelector(".lightbox-caption").style.display = f.getAttribute("data-caption") ? "" : "none";
@@ -47,18 +61,27 @@
     root.classList.toggle("is-single", figures.length <= 1);
   }
 
-  function open(index) {
+  function open(index, trigger) {
     ensure();
     current = index;
+    lastFocused = trigger || document.activeElement;
     render();
     root.hidden = false;
     document.body.classList.add("lightbox-open");
+    releaseTrap = window.hulatuFocusTrap(root, root.querySelector(".lightbox-close"));
   }
 
   function close() {
-    if (!root) return;
+    if (!root || root.hidden) return;
     root.hidden = true;
     document.body.classList.remove("lightbox-open");
+    if (releaseTrap) {
+      releaseTrap();
+      releaseTrap = null;
+    }
+    // 焦点还给刚才是谁打开的，键盘用户不至于被扔回页面顶部
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+    lastFocused = null;
   }
 
   function step(delta) {
@@ -75,8 +98,11 @@
 
   figures.forEach(function (f, i) {
     f.addEventListener("click", function (e) {
-      if (e.target.closest("a")) return;
-      open(i);
+      // 带修饰键（新标签打开原图）或中键的点击保持浏览器原生行为，不抢
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      // 鼠标点图和键盘回车走的是同一条路：都别真的跳走，交给灯箱
+      e.preventDefault();
+      open(i, f.querySelector("a[href]"));
     });
   });
 })();

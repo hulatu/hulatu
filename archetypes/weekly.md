@@ -17,7 +17,8 @@ draft: true
 1. 把 draft 从 true 改成 false
 2. 填好 slug / summary / description / tags
    - summary：周刊列表里的短摘要，建议 1 句话、90 字以内
-   - description：搜索引擎和社交分享使用的描述，建议 100–160 字
+   - description：搜索结果和社交卡片上显示的描述，建议 60–90 字（中文搜索结果大约只显示 78 字，写长了会被截断）。别留空，留空会退回用 summary
+   - tags：从已有标签里挑（标签页 `/tags/` 能看到全部），别为此造新词
    - categories 已默认「周刊」，一般不用改
 3. 本地预览：hugo server -D；正式发布：hugo
 -->

@@ -9,8 +9,8 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   pagerSize = 10
 
 [services.rss]
-  # -1 表示不限制条目数，输出全部 posts 和 weekly 文章
-  limit = -1
+  # 每个 feed 输出的条目上限（-1 表示不限制）。全文输出，条数放大反而拖慢订阅端
+  limit = 20
 
 [related]
   threshold = 60
@@ -88,7 +88,8 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 
 [outputs]
   home = ["HTML", "RSS", "SearchIndex"]
-  section = ["HTML", "RSS"]
+  # 栏目默认不出 RSS：只有首页主源（/index.xml）和周刊（content/weekly/_index.md 单独开）
+  section = ["HTML"]
   taxonomy = ["HTML"]
   term = ["HTML"]
 

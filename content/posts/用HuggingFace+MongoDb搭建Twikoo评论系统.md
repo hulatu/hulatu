@@ -6,6 +6,7 @@ date: 2026-01-26T10:19:41+08:00
 slug: "set-up-twikoo-comment-system"
 
 summary: “缺少评论系统的博客，总觉得缺少点灵魂。“  
+description: "没有评论系统的博客总觉得缺了点灵魂。这篇记录我用 HuggingFace + MongoDB 把 Twikoo 评论系统搭起来的过程，跟着做就能跑通。"
 draft: false  
 comments: true  
 ---

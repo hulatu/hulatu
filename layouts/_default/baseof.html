@@ -54,12 +54,13 @@
       if (themeMeta) themeMeta.setAttribute("content", theme === "dark" ? "#0b0b10" : "#f6f6f8");
     })();
   </script>
-  <!-- 站内跳转预取：鼠标悬停链接时，浏览器就提前把下一页拿好，点下去几乎是秒开。
-       用的是浏览器原生的 Speculation Rules，不执行任何 JS，也不影响不支持的浏览器。
-       只预取同源页面，跳过 RSS（.xml）和索引文件（.json），避免白下载。 -->
+  <!-- 站内跳转预渲染：鼠标停在链接上，浏览器就把下一页整页在后台渲染好，点下去几乎是「已经在那了」。
+       用的是浏览器原生的 Speculation Rules，不执行额外的 JS，不支持的浏览器直接忽略。
+       只预渲染同源页面，跳过 RSS（.xml）和索引文件（.json），避免白下载。
+       注意：预渲染会真的跑一遍页面脚本，所以统计和评论都做了 document.prerendering 判断。 -->
   <script type="speculationrules">
   {
-    "prefetch": [
+    "prerender": [
       {
         "source": "document",
         "where": {

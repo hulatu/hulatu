@@ -35,6 +35,13 @@ if [ -n "$PYTHON_BIN" ]; then
   if ! "$PYTHON_BIN" scripts/fetch-image-dims.py; then
     echo "    !! 图片尺寸抓取失败，本次新增图片可能缺少宽高（不影响发布）" >&2
   fi
+  # 刷新 profile.hulatu.com（花园页）用的内容快照：最新文章 + 精选瞬间。
+  #     它只依赖本地 content/，不联网；产物跟文章一起进这次提交，
+  #     否则花园页的「最新文章」会一直停在上一次手动跑子站构建的时候。
+  #     同样放在 git add 之前，失败也不阻断发布。
+  if ! "$PYTHON_BIN" scripts/fetch-profile-content.py; then
+    echo "    !! 花园页内容快照刷新失败，本次它的最新文章可能不是最新的（不影响发布）" >&2
+  fi
 else
   echo "    !! 跳过图片尺寸抓取：没找到可用的 python3" >&2
 fi

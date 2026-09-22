@@ -29,6 +29,7 @@
   var header = document.querySelector(".site-header");
   var backTop = document.getElementById("back-top");
   var readingProgress = document.getElementById("reading-progress");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var headerTicking = false;
   var lastScrollY = window.scrollY;
 
@@ -47,7 +48,9 @@
     if (readingProgress) {
       var doc = document.documentElement;
       var total = doc.scrollHeight - doc.clientHeight;
-      readingProgress.style.width = (total > 0 ? (y / total) * 100 : 0) + "%";
+      var ratio = total > 0 ? y / total : 0;
+      // 只改 transform：整条进度条走合成层，不触发布局
+      readingProgress.style.transform = "scaleX(" + ratio + ")";
     }
     lastScrollY = y;
   }
@@ -64,7 +67,7 @@
 
   if (backTop) {
     backTop.addEventListener("click", function () {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
     });
   }
 

@@ -12,7 +12,11 @@
     <generator>Hugo</generator>
     <language>{{ site.Language.Locale }}</language>
     {{ with site.Copyright }}<copyright>{{ . }}</copyright>{{ end }}
-    <lastBuildDate>{{ now.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</lastBuildDate>
+    {{- /* 用最新一篇文章的时间，而不是构建时间：
+           否则每次推送（含每天的 Garmin 数据提交）都会让订阅端以为 feed 更新了。 */ -}}
+    {{- if $pages }}
+    <lastBuildDate>{{ (index $pages 0).Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</lastBuildDate>
+    {{- end }}
     {{ with .OutputFormats.Get "RSS" }}{{ printf "<atom:link href=%q rel=\"self\" type=%q />" .Permalink .MediaType | safeHTML }}{{ end }}
     {{ with site.Params.assets.apple_touch_icon }}
     <image>

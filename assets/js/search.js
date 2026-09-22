@@ -8,6 +8,7 @@
   var input = null;
   var list = null;
   var footer = null;
+  var releaseTrap = null;
   var index = [];
   var loaded = false;
   var results = [];
@@ -55,14 +56,20 @@
     input.value = "";
     render("");
     loadIndex();
-    input.focus();
+    // 焦点锁在搜索框里（Tab 不会跑到背后的页面上），并直接落到输入框
+    releaseTrap = window.hulatuFocusTrap(panel.querySelector(".search-box"), input);
   }
 
   function close() {
-    if (!panel) return;
+    if (!panel || panel.hidden) return;
     panel.hidden = true;
     document.body.classList.remove("search-open");
-    btn.blur();
+    if (releaseTrap) {
+      releaseTrap();
+      releaseTrap = null;
+    }
+    // 焦点还给搜索按钮：键盘用户按 Esc 之后能接着用，而不是被扔回 body
+    btn.focus();
   }
 
   function toggle() {

@@ -21,6 +21,8 @@ communities:
     url: "https://blogscn.fun/"
   - name: "博客集"
     url: "https://bloginc.cn/"
+  - name: "个站商店"
+    url: "https://storeweb.cn/"
   - name: "十年之约"
     url: "https://www.foreverblog.cn"
   - name: "iblogroll"

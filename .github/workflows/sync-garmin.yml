@@ -41,4 +41,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Auto Update: 同步 Garmin 跑步数据"
-          file_pattern: data/runs.json
+          # 脚本会同时写这三个文件，漏掉任何一个，对应站点的数据就会停在旧版本上
+          file_pattern: data/runs.json sites/run/data/runs.json sites/profile/data/run_summary.json

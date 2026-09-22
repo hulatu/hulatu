@@ -1,5 +1,5 @@
 {{ define "main" }}
-{{- $profile := site.Data.profile | default dict -}}
+{{- $profile := hugo.Data.profile | default dict -}}
 
 <div class="sheet">
   <header class="masthead">
@@ -27,7 +27,7 @@
     </div>
   </header>
 
-  {{ with site.Data.latest_posts }}
+  {{ with hugo.Data.latest_posts }}
     {{ if .posts }}
       <section class="section">
         <div class="section-tag">

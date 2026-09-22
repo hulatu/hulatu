@@ -18,20 +18,27 @@
 {{- $src480 := .Destination -}}
 {{- $isGif := strings.HasSuffix (strings.ToLower .Destination) ".gif" -}}
 {{- $full := .Destination -}}
+{{- /* 正文第一张图通常就是这篇的 LCP 元素，用 lazy 会被浏览器降到低优先级 */ -}}
+{{- $isFirstImage := eq .Ordinal 0 -}}
 {{- if and (not $isGif) (hasPrefix .Destination "http") -}}
-  {{- $src480 = partial "cf-image.html" (dict "src" .Destination "params" "width=480,fit=scale-down,format=auto,quality=65,metadata=none") -}}
-  {{- $src = partial "cf-image.html" (dict "src" .Destination "params" "width=960,fit=scale-down,format=auto,quality=65,metadata=none") -}}
+  {{- $src480 = partial "cf-image.html" (dict "src" .Destination "params" "width=480,fit=scale-down,format=auto,quality=72,metadata=none") -}}
+  {{- $src = partial "cf-image.html" (dict "src" .Destination "params" "width=960,fit=scale-down,format=auto,quality=75,metadata=none") -}}
   {{- $full = partial "cf-image.html" (dict "src" .Destination "params" "width=1600,fit=scale-down,format=auto,quality=85,metadata=none") -}}
 {{- end -}}
-<figure class="article-image" data-full="{{ $full | htmlEscape }}"{{ with .Text }} data-caption="{{ . | htmlEscape }}"{{ end }}>
-  <img
-    src="{{ $src }}"
-    alt="{{ .Text }}"
-    loading="lazy" decoding="async"
-    {{ if ne $src480 .Destination }}srcset="{{ $src480 }} 480w, {{ $src }} 960w" sizes="(max-width: 600px) 480px, 960px"{{ end }}
-    {{ with $w }}width="{{ . }}"{{ end }}
-    {{ with $h }}height="{{ . }}"{{ end }}
-  >
+<figure class="article-image"{{ with .Text }} data-caption="{{ . | htmlEscape }}"{{ end }}>
+  {{- /* 用真实链接包住图片（而不是给 figure 挂 role="button"）：
+         键盘用户能直接 Tab 到这、回车打开灯箱；读屏软件照常念图片 alt；
+         JS 挂了也只是退化成「点开原图」，不会变成一个点不动的死按钮。 */ -}}
+  <a class="article-image-link" href="{{ $full | htmlEscape }}">
+    <img
+      src="{{ $src }}"
+      alt="{{ .Text }}"
+      {{ if $isFirstImage }}loading="eager" fetchpriority="high"{{ else }}loading="lazy"{{ end }} decoding="async"
+      {{ if ne $src480 .Destination }}srcset="{{ $src480 }} 480w, {{ $src }} 960w" sizes="(max-width: 600px) 480px, 960px"{{ end }}
+      {{ with $w }}width="{{ . }}"{{ end }}
+      {{ with $h }}height="{{ . }}"{{ end }}
+    >
+  </a>
   <span class="article-image-zoom" aria-hidden="true">
     <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
     看大图

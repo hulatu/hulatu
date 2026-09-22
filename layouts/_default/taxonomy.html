@@ -18,7 +18,7 @@
 <section class="tag-cloud" aria-label="全部标签">
   {{ range site.Taxonomies.tags.ByCount }}
     <a class="tag-chip" href="{{ .Page.RelPermalink }}">
-      <span class="tag-chip-name"># {{ .Page.Title }}</span>
+      <span class="tag-chip-name">{{ .Page.Title }}</span>
       <span class="tag-chip-count" aria-label="{{ .Count }} 篇文章">{{ .Count }}</span>
     </a>
   {{ else }}

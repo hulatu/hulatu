@@ -1,1 +1,83 @@
-(function(){var c=null;function p(o,s){var l=o.querySelectorAll("li.is-expanded");if(l.forEach(function(u){u.classList.remove("is-expanded")}),!!s)for(var n=s.closest("li");n;){n.classList.add("is-expanded");var a=n.parentElement;n=a?a.closest("li"):null}}function f(){c&&window.removeEventListener("scroll",c);var o=document.querySelector(".post-toc-nav"),s=document.querySelector(".post-content");if(!o||!s)return;var l=Array.prototype.slice.call(o.querySelectorAll('a[href^="#"]'));if(!l.length)return;var n=l.map(function(r){var e=decodeURIComponent(r.getAttribute("href").slice(1));return document.getElementById(e)}).filter(Boolean);if(!n.length)return;var a=null;function u(r){if(r!==a){a=r;var e=null;l.forEach(function(t){var i=decodeURIComponent(t.getAttribute("href").slice(1))===r;t.classList.toggle("is-active",i),i&&(e=t)}),p(o,e)}}function v(){for(var r=window.scrollY+130,e=n[0],t=0;t<n.length&&n[t].offsetTop<=r;t++)e=n[t];u(e.id)}var d=!1;c=function(){d||(d=!0,window.requestAnimationFrame(function(){v(),d=!1}))},window.addEventListener("scroll",c,{passive:!0}),o.addEventListener("click",function(r){var e=r.target.closest("a");if(!(!e||!o.contains(e))){var t=e.getAttribute("href")||"";if(t.charAt(0)==="#"){var i=document.getElementById(decodeURIComponent(t.slice(1)));i&&(r.preventDefault(),i.scrollIntoView({behavior:"smooth",block:"start"}),u(i.id))}}}),v()}document.addEventListener("DOMContentLoaded",f)})();
+(function () {
+  "use strict";
+
+  /* 文章目录：滚动高亮当前章节。
+     右侧固定栏和移动端底部抽屉是同一份目录的两个副本，
+     所以这里对页面里所有的 .post-toc-nav 一起生效。
+     点击行为按位置区分：
+       - 右侧栏：自己接管，平滑滚动；
+       - 抽屉里：交给浏览器原生锚点跳转，这样抽屉会先关闭、body 先解锁再滚动。 */
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var activeId = null;
+
+  function scrollBehavior() {
+    return reduceMotion.matches ? "auto" : "smooth";
+  }
+
+  function hashOf(link) {
+    var href = link.getAttribute("href") || "";
+    return href.charAt(0) === "#" ? decodeURIComponent(href.slice(1)) : "";
+  }
+
+  function setActive(links, id) {
+    if (!id || id === activeId) return;
+    activeId = id;
+    links.forEach(function (link) {
+      link.classList.toggle("is-active", hashOf(link) === id);
+    });
+  }
+
+  function init() {
+    var navs = Array.prototype.slice.call(document.querySelectorAll(".post-toc-nav"));
+    var content = document.querySelector(".post-content");
+    if (!navs.length || !content) return;
+
+    var links = [];
+    navs.forEach(function (nav) {
+      Array.prototype.push.apply(links, Array.prototype.slice.call(nav.querySelectorAll('a[href^="#"]')));
+    });
+    if (!links.length) return;
+
+    var targets = links
+      .map(function (link) { return document.getElementById(hashOf(link)); })
+      .filter(Boolean);
+    if (!targets.length) return;
+
+    function sync() {
+      var line = window.scrollY + 130;
+      var active = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].getBoundingClientRect().top + window.scrollY <= line) active = targets[i];
+      }
+      setActive(links, active.id);
+    }
+
+    var ticking = false;
+    window.addEventListener("scroll", function () {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(function () {
+        sync();
+        ticking = false;
+      });
+    }, { passive: true });
+
+    navs.forEach(function (nav) {
+      nav.addEventListener("click", function (event) {
+        var link = event.target.closest("a");
+        if (!link || !nav.contains(link)) return;
+        if (link.closest(".toc-drawer")) return;
+        var target = document.getElementById(hashOf(link));
+        if (!target) return;
+        event.preventDefault();
+        target.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+        setActive(links, target.id);
+      });
+    });
+
+    sync();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();

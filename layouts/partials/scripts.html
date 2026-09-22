@@ -1,5 +1,6 @@
 {{- $jsFiles := slice -}}
-{{- range (slice "theme" "ui" "toc" "lightbox" "search") -}}
+{{- /* 顺序有依赖：focus-trap 暴露 window.hulatuFocusTrap，后面的 toc / lightbox / search 会用它 */ -}}
+{{- range (slice "focus-trap" "theme" "ui" "toc" "lightbox" "search") -}}
   {{- $jsFiles = $jsFiles | append (resources.Get (printf "js/%s.js" .)) -}}
 {{- end -}}
 {{- $bundle := $jsFiles | resources.Concat "js/bundle.js" | minify | fingerprint -}}

@@ -6,6 +6,7 @@ date: 2026-01-24T11:23:53+08:00
 slug: blog-beautification-papermodbearblog
 
 summary: 你在意的博客布局，可能只有你自己关注。  
+description: "看到一篇博客后，对 BearBlog 的极简风格一见钟情，于是开始魔改 PaperMod。记录我在导航栏、排版、配色上的具体改动和取舍。"
 draft: false  
 comments: true                              
 ---

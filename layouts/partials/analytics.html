@@ -16,12 +16,21 @@
           s.dataset.goatcounter = endpoint;
           document.body.appendChild(s);
         }
-        if ("requestIdleCallback" in window) {
-          window.requestIdleCallback(load, { timeout: 2000 });
+        function schedule() {
+          if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(load, { timeout: 2000 });
+          } else {
+            window.addEventListener("scroll", load, { once: true, passive: true });
+            window.addEventListener("pointerdown", load, { once: true, passive: true });
+            setTimeout(load, 3000);
+          }
+        }
+        // 被预渲染（prerender）的页面先不计：等它真的被用户打开（prerenderingchange）再上报，
+        // 否则鼠标扫过链接也会被算成一次浏览。
+        if (document.prerendering) {
+          document.addEventListener("prerenderingchange", schedule, { once: true });
         } else {
-          window.addEventListener("scroll", load, { once: true, passive: true });
-          window.addEventListener("pointerdown", load, { once: true, passive: true });
-          setTimeout(load, 3000);
+          schedule();
         }
       })();
     </script>
