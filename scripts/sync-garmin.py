@@ -32,7 +32,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_FILE = ROOT / "data" / "runs.json"
-RUN_SITE_DATA_FILE = ROOT / "sites" / "run" / "data" / "runs.json"
 PROFILE_RUN_SUMMARY_FILE = ROOT / "sites" / "profile" / "data" / "run_summary.json"
 
 
@@ -414,10 +413,6 @@ def main() -> None:
 
     DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     DATA_FILE.write_text(
-        json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-    RUN_SITE_DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
-    RUN_SITE_DATA_FILE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
 

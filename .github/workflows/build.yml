@@ -1,0 +1,66 @@
+name: 构建校验
+
+# 目的：push / PR 时先用**和线上一致的 Hugo 版本**把主站和四个子站都构建一遍。
+# 模板写错、短代码语法错、front matter 坏了、module mount 失效这类问题在这里就被
+# 拦下来（报错带文件名和行号），不用等 Cloudflare Pages 构建失败才发现。
+#
+# 版本要和 Cloudflare Pages 项目里的 HUGO_VERSION 保持一致。改版本时三处一起改：
+#   本机 hugo version ／ 下面 peaceiris/actions-hugo 的 hugo-version ／ Cloudflare 五个项目的环境变量
+# 还有 hugo.toml 的 [module.hugoVersion] 和 layouts/partials/check-hugo-version.html 的阈值。
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5
+
+      - name: 安装 Hugo extended
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "0.166.0"
+          extended: true
+
+      - name: 核对 Hugo 版本与 extended
+        run: |
+          hugo version
+          hugo version | grep -q "v0.166.0" || {
+            echo "::error::Hugo 版本不是 0.166.0，请同步 .github/workflows/build.yml 与 Cloudflare 的 HUGO_VERSION"
+            exit 1
+          }
+          hugo version | grep -q "extended" || {
+            echo "::error::必须是 extended 版：head-meta.html 要用 imageConfig 读 share.webp 的宽高"
+            exit 1
+          }
+
+      - name: 构建主站
+        run: hugo --minify --gc --destination public
+
+      - name: 检查周刊期号字段
+        run: |
+          # 期号从标题正则改成了 front matter 的 issue，漏填只会「不显示徽章」，
+          # 不会报错，所以在这里补一道显式检查。
+          missing=0
+          for f in content/weekly/*.md; do
+            case "$f" in */_index.md) continue ;; esac
+            grep -qE '^issue:[[:space:]]*[0-9]+' "$f" || {
+              echo "::error file=$f::周刊缺少 issue 字段（写成 issue: 23 这样），否则文章顶部不显示期号徽章"
+              missing=1
+            }
+          done
+          [ "$missing" = 0 ]
+
+      - name: 构建四个子站
+        run: bash scripts/build-subdomains.sh

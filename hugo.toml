@@ -38,7 +38,17 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 [minify]
   disableXML = true
   minifyOutput = true
-  
+
+# 版本约束：本机、GitHub Actions 和 Cloudflare Pages 三边用同一个版本，避免
+# 「本地构建正常、平台构建失败」这种只有上线才发现的问题。
+# extended 是硬要求，不是偏好：layouts/partials/head-meta.html 要用 imageConfig
+# 读 static/images/share.webp 的宽高，标准版 Hugo 解不了 WebP。
+# 改这里时记得同步 .github/workflows/build.yml 和 Cloudflare 项目的 HUGO_VERSION。
+[module]
+  [module.hugoVersion]
+    min = "0.166.0"
+    extended = true
+
 [permalinks]
   posts = "/posts/:year/:month/:day/:slug/"
   weekly = "/posts/:year/:month/:day/:slug/"
@@ -47,7 +57,6 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   description = "胡拉图说：一个普通研究生的个人博客，喜欢记录思考、分享日常、观察生活，内容包含但不限于运动、健康、成长、科研与工具折腾。"
   author = "胡拉图"
   since = "2025"
-  github = "https://github.com/hulatu"
   email = "hello@hulatu.com"
   avatar = "/images/avatar.webp"
 

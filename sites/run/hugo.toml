@@ -3,8 +3,13 @@ title = "胡拉图 · 跑步"
 locale = "zh-CN"
 hasCJKLanguage = true
 enableRobotsTXT = true
-dataDir = "data"
 disableKinds = ["taxonomy", "term"]
+
+# 跑步数据只有一份，在仓库根目录的 data/runs.json。
+# 这里直接挂载上层目录，不再往子站复制副本——复制过的那份曾经比主站少两次跑步记录。
+[[module.mounts]]
+  source = "../../data"
+  target = "data"
 
 [markup.goldmark.renderer]
   unsafe = true

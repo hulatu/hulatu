@@ -27,18 +27,18 @@ hugo new content/weekly/周刊-第N期.md       # 周刊
 
 ### 文章短代码
 
-正文里可以直接用的排版组件（提示框 + 折叠块）：
+正文里可以直接用的排版组件，只有书影音这一类：
 
 | 短代码 | 用途 | 用法 |
 |---|---|---|
-| `tip` | 💡 绿色提示框 | `{{< tip "小技巧" >}}内容{{< /tip >}}` |
-| `note` | ℹ️ 蓝色说明框 | `{{< note "说明" >}}内容{{< /note >}}` |
-| `warning` | ⚠️ 橙色警告框 | `{{< warning "注意" >}}内容{{< /warning >}}` |
-| `fold` | 可展开/收起的折叠块 | `{{< fold "展开查看详情" >}}内容{{< /fold >}}` |
+| `book` | 单本书的封面卡片 | `{{< book cover="封面图" title="书名" creator="作者" >}}` |
+| `books` | 把若干 `book` 包成网格 | `{{< books >}}…{{< /books >}}` |
+| `media` | 单条书影音（书 / 影视 / 音乐通用） | `{{< media cover="封面图" title="标题" creator="作者" >}}` |
+| `media-grid` | 把若干 `media` 包成网格 | `{{< media-grid >}}…{{< /media-grid >}}` |
 
-标题参数可以省略（直接 `{{< tip >}}内容{{< /tip >}}`）。内容里支持 Markdown，短代码本身要独占成段。
+`book` 和 `media` 都只是转调 `layouts/partials/media-card.html`，区别只在外面包的是 `books` 还是 `media-grid`。用法直接抄 `content/media/_index.md` 的现成例子；样式在 `assets/css/style.css` 的「书影音」段。
 
-另有书影音用的 `book` / `books` / `media` / `media-grid`，见 `content/media/_index.md` 的用法。
+> 曾经还有 `tip` / `note` / `warning` / `fold` 四个提示框短代码，配套一份 `assets/css/shortcodes.css` 和 baseof 里「这一页用到才加载」的判断。2026-09 清掉了：内容里一次都没用过。要提示框直接用 Markdown 引用块；真要用短代码，`git log --diff-filter=D --name-only -- layouts/shortcodes` 能把文件捞回来。
 
 ### 备份
 
@@ -62,7 +62,7 @@ bash scripts/build-subdomains.sh
 
 Cloudflare Pages 需要为各子域名分别创建项目，具体配置见 `sites/README.md`。
 
-跑步子站的数据来自 `data/runs.json`，`scripts/sync-garmin.py` 同步时也会更新 `sites/run/data/runs.json`。
+跑步子站（`sites/run`）**不存数据副本**，它的 `hugo.toml` 用 `[[module.mounts]]` 直接挂载仓库根目录的 `data/`；`scripts/sync-garmin.py` 只写 `data/runs.json` 和 `sites/profile/data/run_summary.json` 两个文件。
 
 ### 本地预览
 
@@ -79,14 +79,13 @@ hugo server -D
 | 博客名、描述、作者 | `hugo.toml` 顶部 |
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚、头像、社交链接 | `layouts/partials/footer.html`、`hugo.toml` |
-| 页脚链接（花园 / 友链 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license` |
+| 页脚链接（花园 / 友链 / 开往 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license`。**开往（友链接力）放在页脚，不在导航栏**——导航栏只留搜索 / 深浅色 / RSS 三个图标按钮 |
 | 标签页图标 / 页头 logo | `hugo.toml` 的 `[params.assets]`：`logo` 给页头那个大 logo（深色模式由 CSS 的 `filter` 反白），`favicon` 给标签页（`static/favicon.svg`，文件里内置了 `prefers-color-scheme` 深色反白）。**两个文件是故意分开的**：favicon 里的反白规则会和页头的 `filter` 叠加成反色，混用会出问题 |
 | 添加到主屏幕（PWA） | `static/site.webmanifest` + `static/icon-192.png` / `icon-512.png`。图标由 `logo.svg` 渲染而来，要重做就用：`magick -background none SVG:static/logo.svg -resize 512x512 -colors 64 -strip -define png:compression-level=9 static/icon-512.png`（`-colors 64` 能把 76KB 压到 30KB，肉眼无差） |
-| 短代码样式（tip / note / warning / fold） | 单独放在 `assets/css/shortcodes.css`，由 `layouts/_default/baseof.html` 判断「这一页有没有用到」再决定加不加这个 `<link>`。**改提示框/折叠块样式要改这个文件，别挪回 style.css**——挪回去等于让全部 320 个页面都为它加载。判断用的是 `in .Content \`class="callout\`` ，匹配串故意不写结尾引号（短代码输出的是 `class="callout callout-tip"`） |
 | 分享卡片图 | `[params.assets] shareImage`。宽高由 `layouts/partials/head-meta.html` 用 `imageConfig` 现读，换图不用改模板；文章 front matter 里写了 `cover` 就用 cover，但远程图读不到尺寸，那两个 meta 就不输出 |
 | 首页文案（"总得留下点什么吧"） | `layouts/index.html` 顶部的 `.site-hero` |
 | 首页每页展示几篇 | `layouts/index.html` 里的 `.Paginate $posts 10`；周刊在 `layouts/weekly/list.html` 里的 `.Paginate $all 10` |
-| 周刊期号徽章 | 从标题「第 X 期」自动解析，逻辑在 `layouts/partials/issue-num.html` |
+| 周刊期号徽章 | 读 front matter 的 `issue: 22`（模板里是 `.Params.issue`）。**新写一期周刊记得填这个字段**，不填就不显示徽章。以前是从标题「第 X 期」里正则解析中文数字（`layouts/partials/issue-num.html`，2026-09 已删）：那种写法只在标题里能看出来，改标题就悄悄失效，还多一层中文数字解析 |
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 上一篇 / 下一篇导航 | `layouts/_default/single.html` 里的 `.post-nav` |
 | 标签云（展示哪些标签） | `layouts/_default/taxonomy.html` 里 `site.Taxonomies.tags.ByCount` |
@@ -95,9 +94,12 @@ hugo server -D
 | 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
 | 图片灯箱 | 结构在 `layouts/_default/_markup/render-image.html`：图片被 `<a class="article-image-link" href="原图">` 包着，JS 拦下点击打开灯箱，JS 不可用时退化成「点开原图」。样式在 `assets/css/style.css` 的「文章插图」段，逻辑在 `assets/js/lightbox.js`（原图地址直接读链接的 `href`，不再用 `data-full`） |
 | 键盘可达性 / 焦点陷阱 | 三个弹层（搜索框、目录抽屉、图片灯箱）共用 `assets/js/focus-trap.js` 提供的 `window.hulatuFocusTrap(容器, 初始焦点)`，关闭时记得调用它返回的 `release()` 并把焦点还给触发按钮。**这个文件必须在 `layouts/partials/scripts.html` 的打包顺序里排第一**，否则后面几个脚本运行时拿不到它 |
-| 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false`。加载策略在 `layouts/partials/giscus.html`：滚到评论区前 400px **在后台把 giscus 预加载好，但整块收着不展开**，「显示评论」按钮一直留着；读者点了才展开——因为内容已经加载完，展开是瞬间的、不会先白一下。预加载失败（比如被墙）时保持静默，点了会重试；点开之后 12 秒还出不来才把按钮变成「重新加载评论」。收起用的 `.giscus-body { max-height: 0; visibility: hidden }`，**别改成 `display: none`**，那样 iframe 没有布局尺寸，giscus 会把高度算成 0 |
+| 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false`。DOM 在 `layouts/partials/giscus.html`，行为逻辑在 `assets/js/giscus.js`：滚到评论区前 400px **在后台把 giscus 预加载好，但整块收着不展开**，「显示评论」按钮一直留着；读者点了才展开——因为内容已经加载完，展开是瞬间的、不会先白一下。状态机只有一个 `state` 变量（`idle → loading → ready → slow → open`，`opening` 表示「读者已经在等」），并镜像到 `.giscus-body` 的 `data-state`，调试时在开发者工具里直接看得见。等 iframe 用的是 **MutationObserver，不是定时轮询**；两个超时各管一段：点开后 12 秒没出来才变「重新加载评论」，预加载 2 分钟没结果就静默作废。**这个脚本单独打包、只在带评论的文章页加载**（`giscus.html` 里的 `resources.Get`），不塞进全站 bundle。收起用的 `.giscus-body { max-height: 0; visibility: hidden }`，**别改成 `display: none`**，那样 iframe 没有布局尺寸，giscus 会把高度算成 0 |
+| 文章目录 | 两半逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮，`initDrawer()` 管移动端抽屉的开关 / 焦点陷阱 / ESC。抽屉的开合**以前写在 `single.html` 的内联脚本里**，2026-09 合并进 toc.js，模板里只剩 DOM |
 | 深浅色 | 默认跟随系统；右上角按钮手动切换（带旋转动效），**不记忆选择**（刷新后回到跟随系统）。逻辑在 `assets/js/theme.js`，配色变量在 `assets/css/style.css` 的 `[data-theme="dark"]` |
-| 打赏 | `hugo.toml` 的 `[params.donate]` |
+| 打赏 | `hugo.toml` 的 `[params.donate]`。收款码图片在 `layouts/partials/donate.html` 里走 `cf-image.html`（`width=400,format=auto`）——原图是没压缩的 JPEG，且文件后缀错写成 `.webp`（直接返回的 Content-Type 是 `image/jpeg`），过一层图片变换后按浏览器给 avif/webp，顺带把这个错误头一起修掉。换收款码时**别在模板里直接写原始 URL** |
+| Hugo 版本 | **三处必须一致**：本机 `hugo version`、`.github/workflows/build.yml` 的 `hugo-version`、Cloudflare 五个项目的 `HUGO_VERSION`（主站 + 四个子站）。硬校验在 `layouts/partials/check-hugo-version.html`（`baseof.html` 顶部引入），版本不够或不是 extended 会让构建**直接失败**并按 README 报出当前版本。`hugo.toml` 的 `[module.hugoVersion]` 只起文档作用——实测它在项目自身配置里只打一行 WARN，拦不住构建。extended 是硬依赖：`head-meta.html` 要用 `imageConfig` 读 `share.webp` 的宽高 |
+| 构建校验（CI） | `.github/workflows/build.yml`：push / PR 时用 0.166.0 extended 构建主站 + 调用 `scripts/build-subdomains.sh` 构建四个子站，另外检查每篇周刊的 front matter 有没有 `issue` 字段（漏填只会不显示徽章、不报错，所以单独查一遍）。这是「本地没事、Cloudflare 构建失败」的第一道拦截 |
 | 订阅格式 | `layouts/_default/rss.xml`。首页主源 `/index.xml` + 周刊源 `/weekly/index.xml`（在 `content/weekly/_index.md` 里用 `outputs` 单独开）；栏目默认不出 RSS，改 `hugo.toml` 的 `[outputs] section`。每个源最多 20 条全文，见 `[services.rss] limit` |
 | 阅读时长 / 字数 | `layouts/_default/single.html` 的 `.post-meta-main`，按 350 字/分钟算阅读时长 |
 | 文章页头部版式 | **日期 / 字数 / 阅读时长在左，分类和标签贴右**（`.post-meta` 用 `justify-content: space-between`，见 `assets/css/style.css`）。这是刻意定的，不是对齐错了。窄屏放不下而换行时，标签会另起一行、从左边开始——那是 `space-between` 对「单独占一行的子项」的正常表现，不用改 |
@@ -140,6 +142,45 @@ hugo server -D
 
 写新样式时**不要再随手写 `font-size: 1.05rem` 这种值**，从上表里挑一档；字距同理，用 `--tracking-title`（中文标题 0.02em）、`--tracking-label`（中文小标签 0.06em）、`--tracking-num`（数字 / 日期 0.04em）。真正的"大字距"只留给纯英文或数字，套在汉字上会显得字被掰开。
 
+### 控件四态（按钮手感）
+
+所有可点的控件都走 `:root` 里的四态变量，每态四件套「底 `-bg` · 字 `-text` · 边 `-border` · 影 `-shadow`」，共 12 组。要调全站按钮的手感，**只改这一段**，不要在各个组件的 `:hover` 里写死颜色。
+
+三套按控件的形态分：
+
+| 前缀 | 用在 | 成员 |
+|---|---|---|
+| `--ctrl-*` | 描边型按钮：有底、有边 | 翻页、文章胶囊、标签云胶囊、404 按钮、目录抽屉关闭、搜索关闭 |
+| `--ctrl-solid-*` | 印章红实心主按钮 | 打赏按钮、404「回首页」 |
+| `--ctrl-ghost-*` | 无底图标按钮：默认完全安静 | 页头搜索 / 深浅色 / RSS / 汉堡、代码块「复制」 |
+
+另有 `--ctrl-float-*`（`-bg` / `-hover-bg` / `-border` / `-shadow`）只给毛玻璃浮动按钮用（返回顶部、手机目录）：它们的底是半透明 + `backdrop-filter`，和普通按钮的不是一个东西，所以底和影单开一组，但四态仍然复用上面的配色。
+
+写新控件时的固定写法：
+
+```css
+.xxx-btn {
+  background: var(--ctrl-bg);
+  color: var(--ctrl-text);
+  border: 1px solid var(--ctrl-border);
+  box-shadow: var(--ctrl-shadow);
+  transition: var(--ctrl-transition);   /* 不要自己写 transition 列表 */
+}
+.xxx-btn:hover  { /* 换成 --ctrl-hover-* 四件套 */ }
+.xxx-btn:active { /* 换成 --ctrl-active-* 四件套 */ }
+.xxx-btn:disabled { /* 换成 --ctrl-disabled-*，加 opacity: var(--ctrl-disabled-opacity) */ }
+```
+
+几条约定：
+
+- **按下态不发光**：`--ctrl-active-shadow` 是 `none`，深色下也一样。按压靠 `--ctrl-active-bg`（印泥淡痕底）和已有的 `transform: scale(0.96)` 反馈，不要加阴影。
+- **禁用态统一 `opacity: var(--ctrl-disabled-opacity)`（0.5）**，别再各写 0.35 / 0.55。取 0.5 是因为「显示评论」按钮加载中也要保持可读（旧值是 0.55），翻页箭头那边同时还有 `pointer-events: none` 兜底。`<a>` 模拟的禁用（翻页到头）用 `.is-disabled` 类，样式和 `:disabled` 一致。
+- **深色模式只重写阴影**：其余变量都引用 `--surface` / `--line` / `--accent` 这些原始取色，会自动跟着变，不用在 `[data-theme="dark"]` 里重复一遍。
+- 图片灯箱（`.lightbox-btn`）是唯一的例外：它浮在纯黑遮罩上，纸色系按钮放上去会突兀，仍然单独写白色半透明 —— 新增这类"深底上的控件"时照此单独处理，别硬套 token。
+- `--ctrl-ghost-active-*` 也用在「开关类按钮的展开态」上（比如汉堡菜单 `.is-open`），这样"现在正开着"在按钮上看得见，而不只是一个图标变形。
+- **文字链接不进这套 token**：页脚 / 友链 / 导航这些纯文字链接统一是「hover 变 `--accent`」，正文内链接另有「印泥淡痕底 + 红字」的一套（`.post-content a`），这是刻意的区分——文字链接靠字色，控件靠底、边、影。
+- **带语义色的胶囊不套中性 token**：`.post-cat-chip`（印泥底红字）和 `.post-tag-chip`（灰底）的底色是分类 / 标签的语义，hover 时整体切成 `--accent` 实底，保持原样，不要去"统一"它们。
+
 ### 响应式断点速查
 
 | 断点 | 行为 |
@@ -152,7 +193,7 @@ hugo server -D
 
 ### 跑步数据
 
-跑步数据展示在独立的 `run.hulatu.com`。数据链路：Garmin 255 同步到 Garmin Connect → GitHub Actions 定时拉取或本机手动同步 → 合并写入 `data/runs.json`、`sites/run/data/runs.json` 和 `sites/profile/data/run_summary.json` → 提交推送 → Cloudflare Pages 构建对应子站。
+跑步数据展示在独立的 `run.hulatu.com`。数据链路：Garmin 255 同步到 Garmin Connect → GitHub Actions 定时拉取或本机手动同步 → 合并写入 `data/runs.json`（唯一一份，子站靠挂载读取）和 `sites/profile/data/run_summary.json` → 提交推送 → Cloudflare Pages 构建对应子站。
 
 GitHub Actions 目前每天 22:00（Asia/Taipei）跑一次 `.github/workflows/sync-garmin.yml`；也可以本机手动同步：
 
@@ -247,8 +288,12 @@ up
 可随时安全删除的构建产物（下次构建自动重建）：
 
 ```bash
-rm -rf public resources .hugo_build.lock
+# 主站 + 四个子站的产物、Hugo 的构建锁、macOS 顺手生成的 .DS_Store
+rm -rf public resources sites/*/public sites/*/resources .hugo_build.lock sites/*/.hugo_build.lock
+find . -name .DS_Store -not -path './.git/*' -delete
 ```
+
+产物都在 `.gitignore` 里，删掉不影响仓库；但 `hugo` 一跑 `resources/` 和 `.hugo_build.lock` 就会回来，所以"清理"是清理当下，别指望一直干净。本地全文搜索（`rg`）的噪音主要就来自 `public/`。
 
 ## 五、常见问题
 

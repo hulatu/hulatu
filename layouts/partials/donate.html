@@ -17,8 +17,13 @@
       <p class="donate-tip">感谢支持</p>
       <div class="donate-qrs">
         {{ range $qr }}
+        {{- /* 收款码原图是没有压缩过的 JPEG（文件后缀还错写成了 .webp，直接返回
+               的 Content-Type 是 image/jpeg），这里套一层 Cloudflare 图片变换：
+               format=auto 会按浏览器给 avif / webp，顺手把那个错误的 Content-Type
+               一起修掉。实测 wechat：37732 字节 → avif 14711 / jpeg 24912。 */ -}}
+        {{- $qrSrc := partial "cf-image.html" (dict "src" .src "params" "width=400,format=auto,quality=80,metadata=none") -}}
         <figure class="donate-qr">
-          <img src="{{ .src | relURL }}" alt="{{ .label }}赞赏码" width="200" height="200" loading="lazy" decoding="async">
+          <img src="{{ $qrSrc }}" alt="{{ .label }}赞赏码" width="200" height="200" loading="lazy" decoding="async">
           <figcaption>{{ .label }}</figcaption>
         </figure>
         {{ end }}

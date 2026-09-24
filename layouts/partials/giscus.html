@@ -1,6 +1,6 @@
 {{- if site.Params.giscus.repo -}}
   {{- with .title }}<h2 class="giscus-title">{{ . }}</h2>{{ end }}
-  {{- /* 评论区默认是「已经预加载好、但整块收起来」的状态，见文件末尾脚本的说明 */ -}}
+  {{- /* 评论区默认是「已经预加载好、但整块收起来」的状态，行为逻辑见 assets/js/giscus.js */ -}}
   <div class="giscus-body" id="giscus-body">
     <div id="giscus-slot"
       data-repo="{{ site.Params.giscus.repo }}"
@@ -8,166 +8,18 @@
       data-category="{{ site.Params.giscus.category }}"
       data-category-id="{{ site.Params.giscus.categoryId }}"
       data-mapping="{{ site.Params.giscus.mapping | default "pathname" }}"
-      data-strict="0"
+      data-strict="{{ if site.Params.giscus.strict }}1{{ else }}0{{ end }}"
       data-reactions-enabled="{{ if site.Params.giscus.reactions }}1{{ else }}0{{ end }}"
-      data-emit-metadata="0"
+      data-emit-metadata="{{ if site.Params.giscus.emitMetadata }}1{{ else }}0{{ end }}"
       data-input-position="{{ if .inputPosition }}{{ .inputPosition }}{{ else }}{{ site.Params.giscus.inputPosition | default "bottom" }}{{ end }}"
       data-theme="preferred_color_scheme"
       data-lang="{{ site.Params.giscus.lang | default "zh-CN" }}"></div>
   </div>
   <p class="giscus-loading" id="giscus-loading" hidden aria-live="polite">正在加载评论…</p>
   <button type="button" class="post-pill giscus-load-btn" id="giscus-load-btn">显示评论</button>
-  <!-- 评论的行为：
-       1) 滚到评论区前 400px，就开始在后台加载 giscus（预加载）；
-       2) 但加载完成后**不会自动展开**，整块一直收着，「显示评论」按钮一直留着；
-       3) 读者点按钮才展开——因为内容已经加载好了，展开是瞬间的，不会先白一下再出来；
-       4) 点了以后还没加载好（或加载失败），按钮才会置灰 / 变成「重新加载评论」。
-       预加载本身失败（比如 giscus 被墙）时保持静默，读者点了会重新试一次。 -->
-  <script>
-  (function () {
-    var body = document.getElementById('giscus-body');
-    var slot = document.getElementById('giscus-slot');
-    var btn = document.getElementById('giscus-load-btn');
-    var loading = document.getElementById('giscus-loading');
-    if (!body || !slot || !btn) return;
-
-    var CHECK_MS = 500;
-    var SLOW_CHECKS = 24;    // 读者点开之后 12 秒还出不来 iframe：按钮变成「重新加载评论」
-    var GIVEUP_CHECKS = 240; // 预加载 2 分钟没结果：悄悄作废，等读者点的时候重新来一次
-
-    var observer = null;
-    var timer = null;
-      var checks = 0;
-    var state = 'idle';      // idle | loading | ready | slow | open
-    var wantsOpen = false;   // 读者是否已经点过「显示评论」
-
-    function stopWatch() {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-      }
-    }
-
-    function setButton(text, disabled) {
-      btn.textContent = text;
-      btn.disabled = !!disabled;
-    }
-
-    // 展开：内容早就加载好了，这里只是把收起的那块放出来
-    function reveal() {
-      state = 'open';
-      wantsOpen = false;
-      stopWatch();
-      if (observer) {
-        observer.disconnect();
-        observer = null;
-      }
-      body.classList.add('is-open');
-      btn.hidden = true;
-      if (loading) loading.hidden = true;
-    }
-
-    function onReady() {
-      if (wantsOpen) { reveal(); return; }
-      // 读者还没点过：什么都不做，按钮保持「显示评论」，内容继续收着
-      state = 'ready';
-      stopWatch();
-    }
-
-    function onSlow() {
-      state = 'slow';
-      if (!wantsOpen) return;
-      if (loading) loading.hidden = true;
-      setButton('重新加载评论', false);
-    }
-
-    function watchForFrame() {
-      stopWatch();
-      checks = 0;
-      timer = setInterval(function () {
-        checks++;
-        if (slot.querySelector('iframe.giscus-frame')) { onReady(); return; }
-        if (checks === SLOW_CHECKS) onSlow();
-        if (checks >= GIVEUP_CHECKS) {
-          stopWatch();
-          // 预加载失败：静默作废，读者点了再重新来一次
-          if (!wantsOpen) {
-            state = 'idle';
-            slot.innerHTML = '';
-          }
-        }
-      }, CHECK_MS);
-    }
-
-    function inject() {
-      var s = document.createElement('script');
-      s.src = 'https://giscus.app/client.js';
-      s.async = true;
-      s.crossOrigin = 'anonymous';
-      s.setAttribute('data-loading', 'lazy');
-      for (var k in slot.dataset) {
-        s.setAttribute('data-' + k.replace(/([A-Z])/g, '-$1').toLowerCase(), slot.dataset[k]);
-      }
-      slot.appendChild(s);
-      watchForFrame();
-    }
-
-    // 后台预加载：只注入脚本，不展开、不改按钮
-    function preload() {
-      if (state === 'loading' || state === 'ready' || state === 'open' || state === 'slow') return;
-      state = 'loading';
-      if (observer) {
-        observer.disconnect();
-        observer = null;
-      }
-      inject();
-    }
-
-    function retry() {
-      stopWatch();
-      slot.innerHTML = '';
-      state = 'idle';
-      wantsOpen = true;
-      if (loading) loading.hidden = false;
-      setButton('显示评论', true);
-      preload();
-    }
-
-    function open() {
-      if (state === 'open') return;
-      if (state === 'ready') { reveal(); return; }
-      if (state === 'slow') { retry(); return; }
-      wantsOpen = true;
-      if (loading) loading.hidden = false;
-      setButton('显示评论', true);
-      if (state === 'loading') {
-        if (!timer) watchForFrame();
-        return;
-      }
-      preload();
-    }
-
-    function watch() {
-      if (!('IntersectionObserver' in window)) return;
-      observer = new IntersectionObserver(function (entries) {
-        for (var i = 0; i < entries.length; i++) {
-          if (entries[i].isIntersecting) {
-            preload();
-            return;
-          }
-        }
-      }, { rootMargin: '400px 0px' });
-      observer.observe(slot);
-    }
-
-    // 预渲染的页面不提前拉评论：等页面真的被打开再挂监听
-    if (document.prerendering) {
-      document.addEventListener('prerenderingchange', watch, { once: true });
-    } else {
-      watch();
-    }
-
-    btn.addEventListener('click', open);
-  })();
-  </script>
+  {{- /* 行为逻辑在 assets/js/giscus.js：只有这一页真的带评论才加载它，
+         不塞进全站 bundle（那 320 个页面都要为它付费）。
+         预加载 / 展开状态机、data-state 的含义都写在那个文件头部。 */ -}}
+  {{- $giscusJs := resources.Get "js/giscus.js" | minify | fingerprint -}}
+  <script src="{{ $giscusJs.RelPermalink }}" integrity="{{ $giscusJs.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- end -}}

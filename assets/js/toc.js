@@ -1,9 +1,10 @@
 (function () {
   "use strict";
 
-  /* 文章目录：滚动高亮当前章节。
-     右侧固定栏和移动端底部抽屉是同一份目录的两个副本，
-     所以这里对页面里所有的 .post-toc-nav 一起生效。
+  /* 文章目录的两半逻辑都在这个文件里：
+       init()       —— 滚动高亮当前章节；
+       initDrawer() —— 移动端底部抽屉的开关、焦点陷阱、ESC。
+     右侧固定栏和抽屉是同一份目录的两个副本，所以高亮对页面里所有 .post-toc-nav 一起生效。
      点击行为按位置区分：
        - 右侧栏：自己接管，平滑滚动；
        - 抽屉里：交给浏览器原生锚点跳转，这样抽屉会先关闭、body 先解锁再滚动。 */
@@ -79,5 +80,49 @@
     sync();
   }
 
-  document.addEventListener("DOMContentLoaded", init);
+  /* 移动端目录抽屉：开合、焦点陷阱、ESC 关闭。
+     过去这段写在 single.html 的内联脚本里，和上面的高亮逻辑分家；
+     现在合并到一处，抽屉和侧栏共用同一份目录数据。 */
+  function initDrawer() {
+    var btn = document.getElementById("toc-btn");
+    var drawer = document.getElementById("toc-drawer");
+    if (!btn || !drawer) return;
+
+    var releaseTrap = null;
+
+    function open() {
+      drawer.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+      document.body.classList.add("toc-open");
+      // 焦点锁进抽屉、并落到关闭按钮上（focus-trap.js 由同一个 bundle 提供，排在前面）
+      if (window.hulatuFocusTrap) {
+        releaseTrap = window.hulatuFocusTrap(drawer, drawer.querySelector(".toc-drawer-close"));
+      }
+    }
+
+    function close() {
+      if (drawer.hidden) return;
+      drawer.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+      document.body.classList.remove("toc-open");
+      if (releaseTrap) {
+        releaseTrap();
+        releaseTrap = null;
+      }
+      btn.focus();
+    }
+
+    btn.addEventListener("click", open);
+    drawer.addEventListener("click", function (event) {
+      if (event.target.closest("[data-toc-close]") || event.target.closest(".toc-drawer-nav a")) close();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !drawer.hidden) close();
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    init();
+    initDrawer();
+  });
 })();

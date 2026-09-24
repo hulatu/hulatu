@@ -1,0 +1,19 @@
+{{- /* Hugo 版本兜底：本机 / GitHub Actions / Cloudflare Pages 三边版本不一致时，
+       让构建**直接失败并报出当前版本**，而不是悄悄渲染出不对的页面。
+
+       为什么不用 hugo.toml 的 [module.hugoVersion] 当唯一手段：实测那个约束在
+       项目自身配置里只打一行 WARN（"Module project is not compatible with this Hugo
+       version"），构建照样成功，拦不住。所以这里用 errorf 硬拦。
+
+       extended 是硬要求而不是偏好：layouts/partials/head-meta.html 要用 imageConfig
+       读 static/images/share.webp 的宽高，标准版 Hugo 解不了 WebP。
+
+       从 baseof.html 顶部引入，每个页面都会跑一次（版本达标时零输出零开销）。
+       报错后的处理办法见 README「安装 Hugo（Extended 版本）」。 */ -}}
+{{- $parts := split hugo.Version "." -}}
+{{- $major := int (index $parts 0) -}}
+{{- $minor := int (index $parts 1) -}}
+{{- $tooOld := and (eq $major 0) (lt $minor 166) -}}
+{{- if or $tooOld (not hugo.IsExtended) -}}
+  {{- errorf "Hugo 版本不达标：本站需要 0.166.0 及以上的 extended 版，当前是 %s（extended=%v）。本机请升级 Hugo；Cloudflare Pages 请在项目环境变量里设置 HUGO_VERSION=0.166.0（五个项目都要）。" hugo.Version hugo.IsExtended -}}
+{{- end -}}

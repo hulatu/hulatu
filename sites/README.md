@@ -7,6 +7,11 @@
 - `sites/share`：`share.hulatu.com`，好物与经验分享。
 - `sites/profile`：`profile.hulatu.com`，个人主页与各平台入口。
 
+> `sites/run` **不存跑步数据副本**：它的 `hugo.toml` 用 `[[module.mounts]]` 挂载仓库根目录的 `data/`，
+> 数据只有 `data/runs.json` 一份（以前子站里那份副本曾经比主站少两次跑步记录）。
+> 因此上面四个 Pages 项目的 **Root directory 必须保持 `/`**——子站要能看见上一层的 `data/`。
+> 想只构建某个子站时也别忘了这点：`hugo --source sites/run` 是从仓库根目录跑的。
+
 ## 本地构建
 
 ```bash
@@ -25,6 +30,14 @@ sites/profile/public
 ## Cloudflare Pages 配置
 
 在 Cloudflare Pages 中为各子域名分别新建项目，并绑定同一个 GitHub 仓库。
+
+### 每个项目都要设的环境变量
+
+| 变量 | 值 | 为什么 |
+|---|---|---|
+| `HUGO_VERSION` | `0.166.0` | 不设就跟随平台默认版本，可能与本机、CI 不一致。**四个子站项目都要设**，主站的 Pages 项目也一样（见根目录 `README.md` 的「安装 Hugo」一节） |
+
+版本不合适时主站构建会直接失败并打印当前版本（`layouts/partials/check-hugo-version.html`）；子站构建由 `.github/workflows/build.yml` 在 push 时用同一版本预先验证。
 
 ### 需要的 Account API Token 权限
 

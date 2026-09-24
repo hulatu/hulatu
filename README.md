@@ -5,7 +5,7 @@
 ## ✨ 功能特点
 
 - **导航栏**：关于 / 归档 / 分类 / 周刊 + RSS
-- **页脚**：版权 / 花园、友链、隐私政策、邮箱 / CC 协议
+- **页脚**：版权 / 花园、友链、开往、隐私政策、邮箱 / CC 协议
 - **首页**：按时间倒序每页 10 篇，底部左右箭头翻页
 - **文章页**：目录（桌面侧栏 / 手机端底部抽屉）、相关文章、上一篇/下一篇、打赏、评论
 - **评论系统**：接入 [giscus](https://giscus.app)（基于 GitHub Discussions），跟随系统深浅色主题
@@ -41,7 +41,7 @@ blog/
 │   └── js/                      # 主题、目录等脚本
 ├── scripts/                     # Garmin 同步、正文图片尺寸抓取等脚本
 ├── data/
-│   ├── runs.json                # 跑步数据（供 run.hulatu.com 使用）
+│   ├── runs.json                # 跑步数据（唯一一份；run.hulatu.com 挂载读取，不复制）
 │   └── image_dims.json          # 正文远程图片的宽高缓存（避免图片加载时页面跳动）
 ├── static/
 │   ├── images/                  # 头像、分享图
@@ -67,7 +67,25 @@ blog/
 hugo version
 ```
 
-> 注意一定要装 **Extended 版本**（自带图片处理、Sass 编译等能力）。
+输出应该长这样，**版本号和 `extended` 两个都不能少**：
+
+```
+hugo v0.166.0+extended ...
+```
+
+> 注意一定要装 **Extended 版本**（自带图片处理、Sass 编译等能力）。本站是硬依赖：`layouts/partials/head-meta.html` 要用 `imageConfig` 读 `static/images/share.webp` 的宽高，标准版 Hugo 解不了 WebP。
+
+**期望版本：0.166.0 或更高。** 三处必须一致，否则会出现「本机构建正常、线上构建失败」：
+
+| 在哪 | 怎么定版本 |
+|---|---|
+| 本机 | `brew upgrade hugo` 升到 0.166.0+ |
+| GitHub Actions | `.github/workflows/build.yml` 里的 `hugo-version` |
+| Cloudflare Pages | 五个项目（主站 + 四个子站）**都要**在 Settings → Environment variables 里加 `HUGO_VERSION=0.166.0` |
+
+不满足条件时构建会**直接失败并打印当前版本**（检查逻辑在 `layouts/partials/check-hugo-version.html`，因为 `hugo.toml` 里的 `[module.hugoVersion]` 在项目自身配置里只会打 WARN、拦不住）。
+
+> ⚠️ **顺序：先设 Cloudflare 环境变量，再推代码。** Cloudflare 的 build image 默认装的是 Hugo **0.147.7**（v3 镜像，官方文档「Build image」页可查），比你本机低一大截——也就是说在你设 `HUGO_VERSION` 之前，线上和本地一直跑在两个版本上。设好之前推代码，线上构建会因版本检查失败；站点**不会掉线**（Cloudflare 保留上一次成功的部署），但内容会停在那一次。
 
 ### 2. 启动本地预览
 
@@ -99,7 +117,7 @@ hugo new content/posts/my-first-post.md
 | 个人头像 | 把图片放进 `static/images/`，然后在 `hugo.toml` 的 `params.avatar` 填 `/images/文件名.jpg`；不填则自动显示首字母头像 |
 | 相关文章数量与匹配 | `hugo.toml` 里 `[related]` 段 |
 | 目录/标签云侧栏断点 | `assets/css/style.css` 里搜 `1200px` / `899.98px` 媒体查询 |
-| 周刊期号徽章 | 从标题「第 X 期」自动解析，逻辑在 `layouts/partials/issue-num.html` |
+| 周刊期号徽章 | 在周刊的 front matter 里写 `issue: 22`（不填就不显示徽章） |
 
 ## 💬 接入 giscus 评论系统
 

@@ -25,9 +25,8 @@
       <span class="breadcrumb-current" aria-current="page">{{ .Title }}</span>
     </nav>
     {{ if $isWeekly }}
-      {{- $issue := partial "issue-num.html" . -}}
-      {{- if $issue -}}
-      <p class="issue-badge"><span class="issue-badge-label">周刊</span><span class="issue-badge-num">第 {{ $issue }} 期</span></p>
+      {{- with .Params.issue -}}
+      <p class="issue-badge"><span class="issue-badge-label">周刊</span><span class="issue-badge-num">第 {{ . }} 期</span></p>
       {{- end -}}
     {{ end }}
     <h1 class="post-title">{{ .Title }}</h1>
@@ -96,41 +95,6 @@
       <nav class="post-toc-nav toc-drawer-nav">{{ $tocDrawer | safeHTML }}</nav>
     </div>
   </div>
-  <script>
-  (function () {
-    var btn = document.getElementById("toc-btn");
-    var drawer = document.getElementById("toc-drawer");
-    if (!btn || !drawer) return;
-    var releaseTrap = null;
-    function open() {
-      drawer.hidden = false;
-      btn.setAttribute("aria-expanded", "true");
-      document.body.classList.add("toc-open");
-      // 焦点锁进抽屉、并落到关闭按钮上（focus-trap.js 由 defer 的 bundle 提供）
-      if (window.hulatuFocusTrap) {
-        releaseTrap = window.hulatuFocusTrap(drawer, drawer.querySelector(".toc-drawer-close"));
-      }
-    }
-    function close() {
-      if (drawer.hidden) return;
-      drawer.hidden = true;
-      btn.setAttribute("aria-expanded", "false");
-      document.body.classList.remove("toc-open");
-      if (releaseTrap) {
-        releaseTrap();
-        releaseTrap = null;
-      }
-      btn.focus();
-    }
-    btn.addEventListener("click", open);
-    drawer.addEventListener("click", function (e) {
-      if (e.target.closest("[data-toc-close]") || e.target.closest(".toc-drawer-nav a")) close();
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !drawer.hidden) close();
-    });
-  })();
-  </script>
   {{ end }}
 
   <div class="post-content">

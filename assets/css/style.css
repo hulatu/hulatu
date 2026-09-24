@@ -33,11 +33,6 @@
   --code-var: #953800;
   --code-op: #1f2328;
 
-  /* 提示框取色：从「纸账 + 印章」体系里派生，不用 Tailwind 原色 */
-  --hue-tip: #4a7a5c;
-  --hue-note: #4a6b8a;
-  --hue-warning: #a8661c;
-
   --max-width: 800px;
   --gutter: clamp(20px, 5vw, 32px);
   --header-h: 64px;
@@ -77,6 +72,80 @@
   --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08), 0 24px 64px rgba(0, 0, 0, 0.13);
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
 
+  /* 控件四态：default / hover / active / disabled，每态四件套「底 · 字 · 边 · 影」。
+     所有按钮、图标按钮只引用这里的变量，不写死颜色——要调整全站手感，只改这一段。
+     三套：ctrl（描边按钮）/ ctrl-solid（印章红实心主按钮）/ ctrl-ghost（无底图标按钮） */
+  --ctrl-bg: var(--surface);
+  --ctrl-text: var(--ink-soft);
+  --ctrl-border: var(--line);
+  --ctrl-shadow: none;
+
+  --ctrl-hover-bg: var(--surface);
+  --ctrl-hover-text: var(--accent);
+  --ctrl-hover-border: color-mix(in srgb, var(--accent) 45%, var(--line));
+  --ctrl-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  --ctrl-active-bg: var(--accent-soft);
+  --ctrl-active-text: var(--accent-ink);
+  --ctrl-active-border: color-mix(in srgb, var(--accent) 62%, var(--line));
+  --ctrl-active-shadow: none;
+
+  --ctrl-disabled-bg: var(--surface);
+  --ctrl-disabled-text: var(--muted);
+  --ctrl-disabled-border: var(--line);
+  --ctrl-disabled-shadow: none;
+  --ctrl-disabled-opacity: 0.5;
+
+  --ctrl-solid-bg: var(--accent);
+  --ctrl-solid-text: var(--on-accent);
+  --ctrl-solid-border: var(--accent);
+  --ctrl-solid-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 32%, transparent);
+
+  --ctrl-solid-hover-bg: var(--accent-ink);
+  --ctrl-solid-hover-text: var(--on-accent);
+  --ctrl-solid-hover-border: var(--accent-ink);
+  --ctrl-solid-hover-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 38%, transparent);
+
+  --ctrl-solid-active-bg: var(--accent-ink);
+  --ctrl-solid-active-text: var(--on-accent);
+  --ctrl-solid-active-border: var(--accent-ink);
+  --ctrl-solid-active-shadow: none;
+
+  --ctrl-solid-disabled-bg: var(--accent);
+  --ctrl-solid-disabled-text: var(--on-accent);
+  --ctrl-solid-disabled-border: var(--accent);
+  --ctrl-solid-disabled-shadow: none;
+
+  /* ghost：默认完全安静，只靠字色 + 一层极淡的印泥底色回应悬停 */
+  --ctrl-ghost-bg: transparent;
+  --ctrl-ghost-text: var(--muted);
+  --ctrl-ghost-border: transparent;
+  --ctrl-ghost-shadow: none;
+
+  --ctrl-ghost-hover-bg: color-mix(in srgb, var(--accent) 9%, transparent);
+  --ctrl-ghost-hover-text: var(--accent);
+  --ctrl-ghost-hover-border: transparent;
+  --ctrl-ghost-hover-shadow: none;
+
+  --ctrl-ghost-active-bg: color-mix(in srgb, var(--accent) 17%, transparent);
+  --ctrl-ghost-active-text: var(--accent-ink);
+  --ctrl-ghost-active-border: transparent;
+  --ctrl-ghost-active-shadow: none;
+
+  --ctrl-ghost-disabled-bg: transparent;
+  --ctrl-ghost-disabled-text: var(--muted);
+  --ctrl-ghost-disabled-border: transparent;
+
+  /* 毛玻璃浮动按钮（返回顶部 / 手机目录）专用：底和影单独一套，四态仍走上面 */
+  --ctrl-float-bg: color-mix(in srgb, var(--paper) 88%, transparent);
+  --ctrl-float-hover-bg: color-mix(in srgb, var(--surface) 94%, transparent);
+  --ctrl-float-border: var(--line-strong);
+  --ctrl-float-shadow: var(--shadow-sm);
+
+  /* 控件共用过渡：四态切换只动这几样，时长统一 */
+  --ctrl-transition: color 0.15s ease, background 0.15s ease,
+    border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s var(--ease);
+
   --font-serif: "Source Han Serif SC", "Noto Serif SC", "Noto Serif CJK SC",
     "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif;
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
@@ -115,12 +184,13 @@
   --code-var: #ffa657;
   --code-op: #e6edf3;
 
-  --hue-tip: #86b295;
-  --hue-note: #93b0ca;
-  --hue-warning: #d9a45f;
-
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.45), 0 28px 80px rgba(0, 0, 0, 0.55);
+
+  /* 深色下只有阴影要重写：其余四态变量都引用上面的取色，会自动跟着变 */
+  --ctrl-hover-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  --ctrl-solid-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 26%, transparent);
+  --ctrl-solid-hover-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
 /* ---------- 基础 ---------- */
@@ -371,18 +441,41 @@ main.container.is-home {
   justify-content: center;
   width: 34px;
   height: 34px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: none;
-  color: var(--muted);
+  border: 1px solid var(--ctrl-ghost-border);
+  border-radius: var(--radius-pill);
+  background: var(--ctrl-ghost-bg);
+  color: var(--ctrl-ghost-text);
+  box-shadow: var(--ctrl-ghost-shadow);
   cursor: pointer;
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition: var(--ctrl-transition);
 }
 
 .nav-icon-btn:hover,
 .nav-burger:hover {
-  color: var(--accent);
+  background: var(--ctrl-ghost-hover-bg);
+  color: var(--ctrl-ghost-hover-text);
+  border-color: var(--ctrl-ghost-hover-border);
+  box-shadow: var(--ctrl-ghost-hover-shadow);
   transform: translateY(-1px);
+}
+
+.nav-icon-btn:active,
+.nav-burger:active {
+  background: var(--ctrl-ghost-active-bg);
+  color: var(--ctrl-ghost-active-text);
+  border-color: var(--ctrl-ghost-active-border);
+  box-shadow: var(--ctrl-ghost-active-shadow);
+}
+
+.nav-icon-btn:disabled,
+.nav-burger:disabled {
+  background: var(--ctrl-ghost-disabled-bg);
+  color: var(--ctrl-ghost-disabled-text);
+  border-color: var(--ctrl-ghost-disabled-border);
+  box-shadow: none;
+  opacity: var(--ctrl-disabled-opacity);
+  cursor: default;
+  transform: none;
 }
 
 .nav-burger {
@@ -402,6 +495,14 @@ main.container.is-home {
 .nav-burger.is-open .burger-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 .nav-burger.is-open .burger-bar:nth-child(2) { opacity: 0; }
 .nav-burger.is-open .burger-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* 菜单展开中：等同按下态，让「现在正开着」这件事在按钮上看得见 */
+.nav-burger.is-open {
+  background: var(--ctrl-ghost-active-bg);
+  color: var(--ctrl-ghost-active-text);
+  border-color: var(--ctrl-ghost-active-border);
+  box-shadow: var(--ctrl-ghost-active-shadow);
+}
 
 /* ---------- 首页 · 卷首 ---------- */
 .site-hero {
@@ -598,31 +699,47 @@ main.container.is-home {
   width: 34px;
   height: 34px;
   padding: 0;
-  background: none;
-  border: 1px solid var(--line);
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
   border-radius: 50%;
-  color: var(--muted);
+  color: var(--ctrl-text);
+  box-shadow: var(--ctrl-shadow);
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  transition: var(--ctrl-transition);
 }
 
 .pager-btn:hover:not(:disabled) {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-  background: var(--surface);
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-hover-shadow);
 }
 
-.pager-btn:active:not(:disabled) { transform: translateY(1px); }
+.pager-btn:active:not(:disabled) {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
+  transform: translateY(1px);
+}
 
 .pager-btn:disabled {
-  opacity: 0.35;
+  background: var(--ctrl-disabled-bg);
+  color: var(--ctrl-disabled-text);
+  border-color: var(--ctrl-disabled-border);
+  box-shadow: var(--ctrl-disabled-shadow);
+  opacity: var(--ctrl-disabled-opacity);
   cursor: default;
 }
 
 a.pager-btn { text-decoration: none; }
 
 .pager-btn.is-disabled {
-  opacity: 0.35;
+  background: var(--ctrl-disabled-bg);
+  color: var(--ctrl-disabled-text);
+  border-color: var(--ctrl-disabled-border);
+  box-shadow: var(--ctrl-disabled-shadow);
+  opacity: var(--ctrl-disabled-opacity);
   cursor: default;
   pointer-events: none;
 }
@@ -1061,17 +1178,37 @@ a.pager-btn { text-decoration: none; }
   gap: var(--space-2);
   padding: 0.34em 1em;
   font-size: var(--text-xs);
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  color: var(--ctrl-text);
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
   border-radius: var(--radius-pill);
+  box-shadow: var(--ctrl-shadow);
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  transition: var(--ctrl-transition);
 }
 
 .post-pill:hover {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-hover-shadow);
+}
+
+.post-pill:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
+}
+
+.post-pill:disabled {
+  background: var(--ctrl-disabled-bg);
+  color: var(--ctrl-disabled-text);
+  border-color: var(--ctrl-disabled-border);
+  box-shadow: var(--ctrl-disabled-shadow);
+  opacity: var(--ctrl-disabled-opacity);
+  cursor: default;
+  transform: none;
 }
 
 a.post-pill { text-decoration: none; }
@@ -1439,19 +1576,28 @@ a[target="_blank"]::after {
 
 .code-block-copy {
   margin-left: auto;
-  border: none;
-  background: none;
-  color: var(--muted);
+  border: 1px solid var(--ctrl-ghost-border);
+  background: var(--ctrl-ghost-bg);
+  color: var(--ctrl-ghost-text);
   font-size: var(--text-2xs);
+  box-shadow: var(--ctrl-ghost-shadow);
   cursor: pointer;
   padding: 0.2em 0.55em;
   border-radius: var(--radius-sm);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: var(--ctrl-transition);
 }
 
 .code-block-copy:hover {
-  color: var(--accent);
-  background: var(--surface-2);
+  background: var(--ctrl-ghost-hover-bg);
+  color: var(--ctrl-ghost-hover-text);
+  border-color: var(--ctrl-ghost-hover-border);
+  box-shadow: var(--ctrl-ghost-hover-shadow);
+}
+
+.code-block-copy:active {
+  background: var(--ctrl-ghost-active-bg);
+  color: var(--ctrl-ghost-active-text);
+  border-color: var(--ctrl-ghost-active-border);
 }
 
 /* 容器样式由 .code-block 承担，内层去重 */
@@ -1602,22 +1748,31 @@ a[target="_blank"]::after {
   display: none;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--ctrl-float-border);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  background: var(--ctrl-float-bg);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  color: var(--muted);
+  color: var(--ctrl-text);
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--ctrl-float-shadow);
   z-index: 90;
-  transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  transition: var(--ctrl-transition);
 }
 
 .toc-btn:hover {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--ctrl-float-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-float-shadow);
   transform: translateY(-2px);
+}
+
+.toc-btn:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  transform: translateY(0);
 }
 
 .back-top {
@@ -1629,19 +1784,19 @@ a[target="_blank"]::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--ctrl-float-border);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  background: var(--ctrl-float-bg);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  color: var(--muted);
+  color: var(--ctrl-text);
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--ctrl-float-shadow);
   z-index: 90;
   opacity: 0;
   pointer-events: none;
   transform: translateY(8px);
-  transition: color 0.15s ease, border-color 0.15s ease, transform 0.2s ease, opacity 0.2s ease;
+  transition: var(--ctrl-transition), opacity 0.2s ease;
 }
 
 .back-top.is-visible {
@@ -1651,8 +1806,15 @@ a[target="_blank"]::after {
 }
 
 .back-top:hover {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--ctrl-float-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+}
+
+.back-top:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
 }
 
 body.toc-open { overflow: hidden; }
@@ -1714,17 +1876,27 @@ body.toc-open { overflow: hidden; }
   width: 30px;
   height: 30px;
   padding: 0;
-  color: var(--muted);
-  background: none;
-  border: 1px solid var(--line);
+  color: var(--ctrl-text);
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
   border-radius: 50%;
+  box-shadow: var(--ctrl-shadow);
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: var(--ctrl-transition);
 }
 
 .toc-drawer-close:hover {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-hover-shadow);
+}
+
+.toc-drawer-close:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
 }
 
 .toc-drawer-nav {
@@ -1780,10 +1952,6 @@ body.toc-open { overflow: hidden; }
   white-space: nowrap;
 }
 
-.post-nav-card.is-empty {
-  opacity: 0.55;
-}
-
 /* ---------- 打赏 ---------- */
 .donate {
   margin: 2.4rem auto 0;
@@ -1805,22 +1973,41 @@ body.toc-open { overflow: hidden; }
   justify-content: center;
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
-  color: var(--on-accent);
-  background: var(--accent);
-  border: none;
+  color: var(--ctrl-solid-text);
+  background: var(--ctrl-solid-bg);
+  border: 1px solid var(--ctrl-solid-border);
   border-radius: var(--radius-pill);
   padding: 0.6em 1.6em;
   cursor: pointer;
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent);
-  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: var(--ctrl-solid-shadow);
+  transition: var(--ctrl-transition);
 }
 
 .donate-btn:hover {
-  background: var(--accent-ink);
+  background: var(--ctrl-solid-hover-bg);
+  border-color: var(--ctrl-solid-hover-border);
+  color: var(--ctrl-solid-hover-text);
+  box-shadow: var(--ctrl-solid-hover-shadow);
   transform: translateY(-1px);
 }
 
-.donate-btn:active { transform: translateY(0); }
+.donate-btn:active {
+  background: var(--ctrl-solid-active-bg);
+  border-color: var(--ctrl-solid-active-border);
+  color: var(--ctrl-solid-active-text);
+  box-shadow: var(--ctrl-solid-active-shadow);
+  transform: translateY(0);
+}
+
+.donate-btn:disabled {
+  background: var(--ctrl-solid-disabled-bg);
+  border-color: var(--ctrl-solid-disabled-border);
+  color: var(--ctrl-solid-disabled-text);
+  box-shadow: var(--ctrl-solid-disabled-shadow);
+  opacity: var(--ctrl-disabled-opacity);
+  cursor: default;
+  transform: none;
+}
 
 .donate-box summary { list-style: none; }
 .donate-box summary::-webkit-details-marker { display: none; }
@@ -1929,7 +2116,11 @@ body.toc-open { overflow: hidden; }
 
 /* 加载中：按钮留在原位但明显不可点，避免读者以为按钮失灵 */
 .giscus-load-btn:disabled {
-  opacity: 0.55;
+  background: var(--ctrl-disabled-bg);
+  color: var(--ctrl-disabled-text);
+  border-color: var(--ctrl-disabled-border);
+  box-shadow: var(--ctrl-disabled-shadow);
+  opacity: var(--ctrl-disabled-opacity);
   cursor: default;
   transform: none;
 }
@@ -2297,9 +2488,10 @@ body.toc-open { overflow: hidden; }
   margin-bottom: 0;
 }
 
-.about-section-desc {
-  color: var(--muted) !important;
-  font-size: var(--text-xs) !important;
+/* 比 .about-section > p 更具体，靠选择器权重压过它，不用 !important */
+.about-section > p.about-section-desc {
+  color: var(--muted);
+  font-size: var(--text-xs);
 }
 
 .about-link-list {
@@ -2510,32 +2702,52 @@ body.toc-open { overflow: hidden; }
   align-items: center;
   justify-content: center;
   padding: 0.55em 1.15em;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--ctrl-border);
   border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--ink);
+  background: var(--ctrl-bg);
+  color: var(--ctrl-text);
   font-size: var(--text-xs);
+  box-shadow: var(--ctrl-shadow);
   cursor: pointer;
   text-decoration: none;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  transition: var(--ctrl-transition);
 }
 
 .notfound-btn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-hover-shadow);
   transform: translateY(-1px);
 }
 
+.notfound-btn:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
+  transform: translateY(0);
+}
+
 .notfound-btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
+  background: var(--ctrl-solid-bg);
+  border-color: var(--ctrl-solid-border);
+  color: var(--ctrl-solid-text);
+  box-shadow: var(--ctrl-solid-shadow);
 }
 
 .notfound-btn-primary:hover {
-  background: var(--accent-ink);
-  border-color: var(--accent-ink);
-  color: var(--on-accent);
+  background: var(--ctrl-solid-hover-bg);
+  border-color: var(--ctrl-solid-hover-border);
+  color: var(--ctrl-solid-hover-text);
+  box-shadow: var(--ctrl-solid-hover-shadow);
+}
+
+.notfound-btn-primary:active {
+  background: var(--ctrl-solid-active-bg);
+  border-color: var(--ctrl-solid-active-border);
+  color: var(--ctrl-solid-active-text);
+  box-shadow: var(--ctrl-solid-active-shadow);
 }
 
 .notfound-list {
@@ -2586,12 +2798,12 @@ body.toc-open { overflow: hidden; }
   padding: 0.32em 0.9em;
   font-size: var(--text-2xs);
   line-height: 1.7;
-  color: var(--ink-soft);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  color: var(--ctrl-text);
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
   border-radius: var(--radius-pill);
-  transition: color 0.15s ease, border-color 0.15s ease,
-    background 0.15s ease, transform 0.15s var(--ease);
+  box-shadow: var(--ctrl-shadow);
+  transition: var(--ctrl-transition);
 }
 
 .tag-chip-name {
@@ -2614,14 +2826,23 @@ body.toc-open { overflow: hidden; }
 }
 
 .tag-chip:hover {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-  background: var(--surface);
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-hover-shadow);
   transform: translateY(-1px);
 }
 
+.tag-chip:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
+  transform: translateY(0);
+}
+
 .tag-chip:hover .tag-chip-count {
-  color: var(--accent);
+  color: var(--ctrl-hover-text);
 }
 
 /* ---------- 图标规格：描边统一 1.8，正文内联 16px / 控制按钮 20px ---------- */
@@ -3211,19 +3432,29 @@ body.search-open { overflow: hidden; }
 
 .search-close {
   flex: none;
-  border: 1px solid var(--line);
+  border: 1px solid var(--ctrl-border);
   border-radius: var(--radius-sm);
-  background: none;
-  color: var(--muted);
+  background: var(--ctrl-bg);
+  color: var(--ctrl-text);
   font-size: var(--text-2xs);
   padding: 0.22em 0.6em;
+  box-shadow: var(--ctrl-shadow);
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: var(--ctrl-transition);
 }
 
 .search-close:hover {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-hover-shadow);
+}
+
+.search-close:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
 }
 
 .search-results {

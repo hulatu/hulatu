@@ -7,6 +7,7 @@ slug: ""
 summary: ""
 description: ""
 categories: ["周刊"]
+issue:      # 期号：填阿拉伯数字（23、24…），文章顶部显示「周刊 · 第 N 期」徽章；不填就没有徽章
 tags: [""]
 comments: true
 draft: true
