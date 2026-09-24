@@ -83,7 +83,7 @@ hugo v0.166.0+extended ...
 | GitHub Actions | `.github/workflows/build.yml` 里的 `hugo-version` |
 | Cloudflare Pages | 五个项目（主站 + 四个子站）**都要**在 Settings → Environment variables 里加 `HUGO_VERSION=0.166.0` |
 
-不满足条件时构建会**直接失败并打印当前版本**（检查逻辑在 `layouts/partials/check-hugo-version.html`，因为 `hugo.toml` 里的 `[module.hugoVersion]` 在项目自身配置里只会打 WARN、拦不住）。
+版本不够时构建会**直接失败并打印当前版本**（检查逻辑在 `layouts/partials/check-hugo-version.html`，因为 `hugo.toml` 里的 `[module.hugoVersion]` 在项目自身配置里只会打 WARN、拦不住）。extended 缺失只打一条 WARN 不拦构建——Cloudflare 的 `HUGO_VERSION` 只能填版本号、没法指定 extended，硬拦会误伤线上；真用到 extended 功能时 Hugo 自己会报错。
 
 > ⚠️ **顺序：先设 Cloudflare 环境变量，再推代码。** Cloudflare 的 build image 默认装的是 Hugo **0.147.7**（v3 镜像，官方文档「Build image」页可查），比你本机低一大截——也就是说在你设 `HUGO_VERSION` 之前，线上和本地一直跑在两个版本上。设好之前推代码，线上构建会因版本检查失败；站点**不会掉线**（Cloudflare 保留上一次成功的部署），但内容会停在那一次。
 

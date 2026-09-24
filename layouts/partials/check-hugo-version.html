@@ -5,8 +5,9 @@
        项目自身配置里只打一行 WARN（"Module project is not compatible with this Hugo
        version"），构建照样成功，拦不住。所以这里用 errorf 硬拦。
 
-       extended 是硬要求而不是偏好：layouts/partials/head-meta.html 要用 imageConfig
-       读 static/images/share.webp 的宽高，标准版 Hugo 解不了 WebP。
+       版本是硬拦，extended 只警告：Cloudflare 的 HUGO_VERSION 只能填版本号、没法指定
+       extended，硬拦有误伤线上的风险；而真要用到 extended 功能（head-meta.html 用
+       imageConfig 读 share.webp）时，Hugo 自己会报错并停下，不会静默出错。
 
        从 baseof.html 顶部引入，每个页面都会跑一次（版本达标时零输出零开销）。
        报错后的处理办法见 README「安装 Hugo（Extended 版本）」。 */ -}}
@@ -14,6 +15,9 @@
 {{- $major := int (index $parts 0) -}}
 {{- $minor := int (index $parts 1) -}}
 {{- $tooOld := and (eq $major 0) (lt $minor 166) -}}
-{{- if or $tooOld (not hugo.IsExtended) -}}
-  {{- errorf "Hugo 版本不达标：本站需要 0.166.0 及以上的 extended 版，当前是 %s（extended=%v）。本机请升级 Hugo；Cloudflare Pages 请在项目环境变量里设置 HUGO_VERSION=0.166.0（五个项目都要）。" hugo.Version hugo.IsExtended -}}
+{{- if $tooOld -}}
+  {{- errorf "Hugo 版本不达标：本站需要 0.166.0 及以上，当前是 %s。本机请升级 Hugo；Cloudflare Pages 请在项目环境变量里设置 HUGO_VERSION=0.166.0（主站 + 四个子站都要）。" hugo.Version -}}
+{{- end -}}
+{{- if not hugo.IsExtended -}}
+  {{- warnf "当前 Hugo 不是 extended 版（%s）。本机建议装 extended；若线上真用到它才有的功能（读 WebP 尺寸等），Hugo 会自己报错，这里不拦构建。" hugo.Version -}}
 {{- end -}}
