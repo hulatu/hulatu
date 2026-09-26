@@ -6,7 +6,7 @@ outputs: ["HTML"]
 
 只记读完看完的，和真心推荐的。短评求短，感受求真。
 
-## 书籍
+## 书籍 {#shu-ji}
 
 {{< books >}}
 
@@ -18,7 +18,7 @@ outputs: ["HTML"]
 
 {{< /books >}}
 
-## 影视
+## 影视 {#ying-shi}
 
 {{< media-grid >}}
 

@@ -42,6 +42,12 @@ if [ -n "$PYTHON_BIN" ]; then
   if ! "$PYTHON_BIN" scripts/fetch-profile-content.py; then
     echo "    !! 花园页内容快照刷新失败，本次它的最新文章可能不是最新的（不影响发布）" >&2
   fi
+  # 给新写的中文标题补上 {#pinyin} 锚点：不补的话分享链接是 #%e4%b9%a0%e6%83%af
+  #     这种百分号编码，也没法在链接里一眼看出是哪个小节。只补缺的，已经写了 {#...}
+  #     的标题不动；转写用 macOS 自带的拼音库，失败不阻断发布。
+  if ! "$PYTHON_BIN" scripts/add-heading-anchors.py; then
+    echo "    !! 锚点补全失败，这次新加的中文标题可能还是 #%e4... 这种链接（不影响发布）" >&2
+  fi
 else
   echo "    !! 跳过图片尺寸抓取：没找到可用的 python3" >&2
 fi

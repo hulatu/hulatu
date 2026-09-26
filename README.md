@@ -39,7 +39,7 @@ blog/
 ├── assets/
 │   ├── css/style.css            # 全站样式
 │   └── js/                      # 主题、目录等脚本
-├── scripts/                     # Garmin 同步、正文图片尺寸抓取等脚本
+├── scripts/                     # Garmin 同步、正文图片尺寸抓取、中文标题锚点补全等脚本
 ├── data/
 │   ├── runs.json                # 跑步数据（唯一一份；run.hulatu.com 挂载读取，不复制）
 │   └── image_dims.json          # 正文远程图片的宽高缓存（避免图片加载时页面跳动）

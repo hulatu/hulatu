@@ -62,5 +62,12 @@ jobs:
           done
           [ "$missing" = 0 ]
 
+      - name: 检查中文标题锚点
+        run: |
+          # 中文标题要显式写 {#pinyin}（如 ## 习惯 {#xi-guan}），否则分享出去的链接是
+          # #%e4%b9%a0%e6%83%af 这种百分号编码。这步只检查不修改；本地缺了就跑
+          # python3 scripts/add-heading-anchors.py 自动补齐（需要 macOS 的拼音转写）。
+          python3 scripts/add-heading-anchors.py --check
+
       - name: 构建四个子站
         run: bash scripts/build-subdomains.sh

@@ -23,7 +23,15 @@ hugo new content/weekly/周刊-第N期.md       # 周刊
 | `comments` | 填 `false` 可单独关闭这篇文章的评论 |
 | `draft` | `true` 表示草稿，不会发布 |
 
-发布前把 `draft` 改成 `false`，然后执行 `./publish.sh`（或终端里的 `up`）。
+发布前把 `draft` 改成 `false`，然后执行 `./publish.sh`（或终端里的 `up`）。`publish.sh` 在提交前会自动做三件事：抓正文远程图片的宽高、刷新花园页的内容快照、给新写的中文标题补 `{#pinyin}` 锚点（见下面「标题锚点」）。
+
+### 标题锚点（中文标题为什么要写 `{#xi-guan}`）
+
+标题后面的 `{#...}` 就是这段小节的链接锚点。中文标题不写它，Hugo 就把中文原文当 id，分享出去的链接会变成 `https://hulatu.com/posts/...#%e4%b9%a0%e6%83%af` 这种看不懂的百分号编码；写了就变成 `#xi-guan`，一眼能看出是哪个小节，粘贴到聊天软件、邮件里也不会变形。
+
+默认不用自己写：`publish.sh` 会跑 `scripts/add-heading-anchors.py`，用 macOS 自带的拼音转写给缺锚点的中文标题补上（`## 习惯` → `## 习惯 {#xi-guan}`，超长标题只取前 6 段拼音）。已经写了 `{#...}` 的标题一律不动，所以想改成英文词直接手写就行，比如 `## 习惯 {#habit}`。
+
+两个注意点：改标题文字不会自动改已有锚点，链接会「停在原地」——想让老链接继续能用，就别改已经分享出去的 `{#...}`；锚点只在本地补齐，CI 里的 `--check` 只做检查不修改，缺了会报错并列出文件行号。
 
 ### 文章短代码
 
@@ -90,12 +98,14 @@ hugo server -D
 | 上一篇 / 下一篇导航 | `layouts/_default/single.html` 里的 `.post-nav` |
 | 标签云（展示哪些标签） | `layouts/_default/taxonomy.html` 里 `site.Taxonomies.tags.ByCount` |
 | 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1340px`（固定侧栏）和 `1339.98px`（改用抽屉） |
+| 点目录 / 带 `#锚点` 进页面时标题停在哪儿 | 只由 `assets/css/style.css` 的 `--anchor-offset`（顶栏 `--header-h` + `--space-3` = 76px）决定，挂在 `main [id]` 的 `scroll-margin-top` 上。**别在 `html` 上再加 `scroll-padding-top`**——两个值会叠加，标题会被顶到离顶部将近 180px，看着就像没对准。带锚点进页面时 `assets/js/toc.js` 的 `initHashAnchor()` 会在图片 / 字体就位后重新对准一次；链接里是换成拼音之前的旧中文锚点（`#%e4%b9%a0%e6%83%af`）时，会自动退回按标题文字找 |
+| 中文标题的锚点 | 中文标题要显式写 `{#pinyin}`（`## 习惯 {#xi-guan}`），不写的话分享链接是 `#%e4%b9%a0%e6%83%af`。日常不用手写，`publish.sh` 会跑 `scripts/add-heading-anchors.py` 自动补；想用英文词就自己写 `{#habit}`，脚本看到已有 `{#...}` 会跳过。CI 里另有一道 `--check` 兜底 |
 | 手动提交发布 | 终端输入 `up` → `publish.sh`（抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
 | 图片灯箱 | 结构在 `layouts/_default/_markup/render-image.html`：图片被 `<a class="article-image-link" href="原图">` 包着，JS 拦下点击打开灯箱，JS 不可用时退化成「点开原图」。样式在 `assets/css/style.css` 的「文章插图」段，逻辑在 `assets/js/lightbox.js`（原图地址直接读链接的 `href`，不再用 `data-full`） |
 | 键盘可达性 / 焦点陷阱 | 三个弹层（搜索框、目录抽屉、图片灯箱）共用 `assets/js/focus-trap.js` 提供的 `window.hulatuFocusTrap(容器, 初始焦点)`，关闭时记得调用它返回的 `release()` 并把焦点还给触发按钮。**这个文件必须在 `layouts/partials/scripts.html` 的打包顺序里排第一**，否则后面几个脚本运行时拿不到它 |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false`。DOM 在 `layouts/partials/giscus.html`，行为逻辑在 `assets/js/giscus.js`：滚到评论区前 400px **在后台把 giscus 预加载好，但整块收着不展开**，「显示评论」按钮一直留着；读者点了才展开——因为内容已经加载完，展开是瞬间的、不会先白一下。状态机只有一个 `state` 变量（`idle → loading → ready → slow → open`，`opening` 表示「读者已经在等」），并镜像到 `.giscus-body` 的 `data-state`，调试时在开发者工具里直接看得见。等 iframe 用的是 **MutationObserver，不是定时轮询**；两个超时各管一段：点开后 12 秒没出来才变「重新加载评论」，预加载 2 分钟没结果就静默作废。**这个脚本单独打包、只在带评论的文章页加载**（`giscus.html` 里的 `resources.Get`），不塞进全站 bundle。收起用的 `.giscus-body { max-height: 0; visibility: hidden }`，**别改成 `display: none`**，那样 iframe 没有布局尺寸，giscus 会把高度算成 0 |
-| 文章目录 | 两半逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮，`initDrawer()` 管移动端抽屉的开关 / 焦点陷阱 / ESC。抽屉的开合**以前写在 `single.html` 的内联脚本里**，2026-09 合并进 toc.js，模板里只剩 DOM |
+| 文章目录 | 三段逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮，`initDrawer()` 管移动端抽屉的开关 / 焦点陷阱 / ESC，`initHashAnchor()` 管带 `#锚点` 进页面后的重新对准。抽屉的开合**以前写在 `single.html` 的内联脚本里**，2026-09 合并进 toc.js，模板里只剩 DOM |
 | 深浅色 | 默认跟随系统；右上角按钮手动切换（带旋转动效），**不记忆选择**（刷新后回到跟随系统）。逻辑在 `assets/js/theme.js`，配色变量在 `assets/css/style.css` 的 `[data-theme="dark"]` |
 | 打赏 | `hugo.toml` 的 `[params.donate]`。收款码图片在 `layouts/partials/donate.html` 里走 `cf-image.html`（`width=400,format=auto`）——原图是没压缩的 JPEG，且文件后缀错写成 `.webp`（直接返回的 Content-Type 是 `image/jpeg`），过一层图片变换后按浏览器给 avif/webp，顺带把这个错误头一起修掉。换收款码时**别在模板里直接写原始 URL** |
 | Hugo 版本 | **三处必须一致**：本机 `hugo version`、`.github/workflows/build.yml` 的 `hugo-version`、Cloudflare 五个项目的 `HUGO_VERSION`（主站 + 四个子站）。硬校验在 `layouts/partials/check-hugo-version.html`（`baseof.html` 顶部引入）：**版本不够直接失败**并报出当前版本；**缺 extended 只打 WARN**（Cloudflare 的 `HUGO_VERSION` 只能填版本号，硬拦会误伤线上；真用到 extended 功能时 Hugo 自己会报错）。`hugo.toml` 的 `[module.hugoVersion]` 只起文档作用——实测它在项目自身配置里只打一行 WARN，拦不住构建 |

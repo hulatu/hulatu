@@ -9,28 +9,28 @@ date: 2026-09-19
 
 本政策适用于 `hulatu.com`、`profile.hulatu.com`、`run.hulatu.com` 几个关联网页。
 
-## 本站自身的数据处理
+## 本站自身的数据处理 {#ben-zhan-zi-shen-de-shu}
 
 - **访问日志**：托管平台会自动记录访问请求（IP 地址、访问时间、浏览器类型、访问页面等），用于保障服务稳定与安全。这些日志由托管平台 Cloudflare 保存，本站不自行读取或二次利用。
 - **本地偏好**：本站深浅色模式默认跟随系统设置；如果你手动切换过主题，会用浏览器 LocalStorage 记住这个选择（只保存一个名为 `theme` 的键，值为 light 或 dark），不用于识别你的身份。
 
-## 第三方服务
+## 第三方服务 {#di-san-fang-fu-wu}
 
 本站使用以下第三方服务。它们可能按照各自的隐私政策处理数据，请以官方政策为准。
 
-### 托管平台
+### 托管平台 {#tuo-guan-ping-tai}
 
 主站托管在 Cloudflare Pages：
 
 - Cloudflare Pages（`hulatu.com`）：<https://www.cloudflare.com/privacypolicy/>
 
-### 访问统计
+### 访问统计 {#fang-wen-tong-ji}
 
 本站使用 GoatCounter 进行隐私友好的轻量访问统计，用于了解文章的浏览情况。
 
 - GoatCounter：<https://www.goatcounter.com/help/privacy>
 
-### 评论系统 giscus
+### 评论系统 giscus {#ping-lun-xi-tong-giscus}
 
 文章评论使用 giscus，评论内容存储在 GitHub Discussions（仓库 `hulatu/hulatu`）。加载评论时，浏览器会请求 `giscus.app` 与 GitHub 的接口。
 
@@ -39,34 +39,34 @@ date: 2026-09-19
 - giscus 项目：<https://giscus.app>
 - GitHub 隐私政策：<https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement>
 
-### 图片与静态资源
+### 图片与静态资源 {#tu-pian-yu-jing-tai-zi}
 
 文章图片主要托管在自有域名 `img.hulatu.com`，属于本站自有资源，不向第三方传输你的浏览信息。
 
-### 外链
+### 外链 {#wai-lian}
 
 某些文章内容会链接到外部网站（如微信公众号、YouTube、B 站、知乎等）。点击外链跳转后，你的信息由对应网站处理，请参考其各自的隐私政策；本站无法控制这些外部站点。
 
-## Cookie 与本地存储
+## Cookie 与本地存储 {#cookie-yu-ben-de-cun-chu}
 
 本站自身不使用 Cookie。唯一的本地存储是：当你手动切换深浅色模式时，会用 LocalStorage 记住主题选择（键名为 `theme`），不含任何身份信息。第三方服务的情况：
 
 - GoatCounter：默认不依赖 Cookie 进行统计。
 - giscus：主要使用 LocalStorage 保存主题；当你在 giscus 内登录 GitHub 时，GitHub 可能在 `github.com` 域名下设置自己的 Cookie。
 
-## 评论内容的处理
+## 评论内容的处理 {#ping-lun-nei-rong-de-chu}
 
 - 你发表的评论会公开显示在对应文章下方，并存储在 GitHub Discussions 中。
 - 删除评论需通过 GitHub 账户完成；如需协助删除，可通过文末邮箱联系我。
 
-## 你的权利
+## 你的权利 {#ni-de-quan-li}
 
 由于本站不主动收集个人身份信息，我无法也不打算基于这些数据识别你。若你对第三方（Cloudflare、GoatCounter、GitHub）处理的数据有疑问或想行使相关权利，可直接联系对应服务方；我也可以协助说明本站的接入方式。
 
-## 联系方式
+## 联系方式 {#lian-xi-fang-shi}
 
 如对本隐私政策有疑问，可通过邮箱联系：`hello@hulatu.com`。
 
-## 政策更新
+## 政策更新 {#zheng-ce-geng-xin}
 
 本页面可能随网站功能变化而更新，更新后仅在本页面说明，不另行通知。

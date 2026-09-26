@@ -36,6 +36,10 @@
   --max-width: 800px;
   --gutter: clamp(20px, 5vw, 32px);
   --header-h: 64px;
+  /* 锚点落点：顶栏高度 + 一点呼吸空间。点目录、点标题上的 #、从别人的链接
+     带 #锚点进来，标题就停在这个位置（用法见下面「锚点落点」那段）。 */
+  --anchor-gap: var(--space-3);
+  --anchor-offset: calc(var(--header-h) + var(--anchor-gap));
   --radius: 16px;
   --radius-sm: 10px;
   --radius-card: 22px;
@@ -199,9 +203,18 @@
 html {
   background-color: var(--paper);
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--header-h) + 20px);
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
+}
+
+/* ---------- 锚点落点 ----------
+   所有带 id 的元素（正文标题、图片、段落……）被跳转时，顶部留出 --anchor-offset，
+   也就是「顶栏高度 + 12px」，标题紧贴在导航栏下面。
+
+   注意这里的偏移只写一份：如果 html 上再加 scroll-padding-top，两个值会叠加
+   （曾经是 84px + 92px），标题会被顶到离顶部将近 180px 的地方，看着就像没对准。 */
+main [id] {
+  scroll-margin-top: var(--anchor-offset);
 }
 
 /* 细滚动条（WebKit：Chrome / Safari / Edge） */
@@ -1231,7 +1244,7 @@ a.post-pill { text-decoration: none; }
 .post-content h4 {
   font-family: var(--font-serif);
   line-height: 1.5;
-  scroll-margin-top: 92px;
+  /* 落点偏移统一在「锚点落点」那段用 main [id] 定义，这里不要再写一遍 */
   position: relative;
 }
 
