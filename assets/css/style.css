@@ -564,7 +564,10 @@ main.container.is-home {
 }
 
 .page-intro {
-  max-width: 46rem;
+  /* 页面级容器统一用 --content-width：主站所有页面（首页 / 归档 / 分类 / 标签 /
+     友链 / 关于 / 周刊列表 / 文章）都和文章正文同宽，只有组件自己的内层宽度
+     （打赏盒 30rem、404 文案 24em 之类）才是特意更窄的。 */
+  max-width: var(--content-width);
   color: var(--ink-soft);
   margin-bottom: var(--space-8);
 }
@@ -2256,7 +2259,7 @@ a[target="_blank"]::after {
 
 /* ---------- 友链页 ---------- */
 .friends-page {
-  max-width: 760px;
+  max-width: var(--content-width);
   margin: 0 auto;
 }
 
@@ -2381,7 +2384,7 @@ a[target="_blank"]::after {
 
 /* ---------- 关于页 ---------- */
 .about-page {
-  max-width: 760px;
+  max-width: var(--content-width);
   margin: 0 auto;
 }
 

@@ -9,6 +9,9 @@
   --radius: 16px;
   --radius-sm: 10px;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(0, 0, 0, 0.08);
+  /* 内容宽度：和主站文章页同一个值（hulatu.com 的 --content-width = 680px），
+     五个站点统一，页面之间跳转不会忽宽忽窄 */
+  --content-width: 680px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -36,7 +39,7 @@ body {
 a { color: inherit; text-decoration: none; }
 
 main {
-  width: min(960px, calc(100% - 32px));
+  width: min(var(--content-width), calc(100% - 32px));
   margin: 0 auto;
   padding: 64px 0 72px;
 }
@@ -64,7 +67,8 @@ main {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* 列数跟着实际内容宽度走：680px 下是 2 列，卡片里的数字才不会被挤到换行 */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
   margin: 36px 0;
 }

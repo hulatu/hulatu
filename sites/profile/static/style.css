@@ -27,6 +27,9 @@
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   --dur: 180ms;
+  /* 内容宽度：和主站文章页同一个值（hulatu.com 的 --content-width = 680px），
+     之前这里是 37.5rem（600px），比文章页窄一档 */
+  --content-width: 680px;
 
   --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong",
     "SimSun", Georgia, "Times New Roman", serif;
@@ -105,7 +108,7 @@ body::after {
 main {
   position: relative;
   z-index: 1;
-  width: min(37.5rem, calc(100% - 40px));
+  width: min(var(--content-width), calc(100% - 40px));
   margin: 0 auto;
   padding: clamp(44px, 8vw, 84px) 0 88px;
 }
@@ -799,7 +802,7 @@ a {
 
 @media (max-width: 520px) {
   main {
-    width: min(37.5rem, calc(100% - 28px));
+    width: min(var(--content-width), calc(100% - 28px));
     padding: 34px 0 60px;
   }
 

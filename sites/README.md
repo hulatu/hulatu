@@ -12,6 +12,17 @@
 > 因此上面四个 Pages 项目的 **Root directory 必须保持 `/`**——子站要能看见上一层的 `data/`。
 > 想只构建某个子站时也别忘了这点：`hugo --source sites/run` 是从仓库根目录跑的。
 
+## 内容宽度约定：五个站都是 680px
+
+主站文章页的正文列是 **680px**（`assets/css/style.css` 的 `--content-width`）。四个子站也用同一个值，
+在各自 `static/style.css` 的 `:root` 里各写一份 `--content-width: 680px`，页面宽度靠
+`main { width: min(var(--content-width), calc(100% - 32px)) }` 取；`sites/profile` 是
+`calc(100% - 40px)`，另外 `shot-single` / `share-single` 这类单篇页也引用同一个变量。
+
+这样做是为了**跨站跳转时页面不会忽宽忽窄**（改之前 run 960px、shot 1000px、share 1040px、profile 600px）。
+要再调宽度时，五处一起改；子站里那些 `repeat(4, 1fr)` / `repeat(3, 1fr)` 已经换成
+`repeat(auto-fit, minmax(…, 1fr))`，列数自己跟着宽度走，不用再单独调。
+
 ## 本地构建
 
 ```bash
