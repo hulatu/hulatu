@@ -97,15 +97,19 @@ hugo server -D
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 上一篇 / 下一篇导航 | `layouts/_default/single.html` 里的 `.post-nav` |
 | 标签云（展示哪些标签） | `layouts/_default/taxonomy.html` 里 `site.Taxonomies.tags.ByCount` |
-| 目录侧栏显示/隐藏断点 | `assets/css/style.css` 搜 `1340px`（固定侧栏）和 `1339.98px`（改用抽屉） |
+| 目录在哪显示 | `assets/css/style.css` 搜 `1280px`。≥1280px 悬浮在正文右侧（刻度栏）；<1280px 排在正文开头（`.post-toc-inline`，可点标题栏收起），手机上默认收起。**页面里没有浮动目录按钮**：2026-09 按需求删掉了左下角那个按钮和它的底部抽屉，窄屏一律看正文开头那块 |
+| 正文 / 页头宽度 | 只有 `--content-width`（`assets/css/style.css` 顶部，当前 **680px**，照 sspai 文章页量的：它的 `.article__section__wrapper` 是 728px 含 24px 内边距）。`.container` 用它加两侧 `--gutter` 当 max-width（内边距留在外面），所以**页头（导航栏）、正文、列表页是同一个内容宽度**；`.post-content`、`.post-toc-inline` 也直接引用它。改宽度只改这一个变量 |
+| 文章排版（字号 / 行高 / 段间距） | 数值照 sspai 文章页（`.wangEditor-txt`）：正文 **17px / 1.8**、段间距 **32px**、H2 **32px**（上间距 56px = 段距 + 24px）、H3 **24px**（上 48px）、H4 与正文同号、文章标题 **38px**；手机（≤760px）各降一档：15px / 24px / 24px / 20px / 28px（= sspai 的 `<768px` 那一套）。变量是 `--text-reading`、`--reading-leading`、`--block-gap`、`--h2-size`、`--h3-size`、`--post-title-size`，`--h2-gap-top` / `--h3-gap-top` 由 `--block-gap` 自动跟着缩。**这套是单开的**：别顺手改全站的 `--text-lg` / `--text-md`，否则归档年份、友链 / 关于页的小标题会跟着跳 |
 | 点目录 / 带 `#锚点` 进页面时标题停在哪儿 | 只由 `assets/css/style.css` 的 `--anchor-offset`（顶栏 `--header-h` + `--space-3` = 76px）决定，挂在 `main [id]` 的 `scroll-margin-top` 上。**别在 `html` 上再加 `scroll-padding-top`**——两个值会叠加，标题会被顶到离顶部将近 180px，看着就像没对准。带锚点进页面时 `assets/js/toc.js` 的 `initHashAnchor()` 会在图片 / 字体就位后重新对准一次；链接里是换成拼音之前的旧中文锚点（`#%e4%b9%a0%e6%83%af`）时，会自动退回按标题文字找 |
 | 中文标题的锚点 | 中文标题要显式写 `{#pinyin}`（`## 习惯 {#xi-guan}`），不写的话分享链接是 `#%e4%b9%a0%e6%83%af`。日常不用手写，`publish.sh` 会跑 `scripts/add-heading-anchors.py` 自动补；想用英文词就自己写 `{#habit}`，脚本看到已有 `{#...}` 会跳过。CI 里另有一道 `--check` 兜底 |
 | 手动提交发布 | 终端输入 `up` → `publish.sh`（抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
 | 图片灯箱 | 结构在 `layouts/_default/_markup/render-image.html`：图片被 `<a class="article-image-link" href="原图">` 包着，JS 拦下点击打开灯箱，JS 不可用时退化成「点开原图」。样式在 `assets/css/style.css` 的「文章插图」段，逻辑在 `assets/js/lightbox.js`（原图地址直接读链接的 `href`，不再用 `data-full`） |
-| 键盘可达性 / 焦点陷阱 | 三个弹层（搜索框、目录抽屉、图片灯箱）共用 `assets/js/focus-trap.js` 提供的 `window.hulatuFocusTrap(容器, 初始焦点)`，关闭时记得调用它返回的 `release()` 并把焦点还给触发按钮。**这个文件必须在 `layouts/partials/scripts.html` 的打包顺序里排第一**，否则后面几个脚本运行时拿不到它 |
+| 键盘可达性 / 焦点陷阱 | 两个弹层（搜索框、图片灯箱）共用 `assets/js/focus-trap.js` 提供的 `window.hulatuFocusTrap(容器, 初始焦点)`，关闭时记得调用它返回的 `release()` 并把焦点还给触发按钮。**这个文件必须在 `layouts/partials/scripts.html` 的打包顺序里排第一**，否则后面几个脚本运行时拿不到它 |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false`。DOM 在 `layouts/partials/giscus.html`，行为逻辑在 `assets/js/giscus.js`：滚到评论区前 400px **在后台把 giscus 预加载好，但整块收着不展开**，「显示评论」按钮一直留着；读者点了才展开——因为内容已经加载完，展开是瞬间的、不会先白一下。状态机只有一个 `state` 变量（`idle → loading → ready → slow → open`，`opening` 表示「读者已经在等」），并镜像到 `.giscus-body` 的 `data-state`，调试时在开发者工具里直接看得见。等 iframe 用的是 **MutationObserver，不是定时轮询**；两个超时各管一段：点开后 12 秒没出来才变「重新加载评论」，预加载 2 分钟没结果就静默作废。**这个脚本单独打包、只在带评论的文章页加载**（`giscus.html` 里的 `resources.Get`），不塞进全站 bundle。收起用的 `.giscus-body { max-height: 0; visibility: hidden }`，**别改成 `display: none`**，那样 iframe 没有布局尺寸，giscus 会把高度算成 0 |
-| 文章目录 | 三段逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮，`initDrawer()` 管移动端抽屉的开关 / 焦点陷阱 / ESC，`initHashAnchor()` 管带 `#锚点` 进页面后的重新对准。抽屉的开合**以前写在 `single.html` 的内联脚本里**，2026-09 合并进 toc.js，模板里只剩 DOM |
+| 文章目录 | 同一份目录在页面里有两份副本：宽屏刻度栏（`id="TableOfContents"`）和正文开头那块（`TableOfContentsInline`，<1280px 显示），后者的 id 由 `single.html` 里的 `replaceRE` 改掉，避免重复 id。四段逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮（对页面里所有 `.post-toc-nav` 一起生效），`initPin()` 管宽屏图钉的「钉住」，`initInlineToc()` 负责手机上把正文开头那块默认收起，`initHashAnchor()` 管带 `#锚点` 进页面后的重新对准。新增目录副本时记得同步改 id，样式挂 `.post-toc-nav` 就能直接复用编号和高亮 |
+| 宽屏目录的刻度栏 / 钉住 | 参考 sspai 文章页的目录（`.comp__Directory`），尺寸照它量：**面板 244px 宽、纵向居中、面板左边缘离正文右边缘 128px**（`right: max(0px, calc(50vw - 712px))`，推导写在样式表注释里）、文字 15px、收起一行 12px（刻度 2×6px）、展开一行 33px（刻度 21px，`border-radius: 6px`）、二级标题的文字再缩进 16px（**刻度始终排在同一列**，只缩进文字）。收起态用 `color: transparent` 让标题占位：**别改成 `display: none` 或收掉宽度**，否则展开时会把正文挤动。图钉按钮 `#toc-pin` 由 `initPin()` 切成 `.is-pinned`，状态不跨页面记；它只在 ≥1280px 生效（窄屏整块 `.post-rail` 是 `display: none`） |
+| 目录为什么居中得很稳 | `.post-rail` 是 `top: var(--header-h)` / `bottom: 0` 的固定容器（`display: flex; align-items: center; pointer-events: none`），里层 `.post-toc-wrap` 才裹着目录本体并把 `pointer-events` 打开。**容器高度是固定的**，所以悬停展开（一行 12px → 33px）时只有里面的行在长，整块目录不会上下滑——这正是不用 `top: 50% + translateY(-50%)` 的原因。改回居中时别丢掉这一层结构，也别把 `pointer-events` 一起放开（那样右侧一整条会挡住页面点击）。图钉挂在 `.post-toc-wrap` 上（`top: -1.75rem`），跟着目录一起走 |
 | 深浅色 | 默认跟随系统；右上角按钮手动切换（带旋转动效），**不记忆选择**（刷新后回到跟随系统）。逻辑在 `assets/js/theme.js`，配色变量在 `assets/css/style.css` 的 `[data-theme="dark"]` |
 | 打赏 | `hugo.toml` 的 `[params.donate]`。收款码图片在 `layouts/partials/donate.html` 里走 `cf-image.html`（`width=400,format=auto`）——原图是没压缩的 JPEG，且文件后缀错写成 `.webp`（直接返回的 Content-Type 是 `image/jpeg`），过一层图片变换后按浏览器给 avif/webp，顺带把这个错误头一起修掉。换收款码时**别在模板里直接写原始 URL** |
 | Hugo 版本 | **三处必须一致**：本机 `hugo version`、`.github/workflows/build.yml` 的 `hugo-version`、Cloudflare 五个项目的 `HUGO_VERSION`（主站 + 四个子站）。硬校验在 `layouts/partials/check-hugo-version.html`（`baseof.html` 顶部引入）：**版本不够直接失败**并报出当前版本；**缺 extended 只打 WARN**（Cloudflare 的 `HUGO_VERSION` 只能填版本号，硬拦会误伤线上；真用到 extended 功能时 Hugo 自己会报错）。`hugo.toml` 的 `[module.hugoVersion]` 只起文档作用——实测它在项目自身配置里只打一行 WARN，拦不住构建 |
@@ -160,7 +164,7 @@ hugo server -D
 
 | 前缀 | 用在 | 成员 |
 |---|---|---|
-| `--ctrl-*` | 描边型按钮：有底、有边 | 翻页、文章胶囊、标签云胶囊、404 按钮、目录抽屉关闭、搜索关闭 |
+| `--ctrl-*` | 描边型按钮：有底、有边 | 翻页、文章胶囊、标签云胶囊、404 按钮、搜索关闭 |
 | `--ctrl-solid-*` | 印章红实心主按钮 | 打赏按钮、404「回首页」 |
 | `--ctrl-ghost-*` | 无底图标按钮：默认完全安静 | 页头搜索 / 深浅色 / RSS / 汉堡、代码块「复制」 |
 
@@ -195,11 +199,11 @@ hugo server -D
 
 | 断点 | 行为 |
 |---|---|
-| ≥ 1340px | 目录固定悬浮在正文右侧 |
-| < 1340px | 目录收成左下角按钮 + 底部抽屉（不再把目录块顶在正文前面） |
+| ≥ 1280px | 目录固定在正文右侧，平时收成一列小刻度；悬停展开成标题，点右上角图钉「钉住」后一直展开 |
+| < 1280px | 目录排在正文开头（`.post-toc-inline`），点标题栏可收起；手机上（≤760px）默认收起 |
 | < 760px / < 600px | 导航、卡片、列表、正文字号的移动端微调 |
 
-1340px 这个断点是算出来的：正文 800px 居中时两侧各留 270px，减去 200px 的侧栏还剩 70px 空隙；再窄就会贴到正文上。
+1280px 这个断点是照 sspai 取的（它自己也在这个宽度以内就不显示右侧目录）：正文 680px 居中，1280px 窗口两侧各留 300px，减去 244px 的目录还剩 56px 空隙；再窄目录就会贴到正文上。窗口宽到 1424px 以上时，目录左边缘离正文右边缘固定 128px（sspai 的取值），多出来的宽度都留给右边距。
 
 ### 跑步数据
 
@@ -261,6 +265,27 @@ up
 
 日常发布走 `up`（见上一节）。**线上部署由 Cloudflare Pages 的 Git 集成完成**：push 到 GitHub 后平台自己构建并发布。本机没有安装 wrangler，也不做手动上传（原因见上一节）。
 
+### 线上没更新？先看这五条 check（2026-09 栽过两次）
+
+push 之后 Cloudflare Pages 会给每个项目挂一条 check，「线上没生效」不用猜是哪一环：
+
+- 网页：打开那次提交 → 右侧 **Checks** → 看 `Cloudflare Pages: hulatu` / `-run` / `-profile` / `-share` / `-shot` 五条；失败的点 **View logs** 直接跳 Cloudflare 构建日志。
+- 命令行（不用登录，仓库是公开的）：
+
+```bash
+curl -s "https://api.github.com/repos/hulatu/hulatu/commits/main/check-runs" \
+  | python3 -c "import sys,json;[print(c['name'],c['conclusion']) for c in json.load(sys.stdin)['check_runs']]"
+```
+
+已经踩过的两种：
+
+| 现象 | 原因 | 修法 |
+|---|---|---|
+| 五个项目一起挂 | 项目里没设 `HUGO_VERSION`，Cloudflare 用镜像默认的 Hugo 0.147.7，被 `check-hugo-version.html` 硬拦 | Settings → Environment variables → **Production** 作用域补 `HUGO_VERSION=0.166.0`（五个项目都要），再回 Deployments 点 **Retry deployment** |
+| 只有 run / profile 挂 | 模板用了 `hugo.Data`（0.156 才有），而子站项目还跑在 0.147.7 | 同上，把子站的 `HUGO_VERSION` 一起提到 0.166.0 |
+
+> 环境变量改完**必须重新部署一次才生效**：Deployments → 最新那次 → Retry deployment（或再推一个提交）。构建期间站点不会掉线——失败时 Cloudflare 保留上一次成功的部署，只是内容停在那一次。
+
 `deploy.sh` 是一个**手动**的干净构建脚本，做的事：
 
 1. `hugo --gc --minify` 干净构建到临时目录，并检查产物里没有 livereload 调试脚本；
@@ -313,7 +338,7 @@ find . -name .DS_Store -not -path './.git/*' -delete
 | 文章页没有"相关文章" | 同标签/同分类的文章太少，低于 `[related]` 的 `threshold = 60` |
 | 首页或周刊翻页数量不对 | 检查 `layouts/index.html` / `layouts/weekly/list.html` 里的 `.Paginate` 第二参数（当前为 10） |
 | 改了 slug 后旧链接 404 | 在 `static/_redirects` 补 301 规则 |
-| 手机上目录按钮没出现 | 文章没有二级以上标题，不会生成目录 |
+| 手机上目录没出现 | 文章没有二级以上标题，不会生成目录；有目录时它在正文开头的「目录」折叠块里（默认收起） |
 | 哪些页面不被收录 | 隐私政策、分类页、标签页、`/posts/` 栏目页都不进 sitemap、也带 `noindex`。前两类是模板里按类型判断的（`layouts/_default/baseof.html` 的 `$noindex`），后两类靠 front matter 写 `noindex: true`。**加 noindex 就不要再往 robots.txt 加 Disallow**——Disallow 会让爬虫看不到 noindex，反而更糟 |
 | 分页页 `/page/N/` 不被收录 | `robots.txt` 里 `Disallow: /page/`，阻止抓取分页页 |
 | 隐私政策没出现在首页/归档列表 | 首页和归档只列 `posts`、`weekly` 类型的文章，根目录的普通页面不会混入 |

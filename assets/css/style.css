@@ -33,7 +33,10 @@
   --code-var: #953800;
   --code-op: #1f2328;
 
-  --max-width: 800px;
+  /* 内容宽度：正文列和页头（导航栏）共用这一个值，两边才对得齐。
+     680px 是照 sspai 文章页量的——它的 .article__section__wrapper 是 728px 含 24px 内边距，
+     去掉内边距正好 680px 的文字宽度。 */
+  --content-width: 680px;
   --gutter: clamp(20px, 5vw, 32px);
   --header-h: 64px;
   /* 锚点落点：顶栏高度 + 一点呼吸空间。点目录、点标题上的 #、从别人的链接
@@ -53,7 +56,18 @@
   --text-lg: 1.44rem;       /* ≈23px   页面标题 / h2 */
   --text-xl: 1.73rem;       /* ≈27.7px 大标题 */
   --text-2xl: 2.07rem;      /* ≈33.1px 文章标题上限 */
-  --text-reading: 1.125rem; /* 18px    正文 */
+  --text-reading: 1.0625rem; /* 17px   正文（对齐 sspai 文章页） */
+  /* 文章排版：数值照 sspai 文章页量（正文 17px/1.8、段间距 32px、H2 32px、H3 24px、
+     H4 与正文同号、文章标题 38px）。单开一组变量是为了不动上面那套全站 UI 尺度——
+     归档年份、友链 / 关于页的小标题还挂在 --text-lg / --text-md 上。
+     手机端在下面 @media (max-width: 760px) 的 :root 里各降一档（15px / 24px …）。 */
+  --reading-leading: 1.8;
+  --block-gap: var(--space-8);                           /* 段间距 32px，手机 24px */
+  --h2-size: 2rem;                                       /* 32px */
+  --h3-size: 1.5rem;                                     /* 24px */
+  --post-title-size: 2.375rem;                           /* 38px */
+  --h2-gap-top: calc(var(--block-gap) + var(--space-6)); /* 段距 + 24px = 56px */
+  --h3-gap-top: calc(var(--block-gap) + var(--space-4)); /* 段距 + 16px = 48px */
   /* 字距：中文标题只留一点点呼吸，拉丁式大字距不套在汉字上 */
   --tracking-title: 0.02em;
   --tracking-label: 0.06em;
@@ -263,7 +277,8 @@ a { color: inherit; text-decoration: none; }
 img { max-width: 100%; }
 
 .container {
-  max-width: var(--max-width);
+  /* 内容盒 = 正文宽度，内边距留在外面，这样页头和正文左右边缘严丝合缝 */
+  max-width: calc(var(--content-width) + 2 * var(--gutter));
   margin: 0 auto;
   padding: 0 var(--gutter);
 }
@@ -1116,7 +1131,8 @@ a.pager-btn { text-decoration: none; }
 
 .post-title {
   font-family: var(--font-serif);
-  font-size: clamp(var(--text-lg), 4vw, var(--text-2xl));
+  /* 文章标题：sspai 是 38px（手机 28px），见 :root 的 --post-title-size */
+  font-size: var(--post-title-size);
   line-height: 1.45;
   letter-spacing: var(--tracking-title);
   margin: 0 0 var(--space-4);
@@ -1231,8 +1247,8 @@ a.post-pill { text-decoration: none; }
 .post-content {
   font-family: var(--font-serif);
   font-size: var(--text-reading);
-  line-height: 1.9;
-  max-width: 42em;
+  line-height: var(--reading-leading);
+  max-width: var(--content-width);
   margin: 0 auto;
   overflow-wrap: break-word;
 }
@@ -1243,14 +1259,22 @@ a.post-pill { text-decoration: none; }
 .post-content h3,
 .post-content h4 {
   font-family: var(--font-serif);
-  line-height: 1.5;
+  line-height: 1.4;
   /* 落点偏移统一在「锚点落点」那段用 main [id] 定义，这里不要再写一遍 */
   position: relative;
 }
 
+.post-content h1 {
+  /* 正文里真写了 # 一级标题时，用和文章标题同号（sspai 也是 38px） */
+  font-size: var(--post-title-size);
+  line-height: 1.4;
+  margin: var(--h2-gap-top) 0 var(--block-gap);
+}
+
 .post-content h2 {
-  font-size: var(--text-lg);
-  margin: var(--space-11) 0 var(--space-5);
+  font-size: var(--h2-size);
+  /* 上间距 = 上一段的段间距 + 24px（sspai 是 h2 的 padding-top: 24px，视觉等价） */
+  margin: var(--h2-gap-top) 0 var(--block-gap);
   padding-left: var(--space-4);
 }
 
@@ -1266,14 +1290,14 @@ a.post-pill { text-decoration: none; }
 }
 
 .post-content h3 {
-  font-size: var(--text-md);
-  margin: var(--space-9) 0 var(--space-4);
+  font-size: var(--h3-size);
+  margin: var(--h3-gap-top) 0 var(--block-gap);
 }
 
 .post-content h4 {
   /* 与正文同号，只靠字重区分：h4 比正文还小会读起来像「缩水」而不是层级 */
   font-size: var(--text-reading);
-  margin: var(--space-7) 0 var(--space-2);
+  margin: var(--block-gap) 0;
 }
 
 .heading-anchor {
@@ -1318,7 +1342,7 @@ a.post-pill { text-decoration: none; }
   color: var(--accent);
 }
 
-.post-content p { margin: 0 0 var(--space-5); }
+.post-content p { margin: 0 0 var(--block-gap); }
 
 .post-content a {
   color: var(--accent);
@@ -1353,7 +1377,7 @@ a[target="_blank"]::after {
 
 .post-content ul,
 .post-content ol {
-  margin: 0 0 var(--space-5);
+  margin: 0 0 var(--block-gap);
   padding-left: var(--space-6);
 }
 
@@ -1393,7 +1417,7 @@ a[target="_blank"]::after {
 }
 
 .post-content blockquote {
-  margin: var(--space-6) 0;
+  margin: 0 0 var(--block-gap);
   padding: var(--space-4) var(--space-5) var(--space-4) var(--space-7);
   border-left: 3px solid var(--accent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
@@ -1431,7 +1455,7 @@ a[target="_blank"]::after {
 }
 
 .table-wrap {
-  margin: var(--space-6) 0;
+  margin: 0 0 var(--block-gap);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -1517,7 +1541,7 @@ a[target="_blank"]::after {
   border-radius: var(--radius-sm);
   padding: var(--space-4);
   overflow-x: auto;
-  margin: var(--space-6) 0;
+  margin: 0 0 var(--block-gap);
 }
 
 .post-content .highlight pre {
@@ -1693,25 +1717,221 @@ a[target="_blank"]::after {
 /* ---------- 目录 ---------- */
 .post-toc { font-size: var(--text-2xs); }
 
-/* 宽屏：目录固定在正文右侧悬浮。
-   断点定在 1340px，是保证 800px 正文两侧都还剩得下留给侧栏的留白；
-   再窄就统一走左下角按钮 + 底部抽屉，不再让一大块目录顶在正文前面。 */
-@media (min-width: 1340px) {
+/* ---------- 宽屏目录：一列刻度，悬停 / 钉住才展开文字 ----------
+   参考 sspai 文章页的目录（.comp__Directory）：平时只有一列小刻度，
+   鼠标移上来（或点右上角图钉「钉住」）才展开成带标题文字的样子。
+   关键手法：标题文字一直占位（只是 color: transparent），展开时只改高度和颜色，
+   所以不会重排、不会把正文挤动。断点定在 1280px（sspai 自己也是这个宽度以内就不显示
+   右侧目录了）：正文 680px 居中时两侧各留 300px，减去 244px 的目录还剩 56px 空隙；
+   再窄就统一走正文开头那块，页面上不再有浮动按钮。 */
+@media (min-width: 1280px) {
   .post-rail {
     position: fixed;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
-    width: 200px;
-    max-height: calc(100vh - 32px);
-    overflow-y: auto;
+    /* 照 sspai 量出来的三个数字：
+       · 面板宽 244px（它的 .comp__Directory 就是这个宽度）
+       · 纵向居中（它 .comp__Directory__overlay 是 inset: 0 + padding-top: 顶栏高度 + align-items: center）
+       · 面板左边缘离正文右边缘 128px
+         正文右边缘 = 50vw + 340，面板左边 = 100vw - right - 244，
+         令两者相差 128px 解出 right = 50vw - 712px；窗口更窄时贴到右边就够了。
+       居中写法：这一层铺满「顶栏以下」但本身 pointer-events: none（不吃点击、不挡正文），
+       靠 align-items: center 把里面的目录摆正中间。容器高度固定，所以悬停展开那一瞬间
+       整块目录不会上下滑（这是直接写 top: 50% + translateY(-50%) 会有的毛病）。 */
+    top: var(--header-h);
+    bottom: 0;
+    right: max(0px, calc(50vw - 712px));
+    width: 244px;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
     margin: 0;
+    /* 滚动交给里面的 .post-toc：图钉要浮在刻度栏上方，这里不能裁切 */
+    overflow: visible;
+  }
+
+  .post-toc-wrap {
+    position: relative;
+    width: 100%;
+    /* 定位容器本身不吃点击，但目录本体要能点、能悬停 */
+    pointer-events: auto;
+  }
+
+  .post-toc {
+    /* 上下各留 44px 呼吸（和 sspai 面板的上下内边距一致） */
+    max-height: calc(100vh - var(--header-h) - 88px);
+    overflow-y: auto;
+  }
+
+  .post-rail .post-toc-nav li { margin: 0; }
+
+  /* 缩进只给文字：刻度始终排在同一列（sspai 的做法：.h2 .text 加 16px 左内边距） */
+  .post-rail .post-toc-nav li > ul { padding-left: 0; }
+  .post-rail .post-toc-nav ul ul a { padding-left: calc(18px + 16px); }
+  .post-rail .post-toc-nav ul ul ul a { padding-left: calc(18px + 32px); }
+
+  /* 收起态：一行就是一根小刻度，标题文字用透明色占位（宽度照占，展开时不重排） */
+  .post-rail .post-toc-nav a,
+  .post-rail .post-toc-nav a.is-active {
+    position: relative;
+    display: block;
+    height: 12px;
+    line-height: 12px;
+    padding: 0 0 0 18px;
+    border-left: 0;
+    /* sspai 目录文字是 15px */
+    font-size: 0.9375rem;
+    color: transparent;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: height 0.22s ease, line-height 0.22s ease, color 0.22s ease;
+  }
+
+  /* 编号在刻度栏里让位给刻度本身：一根 2px 宽的小竖条，垂直居中 */
+  .post-rail .post-toc-nav a::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 6px;
+    border-radius: 6px;
+    background: var(--line-strong);
+    transition: height 0.22s ease, background 0.22s ease;
+  }
+
+  .post-rail .post-toc-nav a.is-active::before { background: var(--accent); }
+
+  /* 「非当前章节变淡」用文字色做，别用整体 opacity：那会把刻度也一起调淡 */
+  .post-rail .post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 1; }
+
+  /* 展开：鼠标移上来、键盘走进来、或者已经钉住 */
+  .post-rail:hover .post-toc-nav a,
+  .post-rail:focus-within .post-toc-nav a,
+  .post-rail.is-pinned .post-toc-nav a {
+    height: 33px;
+    line-height: 33px;
+    color: var(--muted);
+  }
+
+  .post-rail:hover .post-toc-nav a::before,
+  .post-rail:focus-within .post-toc-nav a::before,
+  .post-rail.is-pinned .post-toc-nav a::before {
+    height: 21px;
+  }
+
+  .post-rail:hover .post-toc-nav a.is-active,
+  .post-rail:focus-within .post-toc-nav a.is-active,
+  .post-rail.is-pinned .post-toc-nav a.is-active {
+    color: var(--accent);
+  }
+
+  /* 展开后，鼠标指着的那一条再亮一点（比展开态的 --muted 更清楚） */
+  .post-rail .post-toc-nav a:hover { color: var(--ink); }
+
+  /* 图钉：平时藏着，鼠标进目录（或已钉住）才现身 */
+  .post-toc-pin {
+    position: absolute;
+    top: -1.75rem;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, color 0.15s ease, visibility 0s 0.2s;
+  }
+
+  .post-rail:hover .post-toc-pin,
+  .post-rail:focus-within .post-toc-pin,
+  .post-toc-pin:focus-visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease, color 0.15s ease, visibility 0s 0s;
+  }
+
+  .post-toc-pin:hover { color: var(--ink); }
+
+  .post-rail.is-pinned .post-toc-pin {
+    opacity: 1;
+    visibility: visible;
+    color: var(--accent);
   }
 }
 
 /* 不足宽屏：收起侧栏，改用左下角按钮 + 底部抽屉 */
-@media (max-width: 1339.98px) {
+@media (max-width: 1279.98px) {
   .post-rail { display: none; }
+}
+
+/* ---------- 窗口不够宽：目录顶在正文前面 ----------
+   右侧刻度栏放不下时（<1280px，含手机），目录直接排在正文开头，点标题栏可收起。
+   手机上默认是收起状态，由 toc.js 的 initInlineToc() 在加载时摘掉 details 的 open。 */
+.post-toc-inline {
+  display: none;
+  max-width: var(--content-width);
+  margin: 0 auto var(--space-7);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+@media (max-width: 1279.98px) {
+  .post-toc-inline { display: block; }
+}
+
+.post-toc-inline-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  color: var(--muted);
+  transition: color 0.15s ease;
+}
+
+.post-toc-inline-head::-webkit-details-marker { display: none; }
+
+/* 折叠箭头：和归档页的年份块同款 */
+.post-toc-inline-head::after {
+  content: "";
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.post-toc-inline[open] .post-toc-inline-head::after { transform: rotate(135deg); }
+
+.post-toc-inline-head:hover { color: var(--ink); }
+
+.post-toc-inline-title {
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+}
+
+.post-toc-inline:not([open]) .post-toc-inline-nav { display: none; }
+
+.post-toc-inline-nav {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--line);
+  font-size: var(--text-2xs);
+  max-height: 42vh;
+  overflow-y: auto;
 }
 
 .post-toc-nav ul {
@@ -1749,43 +1969,6 @@ a[target="_blank"]::after {
 
 .post-toc-nav:has(a.is-active) a:not(.is-active):hover {
   opacity: 1;
-}
-
-/* ---------- 移动端目录抽屉 ---------- */
-.toc-btn {
-  position: fixed;
-  left: clamp(16px, 4vw, 28px);
-  bottom: clamp(18px, 5vh, 32px);
-  width: 42px;
-  height: 42px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--ctrl-float-border);
-  border-radius: 50%;
-  background: var(--ctrl-float-bg);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  color: var(--ctrl-text);
-  cursor: pointer;
-  box-shadow: var(--ctrl-float-shadow);
-  z-index: 90;
-  transition: var(--ctrl-transition);
-}
-
-.toc-btn:hover {
-  background: var(--ctrl-float-hover-bg);
-  color: var(--ctrl-hover-text);
-  border-color: var(--ctrl-hover-border);
-  box-shadow: var(--ctrl-float-shadow);
-  transform: translateY(-2px);
-}
-
-.toc-btn:active {
-  background: var(--ctrl-active-bg);
-  color: var(--ctrl-active-text);
-  border-color: var(--ctrl-active-border);
-  transform: translateY(0);
 }
 
 .back-top {
@@ -1830,95 +2013,9 @@ a[target="_blank"]::after {
   border-color: var(--ctrl-active-border);
 }
 
-body.toc-open { overflow: hidden; }
-
-.toc-drawer { position: fixed; inset: 0; z-index: 300; }
-.toc-drawer[hidden] { display: none; }
-
-.toc-drawer-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(20, 22, 26, 0.4);
-  animation: overlay-in 0.2s ease;
-}
-
-.toc-drawer-panel {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  max-height: 72vh;
-  overflow-y: auto;
-  padding: var(--space-4) var(--space-6) var(--space-7);
-  background: var(--paper);
-  border-radius: var(--radius) var(--radius) 0 0;
-  box-shadow: var(--shadow-md);
-  animation: drawer-up 0.28s ease both;
-}
-
-@keyframes drawer-up {
-  from { transform: translateY(24px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
 @keyframes overlay-in {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-.toc-drawer-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-2);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--line);
-}
-
-.toc-drawer-title {
-  font-family: var(--font-serif);
-  font-size: var(--text-sm);
-  letter-spacing: var(--tracking-label);
-  color: var(--ink);
-}
-
-.toc-drawer-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  color: var(--ctrl-text);
-  background: var(--ctrl-bg);
-  border: 1px solid var(--ctrl-border);
-  border-radius: 50%;
-  box-shadow: var(--ctrl-shadow);
-  cursor: pointer;
-  transition: var(--ctrl-transition);
-}
-
-.toc-drawer-close:hover {
-  background: var(--ctrl-hover-bg);
-  color: var(--ctrl-hover-text);
-  border-color: var(--ctrl-hover-border);
-  box-shadow: var(--ctrl-hover-shadow);
-}
-
-.toc-drawer-close:active {
-  background: var(--ctrl-active-bg);
-  color: var(--ctrl-active-text);
-  border-color: var(--ctrl-active-border);
-  box-shadow: var(--ctrl-active-shadow);
-}
-
-.toc-drawer-nav {
-  max-height: 52vh;
-  overflow-y: auto;
-}
-
-@media (max-width: 1339.98px) {
-  .toc-btn { display: flex; }
 }
 
 /* ---------- 上一篇 / 下一篇 ---------- */
@@ -2869,8 +2966,6 @@ svg {
 }
 
 .nav-icon-btn svg,
-.toc-btn svg,
-.toc-drawer-close svg,
 .pager-btn svg {
   width: 20px;
   height: 20px;
@@ -2894,16 +2989,14 @@ svg {
 .post-pill,
 .tag-chip,
 .pager-btn,
-.nav-icon-btn,
-.toc-btn {
+.nav-icon-btn {
   position: relative;
 }
 
 .post-pill::after,
 .tag-chip::after,
 .pager-btn::after,
-.nav-icon-btn::after,
-.toc-btn::after {
+.nav-icon-btn::after {
   content: "";
   position: absolute;
   inset: -8px;
@@ -3022,6 +3115,13 @@ svg {
     /* 小屏把最大的两档各收一档，标题不至于顶满屏宽 */
     --text-2xl: 1.73rem;
     --text-xl: 1.44rem;
+    /* 文章排版照 sspai 的手机档：正文 15px、段间距 24px、H2 24px、H3 20px、文章标题 28px
+       （H2 / H3 的上间距由 --block-gap 自动跟着缩，不用再改） */
+    --text-reading: 0.9375rem;
+    --block-gap: var(--space-6);
+    --h2-size: 1.5rem;
+    --h3-size: 1.25rem;
+    --post-title-size: 1.75rem;
   }
 }
 
@@ -3093,11 +3193,6 @@ svg {
 }
 
 @media (max-width: 600px) {
-  :root {
-    /* 小屏正文降到基础档，一屏能多放两行 */
-    --text-reading: 1rem;
-  }
-
   main.container {
     padding-top: var(--space-7);
     padding-bottom: var(--space-7);
@@ -3578,9 +3673,8 @@ body.search-open { overflow: hidden; }
   .skip-link,
   .reading-progress,
   .back-top,
-  .toc-btn,
-  .toc-drawer,
   .post-rail,
+  .post-toc-inline,
   .post-end,
   .related-posts,
   .post-nav,

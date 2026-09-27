@@ -7,7 +7,7 @@
 - **导航栏**：关于 / 归档 / 分类 / 周刊 + RSS
 - **页脚**：版权 / 花园、友链、开往、隐私政策、邮箱 / CC 协议
 - **首页**：按时间倒序每页 10 篇，底部左右箭头翻页
-- **文章页**：目录（桌面侧栏 / 手机端底部抽屉）、相关文章、上一篇/下一篇、打赏、评论
+- **文章页**：目录（宽屏右侧刻度栏，悬停或「钉住」展开 / 窗口不够宽时排在正文开头，手机上默认收起）、相关文章、上一篇/下一篇、打赏、评论
 - **评论系统**：接入 [giscus](https://giscus.app)（基于 GitHub Discussions），跟随系统深浅色主题
 - **站内预取**：用浏览器原生的 Speculation Rules 预取同源链接，点击后更快打开
 - **深色 / 浅色模式**：自动跟随系统，无需手动切换
@@ -113,10 +113,11 @@ hugo new content/posts/my-first-post.md
 | 导航栏链接 | `hugo.toml` 的 `[[menu.main]]` |
 | 页脚信息 | `layouts/partials/footer.html` |
 | 颜色 / 字体 / 间距 | `assets/css/style.css` 顶部的 CSS 变量 |
+| 正文 / 导航栏宽度 | `assets/css/style.css` 顶部的 `--content-width`（当前 680px，页头、正文、列表页共用同一个值，对齐 sspai 文章页） |
 | 网站图标（favicon） | 站点图标和导航 Logo 统一使用 `static/logo.svg`，iOS 图标使用 `static/apple-touch-icon.png` |
 | 个人头像 | 把图片放进 `static/images/`，然后在 `hugo.toml` 的 `params.avatar` 填 `/images/文件名.jpg`；不填则自动显示首字母头像 |
 | 相关文章数量与匹配 | `hugo.toml` 里 `[related]` 段 |
-| 目录/标签云侧栏断点 | `assets/css/style.css` 里搜 `1200px` / `899.98px` 媒体查询 |
+| 目录显示断点 | `assets/css/style.css` 里搜 `1280px`（右侧刻度栏）/ `1279.98px`（正文开头那块目录）媒体查询 |
 | 周刊期号徽章 | 在周刊的 front matter 里写 `issue: 22`（不填就不显示徽章） |
 
 ## 💬 接入 giscus 评论系统

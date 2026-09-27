@@ -1,14 +1,13 @@
 (function () {
   "use strict";
 
-  /* 文章目录的两半逻辑都在这个文件里：
+  /* 文章目录的逻辑都在这个文件里：
        init()       —— 滚动高亮当前章节；
-       initDrawer() —— 移动端底部抽屉的开关、焦点陷阱、ESC；
+       initPin()    —— 宽屏刻度栏的「钉住」按钮（钉住后不用悬停也保持展开）；
+       initInlineToc() —— 手机上把正文开头那块目录默认收起来；
        initHashAnchor() —— 带着 #锚点 进页面时把标题重新对准（见下面那段注释）。
-     右侧固定栏和抽屉是同一份目录的两个副本，所以高亮对页面里所有 .post-toc-nav 一起生效。
-     点击行为按位置区分：
-       - 右侧栏：自己接管，平滑滚动；
-       - 抽屉里：交给浏览器原生锚点跳转，这样抽屉会先关闭、body 先解锁再滚动。 */
+     同一份目录在页面里有两份副本（宽屏刻度栏 + 正文开头那块），
+     所以高亮对页面里所有 .post-toc-nav 一起生效；点哪一份都是这里接管、平滑滚动。 */
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var activeId = null;
@@ -69,7 +68,6 @@
       nav.addEventListener("click", function (event) {
         var link = event.target.closest("a");
         if (!link || !nav.contains(link)) return;
-        if (link.closest(".toc-drawer")) return;
         var target = document.getElementById(hashOf(link));
         if (!target) return;
         event.preventDefault();
@@ -81,44 +79,30 @@
     sync();
   }
 
-  /* 移动端目录抽屉：开合、焦点陷阱、ESC 关闭。
-     过去这段写在 single.html 的内联脚本里，和上面的高亮逻辑分家；
-     现在合并到一处，抽屉和侧栏共用同一份目录数据。 */
-  function initDrawer() {
-    var btn = document.getElementById("toc-btn");
-    var drawer = document.getElementById("toc-drawer");
-    if (!btn || !drawer) return;
+  /* ---------- 手机上把正文开头那块目录默认收起来 ----------
+     同一份 <details> 在宽屏是展开的（HTML 里带 open），到手机上默认收起更省屏幕；
+     只在加载时判断一次，之后用户自己点开 / 收起，脚本不再插手。 */
+  function initInlineToc() {
+    var block = document.querySelector(".post-toc-inline");
+    if (!block) return;
+    if (window.matchMedia("(max-width: 760px)").matches) block.open = false;
+  }
 
-    var releaseTrap = null;
+  /* ---------- 宽屏刻度栏的「钉住」----------
+     参考 sspai 文章页的目录：平时只有一列小刻度，鼠标移上去才展开成标题；
+     点图钉钉住后，展开状态就不用再靠悬停维持（.post-rail.is-pinned）。
+     按钮在 .post-rail 里面，窄屏时整块 display:none，所以窄屏等于不执行。
+     状态不跨页面记：和主题切换一样，刷新回到默认的收起态。 */
+  function initPin() {
+    var rail = document.querySelector(".post-rail");
+    var btn = document.getElementById("toc-pin");
+    if (!rail || !btn) return;
 
-    function open() {
-      drawer.hidden = false;
-      btn.setAttribute("aria-expanded", "true");
-      document.body.classList.add("toc-open");
-      // 焦点锁进抽屉、并落到关闭按钮上（focus-trap.js 由同一个 bundle 提供，排在前面）
-      if (window.hulatuFocusTrap) {
-        releaseTrap = window.hulatuFocusTrap(drawer, drawer.querySelector(".toc-drawer-close"));
-      }
-    }
-
-    function close() {
-      if (drawer.hidden) return;
-      drawer.hidden = true;
-      btn.setAttribute("aria-expanded", "false");
-      document.body.classList.remove("toc-open");
-      if (releaseTrap) {
-        releaseTrap();
-        releaseTrap = null;
-      }
-      btn.focus();
-    }
-
-    btn.addEventListener("click", open);
-    drawer.addEventListener("click", function (event) {
-      if (event.target.closest("[data-toc-close]") || event.target.closest(".toc-drawer-nav a")) close();
-    });
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && !drawer.hidden) close();
+    btn.addEventListener("click", function () {
+      var pinned = rail.classList.toggle("is-pinned");
+      btn.setAttribute("aria-pressed", pinned ? "true" : "false");
+      btn.setAttribute("aria-label", pinned ? "取消钉住目录" : "钉住目录");
+      btn.setAttribute("title", pinned ? "取消钉住目录" : "钉住目录（保持展开）");
     });
   }
 
@@ -188,7 +172,8 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     init();
-    initDrawer();
+    initPin();
+    initInlineToc();
     initHashAnchor();
   });
 })();
