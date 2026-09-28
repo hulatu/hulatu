@@ -8,3 +8,11 @@
 /posts/2026/02/13/do-not-handle-others-things-lightly./ /posts/2026/02/13/do-not-handle-others-things-lightly/ 301
 /posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school. /posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school/ 301
 /posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school./ /posts/2026/02/26/holiday-balance-is-zero-i-have-arrived-at-school/ 301
+
+# slug 大小写兜底：`如何配置一个好用的浏览器` 的 front matter slug 原来是 `Set-Browser`（大写），
+# 2026-09-28 统一改成了 `set-browser`。注意 URL 其实一直就是小写的——Hugo 默认会把路径小写化
+# （hugo.toml 没设 disablePathToLower），改前改后产物里都是 /posts/2026/09/28/set-browser/，
+# 所以**没有**任何已发布链接失效。这条 301 只是给「手打过大写地址」兜底：Cloudflare 的路径
+# 区分大小写，大写那种写法本来会直接 404。两种写法都列上，理由同上。
+/posts/2026/09/28/Set-Browser /posts/2026/09/28/set-browser/ 301
+/posts/2026/09/28/Set-Browser/ /posts/2026/09/28/set-browser/ 301

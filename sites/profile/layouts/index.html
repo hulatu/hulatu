@@ -22,7 +22,20 @@
         </div>
       </div>
       {{ with $profile.avatar }}
-        <img class="avatar" src="{{ . }}" alt="{{ $profile.name | default site.Title }}" decoding="async">
+        {{- /* 头像同样走 Cloudflare Image Transformations：这里显示 120px（≤520px 时 84px），
+               而 hulatu.com 上的源图是 480×360 / 17.8KB，等于发 4 倍于所需的像素。
+               只重写 hulatu.com 下的头像；以后换成外链（Gravatar 之类）就原样用，
+               不硬套参数，免得把别人的图也塞进我们的转换端点。 */ -}}
+        {{- $av1x := . -}}
+        {{- $av2x := . -}}
+        {{- if strings.HasPrefix . "https://hulatu.com/images/" -}}
+          {{- $avPath := strings.TrimPrefix "https://hulatu.com" . -}}
+          {{- $av1x = printf "https://hulatu.com/cdn-cgi/image/width=120,format=auto,quality=80,metadata=none%s" $avPath -}}
+          {{- $av2x = printf "https://hulatu.com/cdn-cgi/image/width=240,format=auto,quality=80,metadata=none%s" $avPath -}}
+        {{- end -}}
+        <img class="avatar" src="{{ $av2x }}" alt="{{ $profile.name | default site.Title }}"
+             srcset="{{ $av1x }} 120w, {{ $av2x }} 240w"
+             sizes="(max-width: 520px) 84px, 120px" decoding="async">
       {{ end }}
     </div>
   </header>

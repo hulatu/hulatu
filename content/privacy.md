@@ -6,12 +6,12 @@ date: 2026-09-19
 
 本站是个人博客，不提供账号注册，也**不会主动收集你的姓名、电话、邮箱等个人身份信息**。下面说明访问本站时会涉及的数据处理。
 
-本政策适用于 `hulatu.com`、`profile.hulatu.com`、`run.hulatu.com` 几个关联网页。
+本政策适用于 `hulatu.com`、`profile.hulatu.com`、`run.hulatu.com`、`shot.hulatu.com`、`share.hulatu.com` 这几个关联网页。
 
 ## 本站自身的数据处理 {#ben-zhan-zi-shen-de-shu}
 
 - **访问日志**：托管平台会自动记录访问请求（IP 地址、访问时间、浏览器类型、访问页面等），用于保障服务稳定与安全。这些日志由托管平台 Cloudflare 保存，本站不自行读取或二次利用。
-- **本地偏好**：本站深浅色模式默认跟随系统设置；如果你手动切换过主题，会用浏览器 LocalStorage 记住这个选择（只保存一个名为 `theme` 的键，值为 light 或 dark），不用于识别你的身份。
+- **本地偏好**：本站深浅色模式默认跟随系统设置，也可以在页头手动切换；**手动切换只在当前这次浏览里有效，刷新或关掉页面后就回到跟随系统**。这个过程不会写入 Cookie，也不会写入 LocalStorage，不用于识别你的身份。
 
 ## 第三方服务 {#di-san-fang-fu-wu}
 
@@ -48,7 +48,7 @@ date: 2026-09-19
 
 ## Cookie 与本地存储 {#cookie-yu-ben-de-cun-chu}
 
-本站自身不使用 Cookie。唯一的本地存储是：当你手动切换深浅色模式时，会用 LocalStorage 记住主题选择（键名为 `theme`），不含任何身份信息。第三方服务的情况：
+本站自身不使用 Cookie，也不使用 LocalStorage 等浏览器本地存储。深浅色模式默认跟随系统设置，手动切换只在当前这次浏览里有效，刷新后回到跟随系统。第三方服务的情况：
 
 - GoatCounter：默认不依赖 Cookie 进行统计。
 - giscus：主要使用 LocalStorage 保存主题；当你在 giscus 内登录 GitHub 时，GitHub 可能在 `github.com` 域名下设置自己的 Cookie。

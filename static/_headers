@@ -4,12 +4,22 @@
 # 防 iframe 嵌套：只写 frame-ancestors，其余 CSP 指令留空 = 不限制脚本/样式，
 # 所以不会影响 giscus、GoatCounter 和内联脚本。
 # X-Frame-Options 是给老浏览器的同义兜底（新浏览器优先看 frame-ancestors）。
+#
+# HSTS（Strict-Transport-Security）：让浏览器在 max-age 内**只肯用 HTTPS** 访问本域，
+# 连一次明文请求都不发，从根上堵掉 SSL stripping 和「用户手打 http://」的中间人窗口。
+# 注意它是**单向门**：浏览器一旦记住，max-age 到期前回不去 HTTP，所以加之前该查的要查。
+# 2026-09-28 加之前实测过：hulatu.com / www / profile / run / shot / share / img 这七个域名的
+# http:// 全部 301 跳 https，图床 https 也能正常取图 —— 所以 includeSubDomains 是安全的。
+# 想退出：把这条改成 max-age=0，浏览器下次拿到响应就清掉（但已经记住的人要等它过期）。
+# 没加 preload：那需要另外去 hstspreload.org 提交，而且从预加载列表里移除要等好几个月，
+# 收益只覆盖「第一次访问」那一瞬间——属于可选的后话，真要加就补 `; preload` 再去提交。
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   X-Frame-Options: SAMEORIGIN
   Content-Security-Policy: frame-ancestors 'self'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 # HTML 一律「先问一句再用」：max-age=0 让浏览器每次访问都发一次条件请求，
 # 没变的话服务端返回 304（几十字节），变了立刻拿到新页面。
@@ -65,12 +75,16 @@
 /img/*
   Cache-Control: public, max-age=2592000
 
-/media/*
-  Cache-Control: public, max-age=2592000
+# 这里曾经有一条 `/media/*`（当初以为是图片目录，跟着 /img/ 一起写了 30 天）。
+# 2026-09-28 实测发现是误伤：站内根本没有 `/media/` 静态资源（static/ 下只有 images/），
+# 而 `content/media/` 生成的书影音页正好在 `/media/`——线上 `curl -sSI https://hulatu.com/media/`
+# 返回的是 `cache-control: public, max-age=2592000`，等于改书影音内容后老访客 30 天看不到。
+# 删掉后 `/media/` 落到平台默认（和 /privacy/ 一样是 max-age=0, must-revalidate）。
+# 以后真要给某个内容路径下的资源加长缓存，先确认那条路径没有被内容页占用。
 
 # /images/ 下是头像和分享卡片图（static/images/）：以前漏了这条规则，
 # 线上只能拿到平台默认值再被 Cloudflare 的 Browser Cache TTL 改写成 4 小时。
-# 和 /img/、/media/ 对齐成 30 天。注意：想在同一路径替换头像，改完在后台
+# 和 /img/ 对齐成 30 天。注意：想在同一路径替换头像，改完在后台
 # Purge 一下，或者换个文件名，否则 30 天内大家看到的还是旧图。
 /images/*
   Cache-Control: public, max-age=2592000

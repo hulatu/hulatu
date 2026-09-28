@@ -95,7 +95,7 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 每页几篇 | `hugo.toml` 的 `[pagination] pagerSize`（模板里的 `.Paginate` 故意不传第二个参数） |
 | 颜色 / 字体 / 间距 | `assets/css/style.css` 顶部的 CSS 变量；**五个站要一起改**，见 [sites/README.md](sites/README.md) 的颜色约定 |
 | 正文 / 页头宽度 | `assets/css/style.css` 的 `--content-width`（当前 680px，五个站同宽） |
-| 头像 | 图片放 `static/images/`，路径填 `hugo.toml` 的 `params.avatar`；文件不在就退回「胡」字印章 |
+| 头像 | 图片放 `static/images/`，路径填 `hugo.toml` 的 `params.avatar`；文件不在就退回「胡」字印章。页面渲染时会自动套 Cloudflare Image Transformations 按显示尺寸出图（开关 `params.avatarCDN`） |
 | 图标 | `static/logo.svg`、`static/favicon.svg`、`static/apple-touch-icon.png`、`icon-192/512.png` |
 | 目录显示断点 | `assets/css/style.css` 里搜 `1280px`（右侧刻度栏）和 `1279.98px`（正文开头那块） |
 | 周刊期号徽章 | 周刊 front matter 的 `issue: 23`（不填不显示徽章） |

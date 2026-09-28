@@ -1,2 +1,8 @@
+# HSTS：理由和注意事项见主站 static/_headers 里那段长注释。
+# 这里单独写一份，是为了「读者第一次落地就在 run.hulatu.com」时也能立刻拿到 HSTS，
+# 不用先去过一趟主站。
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
 /style.css
   Cache-Control: public, max-age=604800, must-revalidate

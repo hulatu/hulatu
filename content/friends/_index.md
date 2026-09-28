@@ -7,8 +7,6 @@ friends:
     url: "https://flowersink.com"
   - name: "Cytrogen"
     url: "https://blog.cytrogen.icu/"
-  - name: "千古壹号"
-    url: "http://www.qianguyihao.com/"
   - name: "梁某银的博客"
     url: "https://liangmouyin.com/"
 communities:
