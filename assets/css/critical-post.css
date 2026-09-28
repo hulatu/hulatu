@@ -1,0 +1,1013 @@
+/* ============================================================
+   文章页首屏关键 CSS —— 只在文章页 / 周刊正文页内联，不进其他页型。
+   内容从 post.css 切出来（2026-09-28）：面包屑、文章头、元信息行、
+   分类/标签胶囊、正文的段落与标题排版、目录（右侧栏 + 手机内联）。
+   这些都是首屏画完之前就需要的；留在异步包里会让文章页首屏重绘一次
+   （元信息行从两行折回一行、目录从正文中段跳到右侧栏、标题从默认样式
+   换成带强调条的文章标题）。
+
+   ⚠️ 这里放的是规则本身，post.css 里**不再重复**。
+   切分时做过层叠顺序校验：搬走的规则在原先的 post.css 里都排在
+   留下的规则之前，所以内联到前面不改变任何一条的胜负。
+   改样式请改这个文件；验证见 MAINTENANCE.md「CSS 怎么加载」。
+   ============================================================ */
+.post-header { margin-bottom: var(--space-10); }.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}.breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}.breadcrumb a:hover {
+  color: var(--accent);
+}.breadcrumb-sep {
+  color: var(--line-strong);
+  user-select: none;
+}.breadcrumb-current {
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}.post-cat-chip {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}.post-cat-chip::before {
+  content: "●";
+  font-size: 0.5em;
+  margin-right: 0.35em;
+  color: currentColor;
+}.post-cat-chip:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}.post-title {
+  font-family: var(--font-serif);
+  /* 文章标题：sspai 是 38px（手机 28px），见 :root 的 --post-title-size */
+  font-size: var(--post-title-size);
+  line-height: 1.45;
+  letter-spacing: var(--tracking-title);
+  margin: 0 0 var(--space-4);
+}.post-meta {
+  display: flex;
+  align-items: center;
+  /* 日期/字数靠左，分类和标签贴右边对齐（同一行时两头分开）。
+     万一将来出现超长元信息 + 一堆标签而换行，换行那一行只有标签，
+     space-between 对单项的表现就是靠左，不会出现孤零零一行贴右的怪样子。 */
+  justify-content: space-between;
+  flex-wrap: wrap;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  /* 等宽元信息（bearneo 思路，见 critical.css 的 --font-meta）。
+     这一行是「发布于 2026-09-19 · 更新于 … · 约 3456 字 · 读 10 分钟」，
+     汉字和数字混排：数字走等宽后几个日期能对齐，汉字由 --font-meta 末尾的
+     PingFang SC 兜住，字形和加这个字体之前完全一样，不会出现一行两种中文。 */
+  font-family: var(--font-meta);
+}.post-meta-main {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+  min-width: 0;
+}.post-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}.post-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}.post-meta .post-chips-row {
+  margin-top: 0;
+  margin-left: 0;
+}.post-chips-cats { margin-left: 0; }.post-meta-sep { margin: 0 var(--space-2); }.post-content > *:first-child { margin-top: 0; }.post-content h2,
+.post-content h3,
+.post-content h4 {
+  font-family: var(--font-serif);
+  line-height: 1.4;
+  /* 落点偏移统一在「锚点落点」那段用 main [id] 定义，这里不要再写一遍 */
+  position: relative;
+}.post-content h1 {
+  /* 正文里真写了 # 一级标题时，用和文章标题同号（sspai 也是 38px） */
+  font-size: var(--post-title-size);
+  line-height: 1.4;
+  margin: var(--h2-gap-top) 0 var(--block-gap);
+}.post-content h2 {
+  font-size: var(--h2-size);
+  /* 上间距 = 上一段的段间距 + 24px（sspai 是 h2 的 padding-top: 24px，视觉等价） */
+  margin: var(--h2-gap-top) 0 var(--block-gap);
+  padding-left: var(--space-4);
+}.post-content h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.16em;
+  bottom: 0.16em;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}.post-content h3 {
+  font-size: var(--h3-size);
+  margin: var(--h3-gap-top) 0 var(--block-gap);
+}.post-content h4 {
+  /* 与正文同号，只靠字重区分：h4 比正文还小会读起来像「缩水」而不是层级 */
+  font-size: var(--text-reading);
+  margin: var(--block-gap) 0;
+}.heading-anchor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1em;
+  height: 1.1em;
+  margin-left: 0.35em;
+  border-radius: 50%;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.68em;
+  font-weight: 400;
+  line-height: 1;
+  text-decoration: none;
+  opacity: 0;
+  transform: translateX(-3px);
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}.post-content h2:hover .heading-anchor,
+.post-content h3:hover .heading-anchor,
+.post-content h4:hover .heading-anchor,
+.post-content h2:focus-within .heading-anchor,
+.post-content h3:focus-within .heading-anchor,
+.post-content h4:focus-within .heading-anchor {
+  opacity: 1;
+  transform: translateX(0);
+}.heading-anchor:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}.post-content .heading-anchor {
+  text-decoration: none;
+}.post-content .heading-anchor:hover {
+  color: var(--accent);
+}.post-content p { margin: 0 0 var(--block-gap); }.post-content a {
+  color: var(--accent);
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  padding-bottom: 1px;
+  transition: background-size 0.25s var(--ease), color 0.15s ease;
+}.post-content a:hover {
+  color: var(--accent-ink);
+  background-size: 100% 1px;
+}.post-content ul,
+.post-content ol {
+  margin: 0 0 var(--block-gap);
+  padding-left: var(--space-6);
+}.post-content li { margin: var(--space-1) 0; }.post-content ul li::marker {
+  color: var(--accent);
+}
+/* 任务清单（GFM 的 - [ ] / - [x]，移植自 bearneo 的 ul li:has(input)）。
+   博客原来这块是空白：Goldmark 渲染出的 <li><input type=checkbox disabled>
+   会同时冒出「圆点 + 复选框」，而且复选框被 ul 的 padding-left 推得比正文深一级。
+   这里只做两件事：去掉该行的圆点；再用负 margin 把复选框拉回和正文左边缘齐平
+   （正好抵消 .post-content ul 的 padding-left: --space-6）。
+   用 longhand 的 margin-left 而不是 margin 简写，是为了不覆盖上面 .post-content li
+   的上下间距 —— 那条规则的优先级更低，本来就会被这里盖掉，但简写会把两个方向的
+   值一起改掉，不如只动需要动的那个。 */
+.post-content li:has(> input[type="checkbox"]) {
+  list-style: none;
+  margin-left: calc(var(--space-6) * -1);
+}
+/* 复选框本身：跟着主题色走，尺寸和基线对齐正文中文 */
+.post-content input[type="checkbox"] {
+  width: 0.95em;
+  height: 0.95em;
+  margin: 0 0.45em 0 0;
+  vertical-align: -0.08em;
+  accent-color: var(--accent);
+  cursor: default;
+}.post-content ol {
+  list-style: none;
+  counter-reset: ol-item;
+}.post-content ol > li {
+  counter-increment: ol-item;
+  position: relative;
+  padding-left: var(--space-7);
+}.post-content ol > li::before {
+  content: counter(ol-item);
+  position: absolute;
+  left: 0;
+  top: 0.3em;
+  width: 1.45em;
+  height: 1.45em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent);
+  font-size: 0.72em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}.post-toc { font-size: var(--text-2xs); }.post-toc-inline {
+  display: none;
+  max-width: var(--content-width);
+  margin: 0 auto var(--space-7);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}.post-toc-inline-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  color: var(--muted);
+  transition: color 0.15s ease;
+}.post-toc-inline-head::-webkit-details-marker { display: none; }.post-toc-inline-head::after {
+  content: "";
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}.post-toc-inline[open] .post-toc-inline-head::after { transform: rotate(135deg); }.post-toc-inline-head:hover { color: var(--ink); }.post-toc-inline-title {
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+}.post-toc-inline:not([open]) .post-toc-inline-nav { display: none; }.post-toc-inline-nav {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--line);
+  font-size: var(--text-2xs);
+  max-height: 42vh;
+  overflow-y: auto;
+}.post-toc-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}.post-toc-nav li { margin: var(--space-1) 0; }.post-toc-nav li > ul {
+  padding-left: var(--space-3);
+}.post-toc-nav a {
+  display: block;
+  color: var(--muted);
+  line-height: 1.45;
+  padding: var(--space-1) 0 var(--space-1) var(--space-4);
+  border-left: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}.post-toc-nav a:hover { color: var(--ink); }.post-toc-nav a.is-active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}.post-toc-nav:has(a.is-active) a:not(.is-active) {
+  opacity: 0.5;
+}.post-toc-nav:has(a.is-active) a:not(.is-active):hover {
+  opacity: 1;
+}.post-toc::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}.post-toc::-webkit-scrollbar-track {
+  background: transparent;
+}.post-toc::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: var(--radius-pill);
+}.post-toc-nav > nav > ul {
+  counter-reset: toc1;
+}.post-toc-nav ul ul {
+  counter-reset: toc2;
+}.post-toc-nav ul ul ul {
+  counter-reset: toc3;
+}.post-toc-nav > nav > ul > li {
+  counter-increment: toc1;
+}.post-toc-nav > nav > ul > li > a::before {
+  content: counter(toc1, cjk-ideographic) "、";
+  margin-right: 0.25em;
+}.post-toc-nav ul ul > li {
+  counter-increment: toc2;
+}.post-toc-nav ul ul > li > a::before {
+  content: counter(toc2, decimal) ". ";
+}.post-toc-nav ul ul ul > li {
+  counter-increment: toc3;
+}.post-toc-nav ul ul ul > li > a::before {
+  content: counter(toc3, decimal) "）";
+}.post-toc-nav ul ul ul ul a {
+  font-weight: 600;
+}.post-content {
+  font-family: var(--font-serif);
+  font-size: var(--text-reading);
+  line-height: var(--reading-leading);
+  max-width: var(--content-width);
+  margin: 0 auto;
+  overflow-wrap: break-word;
+}
+/* ---------- 脚注（Goldmark 的 footnote 扩展）----------
+   Goldmark 生成的标记：
+     正文里  <sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>
+     文末    <div class="footnotes"><hr><ol><li id="fn:1"><p>…<a class="footnote-backref">↩︎</a></p></li></ol></div>
+   整块就落在 .post-content 里面，所以「没有专门样式」不等于「没有样式」——它会继承正文那几套，
+   而它们放在脚注上都不合适：
+     · <hr> 带上 .post-content hr 的「40% 宽 + 正中一个圆点」分节装饰。那是给「场景切换」
+       用的，摆在脚注前面太重；
+     · <ol> 带上 .post-content ol 的圆形序号徽章 + 1.75rem 缩进。徽章是给正文步骤列表用的，
+       脚注跟着一起放大，看起来就成正文了；
+     · <li> 里的 <p> 带上 --block-gap（32px）的段间距。
+   脚注是附属信息，不该抢正文的戏，所以下面逐项压回去。
+   注意作者自己在正文里手写的 <hr>（不在 .footnotes 内）不受影响，分节装饰该留还留着。 */
+
+/* 正文里的上标序号：<a> 那套「下划线从 0 展开」的动效挂在上标上很别扭，换成静态下划线 */
+.post-content .footnote-ref {
+  padding: 0 0.12em;
+  background: none;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}.post-content .highlight,
+.post-content pre {
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  overflow-x: auto;
+  margin: 0 0 var(--block-gap);
+}.post-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--code-fg);
+}@media (min-width: 1280px) {.post-rail {
+    position: fixed;
+    /* 照 sspai 量出来的三个数字：
+       · 面板宽 244px（它的 .comp__Directory 就是这个宽度）
+       · 纵向居中（它 .comp__Directory__overlay 是 inset: 0 + padding-top: 顶栏高度 + align-items: center）
+       · 面板左边缘离正文右边缘 128px
+         正文右边缘 = 50vw + 340，面板左边 = 100vw - right - 244，
+         令两者相差 128px 解出 right = 50vw - 712px；窗口更窄时贴到右边就够了。
+       居中写法：这一层铺满「顶栏以下」但本身 pointer-events: none（不吃点击、不挡正文），
+       靠 align-items: center 把里面的目录摆正中间。容器高度固定，所以悬停展开那一瞬间
+       整块目录不会上下滑（这是直接写 top: 50% + translateY(-50%) 会有的毛病）。 */
+    top: var(--header-h);
+    bottom: 0;
+    right: max(0px, calc(50vw - 712px));
+    width: 244px;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    margin: 0;
+    /* 滚动交给里面的 .post-toc：图钉要浮在刻度栏上方，这里不能裁切 */
+    overflow: visible;
+  }.post-toc-wrap {
+    width: 100%;
+    /* 纵向排两件东西：上面的图钉、下面的目录本体。
+       图钉用 visibility: hidden 藏着（不是 display: none），占位一直留着，
+       所以鼠标扫进来把它点亮时，目录不会跟着上下跳。 */
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    /* 这一层本身不吃点击，但里面的图钉和目录要能点、能悬停 */
+    pointer-events: auto;
+  }.post-toc {
+    /* 上下各留 44px 呼吸（和 sspai 面板的上下内边距一致） */
+    max-height: calc(100vh - var(--header-h) - 88px);
+    overflow-y: auto;
+  }.post-rail .post-toc-nav li { margin: 0; }.post-rail .post-toc-nav li > ul { padding-left: 0; }.post-rail .post-toc-nav ul ul a { padding-left: calc(18px + 16px); }.post-rail .post-toc-nav ul ul ul a { padding-left: calc(18px + 32px); }
+  /* 刻度长度按层级递减 —— 移植自 bearneo 的目录刻度（那边是一级 16px、二级 12px、
+     三级 8px 的横线）。这里的刻度是竖条，对应的「长度」就是高度，所以落成 6 / 5 / 4 / 3px。
+     效果：目录收起来只剩一排刻度时，层级深浅一眼可辨，而不是一列等长的竖条。
+     刻度绝对定位在 left: 0，不占文本宽度，所以不需要 bearneo 那套
+     「宽度减多少、margin-right 就补多少」的补偿；缩进由 a 的 padding-left 单独负责。
+     展开时统一乘 3.5（一级 6×3.5 = 21px，和改之前完全一致），
+     所以「悬停刻度变长」的手感没变，只是各级之间的相对长短被保留下来了。 */
+  .post-rail .post-toc-nav a { --tick: 6px; }
+  .post-rail .post-toc-nav ul ul a { --tick: 5px; }
+  .post-rail .post-toc-nav ul ul ul a { --tick: 4px; }
+  .post-rail .post-toc-nav ul ul ul ul a { --tick: 3px; }.post-rail .post-toc-nav a,
+  .post-rail .post-toc-nav a.is-active {
+    position: relative;
+    display: block;
+    height: 12px;
+    line-height: 12px;
+    padding: 0 0 0 18px;
+    border-left: 0;
+    /* sspai 目录文字是 15px */
+    font-size: 0.9375rem;
+    color: transparent;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: height 0.22s ease, line-height 0.22s ease, color 0.22s ease;
+  }.post-rail .post-toc-nav a::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    /* 高度取上面按层级设好的 --tick（一级 6px、逐级 5/4/3px） */
+    height: var(--tick);
+    border-radius: 6px;
+    background: var(--line-strong);
+    transition: height 0.22s ease, background 0.22s ease;
+  }.post-rail .post-toc-nav a.is-active::before { background: var(--accent); }.post-rail .post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 1; }.post-rail:hover .post-toc-nav a,
+  .post-rail:focus-within .post-toc-nav a,
+  .post-rail.is-pinned .post-toc-nav a {
+    height: 33px;
+    line-height: 33px;
+    color: var(--muted);
+  }.post-rail:hover .post-toc-nav a::before,
+  .post-rail:focus-within .post-toc-nav a::before,
+  .post-rail.is-pinned .post-toc-nav a::before {
+    /* 3.5 这个系数是倒推出来的：一级 6×3.5 = 21px，和改造前的固定值一模一样，
+       所以展开时的观感不变；二三四级跟着各自的 --tick 等比放大。 */
+    height: calc(var(--tick) * 3.5);
+  }.post-rail:hover .post-toc-nav a.is-active,
+  .post-rail:focus-within .post-toc-nav a.is-active,
+  .post-rail.is-pinned .post-toc-nav a.is-active {
+    color: var(--accent);
+  }.post-rail .post-toc-nav a:hover { color: var(--ink); }.post-toc-pin {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, color 0.15s ease, visibility 0s 0.2s;
+  }.post-rail:hover .post-toc-pin,
+  .post-rail:focus-within .post-toc-pin,
+  .post-toc-pin:focus-visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease, color 0.15s ease, visibility 0s 0s;
+  }.post-toc-pin:hover { color: var(--ink); }.post-rail.is-pinned .post-toc-pin {
+    opacity: 1;
+    visibility: visible;
+    color: var(--accent);
+  }}@media (max-width: 1279.98px) {.post-rail { display: none; }}@media (max-width: 1279.98px) {.post-toc-inline { display: block; }}@media print {.post-content a {
+    color: #000;
+    text-decoration: underline;
+  }.post-content a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.82em;
+    color: #555;
+  }.post-content img,
+  .post-content pre,
+  .post-content table,
+  .post-content blockquote {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }.post-content h2,
+  .post-content h3,
+  .post-content h4 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }}
+.post-content .footnote-ref:hover {
+  background: none;
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* <sup> 默认会把所在行的行高顶开，中文正文的行距会变得不匀 */
+.post-content sup:has(> .footnote-ref) { line-height: 0; }
+
+/* 文末整块：缩小一号、降调；用一条通栏细线替掉那个分节装饰 */
+.post-content .footnotes {
+  margin-top: var(--space-10);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-xs);
+  line-height: 1.7;
+  color: var(--muted);
+}
+.post-content .footnotes hr { display: none; }
+
+/* 脚注列表：关掉圆形徽章和 1.75rem 缩进，换回紧凑的十进制序号 */
+.post-content .footnotes ol {
+  margin: 0;
+  padding-left: var(--space-5);
+  list-style: decimal;
+}
+.post-content .footnotes ol > li { padding-left: 0; }
+.post-content .footnotes ol > li::before { display: none; }
+.post-content .footnotes ol > li::marker {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+/* 脚注里的 <p> 不该背 32px 的段间距 */
+.post-content .footnotes li p { margin: 0; }
+
+/* 回跳箭头：安静待在句尾，悬停才点亮 */
+.post-content .footnote-backref {
+  margin-left: 0.3em;
+  padding: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+.post-content .footnote-backref:hover {
+  background: none;
+  color: var(--accent);
+}
+.post-content blockquote {
+  margin: 0 0 var(--block-gap);
+  padding: var(--space-4) var(--space-5) var(--space-4) var(--space-7);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--surface);
+  color: var(--ink-soft);
+  position: relative;
+}.post-content blockquote::before {
+  content: "\201C";
+  position: absolute;
+  left: var(--space-3);
+  top: 0.15em;
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.45;
+}.post-content blockquote p:last-child { margin-bottom: 0; }.post-content img {
+  max-width: 100%;
+  border-radius: var(--radius);
+  cursor: zoom-in;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}.post-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-6) 0;
+  font-size: var(--text-sm);
+}.table-wrap {
+  margin: 0 0 var(--block-gap);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}.table-wrap table {
+  margin: 0;
+}.post-content th {
+  background: var(--surface);
+  font-weight: 600;
+  text-align: left;
+}.post-content th,
+.post-content td {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+}.post-content tbody tr:nth-child(even) {
+  background: var(--surface);
+}.post-content tbody tr {
+  transition: background 0.15s ease;
+}.post-content tbody tr:hover {
+  background: var(--surface-2);
+}.post-content hr {
+  border: none;
+  height: 1px;
+  background: var(--line);
+  margin: var(--space-10) auto;
+  width: 40%;
+  position: relative;
+  overflow: visible;
+}.post-content hr::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px var(--paper);
+}.post-end {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: var(--space-10) auto var(--space-8);
+}.post-end span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transform: rotate(-6deg);
+  opacity: 0.88;
+}.post-content .highlight pre {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+}.post-content code {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.12em 0.42em;
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}.code-block {
+  margin: var(--space-6) 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--code-bg);
+  overflow: hidden;
+}.code-block-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0.5em 0.9em;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}.code-block-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}.code-block-lang {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}.code-block-copy {
+  margin-left: auto;
+  border: 1px solid var(--ctrl-ghost-border);
+  background: var(--ctrl-ghost-bg);
+  color: var(--ctrl-ghost-text);
+  font-size: var(--text-2xs);
+  box-shadow: var(--ctrl-ghost-shadow);
+  cursor: pointer;
+  padding: 0.2em 0.55em;
+  border-radius: var(--radius-sm);
+  transition: var(--ctrl-transition);
+}.code-block-copy:hover {
+  background: var(--ctrl-ghost-hover-bg);
+  color: var(--ctrl-ghost-hover-text);
+  border-color: var(--ctrl-ghost-hover-border);
+  box-shadow: var(--ctrl-ghost-hover-shadow);
+}.code-block-copy:active {
+  background: var(--ctrl-ghost-active-bg);
+  color: var(--ctrl-ghost-active-text);
+  border-color: var(--ctrl-ghost-active-border);
+}.code-block .highlight,
+.code-block pre {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+}.code-block .highlight {
+  padding: 0;
+  overflow-x: auto;
+}.code-block pre {
+  padding: var(--space-4);
+  overflow-x: auto;
+}.post-content .chroma .k,
+.post-content .chroma .kc,
+.post-content .chroma .kd,
+.post-content .chroma .kn,
+.post-content .chroma .kp,
+.post-content .chroma .kr,
+.post-content .chroma .kt { color: var(--code-keyword); }.post-content .chroma .s,
+.post-content .chroma .sa,
+.post-content .chroma .sb,
+.post-content .chroma .sc,
+.post-content .chroma .dl,
+.post-content .chroma .sd,
+.post-content .chroma .s2,
+.post-content .chroma .se,
+.post-content .chroma .sh,
+.post-content .chroma .si,
+.post-content .chroma .sx,
+.post-content .chroma .sr,
+.post-content .chroma .s1,
+.post-content .chroma .ss { color: var(--code-string); }.post-content .chroma .c,
+.post-content .chroma .ch,
+.post-content .chroma .cm,
+.post-content .chroma .c1,
+.post-content .chroma .cs,
+.post-content .chroma .cp,
+.post-content .chroma .cpf { color: var(--code-comment); font-style: italic; }.post-content .chroma .nf,
+.post-content .chroma .fm { color: var(--code-function); }.post-content .chroma .m,
+.post-content .chroma .mb,
+.post-content .chroma .mf,
+.post-content .chroma .mh,
+.post-content .chroma .mi,
+.post-content .chroma .il,
+.post-content .chroma .mo { color: var(--code-number); }.post-content .chroma .nt { color: var(--code-tag); }.post-content .chroma .na { color: var(--code-attr); }.post-content .chroma .nb,
+.post-content .chroma .bp,
+.post-content .chroma .no { color: var(--code-number); }.post-content .chroma .nv,
+.post-content .chroma .vc,
+.post-content .chroma .vg,
+.post-content .chroma .vi { color: var(--code-var); }.post-content .chroma .o,
+.post-content .chroma .ow { color: var(--code-op); }.article-image {
+  margin: var(--space-7) 0;
+  position: relative;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+}.article-image a { display: block; }.article-image a:focus-visible {
+  border-radius: var(--radius);
+}.article-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}.js .article-image img {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}.js .article-image img.is-loaded {
+  opacity: 1;
+}.article-image figcaption {
+  margin-top: var(--space-2);
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}.article-image-zoom {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: color-mix(in srgb, var(--ink) 52%, transparent);
+  color: var(--paper);
+  font-size: var(--text-2xs);
+  border-radius: var(--radius-pill);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}.article-image:hover .article-image-zoom {
+  opacity: 1;
+}.article-image:focus-within .article-image-zoom {
+  opacity: 1;
+}.issue-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+}.issue-badge-label {
+  padding: 0.3em 0.62em;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  /* 同上：小字在印泥淡痕底上要用 accent-ink 才够对比度 */
+  color: var(--accent-ink);
+  font-size: var(--text-2xs);
+  line-height: 1;
+  letter-spacing: var(--tracking-label);
+}.issue-badge-num {
+  /* 「第 4 期」：数字走等宽，汉字「第 / 期」由 --font-meta 末尾的中文栈兜住。
+     顺带和旁边那个「周刊」小胶囊统一了 —— 那颗本来就是 --font-sans 的中文。 */
+  font-family: var(--font-meta);
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 菜单展开中：等同按下态，让「现在正开着」这件事在按钮上看得见 */
+
+
+/* ---------- 首页 · 卷首 ----------
+   整段已搬到 critical.css（2026-09-28）：卷首标题、列表下方工具条与翻页都是首屏元素。
+   @keyframes hero-in 也一并搬走 —— 它被内联的 animation 引用，留在异步包里会让标题
+   先按最终态画对、再闪成透明淡入。改样式请去 critical.css。 */
+
+/* ---------- 文章列表 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 首页 · 列表工具栏 ---------- */
+
+
+
+
+
+
+/* ---------- 列表翻页 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 首页 · 文章行（标题居左 + 日期居右） ---------- */
+
+
+
+
+/* ---------- 分类 / 标签 · 极简列表 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 分类页 ---------- */
+
+
+
+
+
+
+
+/* ---------- 归档 · 时间线 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.post-cat-chip,
+.post-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22em 0.7em;
+  font-size: var(--text-2xs);
+  line-height: 1.4;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+
+
+
+
+.post-tag-chip::before {
+  content: "#";
+  margin-right: 0.12em;
+  color: var(--accent);
+}
+
+.post-tag-chip {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+
+
+.post-tag-chip:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}

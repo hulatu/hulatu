@@ -60,7 +60,7 @@ python3 scripts/sync-lastmod.py --force content/posts/某篇.md
 | `media` | 单条书影音（书 / 影视 / 音乐通用） | `{{< media cover="封面图" title="标题" creator="作者" >}}` |
 | `media-grid` | 把若干 `media` 包成网格 | `{{< media-grid >}}…{{< /media-grid >}}` |
 
-两个短代码都只是转调 `layouts/partials/media-card.html`（单条）和包一层 `.media-grid` 的 div（网格），排版细节在 `assets/css/style.css` 的「书影音」段。用法直接抄 `content/media/_index.md` 的现成例子。
+两个短代码都只是转调 `layouts/partials/media-card.html`（单条）和包一层 `.media-grid` 的 div（网格），排版细节在 `assets/css/critical-page.css` 的「书影音」段。用法直接抄 `content/media/_index.md` 的现成例子。
 
 > 曾经还有 `book` / `books` 两个短代码，和 `media` / `media-grid` 逐字相同（只是名字更贴「书」），2026-09 删掉了：留着就是两份要同步维护的同样内容，`content/media/_index.md` 也改成了 `media` / `media-grid`。
 
@@ -115,46 +115,169 @@ hugo server -D
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 上一篇 / 下一篇导航 | `layouts/_default/single.html` 里的 `.post-nav` |
 | 标签云（展示哪些标签） | `layouts/_default/taxonomy.html` 里 `site.Taxonomies.tags.ByCount` |
-| 目录在哪显示 | `assets/css/style.css` 搜 `1280px`。≥1280px 悬浮在正文右侧（刻度栏）；<1280px 排在正文开头（`.post-toc-inline`，可点标题栏收起），手机上默认收起。**页面里没有浮动目录按钮**：2026-09 按需求删掉了左下角那个按钮和它的底部抽屉，窄屏一律看正文开头那块 |
-| 正文 / 页头宽度 | 只有 `--content-width`（`assets/css/style.css` 顶部，当前 **680px**，照 sspai 文章页量的：它的 `.article__section__wrapper` 是 728px 含 24px 内边距）。`.container` 用它加两侧 `--gutter` 当 max-width（内边距留在外面），所以**页头（导航栏）、正文、列表页是同一个内容宽度**；`.post-content`、`.post-toc-inline`、`.friends-page`、`.about-page`、`.page-intro` 也都引用它。**四个子站同宽**：各自 `static/style.css` 的 `:root` 里也有一份 `--content-width: 680px`，靠 `main { width: min(var(--content-width), calc(100% - 32px)) }` 取（profile 是 `- 40px`）。改宽度要五处一起改，详见 `sites/README.md` |
+| 目录在哪显示 | `assets/css/critical-post.css` 搜 `1280px`。≥1280px 悬浮在正文右侧（刻度栏）；<1280px 排在正文开头（`.post-toc-inline`，可点标题栏收起），手机上默认收起。**页面里没有浮动目录按钮**：2026-09 按需求删掉了左下角那个按钮和它的底部抽屉，窄屏一律看正文开头那块 |
+| 正文 / 页头宽度 | 只有 `--content-width`（`assets/css/critical.css` 顶部，当前 **680px**，照 sspai 文章页量的：它的 `.article__section__wrapper` 是 728px 含 24px 内边距）。`.container` 用它加两侧 `--gutter` 当 max-width（内边距留在外面），所以**页头（导航栏）、正文、列表页是同一个内容宽度**；`.post-content`、`.post-toc-inline`、`.friends-page`、`.about-page`、`.page-intro` 也都引用它。**四个子站同宽**：各自 `static/style.css` 的 `:root` 里也有一份 `--content-width: 680px`，靠 `main { width: min(var(--content-width), calc(100% - 32px)) }` 取（profile 是 `- 40px`）。改宽度要五处一起改，详见 `sites/README.md` |
 | 文章排版（字号 / 行高 / 段间距） | 数值照 sspai 文章页（`.wangEditor-txt`）：正文 **17px / 1.8**、段间距 **32px**、H2 **32px**（上间距 56px = 段距 + 24px）、H3 **24px**（上 48px）、H4 与正文同号、文章标题 **38px**；手机（≤760px）各降一档：15px / 24px / 24px / 20px / 28px（= sspai 的 `<768px` 那一套）。变量是 `--text-reading`、`--reading-leading`、`--block-gap`、`--h2-size`、`--h3-size`、`--post-title-size`，`--h2-gap-top` / `--h3-gap-top` 由 `--block-gap` 自动跟着缩。**这套是单开的**：别顺手改全站的 `--text-lg` / `--text-md`，否则归档年份、友链 / 关于页的小标题会跟着跳 |
-| 点目录 / 带 `#锚点` 进页面时标题停在哪儿 | 只由 `assets/css/style.css` 的 `--anchor-offset`（顶栏 `--header-h` + `--space-3` = 76px）决定，挂在 `main [id]` 的 `scroll-margin-top` 上。**别在 `html` 上再加 `scroll-padding-top`**——两个值会叠加，标题会被顶到离顶部将近 180px，看着就像没对准。带锚点进页面时 `assets/js/toc.js` 的 `initHashAnchor()` 会在图片 / 字体就位后重新对准一次；链接里是换成拼音之前的旧中文锚点（`#%e4%b9%a0%e6%83%af`）时，会自动退回按标题文字找 |
+| 脚注 | Goldmark 的 `footnote` 扩展（默认开着，`hugo.toml` 里没写就是开）。标记：正文里 `<sup id="fnref:N"><a class="footnote-ref">N</a></sup>`，文末 `<div class="footnotes"><hr><ol><li id="fn:N">…<a class="footnote-backref">↩︎</a></li></ol></div>`。**整块落在 `.post-content` 里面**，所以会继承正文的 `hr` 分节装饰（40% 宽 + 正中圆点）和 `ol` 的圆形序号徽章——「没写样式」不等于「没样式」。样式在 `assets/css/critical-post.css` 的「脚注」段，逐项压回附属信息的层级：`hr` 藏掉、改用容器的通栏细线；`ol` 换回紧凑的十进制序号；`li > p` 去掉 32px 段间距；整块降到 `--text-xs` 并降调成 `--muted`。作者自己在正文里手写的 `<hr>`（不在 `.footnotes` 内）不受影响，分节装饰该留还留着 |
+| 点目录 / 带 `#锚点` 进页面时标题停在哪儿 | 只由 `assets/css/critical.css` 的 `--anchor-offset`（顶栏 `--header-h` + `--space-3` = 76px）决定，挂在 `main [id]` 的 `scroll-margin-top` 上。**别在 `html` 上再加 `scroll-padding-top`**——两个值会叠加，标题会被顶到离顶部将近 180px，看着就像没对准。带锚点进页面时 `assets/js/toc.js` 的 `initHashAnchor()` 会在图片 / 字体就位后重新对准一次；链接里是换成拼音之前的旧中文锚点（`#%e4%b9%a0%e6%83%af`）时，会自动退回按标题文字找 |
 | 中文标题的锚点 | 中文标题要显式写 `{#pinyin}`（`## 习惯 {#xi-guan}`），不写的话分享链接是 `#%e4%b9%a0%e6%83%af`。日常不用手写，`publish.sh` 会跑 `scripts/add-heading-anchors.py` 自动补；想用英文词就自己写 `{#habit}`，脚本看到已有 `{#...}` 会跳过。CI 里另有一道 `--check` 兜底 |
 | 手动提交发布 | 终端输入 `up` → `publish.sh`（抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
 | 脚本怎么读 front matter | 统一走 `scripts/_frontmatter.py`（`split` / `fields` / `read` / `write` / `remove`）。它只做「按行找字段」，不做 YAML 解析——front matter 里有中文注释、对齐用的行尾空格，用 PyYAML 解析再 dump 回去会把注释和空行冲掉，diff 变成整块重写。以前 `fetch-profile-content.py` 和 `sync-lastmod.py` 各写一份正则，字段清单和换行处理都不一致：**`fetch-profile-content.py` 的字段清单漏了 `image`，导致 `_shot_item()` 永远返回 None、`selected_photos.json` 恒为空**（2026-09 修），加字段时记得两边都看。 |
-| 图片灯箱 | 结构在 `layouts/_default/_markup/render-image.html`：图片被 `<a class="article-image-link" href="原图">` 包着，JS 拦下点击打开灯箱，JS 不可用时退化成「点开原图」。样式在 `assets/css/style.css` 的「文章插图」段，逻辑在 `assets/js/lightbox.js`（原图地址直接读链接的 `href`，不再用 `data-full`） |
+| 图片灯箱 | 结构在 `layouts/_default/_markup/render-image.html`：图片被 `<a class="article-image-link" href="原图">` 包着，JS 拦下点击打开灯箱，JS 不可用时退化成「点开原图」。样式在 `assets/css/critical-post.css` 的「文章插图」段，逻辑在 `assets/js/lightbox.js`（原图地址直接读链接的 `href`，不再用 `data-full`） |
 | 键盘可达性 / 焦点陷阱 | 两个弹层（搜索框、图片灯箱）共用 `assets/js/focus-trap.js` 提供的 `window.hulatuFocusTrap(容器, 初始焦点)`，关闭时记得调用它返回的 `release()` 并把焦点还给触发按钮。**这个文件必须在 `layouts/partials/scripts.html` 的打包顺序里排第一**，否则后面几个脚本运行时拿不到它 |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false`。DOM 在 `layouts/partials/giscus.html`，行为逻辑在 `assets/js/giscus.js`：滚到评论区前 400px **在后台把 giscus 预加载好，但整块收着不展开**，「显示评论」按钮一直留着；读者点了才展开——因为内容已经加载完，展开是瞬间的、不会先白一下。状态机只有一个 `state` 变量（`idle → loading → ready → slow → open`，`opening` 表示「读者已经在等」），并镜像到 `.giscus-body` 的 `data-state`，调试时在开发者工具里直接看得见。等 iframe 用的是 **MutationObserver，不是定时轮询**；两个超时各管一段：点开后 12 秒没出来才变「重新加载评论」，预加载 2 分钟没结果就静默作废。**这个脚本单独打包、只在带评论的文章页加载**（`giscus.html` 里的 `resources.Get`），不塞进全站 bundle。收起用的 `.giscus-body { max-height: 0; visibility: hidden }`，**别改成 `display: none`**，那样 iframe 没有布局尺寸，giscus 会把高度算成 0 |
 | 文章目录 | 同一份目录在页面里有两份副本：宽屏刻度栏（`id="TableOfContents"`）和正文开头那块（`TableOfContentsInline`，<1280px 显示），后者的 id 由 `single.html` 里的 `replaceRE` 改掉，避免重复 id。四段逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮（对页面里所有 `.post-toc-nav` 一起生效），`initPin()` 管宽屏图钉的「钉住」，`initInlineToc()` 负责手机上把正文开头那块默认收起，`initHashAnchor()` 管带 `#锚点` 进页面后的重新对准。新增目录副本时记得同步改 id，样式挂 `.post-toc-nav` 就能直接复用编号和高亮 |
-| 宽屏目录的刻度栏 / 钉住 | 参考 sspai 文章页的目录（`.comp__Directory`），尺寸照它量：**面板 244px 宽、纵向居中、面板左边缘离正文右边缘 128px**（`right: max(0px, calc(50vw - 712px))`，推导写在样式表注释里）、文字 15px、收起一行 12px（刻度 2×6px）、展开一行 33px（刻度 21px，`border-radius: 6px`）、二级标题的文字再缩进 16px（**刻度始终排在同一列**，只缩进文字）。收起态用 `color: transparent` 让标题占位：**别改成 `display: none` 或收掉宽度**，否则展开时会把正文挤动。图钉按钮 `#toc-pin` 由 `initPin()` 切成 `.is-pinned`，状态不跨页面记；它只在 ≥1280px 生效（窄屏整块 `.post-rail` 是 `display: none`）。**图钉的位置**：`.post-toc-wrap` 是 `display: flex; flex-direction: column`，图钉是它的第一行（`align-self: flex-start`），所以钉在**目录框左上角**、目录本体从它下面 4px（`gap: var(--space-1)`）开始——不要改回 `position: absolute` 浮在面板上方，那样它会跑出目录的边界 |
+| 宽屏目录的刻度栏 / 钉住 | 样式在 `assets/css/critical-post.css` 的 `@media (min-width: 1280px)` 段。参考 sspai 文章页的目录（`.comp__Directory`），尺寸照它量：**面板 244px 宽、纵向居中、面板左边缘离正文右边缘 128px**（`right: max(0px, calc(50vw - 712px))`，推导写在样式表注释里）、文字 15px、收起一行 12px、展开一行 33px（`border-radius: 6px`）、二级标题的文字再缩进 16px（**刻度始终排在同一列**，只缩进文字）。**刻度尺寸走 `--tick`**：按层级递减 6 / 5 / 4 / 3px，展开时统一 `calc(var(--tick) * 3.5)`（一级 6×3.5 = 21px，与改造前的固定值一致）。递减这个做法移植自 bearneo 的目录刻度——那边是一级 16px、二级 12px、三级 8px 的横线，这边刻度是竖条，对应的「长度」就是高度，所以落到高度上。刻度绝对定位在 `left: 0`、不占文本宽度，所以**不需要** bearneo 那套「宽度减多少、`margin-right` 就补多少」的补偿；缩进由 `a` 的 `padding-left` 单独负责。收起态用 `color: transparent` 让标题占位：**别改成 `display: none` 或收掉宽度**，否则展开时会把正文挤动。图钉按钮 `#toc-pin` 由 `initPin()` 切成 `.is-pinned`，状态不跨页面记；它只在 ≥1280px 生效（窄屏整块 `.post-rail` 是 `display: none`）。**图钉的位置**：`.post-toc-wrap` 是 `display: flex; flex-direction: column`，图钉是它的第一行（`align-self: flex-start`），所以钉在**目录框左上角**、目录本体从它下面 4px（`gap: var(--space-1)`）开始——不要改回 `position: absolute` 浮在面板上方，那样它会跑出目录的边界 |
 | 目录为什么居中得很稳 | `.post-rail` 是 `top: var(--header-h)` / `bottom: 0` 的固定容器（`display: flex; align-items: center; pointer-events: none`），里层 `.post-toc-wrap` 才裹着图钉和目录本体并把 `pointer-events` 打开。**容器高度是固定的**，所以悬停展开（一行 12px → 33px）时只有里面的行在长，整块目录不会上下滑——这正是不用 `top: 50% + translateY(-50%)` 的原因。改回居中时别丢掉这一层结构，也别把 `pointer-events` 一起放开（那样右侧一整条会挡住页面点击）。图钉用 `visibility: hidden` 藏着（**不是 `display: none`**），占位一直留着，所以鼠标扫进来把它点亮时目录不会上下跳 |
-| 深浅色 | 默认跟随系统；右上角按钮手动切换（带旋转动效），**不记忆选择**（刷新后回到跟随系统）。逻辑在 `assets/js/theme.js`，配色变量在 `assets/css/style.css` 的 `[data-theme="dark"]` |
+| 深浅色 | 默认跟随系统；右上角按钮手动切换（带旋转动效），**不记忆选择**（刷新后回到跟随系统）。逻辑在 `assets/js/theme.js`，配色变量在 `assets/css/critical.css` 的 `[data-theme="dark"]` |
 | 打赏 | `hugo.toml` 的 `[params.donate]`。收款码图片在 `layouts/partials/donate.html` 里走 `cf-image.html`（`width=400,format=auto`）——原图是没压缩的 JPEG，且文件后缀错写成 `.webp`（直接返回的 Content-Type 是 `image/jpeg`），过一层图片变换后按浏览器给 avif/webp，顺带把这个错误头一起修掉。换收款码时**别在模板里直接写原始 URL** |
 | Hugo 版本 | **三处必须一致**：本机 `hugo version`、`.github/workflows/build.yml` 的 `hugo-version`、Cloudflare 五个项目的 `HUGO_VERSION`（主站 + 四个子站）。硬校验在 `layouts/partials/check-hugo-version.html`（`baseof.html` 顶部引入）：**版本不够直接失败**并报出当前版本；**缺 extended 只打 WARN**（Cloudflare 的 `HUGO_VERSION` 只能填版本号，硬拦会误伤线上；真用到 extended 功能时 Hugo 自己会报错）。`hugo.toml` 的 `[module.hugoVersion]` 只起文档作用——实测它在项目自身配置里只打一行 WARN，拦不住构建 |
 | 构建校验（CI） | `.github/workflows/build.yml`：push / PR 时用 0.166.0 extended 构建主站 + 调用 `scripts/build-subdomains.sh` 构建四个子站，另外检查每篇周刊的 front matter 有没有 `issue` 字段（漏填只会不显示徽章、不报错，所以单独查一遍）。这是「本地没事、Cloudflare 构建失败」的第一道拦截 |
 | 订阅格式 | `layouts/_default/rss.xml`。首页主源 `/index.xml` + 周刊源 `/weekly/index.xml`（在 `content/weekly/_index.md` 里用 `outputs` 单独开）；栏目默认不出 RSS，改 `hugo.toml` 的 `[outputs] section`。每个源最多 20 条全文，见 `[services.rss] limit` |
 | 阅读时长 / 字数 | `layouts/_default/single.html` 的 `.post-meta-main`，按 350 字/分钟算阅读时长 |
 | 文章页的「更新于」 | 同一个 `.post-meta-main`：`lastmod` 比 `date` 晚才显示（比完整时间戳，不是比日期）。`lastmod` 由 `publish.sh` 里的 `scripts/sync-lastmod.py` 自动刷，别手改——手动盖章用 `python3 scripts/sync-lastmod.py --force 某篇.md`，详见「文章页的『更新于』」 |
-| 文章页头部版式 | **日期 / 字数 / 阅读时长在左，分类和标签贴右**（`.post-meta` 用 `justify-content: space-between`，见 `assets/css/style.css`）。这是刻意定的，不是对齐错了。窄屏放不下而换行时，标签会另起一行、从左边开始——那是 `space-between` 对「单独占一行的子项」的正常表现，不用改 |
-| 代码块（红绿灯 + 复制） | 结构在 `layouts/_default/_markup/render-codeblock.html`，样式在 `assets/css/style.css` 的 `.code-block`，复制逻辑在 `assets/js/ui.js` |
+| 文章页头部版式 | **日期 / 字数 / 阅读时长在左，分类和标签贴右**（`.post-meta` 用 `justify-content: space-between`，见 `assets/css/critical-post.css`）。这是刻意定的，不是对齐错了。窄屏放不下而换行时，标签会另起一行、从左边开始——那是 `space-between` 对「单独占一行的子项」的正常表现，不用改 |
+| 代码块（红绿灯 + 复制） | 结构在 `layouts/_default/_markup/render-codeblock.html`，样式全在 `assets/css/critical-post.css` 的 `.code-block` / `.chroma*`（外壳和红绿灯配色都在这一份里，随文章页首屏内联），复制逻辑在 `assets/js/ui.js` |
 | 面包屑 | `layouts/_default/single.html` 的 `.breadcrumb`（首页 › 分类 › 标题） |
-| 阅读进度条 / 返回顶部 / Header 自动隐藏 | 逻辑都在 `assets/js/ui.js`，样式在 `assets/css/style.css`（`.reading-progress`、`.back-top`、`.site-header.is-hidden`） |
-| 站内跳转预渲染 + 页面过渡 | 预渲染规则在 `layouts/_default/baseof.html` 的 `<script type="speculationrules">`（当前是 `prerender` + `eagerness: moderate`，嫌费流量就改成 `conservative`）；过渡样式在 `assets/css/style.css` 的「跨页面视图过渡」段。**预渲染会真的执行页面脚本**，所以统计（`layouts/partials/analytics.html`）和评论（`layouts/partials/giscus.html`）都判断了 `document.prerendering`，以后新加的第三方脚本也要照做 |
+| 阅读进度条 / 返回顶部 / Header 自动隐藏 | 逻辑都在 `assets/js/ui.js`，样式在 `assets/css/critical.css`（`.reading-progress`、`.back-top`、`.site-header.is-hidden` —— 都在首屏关键 CSS 里，因为滚动一开始就要用到，不能等异步包） |
+| 站内跳转预渲染 + 页面过渡 | 预渲染规则在 `layouts/_default/baseof.html` 的 `<script type="speculationrules">`（当前是 `prerender` + `eagerness: moderate`，嫌费流量就改成 `conservative`）；过渡样式在 `assets/css/core.css` 的「跨页面视图过渡」段（`.post-title` / `.page-title` / `.hero-line` 上的 `view-transition-name: page-title` 在 `critical.css`，因为标题在首屏）。**预渲染会真的执行页面脚本**，所以统计（`layouts/partials/analytics.html`）和评论（`layouts/partials/giscus.html`）都判断了 `document.prerendering`，以后新加的第三方脚本也要照做 |
 | 完字章 | `layouts/_default/single.html` 的 `.post-end`（印章红「完」字圆章） |
-| 打印样式 | `assets/css/style.css` 末尾的 `@media print`（打印/存 PDF 时隐藏导航、评论等，只留正文） |
+| 打印样式 | `assets/css/critical.css` 和 `assets/css/critical-post.css` 里的 `@media print`（打印/存 PDF 时隐藏导航、评论等，只留正文）。拆分时这 7 条选择器被按归属分到了两个模块，`critical.css` 那份随首屏内联、每页都有，所以打印首页也不会带出导航 |
+
+### CSS 怎么加载（6 个模块：4 内联 + 2 异步）
+
+样式按「首屏 / 页型」拆成 6 个模块。**每个页面只内联自己首屏用得到的那几个**，其余走异步包，目标是把关键路径压到最小。
+
+**四个内联模块**（都内联在 `<head>` 的 `<style>` 里，零往返、不闪）：
+
+| 模块 | 内容 | 谁内联 |
+|---|---|---|
+| `critical.css` | **全站公共首屏**：`:root` 令牌（`--accent` / `--line-strong` / `--tick` 都靠它）、reset、滚动条、`main [id]` 锚点偏移、`.container`、`.site-header` / `.nav-*` / `.nav-icon-btn` / `.site-brand`、**全局 `svg { stroke-width: 2 }`**、`.site-hero` / `.hero-line` + `@keyframes hero-in`、`.post-row*`、列表工具条与翻页、页脚、主题切换图标、`.back-top`、`.reading-progress`、`.skip-link`、`@media print` 的导航那几条 | **每页** |
+| `critical-post.css` | **文章/周刊正文首屏**：面包屑、`.post-header` / `.post-title` / `.post-meta*`、`.post-content` 及标题/锚点/链接/列表/复选框、`.post-toc*` / `.post-rail`（含刻度栏）/ `.post-toc-inline*`、`.article-image*`、`.code-block*` / `.chroma*`、`.table-wrap`、`.issue-badge*`、`.post-end`、`.post-tag-chip` | 文章页 / 周刊正文 |
+| `critical-page.css` | **列表型页首屏**：`.tag-cloud` / `.tag-chip*`、`.minimal-*`、`.group-card`、`.weekly-*`、`.page-intro`、`.category-*`、`.media-*` | 标签页 / 周刊列表 |
+| `critical-info.css` | **单页型页首屏**：`.archive-*`、`.about-*`、`.friends-*`、`.notfound*` | 归档 / 关于 / 隐私 / 404 |
+
+**两个异步模块**（`resources.Concat` 合并后异步加载）：`core.css`（全站共用，已剔除 `critical` 里已有的部分）＋ `post.css`（只放**文末家具**：`.donate*`、`.giscus*`、`.related-posts`、`.post-nav*`、`.post-pill*`）。
+
+实测的加载组合与体积（2026-09-28，读的是构建产物里真正内联的那段 `<style>`）：
+
+| 页面 | 内联模块 | 内联 原始 / gzip | 异步包 原始 / gzip |
+|---|---|---|---|
+| 首页、`/posts/` 列表 | `critical` | 19.7KB / 4.7KB | `site-core` 5.7KB / 1.8KB |
+| 标签页、周刊列表 | `critical` + `critical-page` | 25.1KB / 5.5KB | `site-core` 5.7KB / 1.8KB |
+| 文章页、周刊正文 | `critical` + `critical-post` | 37.8KB / 7.8KB | `site-core-post` 10.6KB / 2.6KB |
+| 归档 / 关于 / 隐私 / 404 / 分类 / 书影音 | **默认全给**（4 个都内联） | 54.2KB / 9.9KB | `site-core-post` 10.6KB / 2.6KB |
+
+> 兜底是「全给」：漏判某种页型的代价只是多下几 KB，不会掉样式。但反过来，**被兜底命中的页型会白内联一堆用不到的规则**——归档页内联了 18KB 的 `critical-post`，里面一条都匹配不上。2026-09-28 复查时落到兜底的还有 7 种页型，这是已知的、可以继续收窄的空间（不影响正确性，只影响首屏传输量）。
+>
+> 2026-09-28 之前还有第 5 个模块 `home.css`（首页 hero、列表工具条、分页）。它整个都属于「首屏可见」，留在异步包里会让首屏先画错再重绘一次（标题先是浏览器默认的黑色粗体 h1、页脚先竖排、翻页按钮先是裸的 ‹ ›），所以整体并回了 `critical.css` 并删除。
+
+**加载组合由 `layouts/partials/css-modules.html` 决定**：它按页型返回两组模块名（`critical` = 要内联的、`async` = 走异步包的），`baseof.html` 各 `resources.Concat` → `minify` 一次；异步那组再 `fingerprint`，用 `media="print" onload="this.media='all'"` 异步换回 `all`，另配一个 `<noscript>` 兜底（用 `media="print"` 而不是 `rel="preload"`，是为了保住 `integrity` 校验）。**两组各用各的目标名**（`css/crit-{{…}}.css` 与 `css/site-{{…}}.css`），否则会撞上下面第 1 条坑。
+
+改这块时的坑，都踩过：
+
+1. **`resources.Concat` 按「目标路径」缓存**。目标名如果写死成 `css/site.css`，所有页面都会拿到第一次生成的那个包（当时表现为 310 个页面报样式缺失，但构建不报错）。所以目标名里必须带上模块组合：`css/site-{{ delimit $mods.async "-" }}.css`。
+2. **`critical*.css` 放的是规则本身，不是副本**。同一组选择器不要在别的模块里再写一遍——重复定义会白送字节，而且因为内联段在异步包之前，覆盖关系还容易看错。判定方法只有一条：这条规则**首屏画完之前**用得到吗？用得到 → 进对应的 `critical-*`；用不到 → 只进异步包。
+3. **周刊文章的 `.Section` 是 `weekly`，但 URL 是 `/posts/...`**（见 `hugo.toml` 的 `[permalinks]`）。`css-modules.html` 里判页面类型必须**同时看 `.Kind` 和 `.Section`**，只判 `.Section` 会让 23 篇周刊文章落到全量包。
+4. **原子单元不能拆到两个文件**（2026-09-28 第二次复查时栽的）。`@keyframes`、`@font-face`、自定义属性定义、`position:fixed` 元素的定位规则，都必须和「用到它的那条规则」待在同一个文件里。当时的具体事故：`.hero-line` 的 `animation: hero-in …` 内联了，`@keyframes hero-in` 却留在 `core.css` —— 首屏这句 `animation` 解析不到关键帧，按规范**整条声明被丢弃**，标题反而一次画对；等 `core.css` 到达、关键帧可用，动画才从头跑，标题从最终态**闪成透明再淡入**，比不做动画更糟。同一轮还漏了 `.back-top`：它是 `position:fixed`，首屏第一帧就在视口里，规则留在 `core.css` 的结果是先以浏览器默认 `<button>` 的样子出现在**文档流末尾、左下角、方角**，异步包到了才跳到右下角变圆并隐藏。
+5. **「全局选择器」照样会命中首屏元素**（2026-09-28 第三次复查，靠逐像素比对抓到的）。前两条的经验容易让人只盯「这个元素在不在首屏」，于是把 `svg { stroke-width: 2 }` 当成通用规则留在 `core.css` —— 结果**全站每一页**都中招：页头的搜索/主题/RSS 三个图标和列表页的翻页箭头都靠它定粗细，首屏先按 SVG 属性默认的 `stroke-width: 1` 画出细线，异步包到了才变粗变深。判据仍然是「**这条规则**在首屏第一帧用不用得到」，跟它是不是全局选择器无关。
+6. **兜底是「全给」，而它会被一大堆页型命中**。`css-modules.html` 的默认分支是 4 个 `critical-*` 全内联 + `core` + `post`，所以归档/关于/隐私/404/分类/书影音这些页会白内联 18KB 的 `critical-post`（一条都匹配不上）。正确性没问题（最坏就是多下几 KB），但这是首屏传输量上明确的可优化项。
+
+**怎么验证「关键 CSS 覆盖够了没有」**（2026-09-28 用这套查出并修掉了 `.back-top`、`@keyframes hero-in`、`svg { stroke-width: 2 }` 三处首屏重绘）：
+
+**判据只有一条：这个页面用到的每个选择器，规则是不是都在这一页内联的那段 `<style>` 里。**
+不是「在某个已加载模块里」——那正是第一版检查器漏掉 `.back-top` 的原因。
+
+脚本是 `scripts/css-critical-coverage.py`：
+
+```bash
+python3 scripts/css-critical-coverage.py public/index.html
+python3 scripts/css-critical-coverage.py public/posts/2025/12/10/daily-update-blog/index.html
+python3 scripts/css-critical-coverage.py public/index.html --all   # 列出全部用到的 class/id
+```
+
+它有四个坑，缺了哪一处都会给出假的「全绿」（前两版都栽过）：
+
+1. **要排除 `@media print` 块。** 打印重置列表里那一长串 `.site-footer, .back-top, .post-rail …`
+   会让一个选择器「看起来有规则」，实际对屏幕首屏毫无作用。脚本先把整块 `@media print {…}`
+   按大括号配平切掉再匹配。
+2. **比对要认选择器边界。** 直接 `substring in css` 会让 `.post` 命中 `.post-content`、
+   `.post-toc` 命中 `.post-toc-inline-nav`，一律用 `re.escape(sel) + r'(?![\w-])'`。
+3. **别读源文件。** `critical` 已按页型拆成 4 个文件，源文件不等于「这一页实际内联的东西」；
+   脚本一律读页面里的 `<style>`。
+4. **`/css/…` 这类根相对路径要按站点根解析。** 拿页面父目录去拼会找不到异步包，
+   把真缺口误判成「纯 JS 钩子」。
+
+剩下的「真缺口」里还要再分两类：规则落在异步包里的才是问题（文章页剩下的
+`.donate-*` / `.giscus-*` / `.related-posts` 就属于这一类，是刻意留在下面的文末家具）；
+`#main`、`#site-nav`、`#search-btn` 这类是纯 JS 钩子 / 跳转锚点，本来就没有样式，不是缺口。
+
+脚本只回答「规则在不在」，**画面还得逐像素比对**。办法是给每页造两份：`__full.html`（原样）
+和 `__fp.html`（摘掉异步包那两条 `<link>`），各截一张 1400×900 再比 md5：
+
+```bash
+# 摘掉异步包 + noscript 兜底两条 link，得到「首屏态」
+python3 - <<'PY'
+import re, pathlib
+s = pathlib.Path('/tmp/blogcheck/index.html').read_text(encoding='utf-8')
+o = re.sub(r'<link rel=stylesheet href=[^>]*media=print[^>]*>', '', s)
+o = re.sub(r'<noscript><link rel=stylesheet[^>]*></noscript>', '', o)
+pathlib.Path('/tmp/blogcheck/_firstpaint.html').write_text(o, encoding='utf-8')
+PY
+```
+
+比对时必须做两件事，否则会得到**假阳性**：
+
+- **先做「同一页截两次」的对照。** 渲染是确定性的（同页两次 md5 完全相同），
+  所以只要 fp 和 full 不一致，就是真的差异，不是噪声。这一步能省掉大量自我怀疑——
+  本次就是靠它确认「8 个页型全不一致」不是抖动，而是真问题。
+- **冻结动画和过渡。** `.hero-line` 的 `animation`、目录刻度的 `transition: background`
+  都是「按时间推进」的：两份文件一个要去取异步包、一个不用，截图时机天然差几十毫秒，
+  不冻结就会把「动画演到一半」误判成「样式缺失」（文章页那个 2×6px 的目录刻度差异就是这么来的）。
+  注入 `.hero-line{animation:none!important}` 和
+  `.post-rail .post-toc-nav a,.post-rail .post-toc-nav a::before{transition:none!important}`
+  之后，8 种页型（首页 / 文章页 / 标签 / 周刊列表 / 分类 / 归档 / 关于 / 书影音）全部逐字节一致。
+
+> Helium 无头截图有个坑：**图已经写出来了，但进程退出时挂住不返回**。别等它退出，
+> 轮询输出文件出现（`[ -s "$OUT" ]`）后再等 1–2 秒就 `kill -9`，否则脚本会卡在第一张。
+> 另外每次都要换一个全新的 `--user-data-dir`，复用会直接挂死。
+> macOS 上**没有 `timeout` 命令**，别指望用它兜底。
+>
+> `--dump-dom` 也有同一个毛病（DOM 写出来了、进程不退），而且 `--headless=new` 下更容易卡住；
+> 要看「JS 跑完后的状态」，直接截两张图比更稳。
+
+> 拆分前的原件 `assets/css/style.css`（88KB）**已删除**（2026-09）。它在拆分后就不再被任何模板加载，留着只会让「改了不生效」这个坑一直摆在那。要找回旧版：`git show 7867f3d:assets/css/style.css`（`7867f3d` 是它最后一次被提交的版本）。拆分前后做过零损失校验：527 条规则进、527 条出，模块间选择器零重叠（所以不存在跨模块的层叠顺序依赖），`@media print` 的 7 条选择器也一条不少。
 
 ### 颜色 / 字体 / 间距
 
-全部在 `assets/css/style.css` 顶部的 `:root`（浅色）和 `[data-theme="dark"]`（深色）变量里，比如：
+全部在 `assets/css/critical.css` 顶部的 `:root`（浅色）和 `[data-theme="dark"]`（深色）变量里，比如：
 
 ```css
 --accent: #c73e2f;      /* 印章红，全站主色 */
 --paper: #f6f6f8;       /* 冷白浅色背景 */
 --surface: #ffffff;     /* 卡片 / 分组列表 */
 --ink: #1d1d1f;         /* 正文文字 */
---font-serif: ...;      /* 标题字体 */
+--font-serif: ...;      /* 标题字体（思源宋体） */
+--font-meta: ...;       /* 日期 / 时间 / 期号等等宽元信息（见下） */
 ```
+
+**字体三档，各管一摊，别混用：**
+
+| 变量 | 用在哪 | 说明 |
+|---|---|---|
+| `--font-serif` | 标题、`.post-row-title`、`.minimal-title`、归档年份等 | 思源宋体。**中文标题一律走这个，不要动** |
+| `--font-sans` | 正文默认（`body`）、UI 文字 | 系统无衬线，中文落 PingFang SC |
+| `--font-meta` | **只给「以数字为主」的元信息**：日期、时间、期号、字数、计数 | 等宽，移植自 bearneo 的 `time { font-family: var(--font-secondary) }` |
+
+`--font-meta` 的用法有两条硬规则：
+
+1. **只用在纯数字 / 日期元素上**，或确认「汉字部分会落到末尾的中文栈」的元素上。它的栈是
+   `ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", monospace`
+   —— 末尾显式接了 `--font-sans` 的那套中文，是为了让混在元信息里的汉字（「发布于」「字」「篇」「第…期」）照旧按 PingFang SC 渲染，而不是交给系统按 `monospace` 去猜中文（macOS 和 Windows 会各猜一套）。**删掉末尾那三个中文族，混排元素里的汉字字形就会变。**
+2. **不要套在 `--font-serif` 的元素上**（`.archive-month-label`、`.archive-year`、`.post-title` 这类），否则里面的汉字会从宋体掉到黑体。所以 `.archive-month-label`（`12月`）和 `.issue-badge-label` 都**没有**用它。
+
+目前用上 `--font-meta` 的选择器，按模块分：`critical.css` 的 `.post-row-date`；`critical-post.css` 的 `.post-meta`、`.issue-badge-num`；`critical-page.css` 的 `.minimal-date`；`critical-info.css` 的 `.archive-item-date`、`.archive-total strong`、`.archive-count`。**新增日期类元素时记得挂上，否则列表里会出现「同宽的日期里夹一个比例宽度日期」的违和感。**
 
 用色的两条硬规则：
 
@@ -174,7 +297,7 @@ hugo server -D
 --text-reading: 1.0625rem; /* 正文 17px（< 760px 时收到 0.9375rem = 15px） */
 ```
 
-上面这段是**摘抄**，真值以 `assets/css/style.css` 顶部为准（以前这里抄着 18px / `< 600px`，和文件里的 17px / `< 760px` 对不上，2026-09 对齐过一次）。
+上面这段是**摘抄**，真值以 `assets/css/critical.css` 顶部为准（以前这里抄着 18px / `< 600px`，和文件里的 17px / `< 760px` 对不上，2026-09 对齐过一次）。
 
 写新样式时**不要再随手写 `font-size: 1.05rem` 这种值**，从上表里挑一档；字距同理，用 `--tracking-title`（中文标题 0.02em）、`--tracking-label`（中文小标签 0.06em）、`--tracking-num`（数字 / 日期 0.04em）。真正的"大字距"只留给纯英文或数字，套在汉字上会显得字被掰开。
 
@@ -349,7 +472,7 @@ curl -s "https://api.github.com/repos/hulatu/hulatu/commits/main/check-runs" \
 - 正文图走 Cloudflare Image Transformations，三档尺寸在 `layouts/_default/_markup/render-image.html`：480w `quality=72`、960w `quality=75`、灯箱大图 1600w `quality=85`。嫌糊就往上调 3~5，Cloudflare 免费额度是每月 5000 次唯一变换、同参数重复请求只算一次，目前用量约 2000。
 - 正文第一张图会自动带 `loading="eager" fetchpriority="high"`（`.Ordinal == 0`），其余图 `lazy`。别把第一张图放到很长的引言后面，否则等于白白抢了优先级。
 - 正文图宽高缓存：新增带图的文章后跑一次 `python3 scripts/fetch-image-dims.py`（`up` 里已自动包含）。漏跑也不会出错，只是那几张图没有宽高属性、加载时会跳动。
-- 头像（`static/images/avatar.webp`）不在正文里，走的是另一条路：`layouts/_default/about.html` 给它套一层 `/cdn-cgi/image/width=…`，按实际显示尺寸出图（1x 148px、2x 296px；`≤600px` 时显示 124px）。**为什么值得单独套**：源图是 480×360 / 17.8KB，而页面只显示 148px，等于把 4 倍于所需的像素发给所有人——实测 AVIF 从 14KB 降到 3.6KB(1x) / 8.4KB(2x)。顺带修掉一个反直觉的坑：源图扩展名是 `.webp`，Cloudflare Polish 在「客户端不接受 webp」时会把它**重编码成 21KB 的 JPEG，比原文件 17.8KB 还大**；走 Transformations 后同样的兜底只有 11KB。只传 `width` 不传 `height`（保持 4:3，裁圆仍交给 CSS 的 `object-fit: cover`），视觉与改之前逐像素一致——实测 `fit=cover` 让服务端裁成正方形反而更大，而且裁剪重心可能与 CSS 不一致。开关是 `hugo.toml` 的 `params.avatarCDN`，设成 `false` 就退回发原图（头像在关键路径上是 `eager` + `fetchpriority=high`，留这个开关是为了 Image Transformations 万一不可用时能一键回退）。**改了 `assets/css/style.css` 里 `.about-avatar` 的尺寸，记得回来同步 about.html 里的 `width=` 和 `sizes`。**
+- 头像（`static/images/avatar.webp`）不在正文里，走的是另一条路：`layouts/_default/about.html` 给它套一层 `/cdn-cgi/image/width=…`，按实际显示尺寸出图（1x 148px、2x 296px；`≤600px` 时显示 124px）。**为什么值得单独套**：源图是 480×360 / 17.8KB，而页面只显示 148px，等于把 4 倍于所需的像素发给所有人——实测 AVIF 从 14KB 降到 3.6KB(1x) / 8.4KB(2x)。顺带修掉一个反直觉的坑：源图扩展名是 `.webp`，Cloudflare Polish 在「客户端不接受 webp」时会把它**重编码成 21KB 的 JPEG，比原文件 17.8KB 还大**；走 Transformations 后同样的兜底只有 11KB。只传 `width` 不传 `height`（保持 4:3，裁圆仍交给 CSS 的 `object-fit: cover`），视觉与改之前逐像素一致——实测 `fit=cover` 让服务端裁成正方形反而更大，而且裁剪重心可能与 CSS 不一致。开关是 `hugo.toml` 的 `params.avatarCDN`，设成 `false` 就退回发原图（头像在关键路径上是 `eager` + `fetchpriority=high`，留这个开关是为了 Image Transformations 万一不可用时能一键回退）。**改了 `assets/css/critical-info.css` 里 `.about-avatar` 的尺寸，记得回来同步 about.html 里的 `width=` 和 `sizes`。**
 - `profile.hulatu.com` 页头用的是同一张头像（显示 120px；`≤520px` 时 84px），在 `sites/profile/layouts/index.html` 里做了同样的转换，但**只重写 `https://hulatu.com/images/` 开头的 URL**——以后换成外链（Gravatar 之类）会原样使用，不会把别人的图塞进我们的转换端点。
 - 转换后的 URL 缓存是 30 天，**不是** `_headers` 里 `/images/*` 那条规则匹配到了 `/cdn-cgi/...`（路径对不上），而是 Cloudflare 的 Image Transformations 会继承源对象的 `Cache-Control`。所以想换头像仍然按老规矩来：改完在后台 Purge，或者换个文件名，否则 30 天内大家看到的还是旧图。
 

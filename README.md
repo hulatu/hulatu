@@ -36,7 +36,13 @@ blog/
 │   └── posts/_index.md         # 「文章」栏目页（noindex，站内没有入口）
 ├── layouts/                    # 模板：_default / partials / shortcodes
 ├── assets/
-│   ├── css/style.css           # 全站样式（设计令牌在文件顶部）
+│   ├── css/                    # 样式按「首屏 / 异步」两组拆，内联部分再按页型分档（见 layouts/partials/css-modules.html）
+│   │   ├── critical.css        #   ★内联：每个页面的首屏骨架；设计令牌都在这个文件顶部
+│   │   ├── critical-post.css   #   ★内联：文章页额外要的（文章头 / 元信息行 / 目录 / 正文排版）
+│   │   ├── critical-page.css   #   ★内联：列表型页面额外要的（列表骨架 / 标签云 / 分类 / 书影音）
+│   │   ├── critical-info.css   #   ★内联：一页一型的信息页额外要的（归档 / 关于 / 友链 / 404）
+│   │   ├── core.css            #   异步包：全站共用（页头交互、搜索、灯箱、提示条…）
+│   │   └── post.css            #   异步包：只文章页，且只剩文末家具（打赏 / 评论 / 相关文章 / 上下篇）
 │   └── js/                     # theme / ui / toc / lightbox / search / giscus
 ├── scripts/                    # 发布前脚本、Garmin 同步、子站构建
 ├── data/
@@ -93,11 +99,11 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚链接 | `layouts/partials/footer.html` |
 | 每页几篇 | `hugo.toml` 的 `[pagination] pagerSize`（模板里的 `.Paginate` 故意不传第二个参数） |
-| 颜色 / 字体 / 间距 | `assets/css/style.css` 顶部的 CSS 变量；**五个站要一起改**，见 [sites/README.md](sites/README.md) 的颜色约定 |
-| 正文 / 页头宽度 | `assets/css/style.css` 的 `--content-width`（当前 680px，五个站同宽） |
+| 颜色 / 字体 / 间距 | `assets/css/critical.css` 顶部的 CSS 变量（`--font-meta` 元信息等宽字体也在那）；**五个站要一起改**，见 [sites/README.md](sites/README.md) 的颜色约定 |
+| 正文 / 页头宽度 | `assets/css/critical.css` 的 `--content-width`（当前 680px，五个站同宽） |
 | 头像 | 图片放 `static/images/`，路径填 `hugo.toml` 的 `params.avatar`；文件不在就退回「胡」字印章。页面渲染时会自动套 Cloudflare Image Transformations 按显示尺寸出图（开关 `params.avatarCDN`） |
 | 图标 | `static/logo.svg`、`static/favicon.svg`、`static/apple-touch-icon.png`、`icon-192/512.png` |
-| 目录显示断点 | `assets/css/style.css` 里搜 `1280px`（右侧刻度栏）和 `1279.98px`（正文开头那块） |
+| 目录显示断点 | `assets/css/critical-post.css` 里搜 `1280px`（右侧刻度栏）和 `1279.98px`（正文开头那块） |
 | 周刊期号徽章 | 周刊 front matter 的 `issue: 23`（不填不显示徽章） |
 | 打赏 | `hugo.toml` 的 `[params.donate]`（留空则整块不显示） |
 | 评论 | `hugo.toml` 的 `[params.giscus]`；单篇用 `comments: false` 关掉 |

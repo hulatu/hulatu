@@ -40,8 +40,27 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="{{ site.Title }}">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  {{- $css := resources.Get "css/style.css" | minify | fingerprint -}}
-  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+  {{- /* 样式分两段下：
+       ① 关键 CSS 直接内联，首屏不再需要等任何外部请求就能画对，也就没有阻塞渲染的资源了。
+          **关键 CSS 是按页型选的**（见 css-modules.html）：首页只有 critical，
+          文章页多一个 critical-post，列表页多一个 critical-page ——
+          避免把文章排版塞进首页、把标签云塞进文章页。
+       ② 其余按页面类型组合成一个包，用 media="print" + onload 换回 all 异步加载——
+          用这个老写法而不是 rel=preload，是为了保住 integrity（SRI 在 preload 上
+          会强制走 CORS 模式，同源下虽然也能过，但没必要多这一层变量）。
+          noscript 里放一份同步的兜底，脚本被拦时样式照常。
+
+       模块组合见 layouts/partials/css-modules.html；拆分与验证过程见 MAINTENANCE.md。 */ -}}
+  {{- $mods := partial "css-modules.html" . -}}
+  {{- $files := slice -}}
+  {{- range $mods.async -}}{{- $files = $files | append (resources.Get (printf "css/%s.css" .)) -}}{{- end -}}
+  {{- $css := $files | resources.Concat (printf "css/site-%s.css" (delimit $mods.async "-")) | minify | fingerprint -}}
+  {{- $critFiles := slice -}}
+  {{- range $mods.critical -}}{{- $critFiles = $critFiles | append (resources.Get (printf "css/%s.css" .)) -}}{{- end -}}
+  {{- $critical := $critFiles | resources.Concat (printf "css/crit-%s.css" (delimit $mods.critical "-")) | minify -}}
+  <style>{{ $critical.Content | safeCSS }}</style>
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}"></noscript>
   <link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | relURL }}" title="{{ site.Title }}">
   {{ partial "head-meta.html" . }}
   {{ partial "analytics.html" . }}

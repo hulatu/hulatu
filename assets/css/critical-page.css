@@ -1,0 +1,238 @@
+/* ============================================================
+   页面型页面首屏关键 CSS —— 只在归档 / 标签 / 分类 / 友链 / 周刊列表等
+   「列表型」页面内联，文章页和首页都不吃它。
+
+   内容从 page.css 切出来（2026-09-28）：标签云与标签胶囊。
+   它们是标签页首屏的主体，留在异步包里会让首屏先按浏览器默认样式排一遍
+   （胶囊没有边框圆角、计数没有徽章底），再重绘。
+
+   ⚠️ 这里放的是规则本身，page.css 里**不再重复**。
+   切分时做过层叠顺序校验：搬走的规则在原先的 page.css 里都排在留下的规则之前，
+   所以内联到前面不改变任何一条的胜负。
+   改样式请改这个文件；验证见 MAINTENANCE.md「CSS 怎么加载」。
+   ============================================================ */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: var(--space-5);
+}.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  max-width: 100%;
+  padding: 0.32em 0.9em;
+  font-size: var(--text-2xs);
+  line-height: 1.7;
+  color: var(--ctrl-text);
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--ctrl-shadow);
+  transition: var(--ctrl-transition);
+}.tag-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}.tag-chip-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  padding: 0.05em 0.4em;
+  font-size: var(--text-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: var(--radius-pill);
+}.tag-chip:hover {
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-hover-shadow);
+  transform: translateY(-1px);
+}.tag-chip:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
+  transform: translateY(0);
+}.tag-chip:hover .tag-chip-count {
+  color: var(--ctrl-hover-text);
+}.page-intro {
+  /* 页面级容器统一用 --content-width：主站所有页面（首页 / 归档 / 分类 / 标签 /
+     友链 / 关于 / 周刊列表 / 文章）都和文章正文同宽，只有组件自己的内层宽度
+     （打赏盒 30rem、404 文案 24em 之类）才是特意更窄的。 */
+  max-width: var(--content-width);
+  color: var(--ink-soft);
+  margin-bottom: var(--space-8);
+}.minimal-list {
+  display: flex;
+  flex-direction: column;
+}.minimal-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-6);
+  padding: 10px var(--space-2);
+  transition: background 0.18s ease, transform 0.18s ease;
+}.minimal-row + .minimal-row { border-top: 1px solid var(--line); }.minimal-row:hover {
+  background: var(--surface-2);
+  transform: translateY(-1px);
+  z-index: 1;
+}.minimal-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s ease;
+}.minimal-row:hover .minimal-title { color: var(--accent); }.minimal-date {
+  /* 等宽元信息：见 critical.css 的 --font-meta。下面是纯日期（2006-01-02），
+     没有汉字，所以直接整条换字体。 */
+  font-family: var(--font-meta);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-num);
+  white-space: nowrap;
+  padding-left: var(--space-2);
+}.minimal-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}.group-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-2);
+  overflow: hidden;
+}.minimal-list.group-card {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+}.minimal-list.group-card .minimal-row {
+  padding: 10px var(--space-4);
+  margin: 0;
+  border-radius: var(--radius-row);
+}.minimal-list.group-card .minimal-row + .minimal-row {
+  border-top: 1px solid var(--line);
+}.weekly-simple {
+  margin-bottom: var(--space-6);
+}.weekly-rss {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-xs);
+}.weekly-rss:hover {
+  color: var(--accent);
+}.weekly-rss svg {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+}.weekly-list .minimal-row {
+  padding: 10px var(--space-4);
+}@media (max-width: 760px) {.minimal-row {
+    gap: var(--space-4);
+    padding: 10px var(--space-1);
+  }}@media (max-width: 600px) {.group-card {
+    border-radius: var(--radius-card);
+    padding: var(--space-1);
+  }.minimal-list.group-card .minimal-row {
+    padding: 10px var(--space-3);
+  }}.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: var(--space-2);
+}.category-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}.category-card-name {
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  color: var(--ink);
+}.category-card-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2em;
+  padding: 0.28em 0.7em;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  /* 印泥淡痕底上用 accent 只有 4.33:1，达不到 AA；accent-ink 是 5.72:1 */
+  color: var(--accent-ink);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}@media (max-width: 600px) {.category-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }.category-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-4);
+  }.category-card-count { align-self: flex-start; }}.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: var(--space-6);
+  margin: var(--space-5) 0 var(--space-11);
+}.media-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius-row);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transform: rotate(-1.2deg);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}.media-card:nth-child(even) { transform: rotate(1.3deg); }.media-card:hover {
+  transform: rotate(0deg) translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}.media-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  background: var(--surface-2);
+}.media-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 13px 13px;
+}.media-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}.media-creator {
+  font-size: var(--text-2xs);
+  color: var(--muted);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}@media (max-width: 600px) {.media-grid {
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 14px;
+  }.media-card { transform: rotate(-0.7deg); }.media-card:nth-child(even) { transform: rotate(0.8deg); }}

@@ -1,0 +1,82 @@
+{{- /* 这一页要加载哪些 CSS。
+
+       返回一个 dict：
+         critical —— **内联**进 <head> 的模块（首屏画完之前就需要的规则）
+         async    —— 组合成一个包，media="print" onload 异步加载
+
+       「关键 CSS 该收什么」的判据只有一条：**这条规则在首屏第一帧用不用得到**。
+       不是「这个元素在不在首屏」—— .back-top 是 position:fixed，元素在首屏、
+       但它的定位规则留在异步包里，首屏就会先把它当普通 button 排进文档流末尾。
+       归属判定的手法与验证过程见 MAINTENANCE.md「CSS 怎么加载」。
+
+       当前四档内联组合：
+         critical                       —— 每个页面（令牌 / reset / 页头 / 卷首 / 文章行 /
+                                           工具条 / 页脚 / 返回顶部 / 主题图标 / 进度条 /
+                                           跳过链接）
+         critical + critical-post       —— 文章页与周刊正文（+ 面包屑 / 文章头 / 元信息行 /
+                                           正文排版 / 目录）
+         critical + critical-page       —— 列表型页面（+ 列表骨架 .minimal-* / .group-card /
+                                           .weekly-* / .page-intro）
+         critical + critical-page + critical-info
+                                        —— 一页一型的信息页（+ 归档 .archive-* / 关于
+                                           .about-* / 友链 .friends-*）
+
+       为什么要按页型拆，而不是全塞进一个 critical：`.about-*` 有 32 条规则，
+       只有关于页用得到；塞进公共 critical 就是让 167 个标签页每页白背 1.2KB。
+       代价是文件多几个，收益是每个页面只背自己那份。
+
+       ⚠️ 四个 critical-* 之间**没有层叠顺序依赖**，但都排在异步包之前。
+       切分 post.css / page.css 时逐条校验过两件事：① 搬走的规则在原先的文件里
+       都排在留下的规则之前，所以内联到前面不改变任何一条的胜负；② 搬走的 +
+       留下的，规则多重集与原件完全一致（零丢失零新增）。
+
+       异步组合不是拍脑袋定的，是拿构建产物实测出来的：解析每个页面的 HTML 收集它用到的
+       class，再看这些 class 的样式规则落在哪个模块里，取并集。所以「首页只要 core」
+       这句话是有依据的，不是猜的。
+
+       默认给全量 core+post+page —— 也就是「和拆分前一样多」。万一哪天加了新模板、
+       规则归属变了而这里没跟着更新，最坏结果只是没省下流量，**不会掉样式**。
+       宁可少省，不可掉样。
+
+       踩过的坑：周刊正文存在 content/weekly/ 下，但 hugo.toml 给 weekly 配的 permalink
+       是 /posts/:year/:month/:day/:slug/，所以它们的 .Section 是 "weekly"、URL 却在
+       /posts/ 下。**不能只看 .Section，必须连 .Kind 一起判**——只判 .Section 会把
+       23 篇周刊正文当成周刊列表，白送一个全量包。 */ -}}
+{{- /* 默认值 = 全给。万一哪天加了新模板、或某个页型（比如 Hugo 的 404，
+       .Kind 是 "404"）没被下面任何分支覆盖，最坏结果只是多内联几 KB，
+       **不会首屏重绘**。和异步包的兜底同一个道理：宁可多给，不可少给。 */ -}}
+{{- $c := slice "critical" "critical-post" "critical-page" "critical-info" -}}
+{{- $m := slice "core" "post" -}}
+{{- if .IsHome -}}
+  {{- /* 首页 + /page/N/ 分页：卷首、文章行、工具条、翻页、页脚都在内联的 critical 里，
+         异步包只需要 core */ -}}
+  {{- $m = slice "core" -}}
+  {{- $c = slice "critical" -}}
+{{- else if and (eq .Kind "section") (eq .Section "posts") -}}
+  {{- /* /posts/ 列表页 */ -}}
+  {{- $m = slice "core" -}}
+  {{- $c = slice "critical" -}}
+{{- else if and (eq .Kind "section") (eq .Section "weekly") -}}
+  {{- /* /weekly/ 列表页：列表项用 page 的 .weekly-* / .minimal-*，翻页已在内联的 critical。
+         这里**刻意不含 post**：实测该页与 post.css 的交集只有 1 个 class，而那个 class
+         在 critical.css / page.css 里也有定义，所以 post 整包（约 29KB）是白送的。
+         敢去掉的依据有两条：① post.css 里所有选择器都带 class 或 id，没有裸元素规则，
+         不会误伤列表页的 p / a / ul；② 去掉后逐个 class 校验过，失去样式的集合为空。 */ -}}
+  {{- $m = slice "core" -}}
+  {{- $c = slice "critical" "critical-page" -}}
+{{- else if eq .Kind "page" -}}
+  {{- if in (slice "posts" "weekly") .Section -}}
+    {{- /* 121 篇文章 + 23 篇周刊正文：只吃 core + post，是除首页外收益最大的一档 */ -}}
+    {{- $m = slice "core" "post" -}}
+    {{- $c = slice "critical" "critical-post" -}}
+  {{- end -}}
+{{- else if in (slice "term" "taxonomy") .Kind -}}
+  {{- /* 标签页只有胶囊云与列表骨架（page）；分类页实测还要 post，所以只给标签页减 */ -}}
+  {{- if eq .Data.Plural "tags" -}}
+    {{- $m = slice "core" -}}
+    {{- $c = slice "critical" "critical-page" -}}
+  {{- end -}}
+{{- else if and (eq .Kind "section") (eq .Section "friends") -}}
+  {{- $m = slice "core" -}}
+{{- end -}}
+{{- return (dict "critical" $c "async" $m) -}}

@@ -1,11 +1,11 @@
 ---
-title: "Typora + Upic图床验证失败的问题" 
+title: "Typora + Upic图床验证失败的问题"
 categories: ["工具"]
 tags: ["写作", "图片"]
-date: 2026-01-18T22:08:48+08:00  
+date: 2026-01-18T22:08:48+08:00
 slug: "image-hosting-service-blog"
 
-draft: false  
+draft: false
 summary: "一个格式，解决图片上传图床失败问题。"
 description: "重装电脑后，Typora 和 uPic 的图床验证一直失败，问题并不在图床。记录最后用一个格式改动解决的经过，给遇到同样问题的朋友。"
 comments: true

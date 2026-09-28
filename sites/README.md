@@ -14,7 +14,7 @@
 
 ## 内容宽度约定：五个站都是 680px
 
-主站文章页的正文列是 **680px**（`assets/css/style.css` 的 `--content-width`）。四个子站也用同一个值，
+主站文章页的正文列是 **680px**（`assets/css/critical.css` 的 `--content-width`）。四个子站也用同一个值，
 在各自 `static/style.css` 的 `:root` 里各写一份 `--content-width: 680px`，页面宽度靠
 `main { width: min(var(--content-width), calc(100% - 32px)) }` 取；`sites/profile` 是
 `calc(100% - 40px)`，另外 `shot-single` / `share-single` 这类单篇页也引用同一个变量。
@@ -28,7 +28,7 @@
 五个站的 `:root` 是各写一份的（子站是独立 Hugo 站点，没有共享 CSS 的机制），所以**改颜色要五处一起改**。
 变量名两套：主站和 profile 用 `--paper`，run / share / shot 用 `--bg`，指的是同一个「冷白纸底」。
 
-当前这套值以主站为基准（`assets/css/style.css` 顶部）：
+当前这套值以主站为基准（`assets/css/critical.css` 顶部的 `:root`）：
 
 | 语义 | 浅色 | 深色 | 谁在用 |
 |---|---|---|---|

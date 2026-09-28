@@ -1,0 +1,1108 @@
+
+/* ============================================================
+   胡拉图说 · 纸账 + 印章 设计系统（Apple 式玻璃质感）
+   浅色 = 冷白纸 / 深色 = 墨染夜色
+   ============================================================ */
+
+
+
+
+
+/* ---------- 基础 ---------- */
+
+
+
+
+/* ---------- 锚点落点 ----------
+   所有带 id 的元素（正文标题、图片、段落……）被跳转时，顶部留出 --anchor-offset，
+   也就是「顶栏高度 + 12px」，标题紧贴在导航栏下面。
+
+   注意这里的偏移只写一份：如果 html 上再加 scroll-padding-top，两个值会叠加
+   （曾经是 84px + 92px），标题会被顶到离顶部将近 180px 的地方，看着就像没对准。 */
+
+
+/* 细滚动条（WebKit：Chrome / Safari / Edge） */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 阅读进度条 ---------- */
+
+
+/* ---------- 头部导航 ---------- */
+
+
+/* 窄屏把模糊半径收小：固定元素上的 backdrop-filter 每帧都要重算，是滚动掉帧的大头 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 深色模式下把深色印章反白，保持可见 */
+[data-theme="dark"] .site-logo {
+  filter: brightness(0) invert(1);
+}
+
+
+
+/* 多行中文标题换行时左右均衡，避免参差（不支持时自动忽略） */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+a[target="_blank"]::after {
+  content: " ↗";
+  font-size: 0.78em;
+  opacity: 0.65;
+}
+
+
+
+.donate-btn[target="_blank"]::after,
+.about-link-list a[target="_blank"]::after {
+  content: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 代码块容器（render-codeblock 包装：语言标签 + 复制按钮） */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 容器样式由 .code-block 承担，内层去重 */
+
+
+
+
+
+
+/* ---------- 语法高亮（Hugo Chroma） ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 目录 ---------- */
+
+
+/* ---------- 宽屏目录：一列刻度，悬停 / 钉住才展开文字 ----------
+   参考 sspai 文章页的目录（.comp__Directory）：平时只有一列小刻度，
+   鼠标移上来（或点左上角图钉「钉住」）才展开成带标题文字的样子。
+   关键手法：标题文字一直占位（只是 color: transparent），展开时只改高度和颜色，
+   所以不会重排、不会把正文挤动。断点定在 1280px（sspai 自己也是这个宽度以内就不显示
+   右侧目录了）：正文 680px 居中时两侧各留 300px，减去 244px 的目录还剩 56px 空隙；
+   再窄就统一走正文开头那块，页面上不再有浮动按钮。 */
+@media (min-width: 1280px) {
+  
+
+  
+
+  
+
+  
+
+  /* 缩进只给文字：刻度始终排在同一列（sspai 的做法：.h2 .text 加 16px 左内边距） */
+  
+  
+  
+
+  /* 收起态：一行就是一根小刻度，标题文字用透明色占位（宽度照占，展开时不重排） */
+  
+
+  /* 编号在刻度栏里让位给刻度本身：一根 2px 宽的小竖条，垂直居中 */
+  
+
+  
+
+  /* 「非当前章节变淡」用文字色做，别用整体 opacity：那会把刻度也一起调淡 */
+  
+
+  /* 展开：鼠标移上来、键盘走进来、或者已经钉住 */
+  
+
+  
+
+  
+
+  /* 展开后，鼠标指着的那一条再亮一点（比展开态的 --muted 更清楚） */
+  
+
+  /* 图钉：钉在目录框的左上角（wrap 的第一行、左对齐），平时藏着，
+     鼠标进目录（或已钉住）才现身。别改回 position: absolute 浮在面板上方——
+     那样它就跑出目录的边界了。 */
+  
+
+  
+
+  
+
+  
+}
+
+/* 不足宽屏：收起侧栏，改用左下角按钮 + 底部抽屉 */
+
+
+/* ---------- 窗口不够宽：目录顶在正文前面 ----------
+   右侧刻度栏放不下时（<1280px，含手机），目录直接排在正文开头，点标题栏可收起。
+   手机上默认是收起状态，由 toc.js 的 initInlineToc() 在加载时摘掉 details 的 open。 */
+
+
+
+
+
+
+
+
+/* 折叠箭头：和归档页的年份块同款 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 返回顶部按钮 ----------
+   整块已搬到 critical.css（2026-09-28）：它是 position:fixed，首屏第一帧就在视口里，
+   留在异步包里会让它先以浏览器默认 button 的样子出现在文档流末尾（左下角、方角），
+   再跳到右下角变圆并隐藏。改样式请去 critical.css。 */
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- 上一篇 / 下一篇 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 打赏 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 评论区默认「预加载好但收起来」：
+   滚到附近就开始加载，但整块压成 0 高度藏住，「显示评论」按钮留着，等读者自己点开。
+   用 max-height + visibility 而不是 display:none —— iframe 仍保有正常的布局尺寸，
+   giscus 测算高度不会算出 0，点开时能瞬间展开、不跳动；
+   visibility:hidden 顺带把它从无障碍树里摘掉，Tab 也不会跑进收起的 iframe。 */
+
+
+
+
+
+
+
+
+
+
+/* 加载中：按钮留在原位但明显不可点，避免读者以为按钮失灵 */
+
+
+
+
+/* ---------- 目录滚动条 ---------- */
+
+
+
+
+
+
+/* ---------- 友链页 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 页脚 ---------- */
+/* 整段已搬到 critical.css（2026-09-28）：页脚属于首屏的一部分，
+   留在异步包里会让首屏先竖排堆叠、再跳成横排。改样式请去 critical.css。 */
+
+/* ---------- 关于页 ---------- */
+
+
+
+
+/* 两列布局：左头像右信息，顶部对齐，信息列内部全部左对齐 */
+
+
+/* 左侧一道印章红，像档案袋上的封边 */
+
+
+/* 头像：148px 圆形 + 印泥淡痕 */
+
+
+/* 只有文件缺失时才出现：一个印章红圆形里的「胡」字 */
+
+
+/* 信息列：flex column 左对齐，印章用 margin-left:auto 推到右下角，
+   不再需要 padding-right 避让绝对定位印章 */
+
+
+
+
+
+
+
+
+
+
+
+
+/* 短分隔线：左对齐，3rem 宽，中间一颗菱形 —— tagline 与 chips 之间的视觉呼吸 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 比 .about-section > p 更具体，靠选择器权重压过它，不用 !important */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 书影音 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 文章插图 ---------- */
+
+
+
+
+/* 聚焦圈的圆角跟图片本身对齐（全局 :focus-visible 的圆角是给按钮用的 10px） */
+
+
+
+
+/* 渐显只在 JS 可用时生效：脚本被拦或加载失败时，正文图要照常显示 */
+
+
+
+
+
+
+
+
+
+
+/* 键盘 Tab 到图片链接时，也把「看大图」提示亮出来，跟鼠标悬停一致 */
+
+
+/* ---------- 404 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- Apple 分组卡片（分类 / 标签 / 归档外壳） ---------- */
+
+
+
+
+
+
+
+
+/* ---------- 标签云（标签索引页 · 紧凑胶囊） ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 图标规格 ----------
+   全局的 svg { stroke-width: 2 } 已搬到 critical.css（2026-09-28）：它是全局选择器，
+   但命中的是首帧可见的页头图标和翻页箭头，留在异步包里会让它们先细后粗重绘一次。
+   各页型模块里的尺寸规则（控制按钮 20px、正文内联 16px）原地不动。 */
+
+
+
+
+
+/* 主题切换按钮：浅色显示月亮，深色显示太阳 */
+/* 三条图标可见性已搬到 critical.css（2026-09-28）：否则首屏会太阳月亮同时显示。
+   下面的旋转动效留在异步包里——它只在点击那一刻用得到，不参与首屏。 */
+
+/* 切换时按钮旋转动效 */
+.theme-btn.is-spinning {
+  animation: theme-spin 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes theme-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- 触控热区：视觉不变，仅扩大可点范围 ---------- */
+
+
+
+
+/* ---------- 按压反馈（只做 transform，触屏轻量） ---------- */
+
+
+
+
+/* ---------- 周刊 · 简单订阅 + 最近 10 期 ---------- */
+
+
+
+
+
+
+
+
+
+
+/* ---------- 周刊 · 单期：期号徽章 + 本期目录 ---------- */
+
+
+
+
+
+
+/* ---------- 文章 / 周刊目录编号：一、 1. 1） 更深层加粗 ---------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- 响应式 ---------- */
+
+
+
+
+@media (max-width: 600px) {
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+  
+
+
+  
+
+  
+
+  
+  
+
+  .footer-container {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--gutter);
+  }
+
+  .footer-copyright,
+  .footer-license {
+    justify-self: center;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    white-space: normal;
+    gap: var(--space-2);
+  }
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+}
+
+/* ---------- 跨页面视图过渡 ----------
+   Chrome 126+ / Edge / Safari 18.2+ 生效，Firefox 与旧版浏览器直接忽略这段，
+   不做任何降级处理也不会坏。配合 baseof 里的 prerender，站内跳转基本是「已经在那了」。 */
+@view-transition {
+  navigation: auto;
+}
+
+/* 标题做成共享元素：从列表点进文章时，标题会从原来的位置长到新位置。
+   注意每页只能有一个同名的元素，否则整段过渡会被浏览器丢弃。 */
+
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+  animation-timing-function: var(--ease);
+}
+
+::view-transition-group(page-title) {
+  animation-duration: 0.32s;
+  animation-timing-function: var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+/* ---------- 动效偏好 ---------- */
+
+
+
+
+
+/* ---------- 图片灯箱 ---------- */
+body.lightbox-open,
+body.search-open { overflow: hidden; }
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+}
+
+.lightbox[hidden] { display: none; }
+
+.lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 12, 16, 0.88);
+  animation: overlay-in 0.2s ease;
+}
+
+.lightbox-figure {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 72px;
+  pointer-events: none;
+}
+
+.lightbox-img {
+  max-width: 100%;
+  max-height: calc(100vh - 120px);
+  object-fit: contain;
+  border-radius: 4px;
+  pointer-events: auto;
+}
+
+.lightbox-caption {
+  margin-top: var(--space-4);
+  text-align: center;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lightbox-btn {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lightbox-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+.lightbox-close {
+  top: 18px;
+  right: 18px;
+  width: 42px;
+  height: 42px;
+}
+
+.lightbox-prev,
+.lightbox-next {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+}
+
+.lightbox-prev { left: 18px; }
+.lightbox-next { right: 18px; }
+
+.lightbox-counter {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--text-2xs);
+  color: rgba(255, 255, 255, 0.72);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-num);
+}
+
+.lightbox.is-single .lightbox-prev,
+.lightbox.is-single .lightbox-next,
+.lightbox.is-single .lightbox-counter { display: none; }
+
+/* ---------- 站内搜索 ---------- */
+.search-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+}
+
+.search-panel[hidden] { display: none; }
+
+.search-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 22, 26, 0.42);
+  animation: overlay-in 0.2s ease;
+}
+
+.search-box {
+  position: absolute;
+  left: 50%;
+  top: 12vh;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 2 * var(--gutter)));
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  animation: search-in 0.22s ease both;
+}
+
+@keyframes search-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.search-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.search-head-icon {
+  flex: none;
+  color: var(--muted);
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  padding: var(--space-1) 0;
+}
+
+.search-input::placeholder { color: var(--muted); }
+
+.search-close {
+  flex: none;
+  border: 1px solid var(--ctrl-border);
+  border-radius: var(--radius-sm);
+  background: var(--ctrl-bg);
+  color: var(--ctrl-text);
+  font-size: var(--text-2xs);
+  padding: 0.22em 0.6em;
+  box-shadow: var(--ctrl-shadow);
+  cursor: pointer;
+  transition: var(--ctrl-transition);
+}
+
+.search-close:hover {
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-hover-shadow);
+}
+
+.search-close:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
+}
+
+.search-results {
+  overflow-y: auto;
+  max-height: 60vh;
+  padding: var(--space-2);
+}
+
+.search-result {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+
+.search-result + .search-result { margin-top: 2px; }
+
+.search-result:hover,
+.search-result.is-active { background: var(--surface-2); }
+
+.search-result-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.search-result-summary {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.search-result-meta {
+  font-size: var(--text-2xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.search-result mark {
+  background: var(--accent-soft);
+  /* 搜索高亮也是「印泥淡痕底 + 红字」，用 accent-ink 保证小字对比度 */
+  color: var(--accent-ink);
+  border-radius: 2px;
+  padding: 0 0.08em;
+}
+
+.search-empty {
+  padding: var(--space-8) var(--space-4);
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.search-footer {
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: var(--text-2xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 600px) {
+  .lightbox-figure { padding: 56px 20px; }
+  .lightbox-prev { left: 8px; }
+  .lightbox-next { right: 8px; }
+  .search-box { top: 7vh; }
+}
+
+/* ---------- 轻提示 toast（复制链接等操作的反馈） ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-8);
+  transform: translateX(-50%) translateY(12px);
+  max-width: 80vw;
+  padding: 0.55em 1.1em;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1001;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast.is-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

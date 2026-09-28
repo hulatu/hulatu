@@ -1,0 +1,14 @@
+# 安全头：逐条的取舍理由见主站 static/_headers 里那段长注释，这里不重复。
+#
+# 这个子站原先**根本没有 _headers**，2026-09-28 线上实测发现它连 HSTS 都没有
+# （响应里那两条 X-Content-Type-Options / Referrer-Policy 是 Cloudflare 注入的，
+# 不是源站给的），所以补上这一份。
+#
+# 主站改这组头的时候，四个子站（run / shot / share / profile）要一起改。
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains

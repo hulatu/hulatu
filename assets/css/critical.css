@@ -1,0 +1,901 @@
+/* ============================================================
+   关键 CSS（首屏）—— 内联进每个页面的 <head>，不经过任何网络请求。
+   收录标准只有一条：**「首屏画完之前就需要」的规则**。
+   当前内容：设计令牌 / 页头导航 / 首屏标题与文章行 / 文章列表下方的
+   工具条与翻页 / 页脚 / 主题切换图标 / 跳过链接 / 进度条。
+
+   ⚠️ 这里放的是**规则本身**，不是副本。同一组选择器不要在 core.css /
+      post.css / page.css 里再写一遍——重复定义会白送字节，而且因为
+      critical 在内联（先于异步包）的位置，覆盖关系还容易看错。
+      2026-09-28 之前 home.css 就是从这个文件里切出去的一部分，结果
+      首屏先画错再重绘；那次之后 home.css 已整体并回来并删除。
+
+   归属判定的手法与验证过程见 MAINTENANCE.md「CSS 怎么加载」。 */
+:root {
+  color-scheme: light;
+
+  --paper: #f6f6f8;
+  --surface: #ffffff;
+  --surface-2: #ececf1;
+  --ink: #1d1d1f;
+  --ink-soft: #3f3f45;
+  --muted: #56565c;
+  --line: #e4e4e9;
+  --line-strong: #d3d3da;
+
+  --accent: #c73e2f;          /* 印章红 */
+  --accent-ink: #a83226;
+  --accent-soft: #fbeae7;     /* 印泥淡痕 */
+  --on-accent: #fff8f5;
+
+  /* 代码块配色（浅色，参考 GitHub Light） */
+  --code-bg: #f6f8fa;
+  --code-fg: #1f2328;
+  --code-keyword: #cf222e;
+  --code-string: #0a3069;
+  --code-comment: #6e7781;
+  --code-function: #6639ba;
+  --code-number: #0550ae;
+  --code-tag: #116329;
+  --code-attr: #0550ae;
+  --code-var: #953800;
+  --code-op: #1f2328;
+
+  /* 内容宽度：正文列和页头（导航栏）共用这一个值，两边才对得齐。
+     680px 是照 sspai 文章页量的——它的 .article__section__wrapper 是 728px 含 24px 内边距，
+     去掉内边距正好 680px 的文字宽度。 */
+  --content-width: 680px;
+  --gutter: clamp(20px, 5vw, 32px);
+  --header-h: 64px;
+  /* 锚点落点：顶栏高度 + 一点呼吸空间。点目录、点标题上的 #、从别人的链接
+     带 #锚点进来，标题就停在这个位置（用法见下面「锚点落点」那段）。 */
+  --anchor-gap: var(--space-3);
+  --anchor-offset: calc(var(--header-h) + var(--anchor-gap));
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-card: 22px;
+  --radius-row: 14px;
+  --radius-pill: 999px;
+  /* 字号尺度：16px 基准 × 1.2 比例；正文单独占一档（17px），不参与 UI 尺度 */
+  --text-2xs: 0.72rem;      /* ≈11.5px 角标 / 极小元信息 */
+  --text-xs: 0.86rem;       /* ≈13.8px 元信息 / 说明文字 */
+  --text-sm: 1rem;          /* 16px    基础 UI */
+  --text-md: 1.2rem;        /* ≈19.2px 小标题 */
+  --text-lg: 1.44rem;       /* ≈23px   页面标题 / h2 */
+  --text-xl: 1.73rem;       /* ≈27.7px 大标题 */
+  --text-2xl: 2.07rem;      /* ≈33.1px 文章标题上限 */
+  --text-reading: 1.0625rem; /* 17px   正文（对齐 sspai 文章页） */
+  /* 文章排版：数值照 sspai 文章页量（正文 17px/1.8、段间距 32px、H2 32px、H3 24px、
+     H4 与正文同号、文章标题 38px）。单开一组变量是为了不动上面那套全站 UI 尺度——
+     归档年份、友链 / 关于页的小标题还挂在 --text-lg / --text-md 上。
+     手机端在下面 @media (max-width: 760px) 的 :root 里各降一档（15px / 24px …）。 */
+  --reading-leading: 1.8;
+  --block-gap: var(--space-8);                           /* 段间距 32px，手机 24px */
+  --h2-size: 2rem;                                       /* 32px */
+  --h3-size: 1.5rem;                                     /* 24px */
+  --post-title-size: 2.375rem;                           /* 38px */
+  --h2-gap-top: calc(var(--block-gap) + var(--space-6)); /* 段距 + 24px = 56px */
+  --h3-gap-top: calc(var(--block-gap) + var(--space-4)); /* 段距 + 16px = 48px */
+  /* 字距：中文标题只留一点点呼吸，拉丁式大字距不套在汉字上 */
+  --tracking-title: 0.02em;
+  --tracking-label: 0.06em;
+  --tracking-num: 0.04em;
+  /* 4px 步进的间距节奏：space-1 ~ space-8 是常用档，之后是页面级大留白 */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.25rem;
+  --space-10: 2.5rem;
+  --space-11: 2.75rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 14px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08), 0 24px 64px rgba(0, 0, 0, 0.13);
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* 控件四态：default / hover / active / disabled，每态四件套「底 · 字 · 边 · 影」。
+     所有按钮、图标按钮只引用这里的变量，不写死颜色——要调整全站手感，只改这一段。
+     三套：ctrl（描边按钮）/ ctrl-solid（印章红实心主按钮）/ ctrl-ghost（无底图标按钮） */
+  --ctrl-bg: var(--surface);
+  --ctrl-text: var(--ink-soft);
+  --ctrl-border: var(--line);
+  --ctrl-shadow: none;
+
+  --ctrl-hover-bg: var(--surface);
+  --ctrl-hover-text: var(--accent);
+  --ctrl-hover-border: color-mix(in srgb, var(--accent) 45%, var(--line));
+  --ctrl-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  --ctrl-active-bg: var(--accent-soft);
+  --ctrl-active-text: var(--accent-ink);
+  --ctrl-active-border: color-mix(in srgb, var(--accent) 62%, var(--line));
+  --ctrl-active-shadow: none;
+
+  --ctrl-disabled-bg: var(--surface);
+  --ctrl-disabled-text: var(--muted);
+  --ctrl-disabled-border: var(--line);
+  --ctrl-disabled-shadow: none;
+  --ctrl-disabled-opacity: 0.5;
+
+  --ctrl-solid-bg: var(--accent);
+  --ctrl-solid-text: var(--on-accent);
+  --ctrl-solid-border: var(--accent);
+  --ctrl-solid-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 32%, transparent);
+
+  --ctrl-solid-hover-bg: var(--accent-ink);
+  --ctrl-solid-hover-text: var(--on-accent);
+  --ctrl-solid-hover-border: var(--accent-ink);
+  --ctrl-solid-hover-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 38%, transparent);
+
+  --ctrl-solid-active-bg: var(--accent-ink);
+  --ctrl-solid-active-text: var(--on-accent);
+  --ctrl-solid-active-border: var(--accent-ink);
+  --ctrl-solid-active-shadow: none;
+
+  --ctrl-solid-disabled-bg: var(--accent);
+  --ctrl-solid-disabled-text: var(--on-accent);
+  --ctrl-solid-disabled-border: var(--accent);
+  --ctrl-solid-disabled-shadow: none;
+
+  /* ghost：默认完全安静，只靠字色 + 一层极淡的印泥底色回应悬停 */
+  --ctrl-ghost-bg: transparent;
+  --ctrl-ghost-text: var(--muted);
+  --ctrl-ghost-border: transparent;
+  --ctrl-ghost-shadow: none;
+
+  --ctrl-ghost-hover-bg: color-mix(in srgb, var(--accent) 9%, transparent);
+  --ctrl-ghost-hover-text: var(--accent);
+  --ctrl-ghost-hover-border: transparent;
+  --ctrl-ghost-hover-shadow: none;
+
+  --ctrl-ghost-active-bg: color-mix(in srgb, var(--accent) 17%, transparent);
+  --ctrl-ghost-active-text: var(--accent-ink);
+  --ctrl-ghost-active-border: transparent;
+  --ctrl-ghost-active-shadow: none;
+
+  --ctrl-ghost-disabled-bg: transparent;
+  --ctrl-ghost-disabled-text: var(--muted);
+  --ctrl-ghost-disabled-border: transparent;
+
+  /* 毛玻璃浮动按钮（返回顶部 / 手机目录）专用：底和影单独一套，四态仍走上面 */
+  --ctrl-float-bg: color-mix(in srgb, var(--paper) 88%, transparent);
+  --ctrl-float-hover-bg: color-mix(in srgb, var(--surface) 94%, transparent);
+  --ctrl-float-border: var(--line-strong);
+  --ctrl-float-shadow: var(--shadow-sm);
+
+  /* 控件共用过渡：四态切换只动这几样，时长统一 */
+  --ctrl-transition: color 0.15s ease, background 0.15s ease,
+    border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s var(--ease);
+
+  --font-serif: "Source Han Serif SC", "Noto Serif SC", "Noto Serif CJK SC",
+    "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", "Cascadia Code",
+    Menlo, Consolas, "Liberation Mono", monospace;
+  /* 元信息字体（移植自 bearneo）：日期 / 时间 / 期号这类以数字为主的元信息走等宽，
+     标题仍旧是 --font-serif。等宽让列表里的日期天然同宽，扫视时成列、不随数字的
+     比例宽度左右抖（这也是 --tracking-num 想解决但解决不了的问题）。
+     末尾显式接上 --font-sans 的中文栈，是让混在元信息里的汉字（「发布于」「字」「篇」）
+     照旧按 PingFang SC 渲染 —— 不交给系统按 monospace 去猜中文，否则 macOS 和
+     Windows 会各猜一套，同一个日期行的汉字字形就不一样了。
+     单独开一个 token 而不是复用 --font-mono，是因为两者的演进方向不同：
+     --font-mono 将来可能换成要下载的编程字体，元信息不该跟着变重。 */
+  --font-meta: ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", monospace;
+}[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper: #0b0b10;
+  --surface: #1c1c1f;
+  --surface-2: #2a2a2f;
+  --ink: #f5f5f7;
+  --ink-soft: #c9c9ce;
+  --muted: #a1a1a8;
+  --line: #2c2c31;
+  --line-strong: #3a3a40;
+
+  --accent: #ef7b64;
+  --accent-ink: #ff9a86;
+  --accent-soft: #3a1e1a;
+  --on-accent: #250d08;
+
+  /* 代码块配色（深色，参考 GitHub Dark） */
+  --code-bg: #161b22;
+  --code-fg: #e6edf3;
+  --code-keyword: #ff7b72;
+  --code-string: #a5d6ff;
+  --code-comment: #8b949e;
+  --code-function: #d2a8ff;
+  --code-number: #79c0ff;
+  --code-tag: #7ee787;
+  --code-attr: #79c0ff;
+  --code-var: #ffa657;
+  --code-op: #e6edf3;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.45), 0 28px 80px rgba(0, 0, 0, 0.55);
+
+  /* 深色下只有阴影要重写：其余四态变量都引用上面的取色，会自动跟着变 */
+  --ctrl-hover-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  --ctrl-solid-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 26%, transparent);
+  --ctrl-solid-hover-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 32%, transparent);
+}* { box-sizing: border-box; }html {
+  background-color: var(--paper);
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}main [id] {
+  scroll-margin-top: var(--anchor-offset);
+}::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}::-webkit-scrollbar-track {
+  background: transparent;
+}::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: var(--radius-pill);
+}::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}html, body { margin: 0; padding: 0; }body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  padding-top: var(--header-h);
+  line-height: 1.75;
+  transition: background 0.25s ease, color 0.25s ease;
+}a { color: inherit; text-decoration: none; }::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}img { max-width: 100%; }.container {
+  /* 内容盒 = 正文宽度，内边距留在外面，这样页头和正文左右边缘严丝合缝 */
+  max-width: calc(var(--content-width) + 2 * var(--gutter));
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}main.container {
+  min-height: 60vh;
+  padding-top: var(--space-10);
+  padding-bottom: var(--space-10);
+  transition: opacity 0.18s ease;
+}main.container.is-home {
+  padding-bottom: var(--space-4);
+}.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--accent);
+  z-index: 101;
+  /* 只做合成动画：逐帧改 transform，不碰布局也不挂 transition */
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  backdrop-filter: blur(18px) saturate(1.6);
+  transition: background 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.3s var(--ease);
+}@media (max-width: 760px) {.site-header {
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    backdrop-filter: blur(12px) saturate(1.4);
+  }}.site-header.is-hidden {
+  transform: translateY(-100%);
+}.site-header.is-scrolled {
+  background: color-mix(in srgb, var(--paper) 78%, transparent);
+}.nav-container {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: var(--header-h);
+}.nav-container::after {
+  content: "";
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
+  opacity: 0;
+  transition: opacity 0.25s var(--ease);
+}.site-header.is-scrolled .nav-container::after {
+  opacity: 1;
+}.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: start;
+}.nav-left {
+  display: flex;
+  align-items: center;
+  justify-self: stretch;
+  min-width: 0;
+}.site-logo {
+  display: block;
+  height: 25px;
+  width: auto;
+}.site-brand-name {
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-title);
+  color: var(--ink);
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}.site-brand:hover .site-brand-name,
+.site-brand:focus-visible .site-brand-name {
+  color: var(--accent);
+}.nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  justify-self: end;
+}.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  justify-self: center;
+}.nav-links a {
+  position: relative;
+  padding: var(--space-2) 0;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 18px;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  opacity: 0;
+  transform: translateX(-50%) scaleX(0.35);
+  transition: opacity 0.18s var(--ease), transform 0.18s var(--ease);
+}.nav-links a:hover { color: var(--accent); }.nav-links a.is-active {
+  color: var(--ink);
+  font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+}.nav-links a.is-active::after {
+  opacity: 1;
+  transform: translateX(-50%) scaleX(1);
+}.nav-links a:hover::after {
+  opacity: 0.55;
+  transform: translateX(-50%) scaleX(1);
+}.nav-icon-btn,
+.nav-burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--ctrl-ghost-border);
+  border-radius: var(--radius-pill);
+  background: var(--ctrl-ghost-bg);
+  color: var(--ctrl-ghost-text);
+  box-shadow: var(--ctrl-ghost-shadow);
+  cursor: pointer;
+  transition: var(--ctrl-transition);
+}.nav-icon-btn:hover,
+.nav-burger:hover {
+  background: var(--ctrl-ghost-hover-bg);
+  color: var(--ctrl-ghost-hover-text);
+  border-color: var(--ctrl-ghost-hover-border);
+  box-shadow: var(--ctrl-ghost-hover-shadow);
+  transform: translateY(-1px);
+}.nav-icon-btn:active,
+.nav-burger:active {
+  background: var(--ctrl-ghost-active-bg);
+  color: var(--ctrl-ghost-active-text);
+  border-color: var(--ctrl-ghost-active-border);
+  box-shadow: var(--ctrl-ghost-active-shadow);
+}.nav-icon-btn:disabled,
+.nav-burger:disabled {
+  background: var(--ctrl-ghost-disabled-bg);
+  color: var(--ctrl-ghost-disabled-text);
+  border-color: var(--ctrl-ghost-disabled-border);
+  box-shadow: none;
+  opacity: var(--ctrl-disabled-opacity);
+  cursor: default;
+  transform: none;
+}.nav-burger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+}.burger-bar {
+  width: 17px;
+  height: 2px;
+  border-radius: var(--radius-sm);
+  background: currentColor;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}.nav-burger.is-open .burger-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }.nav-burger.is-open .burger-bar:nth-child(2) { opacity: 0; }.nav-burger.is-open .burger-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }.nav-burger.is-open {
+  background: var(--ctrl-ghost-active-bg);
+  color: var(--ctrl-ghost-active-text);
+  border-color: var(--ctrl-ghost-active-border);
+  box-shadow: var(--ctrl-ghost-active-shadow);
+}.page-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  letter-spacing: var(--tracking-title);
+  margin: 0 0 var(--space-6);
+}.post-list {
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.18s ease;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-2);
+  overflow: hidden;
+}.post-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  padding: 10px var(--space-4);
+  margin: 0;
+  border-radius: var(--radius-row);
+  transition: background 0.2s var(--ease), transform 0.2s var(--ease);
+}.post-row + .post-row {
+  border-top: 1px solid var(--line);
+}.post-row:hover {
+  background: var(--surface-2);
+  transform: translateY(-1px);
+  z-index: 1;
+}.post-row-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}.post-row-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}.post-row-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--ink);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  transition: color 0.15s ease;
+}.post-row:hover .post-row-title { color: var(--accent); }.post-row-home .post-row-title {
+  font-weight: 700;
+  letter-spacing: var(--tracking-title);
+}.post-row-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}.post-row-cat {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  padding: 0.08em 0.65em;
+  font-size: var(--text-2xs);
+  color: var(--ink-soft);
+}.empty-tip { color: var(--muted); }.post-row-home {
+  grid-template-columns: minmax(0, 1fr) auto;
+}.post-row-date {
+  /* 等宽元信息（见上面 --font-meta）。这条在首屏关键 CSS 里，
+     因为首页 / 文章列表的第一屏就是这个日期，不能等异步包。 */
+  font-family: var(--font-meta);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-num);
+  white-space: nowrap;
+  padding-left: var(--space-2);
+}.hero-line,
+.page-title,
+.post-title,
+.about-name {
+  text-wrap: balance;
+}.nav-icon-btn[target="_blank"]::after {
+  content: "";
+}.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}.dot-red { background: #ff5f57; }.dot-yellow { background: #febc2e; }.dot-green { background: #28c840; }
+/* ---------- 图标规格：全局描边统一 2 ----------
+   2026-09-28 从 core.css 搬来。这条是全局选择器，命中的却是首屏第一帧就可见的
+   元素（页头搜索/主题/RSS 三个图标、列表页的翻页箭头）：留在异步包里，它们会先按
+   SVG 属性默认的 stroke-width:1 画出细线，等包到达再变粗——全站每个页面一次重绘。
+   判据仍是「首帧用不用得到」，不是「这条规则是不是全局的」。 */
+svg { stroke-width: 2; }
+.nav-icon-btn svg,
+.pager-btn svg {
+  width: 20px;
+  height: 20px;
+}.post-pill,
+.tag-chip,
+.pager-btn,
+.nav-icon-btn {
+  position: relative;
+}.post-pill::after,
+.tag-chip::after,
+.pager-btn::after,
+.nav-icon-btn::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}.post-row:active,
+.minimal-row:active {
+  transform: scale(0.995);
+}.post-pill:active,
+.tag-chip:active,
+.pager-btn:active,
+.nav-icon-btn:active {
+  transform: scale(0.96);
+}@media (max-width: 760px) {:root {
+    /* 小屏把最大的两档各收一档，标题不至于顶满屏宽 */
+    --text-2xl: 1.73rem;
+    --text-xl: 1.44rem;
+    /* 文章排版照 sspai 的手机档：正文 15px、段间距 24px、H2 24px、H3 20px、文章标题 28px
+       （H2 / H3 的上间距由 --block-gap 自动跟着缩，不用再改） */
+    --text-reading: 0.9375rem;
+    --block-gap: var(--space-6);
+    --h2-size: 1.5rem;
+    --h3-size: 1.25rem;
+    --post-title-size: 1.75rem;
+  }}@media (max-width: 760px) {.nav-left {
+    justify-self: start;
+    gap: var(--space-3);
+  }.site-brand-name {
+    display: none;
+  }.nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    display: flex;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-2) var(--gutter) var(--space-3);
+    transition: opacity 0.18s var(--ease), transform 0.18s var(--ease),
+      visibility 0.18s var(--ease);
+  }.nav-links.is-open {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }.nav-links a {
+    padding: var(--space-3) var(--space-1);
+    font-size: var(--text-sm);
+  }.nav-links a::after {
+    display: none;
+  }.nav-links a + a { border-top: 1px dashed var(--line); }.nav-burger { display: inline-flex; }.nav-right { gap: var(--space-1); }}@media (max-width: 760px) {.post-row-home {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-3);
+  }}@media (max-width: 600px) {main.container {
+    padding-top: var(--space-7);
+    padding-bottom: var(--space-7);
+  }.post-row {
+    gap: var(--space-3);
+    padding: 10px var(--space-3);
+    margin: 0;
+    border-radius: var(--radius-row);
+  }.post-list {
+    border-radius: var(--radius-card);
+    padding: var(--space-1);
+  }}.post-title,
+.page-title,
+.hero-line {
+  view-transition-name: page-title;
+}@media (prefers-reduced-motion: reduce) {*,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }}.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  padding: 0.5rem 1rem;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 0.375rem;
+  text-decoration: none;
+  font-family: var(--font-sans);
+}.skip-link:focus {
+  left: 0.75rem;
+  top: 0.75rem;
+}
+
+/* ============================================================
+   首屏补齐（2026-09-28）
+   ------------------------------------------------------------
+   起因：内联关键 CSS + 异步其余包之后，实测首屏在异步包到达前会**重绘一次**——
+   首页大标题先按浏览器默认 h1（黑色粗体无衬线、左对齐）渲染，页脚先竖排堆叠，
+   翻页按钮先是裸的 ‹ ›，主题切换按钮的太阳月亮同时显示。
+
+   根因是这些规则原先落在异步包里：
+     · 在 core.css —— .site-footer 全系列（每页都有，页脚是首屏一部分）、
+                      .theme-btn .theme-icon-*（每页都有）
+     · 在 home.css —— .site-hero / .hero-line 排版、文章列表下方的工具条与翻页、
+                      .home-archive-link
+   home.css 整份都属于这一类，搬完之后它已清空并删除，模块列表里不再有 "home"。
+
+   代价：这些规则现在内联进**每一个**页面（含 120 篇文章页），约 +4 KB 源码 /
+   +1 KB gzip。换来的是首屏不再重绘。取舍记录见 MAINTENANCE.md。
+   ============================================================ */
+.site-hero {
+  text-align: center;
+  padding: 0 0 var(--space-6);
+  margin-bottom: var(--space-4);
+}.hero-line {
+  font-family: var(--font-serif);
+  font-size: clamp(var(--text-md), 3.8vw, var(--text-xl));
+  line-height: 1.22;
+  letter-spacing: var(--tracking-title);
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0;
+  animation: hero-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.04s both;
+}
+/* @keyframes 必须和内联的 animation 待在一起（2026-09-28）。
+   原先它留在 core.css，于是首屏这句 animation 解析不到关键帧 —— 按规范整条声明被丢弃，
+   标题**一次画对**（反而是好事）；等 core.css 到达、关键帧可用，动画才从头开始跑，
+   标题从最终态闪成透明再淡入 —— 比干脆不做动画更糟。
+   规矩：**内联规则用到的 @keyframes 和自定义属性都算原子单元，不能拆到异步包。** */
+@keyframes hero-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.home-archive-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.32em 1em;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}.home-archive-link:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+}.list-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-4);
+}.list-toolbar .bottom-pager {
+  width: auto;
+  margin: 0;
+}.list-toolbar .home-archive-link {
+  margin-left: auto;
+}.list-pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: center;
+}.bottom-pager {
+  width: fit-content;
+  margin: var(--space-5) auto 0;
+}.pager-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
+  border-radius: 50%;
+  color: var(--ctrl-text);
+  box-shadow: var(--ctrl-shadow);
+  cursor: pointer;
+  transition: var(--ctrl-transition);
+}.pager-btn:hover:not(:disabled) {
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+  box-shadow: var(--ctrl-hover-shadow);
+}.pager-btn:active:not(:disabled) {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
+  transform: translateY(1px);
+}.pager-btn:disabled {
+  background: var(--ctrl-disabled-bg);
+  color: var(--ctrl-disabled-text);
+  border-color: var(--ctrl-disabled-border);
+  box-shadow: var(--ctrl-disabled-shadow);
+  opacity: var(--ctrl-disabled-opacity);
+  cursor: default;
+}a.pager-btn { text-decoration: none; }.pager-btn.is-disabled {
+  background: var(--ctrl-disabled-bg);
+  color: var(--ctrl-disabled-text);
+  border-color: var(--ctrl-disabled-border);
+  box-shadow: var(--ctrl-disabled-shadow);
+  opacity: var(--ctrl-disabled-opacity);
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ---------- 页脚（原先在 core.css） ---------- */
+.site-footer {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+.footer-container {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--gutter);
+}
+.footer-container::before {
+  content: "";
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  top: 0;
+  height: 1px;
+  background: var(--line);
+}
+.footer-copyright {
+  margin: 0;
+  justify-self: start;
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+.footer-license {
+  justify-self: end;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.footer-license:hover {
+  color: var(--accent);
+}
+.footer-links {
+  margin: 0;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+.footer-links a {
+  color: var(--muted);
+  transition: color 0.15s ease;
+}
+.footer-links a:hover { color: var(--accent); }
+.footer-links a[target="_blank"]::after,
+.footer-license[target="_blank"]::after {
+  content: none;
+}
+
+/* ---------- 主题切换按钮：浅色显示月亮，深色显示太阳（原先在 core.css） ---------- */
+.theme-btn .theme-icon-sun { display: none; }
+[data-theme="dark"] .theme-btn .theme-icon-moon { display: none; }
+[data-theme="dark"] .theme-btn .theme-icon-sun { display: block; }
+
+/* ---------- 返回顶部按钮（原先在 core.css） ----------
+   它是 position:fixed，从第一帧起就在视口里，所以规则必须在首屏画完之前就位。
+   留在 core.css 的后果实测是：首屏按浏览器默认 <button> 渲染 —— 掉回文档流末尾、
+   左下角、方角、带默认边框；异步包到达后才跳到右下角、变圆、并因 opacity:0 消失。
+   一次明显的位移 + 闪现。整块搬进来，连 hover/active 一起，不留跨文件耦合。 */
+.back-top {
+  position: fixed;
+  right: clamp(16px, 4vw, 28px);
+  bottom: clamp(18px, 5vh, 32px);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ctrl-float-border);
+  border-radius: 50%;
+  background: var(--ctrl-float-bg);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--ctrl-text);
+  cursor: pointer;
+  box-shadow: var(--ctrl-float-shadow);
+  z-index: 90;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: var(--ctrl-transition), opacity 0.2s ease;
+}
+.back-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.back-top:hover {
+  background: var(--ctrl-float-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+}
+.back-top:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+}
+
+@media (max-width: 600px) {.site-hero { padding-bottom: var(--space-4); }.hero-line { margin-bottom: 0; }}
+
+@media print {.site-header,
+  .site-footer,
+  .skip-link,
+  .reading-progress,
+  .back-top,
+  .post-rail,
+  .post-toc-inline,
+  .post-end,
+  .related-posts,
+  .post-nav,
+  .donate,
+  .giscus-wrap,
+  .list-toolbar,
+  .search-panel,
+  .lightbox,
+  .toast,
+  .pager {
+    display: none !important;
+  }html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }.container {
+    max-width: 100%;
+    padding: 0;
+  }}
+.related-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-title);
+  margin: 0 0 var(--space-4);
+}
