@@ -1,6 +1,5 @@
 ---
 title: "隐私政策"
-hide_title: true
 noindex: true
 date: 2026-09-19
 ---

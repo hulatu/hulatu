@@ -3,12 +3,7 @@
 <h1 class="page-title">{{ .Title }}</h1>
 <section class="minimal-list group-card">
   {{ range .Pages.ByDate.Reverse }}
-    <a class="minimal-row" href="{{ .Permalink }}">
-      <span class="minimal-title">{{ .Title }}</span>
-      <span class="minimal-meta">
-        <time class="minimal-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-      </span>
-    </a>
+    {{ partial "post-row-minimal.html" . }}
   {{ else }}
     <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
   {{ end }}

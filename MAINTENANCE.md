@@ -23,7 +23,7 @@ hugo new content/weekly/周刊-第N期.md       # 周刊
 | `comments` | 填 `false` 可单独关闭这篇文章的评论 |
 | `draft` | `true` 表示草稿，不会发布 |
 
-发布前把 `draft` 改成 `false`，然后执行 `./publish.sh`（或终端里的 `up`）。`publish.sh` 在提交前会自动做三件事：抓正文远程图片的宽高、刷新花园页的内容快照、给新写的中文标题补 `{#pinyin}` 锚点（见下面「标题锚点」）。
+发布前把 `draft` 改成 `false`，然后执行 `./publish.sh`（或终端里的 `up`）。`publish.sh` 在提交前会自动做四件事：抓正文远程图片的宽高、刷新花园页的内容快照、给新写的中文标题补 `{#pinyin}` 锚点、把这次改动过的文章的 `lastmod` 刷成当前时间（见下面「标题锚点」和「文章页的『更新于』」）。
 
 ### 标题锚点（中文标题为什么要写 `{#xi-guan}`）
 
@@ -33,18 +33,36 @@ hugo new content/weekly/周刊-第N期.md       # 周刊
 
 两个注意点：改标题文字不会自动改已有锚点，链接会「停在原地」——想让老链接继续能用，就别改已经分享出去的 `{#...}`；锚点只在本地补齐，CI 里的 `--check` 只做检查不修改，缺了会报错并列出文件行号。
 
+### 文章页的「更新于」靠什么出现
+
+文章页头部那行是「发布于 X · 更新于 Y · 约 N 字 · 读 M 分钟」，其中「更新于」只在 `lastmod` 比 `date` **晚**的时候才出现（模板是 `layouts/_default/single.html` 里的 `gt .Lastmod.Unix .Date.Unix`，比的是完整时间戳，所以当天写完、当天又改一版也会显示，只是两个日期看着一样）。
+
+坑在 Hugo 的默认行为：front matter 里没写 `lastmod` 时，`.Lastmod` 直接退回用 `date`——于是「改了文章、忘了改 lastmod」的结果就是这一行永远不出现。所以这件事不靠人手记：`publish.sh` 在 `git add` 之前会跑 `scripts/sync-lastmod.py`，把**这次真正改动过**的文章的 `lastmod` 刷成当前时间（+08:00）。
+
+它判断「真正改动过」的方式是：当前文件和上一个提交里的版本都去掉 `lastmod:` 那一行再比较，相同就跳过。这样一来，反复跑 `publish.sh` 不会一直刷新（刷完 lastmod 后，第二次比较两边都被去掉，仍然相同），新写的文章也不会多出一行「更新于」（HEAD 里没有的新文件直接跳过）。**默认只看 `content/posts/` 和 `content/weekly/`**——只有文章页会显示「更新于」，改「关于」「隐私政策」这类页面时不该跟着动 lastmod。
+
+想手动给某篇老文章盖上「更新于」，两种办法：
+
+```bash
+# 1. 内容确实要改：直接改正文，publish.sh 会自动刷
+# 2. 只想盖章、内容不动：强制刷一个文件
+python3 scripts/sync-lastmod.py --force content/posts/某篇.md
+```
+
+想先看会刷哪些、不写文件，加 `--dry-run`。
+
 ### 文章短代码
 
 正文里可以直接用的排版组件，只有书影音这一类：
 
 | 短代码 | 用途 | 用法 |
 |---|---|---|
-| `book` | 单本书的封面卡片 | `{{< book cover="封面图" title="书名" creator="作者" >}}` |
-| `books` | 把若干 `book` 包成网格 | `{{< books >}}…{{< /books >}}` |
 | `media` | 单条书影音（书 / 影视 / 音乐通用） | `{{< media cover="封面图" title="标题" creator="作者" >}}` |
 | `media-grid` | 把若干 `media` 包成网格 | `{{< media-grid >}}…{{< /media-grid >}}` |
 
-`book` 和 `media` 都只是转调 `layouts/partials/media-card.html`，区别只在外面包的是 `books` 还是 `media-grid`。用法直接抄 `content/media/_index.md` 的现成例子；样式在 `assets/css/style.css` 的「书影音」段。
+两个短代码都只是转调 `layouts/partials/media-card.html`（单条）和包一层 `.media-grid` 的 div（网格），排版细节在 `assets/css/style.css` 的「书影音」段。用法直接抄 `content/media/_index.md` 的现成例子。
+
+> 曾经还有 `book` / `books` 两个短代码，和 `media` / `media-grid` 逐字相同（只是名字更贴「书」），2026-09 删掉了：留着就是两份要同步维护的同样内容，`content/media/_index.md` 也改成了 `media` / `media-grid`。
 
 > 曾经还有 `tip` / `note` / `warning` / `fold` 四个提示框短代码，配套一份 `assets/css/shortcodes.css` 和 baseof 里「这一页用到才加载」的判断。2026-09 清掉了：内容里一次都没用过。要提示框直接用 Markdown 引用块；真要用短代码，`git log --diff-filter=D --name-only -- layouts/shortcodes` 能把文件捞回来。
 
@@ -62,7 +80,7 @@ BACKUP_DEST="/Volumes/SSD/hulatu-blog" bash scripts/backup-blog.sh
 
 ### 子站点
 
-`run.hulatu.com`、`shot.hulatu.com`、`share.hulatu.com` 和 `profile.hulatu.com` 是独立 Hugo 站点，源码分别在 `sites/run/`、`sites/shot/`、`sites/share/` 和 `sites/profile/`。目前 `shot` 和 `share` 还没有实际内容，暂时不上线。本地一起构建：
+`run.hulatu.com`、`shot.hulatu.com`、`share.hulatu.com` 和 `profile.hulatu.com` 是独立 Hugo 站点，源码分别在 `sites/run/`、`sites/shot/`、`sites/share/` 和 `sites/profile/`，四个都已经上线（`shot`、`share` 内容还少，但项目和数据都在跑）。本地一起构建：
 
 ```bash
 bash scripts/build-subdomains.sh
@@ -92,7 +110,7 @@ hugo server -D
 | 添加到主屏幕（PWA） | `static/site.webmanifest` + `static/icon-192.png` / `icon-512.png`。图标由 `logo.svg` 渲染而来，要重做就用：`magick -background none SVG:static/logo.svg -resize 512x512 -colors 64 -strip -define png:compression-level=9 static/icon-512.png`（`-colors 64` 能把 76KB 压到 30KB，肉眼无差） |
 | 分享卡片图 | `[params.assets] shareImage`。宽高由 `layouts/partials/head-meta.html` 用 `imageConfig` 现读，换图不用改模板；文章 front matter 里写了 `cover` 就用 cover，但远程图读不到尺寸，那两个 meta 就不输出 |
 | 首页文案（"总得留下点什么吧"） | `layouts/index.html` 顶部的 `.site-hero` |
-| 首页每页展示几篇 | `layouts/index.html` 里的 `.Paginate $posts 10`；周刊在 `layouts/weekly/list.html` 里的 `.Paginate $all 10` |
+| 首页 / 周刊每页展示几篇 | `hugo.toml` 的 `[pagination] pagerSize`（当前 10）。模板里 `.Paginate` **故意不传第二个参数**，就是让它读这个配置——以前模板里写死 10，配置里那个 `pagerSize` 改了没用，等于两个数字打架 |
 | 周刊期号徽章 | 读 front matter 的 `issue: 22`（模板里是 `.Params.issue`）。**新写一期周刊记得填这个字段**，不填就不显示徽章。以前是从标题「第 X 期」里正则解析中文数字（`layouts/partials/issue-num.html`，2026-09 已删）：那种写法只在标题里能看出来，改标题就悄悄失效，还多一层中文数字解析 |
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 上一篇 / 下一篇导航 | `layouts/_default/single.html` 里的 `.post-nav` |
@@ -104,18 +122,20 @@ hugo server -D
 | 中文标题的锚点 | 中文标题要显式写 `{#pinyin}`（`## 习惯 {#xi-guan}`），不写的话分享链接是 `#%e4%b9%a0%e6%83%af`。日常不用手写，`publish.sh` 会跑 `scripts/add-heading-anchors.py` 自动补；想用英文词就自己写 `{#habit}`，脚本看到已有 `{#...}` 会跳过。CI 里另有一道 `--check` 兜底 |
 | 手动提交发布 | 终端输入 `up` → `publish.sh`（抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
+| 脚本怎么读 front matter | 统一走 `scripts/_frontmatter.py`（`split` / `fields` / `read` / `write` / `remove`）。它只做「按行找字段」，不做 YAML 解析——front matter 里有中文注释、对齐用的行尾空格，用 PyYAML 解析再 dump 回去会把注释和空行冲掉，diff 变成整块重写。以前 `fetch-profile-content.py` 和 `sync-lastmod.py` 各写一份正则，字段清单和换行处理都不一致：**`fetch-profile-content.py` 的字段清单漏了 `image`，导致 `_shot_item()` 永远返回 None、`selected_photos.json` 恒为空**（2026-09 修），加字段时记得两边都看。 |
 | 图片灯箱 | 结构在 `layouts/_default/_markup/render-image.html`：图片被 `<a class="article-image-link" href="原图">` 包着，JS 拦下点击打开灯箱，JS 不可用时退化成「点开原图」。样式在 `assets/css/style.css` 的「文章插图」段，逻辑在 `assets/js/lightbox.js`（原图地址直接读链接的 `href`，不再用 `data-full`） |
 | 键盘可达性 / 焦点陷阱 | 两个弹层（搜索框、图片灯箱）共用 `assets/js/focus-trap.js` 提供的 `window.hulatuFocusTrap(容器, 初始焦点)`，关闭时记得调用它返回的 `release()` 并把焦点还给触发按钮。**这个文件必须在 `layouts/partials/scripts.html` 的打包顺序里排第一**，否则后面几个脚本运行时拿不到它 |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false`。DOM 在 `layouts/partials/giscus.html`，行为逻辑在 `assets/js/giscus.js`：滚到评论区前 400px **在后台把 giscus 预加载好，但整块收着不展开**，「显示评论」按钮一直留着；读者点了才展开——因为内容已经加载完，展开是瞬间的、不会先白一下。状态机只有一个 `state` 变量（`idle → loading → ready → slow → open`，`opening` 表示「读者已经在等」），并镜像到 `.giscus-body` 的 `data-state`，调试时在开发者工具里直接看得见。等 iframe 用的是 **MutationObserver，不是定时轮询**；两个超时各管一段：点开后 12 秒没出来才变「重新加载评论」，预加载 2 分钟没结果就静默作废。**这个脚本单独打包、只在带评论的文章页加载**（`giscus.html` 里的 `resources.Get`），不塞进全站 bundle。收起用的 `.giscus-body { max-height: 0; visibility: hidden }`，**别改成 `display: none`**，那样 iframe 没有布局尺寸，giscus 会把高度算成 0 |
 | 文章目录 | 同一份目录在页面里有两份副本：宽屏刻度栏（`id="TableOfContents"`）和正文开头那块（`TableOfContentsInline`，<1280px 显示），后者的 id 由 `single.html` 里的 `replaceRE` 改掉，避免重复 id。四段逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮（对页面里所有 `.post-toc-nav` 一起生效），`initPin()` 管宽屏图钉的「钉住」，`initInlineToc()` 负责手机上把正文开头那块默认收起，`initHashAnchor()` 管带 `#锚点` 进页面后的重新对准。新增目录副本时记得同步改 id，样式挂 `.post-toc-nav` 就能直接复用编号和高亮 |
-| 宽屏目录的刻度栏 / 钉住 | 参考 sspai 文章页的目录（`.comp__Directory`），尺寸照它量：**面板 244px 宽、纵向居中、面板左边缘离正文右边缘 128px**（`right: max(0px, calc(50vw - 712px))`，推导写在样式表注释里）、文字 15px、收起一行 12px（刻度 2×6px）、展开一行 33px（刻度 21px，`border-radius: 6px`）、二级标题的文字再缩进 16px（**刻度始终排在同一列**，只缩进文字）。收起态用 `color: transparent` 让标题占位：**别改成 `display: none` 或收掉宽度**，否则展开时会把正文挤动。图钉按钮 `#toc-pin` 由 `initPin()` 切成 `.is-pinned`，状态不跨页面记；它只在 ≥1280px 生效（窄屏整块 `.post-rail` 是 `display: none`） |
-| 目录为什么居中得很稳 | `.post-rail` 是 `top: var(--header-h)` / `bottom: 0` 的固定容器（`display: flex; align-items: center; pointer-events: none`），里层 `.post-toc-wrap` 才裹着目录本体并把 `pointer-events` 打开。**容器高度是固定的**，所以悬停展开（一行 12px → 33px）时只有里面的行在长，整块目录不会上下滑——这正是不用 `top: 50% + translateY(-50%)` 的原因。改回居中时别丢掉这一层结构，也别把 `pointer-events` 一起放开（那样右侧一整条会挡住页面点击）。图钉挂在 `.post-toc-wrap` 上（`top: -1.75rem`），跟着目录一起走 |
+| 宽屏目录的刻度栏 / 钉住 | 参考 sspai 文章页的目录（`.comp__Directory`），尺寸照它量：**面板 244px 宽、纵向居中、面板左边缘离正文右边缘 128px**（`right: max(0px, calc(50vw - 712px))`，推导写在样式表注释里）、文字 15px、收起一行 12px（刻度 2×6px）、展开一行 33px（刻度 21px，`border-radius: 6px`）、二级标题的文字再缩进 16px（**刻度始终排在同一列**，只缩进文字）。收起态用 `color: transparent` 让标题占位：**别改成 `display: none` 或收掉宽度**，否则展开时会把正文挤动。图钉按钮 `#toc-pin` 由 `initPin()` 切成 `.is-pinned`，状态不跨页面记；它只在 ≥1280px 生效（窄屏整块 `.post-rail` 是 `display: none`）。**图钉的位置**：`.post-toc-wrap` 是 `display: flex; flex-direction: column`，图钉是它的第一行（`align-self: flex-start`），所以钉在**目录框左上角**、目录本体从它下面 4px（`gap: var(--space-1)`）开始——不要改回 `position: absolute` 浮在面板上方，那样它会跑出目录的边界 |
+| 目录为什么居中得很稳 | `.post-rail` 是 `top: var(--header-h)` / `bottom: 0` 的固定容器（`display: flex; align-items: center; pointer-events: none`），里层 `.post-toc-wrap` 才裹着图钉和目录本体并把 `pointer-events` 打开。**容器高度是固定的**，所以悬停展开（一行 12px → 33px）时只有里面的行在长，整块目录不会上下滑——这正是不用 `top: 50% + translateY(-50%)` 的原因。改回居中时别丢掉这一层结构，也别把 `pointer-events` 一起放开（那样右侧一整条会挡住页面点击）。图钉用 `visibility: hidden` 藏着（**不是 `display: none`**），占位一直留着，所以鼠标扫进来把它点亮时目录不会上下跳 |
 | 深浅色 | 默认跟随系统；右上角按钮手动切换（带旋转动效），**不记忆选择**（刷新后回到跟随系统）。逻辑在 `assets/js/theme.js`，配色变量在 `assets/css/style.css` 的 `[data-theme="dark"]` |
 | 打赏 | `hugo.toml` 的 `[params.donate]`。收款码图片在 `layouts/partials/donate.html` 里走 `cf-image.html`（`width=400,format=auto`）——原图是没压缩的 JPEG，且文件后缀错写成 `.webp`（直接返回的 Content-Type 是 `image/jpeg`），过一层图片变换后按浏览器给 avif/webp，顺带把这个错误头一起修掉。换收款码时**别在模板里直接写原始 URL** |
 | Hugo 版本 | **三处必须一致**：本机 `hugo version`、`.github/workflows/build.yml` 的 `hugo-version`、Cloudflare 五个项目的 `HUGO_VERSION`（主站 + 四个子站）。硬校验在 `layouts/partials/check-hugo-version.html`（`baseof.html` 顶部引入）：**版本不够直接失败**并报出当前版本；**缺 extended 只打 WARN**（Cloudflare 的 `HUGO_VERSION` 只能填版本号，硬拦会误伤线上；真用到 extended 功能时 Hugo 自己会报错）。`hugo.toml` 的 `[module.hugoVersion]` 只起文档作用——实测它在项目自身配置里只打一行 WARN，拦不住构建 |
 | 构建校验（CI） | `.github/workflows/build.yml`：push / PR 时用 0.166.0 extended 构建主站 + 调用 `scripts/build-subdomains.sh` 构建四个子站，另外检查每篇周刊的 front matter 有没有 `issue` 字段（漏填只会不显示徽章、不报错，所以单独查一遍）。这是「本地没事、Cloudflare 构建失败」的第一道拦截 |
 | 订阅格式 | `layouts/_default/rss.xml`。首页主源 `/index.xml` + 周刊源 `/weekly/index.xml`（在 `content/weekly/_index.md` 里用 `outputs` 单独开）；栏目默认不出 RSS，改 `hugo.toml` 的 `[outputs] section`。每个源最多 20 条全文，见 `[services.rss] limit` |
 | 阅读时长 / 字数 | `layouts/_default/single.html` 的 `.post-meta-main`，按 350 字/分钟算阅读时长 |
+| 文章页的「更新于」 | 同一个 `.post-meta-main`：`lastmod` 比 `date` 晚才显示（比完整时间戳，不是比日期）。`lastmod` 由 `publish.sh` 里的 `scripts/sync-lastmod.py` 自动刷，别手改——手动盖章用 `python3 scripts/sync-lastmod.py --force 某篇.md`，详见「文章页的『更新于』」 |
 | 文章页头部版式 | **日期 / 字数 / 阅读时长在左，分类和标签贴右**（`.post-meta` 用 `justify-content: space-between`，见 `assets/css/style.css`）。这是刻意定的，不是对齐错了。窄屏放不下而换行时，标签会另起一行、从左边开始——那是 `space-between` 对「单独占一行的子项」的正常表现，不用改 |
 | 代码块（红绿灯 + 复制） | 结构在 `layouts/_default/_markup/render-codeblock.html`，样式在 `assets/css/style.css` 的 `.code-block`，复制逻辑在 `assets/js/ui.js` |
 | 面包屑 | `layouts/_default/single.html` 的 `.breadcrumb`（首页 › 分类 › 标题） |
@@ -151,8 +171,10 @@ hugo server -D
 --text-lg: 1.44rem;       /* 页面标题 / h2 */
 --text-xl: 1.73rem;       /* 大标题（< 760px 时收到 1.44rem） */
 --text-2xl: 2.07rem;      /* 文章标题上限（< 760px 时收到 1.73rem） */
---text-reading: 1.125rem; /* 正文 18px（< 600px 时收到 1rem） */
+--text-reading: 1.0625rem; /* 正文 17px（< 760px 时收到 0.9375rem = 15px） */
 ```
+
+上面这段是**摘抄**，真值以 `assets/css/style.css` 顶部为准（以前这里抄着 18px / `< 600px`，和文件里的 17px / `< 760px` 对不上，2026-09 对齐过一次）。
 
 写新样式时**不要再随手写 `font-size: 1.05rem` 这种值**，从上表里挑一档；字距同理，用 `--tracking-title`（中文标题 0.02em）、`--tracking-label`（中文小标签 0.06em）、`--tracking-num`（数字 / 日期 0.04em）。真正的"大字距"只留给纯英文或数字，套在汉字上会显得字被掰开。
 
@@ -199,7 +221,7 @@ hugo server -D
 
 | 断点 | 行为 |
 |---|---|
-| ≥ 1280px | 目录固定在正文右侧，平时收成一列小刻度；悬停展开成标题，点右上角图钉「钉住」后一直展开 |
+| ≥ 1280px | 目录固定在正文右侧，平时收成一列小刻度；悬停展开成标题，点左上角图钉「钉住」后一直展开 |
 | < 1280px | 目录排在正文开头（`.post-toc-inline`），点标题栏可收起；手机上（≤760px）默认收起 |
 | < 760px / < 600px | 导航、卡片、列表、正文字号的移动端微调 |
 
@@ -230,6 +252,8 @@ up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
 1. **`bash ./publish.sh`** —— 依次：
    - 抓取正文图片宽高：`scripts/fetch-image-dims.py` → 写 `data/image_dims.json`
    - 刷新花园页（profile.hulatu.com）的内容快照：`scripts/fetch-profile-content.py` → 写 `sites/profile/data/latest_posts.json` 和 `selected_photos.json`
+   - 补中文标题锚点：`scripts/add-heading-anchors.py`
+   - 刷新改动过文章的 `lastmod`：`scripts/sync-lastmod.py`（文章页的「更新于」靠它）
    - `git add .` + 提交（commit 信息：博客：新增/修改文章）
    - 推 GitHub → `git pull --rebase` 拉取远端 → 再完整推送
 
@@ -295,8 +319,8 @@ curl -s "https://api.github.com/repos/hulatu/hulatu/commits/main/check-runs" \
 
 托管平台相关的两个文件都在 `static/`，部署时会原样发布：
 
-- `_headers`：缓存与安全响应头（CSS/JS 长缓存、图片 30 天、RSS 1 小时、`search-index.json` 1 小时、`sitemap.xml` 1 小时、图标 7 天、`rss.xsl` 的 Content-Type 等）。规则按路径精确匹配，新加文件类型时记得补一条。防嵌套那两条是 `X-Frame-Options: SAMEORIGIN` + `Content-Security-Policy: frame-ancestors 'self'`——**CSP 只写这一个指令**，其余留空才不会限制脚本/样式，不会影响 giscus。注释要写在路径块外面，Cloudflare 只在整行以 `#` 开头时当注释。
-- `_redirects`：旧链接 301 跳转（当前只保留 `/running/ → run.hulatu.com` 这一条）。历史文章路径的 301 已清理，**以后改文章的 slug 或移动文章，想保留旧链接的话在这里补一条 301**，否则旧链接会 404。
+- `_headers`：缓存与安全响应头。**HTML、RSS、搜索索引、sitemap 一律 `max-age=0, must-revalidate`**（每次访问都发条件请求，没变回 304，变了立刻是新内容），**不要给这些加 `stale-while-revalidate`**：它会让 CDN 在回源刷新期间继续发旧页面（最长 24 小时），2026-09-28 那次「发了新文章、首页还是旧的」就是这么来的。这几条 HTML 规则其实和 Cloudflare Pages 的默认值相同（实测不写规则的 `/privacy/` 也是 `max-age=0, must-revalidate`），显式写一遍是为了不依赖平台的默认行为。静态资源长缓存：CSS/JS 1 年 immutable、图片 30 天（`/img/`、`/media/`、`/images/` 三条都要有）、图标 7 天。规则按路径精确匹配，**新加文件类型或新目录时记得补一条**（`/images/` 就是漏了一整年）。防嵌套那两条是 `X-Frame-Options: SAMEORIGIN` + `Content-Security-Policy: frame-ancestors 'self'`——**CSP 只写这一个指令**，其余留空才不会限制脚本/样式，不会影响 giscus。注释要写在路径块外面，Cloudflare 只在整行以 `#` 开头时当注释。**这里的值只在 CDN 没有额外规则时才说了算**：Cloudflare 后台如果给 HTML 单独配了 Cache Rule 或 Browser Cache TTL，会覆盖它（判断方法：`curl -sSI https://hulatu.com/ | grep -i 'cache-control\|age\|cf-cache-status'`，`age` 很大而 `cf-cache-status: HIT` 就是被缓存住了；实测后台那条 Browser Cache TTL = 4 小时会把 `/images/avatar.webp` 这类静态资源的 max-age 改写成 14400）。
+- `_redirects`：旧链接 301 跳转。当前 5 条：`/running/ → run.hulatu.com`，以及两篇「slug 末尾多个句点」的老文章各两种写法（带点 / 不带点，因为 Cloudflare 会先 308 补斜杠）。**以后改文章的 slug 或移动文章，想保留旧链接的话在这里补一条 301**，否则旧链接会 404。
 
 ## 四、性能与 SEO 维护清单
 
@@ -308,7 +332,13 @@ curl -s "https://api.github.com/repos/hulatu/hulatu/commits/main/check-runs" \
 
 然后检查 `public/` 里这几样：
 
-- `sitemap.xml`：应有全部文章、归档、周刊、友链等页面（标签页/分类页/隐私页/`/posts/` 栏目页都已排除，干净构建后 **125 条**）。
+- sitemap 条数：正常值 = 文章总数（归档页那句「共 N 篇」，含周刊）+ 6（首页 / 周刊 / 归档 / 书影音 / 友链 / 关于）。标签页、分类页、隐私页、`/posts/` 栏目页都应被排除。**别在这里写死条数**——每发一篇文章就 +1，写过「125 条」这种数字，必然过期。随时用这条核对：
+
+  ```bash
+  hugo --quiet --destination /tmp/site && grep -c "<loc>" /tmp/site/sitemap.xml
+  ```
+
+  多了 `tags` / `categories` 的 URL，说明 `layouts/sitemap.xml` 的过滤被改坏；少了文章，说明那篇 front matter 里被加了 `noindex: true`。
 - `index.html`：不应包含 `livereload`。
 - `index.xml`：首页主源，最多 20 条全文（干净构建约 270KB）。如果突然涨到 1MB 级别，说明 `[services.rss] limit` 被改回 `-1` 了——订阅端会跟着一起难受。
 - 全站应该只有 3 个 XML：`index.xml`、`weekly/index.xml`、`sitemap.xml`。多出 `posts/index.xml` 说明 `[outputs] section` 又被改回 `["HTML", "RSS"]`。
@@ -334,11 +364,16 @@ find . -name .DS_Store -not -path './.git/*' -delete
 
 | 现象 | 原因 / 处理 |
 |---|---|
-| 新文章发布后首页看不到 | front matter 的 `draft` 还是 `true` |
+| 新文章发布后首页看不到 | 先分清是**构建**问题还是**缓存**问题：用带随机参数的地址打开 `https://hulatu.com/?v=1`——如果新文章在里面，就是缓存（`draft` 之类的数据早就是对的，别白改 front matter）。缓存要看两处：浏览器自己的缓存，和 Cloudflare 那边的 `age`（`curl -sSI https://hulatu.com/ \| grep -i age`）。处理办法见下一条 |
+| 站上确实没更新（带 `?v=` 也是旧的） | 才是真没构建：front matter 的 `draft` 还是 `true`，或 Cloudflare Pages 这次构建失败（去后台看 Deployments 的日志）。 |
+| 首页 / RSS 是旧的，但那篇文章的页面能打开 | CDN 缓存。`static/_headers` 里 HTML 已经改成 `max-age=0, must-revalidate`，如果还是旧的，就是 Cloudflare 后台有额外配置覆盖了源站响应头。**要查三处**：`Caching → Cache Rules`（有没有一条把 HTML 标成 Eligible for cache / 设了长 Edge TTL）、旧版的 `Rules → Page Rules`（历史遗留的 Cache Everything）、以及 `Caching → Configuration` 里的 **Browser Cache TTL**（设成 4 小时就会让浏览器自己把旧首页留 4 小时）。把这几处改成 Respect Existing Headers 或删掉，然后 `Caching → Configuration → Purge Everything`。别指望「等一会儿就好」：这种缓存能挂满 24 小时 |
+| 文章页没有「更新于」 | `lastmod` 没比 `date` 晚。`publish.sh` 会自动刷（`scripts/sync-lastmod.py`），漏刷或想手动盖章用 `python3 scripts/sync-lastmod.py --force content/posts/某篇.md`，再 `./publish.sh` |
 | 文章页没有"相关文章" | 同标签/同分类的文章太少，低于 `[related]` 的 `threshold = 60` |
 | 首页或周刊翻页数量不对 | 检查 `layouts/index.html` / `layouts/weekly/list.html` 里的 `.Paginate` 第二参数（当前为 10） |
 | 改了 slug 后旧链接 404 | 在 `static/_redirects` 补 301 规则 |
 | 手机上目录没出现 | 文章没有二级以上标题，不会生成目录；有目录时它在正文开头的「目录」折叠块里（默认收起） |
 | 哪些页面不被收录 | 隐私政策、分类页、标签页、`/posts/` 栏目页都不进 sitemap、也带 `noindex`。前两类是模板里按类型判断的（`layouts/_default/baseof.html` 的 `$noindex`），后两类靠 front matter 写 `noindex: true`。**加 noindex 就不要再往 robots.txt 加 Disallow**——Disallow 会让爬虫看不到 noindex，反而更糟 |
 | 分页页 `/page/N/` 不被收录 | `robots.txt` 里 `Disallow: /page/`，阻止抓取分页页 |
-| 隐私政策没出现在首页/归档列表 | 首页和归档只列 `posts`、`weekly` 类型的文章，根目录的普通页面不会混入 |
+| 隐私政策没出现在首页/归档列表 | 首页只列 `posts`（周刊有自己的一栏，不在首页），归档列 `posts` + `weekly`；根目录的普通页面（关于 / 隐私政策 / 归档自己）一律不混进这两个列表。**首页和归档的收录范围本来就是不一样的**，别当成 bug 去改 |
+| 某个页面的标题想隐藏 | front matter 里的 `hide_title: true` **只有 `layouts/_default/list.html`（栏目页）会读**，普通页面走各自的布局（`single.html` / `taxonomy.html` / `archive.html` / `about.html`），想隐藏标题得改对应模板。2026-09 之前有几个页面写了这个字段但其实没生效，已经把这些「写了不生效」的字段删掉了 |
+| 归档页「今年写了多少字」和文章页的「约 N 字」 | 现在是同一套口径：都取 Hugo 的 `.WordCount`，都只算文章（`posts` + `weekly`）。以前归档是「去掉空白后数字符」并且把关于 / 隐私 / 归档页也算进去，两边数字对不上，2026-09 统一了 |

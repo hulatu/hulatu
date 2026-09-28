@@ -1,22 +1,21 @@
 ---
 title: "书影音"
 description: "读过的书、看过的影像、循环播放的歌。"
-outputs: ["HTML"]
 ---
 
 只记读完看完的，和真心推荐的。短评求短，感受求真。
 
 ## 书籍 {#shu-ji}
 
-{{< books >}}
+{{< media-grid >}}
 
-{{< book cover="https://img.hulatu.com/post/IgAOvR.webp" title="纳瓦尔宝典" creator="[美] 埃里克·乔根森">}}
+{{< media cover="https://img.hulatu.com/post/IgAOvR.webp" title="纳瓦尔宝典" creator="[美] 埃里克·乔根森">}}
 
-{{< book cover="https://img.hulatu.com/post/PQ7Y6V.webp" title="禅与摩托车维修艺术" creator="罗伯特·M·波西格">}}
+{{< media cover="https://img.hulatu.com/post/PQ7Y6V.webp" title="禅与摩托车维修艺术" creator="罗伯特·M·波西格">}}
 
-{{< book cover="https://img.hulatu.com/post/Yumr4L.webp" title="一只特立独行的猪" creator="王小波">}}
+{{< media cover="https://img.hulatu.com/post/Yumr4L.webp" title="一只特立独行的猪" creator="王小波">}}
 
-{{< /books >}}
+{{< /media-grid >}}
 
 ## 影视 {#ying-shi}
 

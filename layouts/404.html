@@ -11,7 +11,8 @@
 <section class="notfound-list">
   <h2 class="related-title">最近更新</h2>
   <div class="post-list">
-    {{ range first 3 (where site.RegularPages "Type" "posts") }}
+    {{- /* 「最近更新」按整站内容算，周刊也是内容，不该漏 */ -}}
+    {{ range first 3 (where site.RegularPages "Type" "in" (slice "posts" "weekly")) }}
       {{ partial "post-row.html" . }}
     {{ end }}
   </div>

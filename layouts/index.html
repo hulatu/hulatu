@@ -1,6 +1,8 @@
 {{ define "main" }}
 {{ $posts := where site.RegularPages "Type" "posts" }}
-{{ $paginator := .Paginate $posts 10 }}
+{{- /* 每页几篇不再写死在模板里：不传第二个参数，Hugo 就用 hugo.toml 的
+       [pagination] pagerSize（当前 10）。改每页条数只需要改一处。 */ -}}
+{{ $paginator := .Paginate $posts }}
 
 <header class="site-hero">
   <h1 class="hero-line">总得留下点什么吧</h1>
@@ -8,10 +10,7 @@
 
 <section id="post-list" class="post-list">
   {{ range $paginator.Pages }}
-    <a class="post-row post-row-home" href="{{ .Permalink }}">
-      <span class="post-row-title">{{ .Title }}</span>
-      <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-    </a>
+    {{ partial "post-row-compact.html" . }}
   {{ else }}
     <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
   {{ end }}

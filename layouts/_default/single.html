@@ -4,9 +4,12 @@
 {{- /* Hugo 的目录自带 `<nav id="TableOfContents">`，页面里有两份（右侧刻度栏 + 正文开头），
        这里给正文那份换个 id，避免重复 id 的无效 HTML。 */ -}}
 {{- $tocInline := replaceRE `id="TableOfContents"` `id="TableOfContentsInline"` $toc -}}
+{{- /* 是不是「文章」：文章才有发布/更新日期、分类标签、相关文章、打赏和评论。
+       周刊和普通文章都算（它们共用一套文章版式），根目录的普通页面不算。 */ -}}
+{{- $isArticle := and .IsPage (in (slice "posts" "weekly") .Type) -}}
 {{ $isWeekly := eq .Type "weekly" }}
 {{- $relatedPosts := slice -}}
-{{- if in (slice "posts" "weekly") .Type -}}
+{{- if $isArticle -}}
   {{- $relatedCandidates := where (site.RegularPages.Related .) "Type" "in" (slice "posts" "weekly") -}}
   {{- $relatedPosts = first 3 (where $relatedCandidates "Permalink" "!=" .Permalink) -}}
 {{- end -}}
@@ -30,16 +33,27 @@
       {{- end -}}
     {{ end }}
     <h1 class="post-title">{{ .Title }}</h1>
+    {{- /* 文章才显示「发布于 / 更新于 / 字数 / 阅读时长」这行元信息。
+           根目录那类普通页面（隐私政策等）也走这个模板，但它们不是文章，
+           挂一行「发布于 2026-09-19 · 读 4 分钟」只会让人困惑。 */ -}}
+    {{ if $isArticle }}
     <div class="post-meta">
       <span class="post-meta-main">
         {{- $pubDay := .Date.Format "2006-01-02" -}}
         {{- $modDay := .Lastmod.Format "2006-01-02" -}}
+        {{- /* 「更新于」只在 lastmod 晚于 date 时出现。比的是完整时间戳，所以
+              当天写完、当天又改一版也会显示；那种情况下再补上时分，免得出现
+              「发布于 2026-09-28 · 更新于 2026-09-28」这种同一天、看着像没更新的写法。
+              lastmod 不会自己变，靠 publish.sh 跑 scripts/sync-lastmod.py 刷新：它只动
+              「这次真正改动过」的文件，没改过的老文章不会无缘无故多出一行。 */ -}}
+        {{- $modLabel := $modDay -}}
+        {{- if eq $modDay $pubDay -}}{{- $modLabel = .Lastmod.Format "2006-01-02 15:04" -}}{{- end -}}
         {{- $readMinutes := div (add .WordCount 349) 350 -}}
         {{- if lt $readMinutes 1 }}{{ $readMinutes = 1 }}{{ end -}}
         <time datetime="{{ $pubDay }}">发布于 {{ $pubDay }}</time>
-        {{- if ne $pubDay $modDay }}
+        {{- if gt .Lastmod.Unix .Date.Unix }}
         <span class="post-meta-sep">·</span>
-        <time datetime="{{ $modDay }}">更新于 {{ $modDay }}</time>
+        <time datetime="{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}">更新于 {{ $modLabel }}</time>
         {{- end }}
         <span class="post-meta-sep">·</span>
         <span>约 {{ .WordCount }} 字</span>
@@ -59,12 +73,14 @@
         {{ end }}
       </div>
     </div>
+    {{ end }}
   </header>
 
   {{ if $hasToc }}
   <div class="post-rail">
     {{- /* .post-rail 是铺满「顶栏以下」的定位容器（本身不吃点击），里面的 .post-toc-wrap
-           刚好裹住目录本体：纵向居中靠外层 flex 做，图钉挂在 wrap 上、浮在目录上方。 */ -}}
+           纵排「图钉 + 目录本体」两行：整块居中靠外层 flex 做，图钉是 wrap 的第一行
+           （见 style.css 里的 .post-toc-pin），钉在目录框左上角。 */ -}}
     <div class="post-toc-wrap">
       {{- /* 图钉：钉住后目录保持展开，不用一直把鼠标停在上面（参考 sspai 文章页的目录） */ -}}
       <button type="button" class="post-toc-pin" id="toc-pin" aria-pressed="false" aria-label="钉住目录" title="钉住目录（保持展开）">
@@ -101,16 +117,13 @@
 
 <div class="post-end" aria-hidden="true"><span>完</span></div>
 
-{{ if in (slice "posts" "weekly") .Type }}
+{{ if $isArticle }}
   {{- if $relatedPosts -}}
   <section class="related-posts">
     <h2 class="related-title">相关文章</h2>
     <div class="post-list">
       {{ range $relatedPosts }}
-        <a class="post-row post-row-home" href="{{ .Permalink }}">
-          <span class="post-row-title">{{ .Title }}</span>
-          <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-        </a>
+        {{ partial "post-row-compact.html" . }}
       {{ end }}
     </div>
   </section>

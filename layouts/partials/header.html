@@ -17,7 +17,17 @@
     <nav class="nav-links" id="site-nav" aria-label="主导航">
       {{ range site.Menus.main }}
         {{- $menuURL := .URL | relURL -}}
-        <a href="{{ $menuURL }}"{{ if eq $page.RelPermalink $menuURL }} class="is-active" aria-current="page"{{ end }}>{{ .Name }}</a>
+        {{- /* 高亮当前栏目：栏目页本身、该栏目下的子页面，以及「文章类型」对应的栏目。
+             最后一条是必需的：周刊文章的 URL 是 /posts/2026/… 这种（见 hugo.toml 的
+             [permalinks]），只比路径永远匹配不到 /weekly/，得靠页面类型兜一下。
+               菜单项写的是 /archive/ 这种带尾斜杠的路径，用前缀匹配即可；
+               根路径 "/" 例外（任何页面都以前缀 / 开头），只做全等比较。 */ -}}
+        {{- $section := strings.TrimSuffix "/" (strings.TrimPrefix "/" $menuURL) -}}
+        {{- $isActive := or
+              (eq $page.RelPermalink $menuURL)
+              (and (ne $menuURL "/") (hasPrefix $page.RelPermalink $menuURL))
+              (and (ne $section "") (eq $page.Type $section)) -}}
+        <a href="{{ $menuURL }}"{{ if $isActive }} class="is-active" aria-current="page"{{ end }}>{{ .Name }}</a>
       {{ end }}
     </nav>
 

@@ -1,53 +1,34 @@
 {{ define "main" }}
 
 {{ $posts := where site.RegularPages "Type" "in" (slice "posts" "weekly") }}
-{{- $yearPages := where site.RegularPages "Date.Year" now.Year -}}
-{{- $chars := 0 -}}
-{{- range $yearPages }}{{ $chars = add $chars (strings.RuneCount (replaceRE "[[:space:]]+" "" .Plain)) }}{{ end -}}
+{{- /* 「今年写了多少字」和文章页上的「约 N 字」用同一个口径（Hugo 的 .WordCount，
+       hasCJKLanguage 打开后中文按字计），而且只算文章（posts + weekly）：
+       以前这里数的是所有 RegularPages（连「关于」「隐私政策」「归档」这几个页面也算进去），
+       还用「去掉空白后数 rune」另一套算法，结果和文章页上的字数字对不上。 */ -}}
+{{- $yearChars := 0 -}}
+{{- range where $posts "Date.Year" now.Year }}{{ $yearChars = add $yearChars .WordCount }}{{ end -}}
 {{ $currentYear := now.Format "2006" }}
-{{ $years := slice }}
-{{ range $posts }}
-  {{ $year := .Date.Format "2006" }}
-  {{ if not (in $years $year) }}
-    {{ $years = $years | append $year }}
-  {{ end }}
-{{ end }}
 
 <h1 class="page-title">{{ .Title }}</h1>
-<p class="archive-total">共 <strong>{{ len $posts }}</strong> 篇文章 · 今年写了 <strong>{{ lang.FormatNumber 0 $chars }}</strong> 字</p>
+<p class="archive-total">共 <strong>{{ len $posts }}</strong> 篇文章 · 今年写了 <strong>{{ lang.FormatNumber 0 $yearChars }}</strong> 字</p>
 
 <section class="archive-timeline">
-{{ range $years }}
-  {{ $year := . }}
-  {{ $yearPosts := slice }}
-  {{ range $posts }}
-    {{ if eq (.Date.Format "2006") $year }}{{ $yearPosts = $yearPosts | append . }}{{ end }}
-  {{ end }}
-
-  {{ $months := slice }}
-  {{ range $yearPosts }}
-    {{ $m := .Date.Format "1" }}
-    {{ if not (in $months $m) }}{{ $months = $months | append $m }}{{ end }}
-  {{ end }}
-
+{{- /* GroupByDate 直接给出「年 → 月 → 文章」的树，而且默认就是新的在前，
+       不用像以前那样对每一层再遍历一遍全量文章做筛选。 */ -}}
+{{ range $posts.GroupByDate "2006" }}
+  {{- $yearKey := .Key -}}
   <details class="archive-year-block" open>
-    <summary class="archive-year">{{ $year }} <span class="archive-count">{{ len $yearPosts }} 篇</span></summary>
+    <summary class="archive-year">{{ $yearKey }} <span class="archive-count">{{ len .Pages }} 篇</span></summary>
 
     <div class="archive-year-list">
-      {{ range $months }}
-        {{ $month := . }}
-        {{ $monthPosts := slice }}
-        {{ range $yearPosts }}
-          {{ if eq (.Date.Format "1") $month }}{{ $monthPosts = $monthPosts | append . }}{{ end }}
-        {{ end }}
-
-        <details class="archive-month" {{ if eq $year $currentYear }}open{{ end }}>
+      {{ range .Pages.GroupByDate "1" }}
+        <details class="archive-month" {{ if eq $yearKey $currentYear }}open{{ end }}>
           <summary>
-            <span class="archive-month-label">{{ $month }}月</span>
-            <span class="archive-count">{{ len $monthPosts }} 篇</span>
+            <span class="archive-month-label">{{ .Key }}月</span>
+            <span class="archive-count">{{ len .Pages }} 篇</span>
           </summary>
           <div class="archive-month-list">
-            {{ range $monthPosts }}
+            {{ range .Pages }}
               <a class="archive-item" href="{{ .Permalink }}">
                 <time class="archive-item-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01-02" }}</time>
                 <span class="archive-item-title">{{ .Title }}</span>

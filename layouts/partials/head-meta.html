@@ -11,6 +11,9 @@
 {{- end -}}
 {{- $isArticle := and .IsPage (in (slice "posts" "weekly") .Type) -}}
 {{- $defaultShare := site.Params.assets.shareImage | default "/images/share.webp" -}}
+{{- /* cover 是「给某一篇单独指定分享图」的入口，目前没有文章在用（全站 front matter 里
+       没有 cover 字段），属于预留能力：要用的时候在文章 front matter 写
+       cover: /images/xxx.webp 或远程地址即可。 */ -}}
 {{- $shareImage := .Params.cover | default $defaultShare -}}
 {{- $shareImageAbs := $shareImage | absURL -}}
 {{- /* 分享图的宽高：只有用站内默认图时读得到（front matter 的 cover 是远程地址）。
@@ -80,13 +83,14 @@
   -}}
   <script type="application/ld+json">{{ jsonify $ld | safeJS }}</script>
 {{- else if eq .RelPermalink "/about/" -}}
+  {{- /* jobTitle 的默认值和 layouts/_default/about.html 保持一致，免得两处默认值打架 */ -}}
   {{- $person := dict
     "@context" "https://schema.org"
     "@type" "Person"
     "name" site.Params.author
     "url" site.BaseURL
     "description" site.Params.description
-    "jobTitle" (.Params.about.role | default "研究生")
+    "jobTitle" (.Params.about.role | default "食品领域研究生")
     "homeLocation" (.Params.about.location | default "郑州")
   -}}
   <script type="application/ld+json">{{ jsonify $person | safeJS }}</script>

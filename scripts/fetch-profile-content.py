@@ -16,26 +16,24 @@ import re
 import unicodedata
 from pathlib import Path
 
+import _frontmatter
+
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT_ROOT = ROOT / "content"
 SHOT_CONTENT_ROOT = ROOT / "sites" / "shot" / "content" / "shots"
 PROFILE_DATA = ROOT / "sites" / "profile" / "data"
 
+# front matter 的读取统一走 scripts/_frontmatter.py（和 sync-lastmod.py 共用一份）。
+# 注意 image 这个字段：shot 的每条随手拍都靠它取图，以前这里的字段清单里漏了它，
+# `_shot_item()` 因此永远拿到 None，selected_photos.json 一直是空数组也不报错。
+FRONT_MATTER_KEYS = ("title", "date", "slug", "draft", "image")
+
 
 def _front_matter(text: str) -> tuple[dict, str]:
-    if not text.startswith("---\n"):
-        return {}, text
-    match = re.match(r"^---\n(.*?)\n---\n?(.*)$", text, re.S)
-    if not match:
-        return {}, text
-    fm_text, body = match.groups()
-    fm: dict = {}
-    for key in ("title", "date", "slug", "draft"):
-        m = re.search(rf"^{key}:\s*[\"']?(.*?)[\"']?\s*$", fm_text, re.M)
-        if m:
-            fm[key] = m.group(1).strip()
-    return fm, body
+    fm = _frontmatter.fields(text, FRONT_MATTER_KEYS)
+    parts = _frontmatter.split(text)
+    return fm, (parts[1] if parts else text)
 
 
 def _clean_summary(text: str, limit: int = 88) -> str:

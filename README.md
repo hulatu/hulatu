@@ -1,176 +1,136 @@
 # 我的博客（Hugo）
 
-一个基于 [Hugo](https://gohugo.io/) 手搓的极简个人博客模板，不依赖任何第三方主题，方便你按自己的想法随意修改。
+`hulatu.com` 的源码：一个基于 [Hugo](https://gohugo.io/) 手写的极简个人博客，不用第三方主题，外加四个独立子站（`run.` / `shot.` / `share.` / `profile.hulatu.com`）。
 
-## ✨ 功能特点
+> **这份 README 只讲「怎么跑起来」。** 想改站上的具体东西（版式、缓存、脚本、部署、常见故障），看 [MAINTENANCE.md](MAINTENANCE.md)——那份才是维护手册，两边冲突时以它为准。
 
-- **导航栏**：关于 / 归档 / 分类 / 周刊 + RSS
-- **页脚**：版权 / 花园、友链、开往、隐私政策、邮箱 / CC 协议
-- **首页**：按时间倒序每页 10 篇，底部左右箭头翻页
-- **文章页**：目录（宽屏右侧刻度栏，悬停或「钉住」展开 / 窗口不够宽时排在正文开头，手机上默认收起）、相关文章、上一篇/下一篇、打赏、评论
-- **评论系统**：接入 [giscus](https://giscus.app)（基于 GitHub Discussions），跟随系统深浅色主题
-- **站内预取**：用浏览器原生的 Speculation Rules 预取同源链接，点击后更快打开
-- **深色 / 浅色模式**：自动跟随系统，无需手动切换
-- **归档页**：按年份、月份折叠分组展示所有文章
-- **分类 / 标签**：自动生成总览和文章列表
-- **周刊**：独立栏目 + 简单 RSS 订阅 + 最近 10 期列表 + 专属 RSS
-- **订阅**：RSS 2.0，含主源与周刊专线
-- **延伸子站**：`run.hulatu.com`（跑步数据）、`profile.hulatu.com`（个人主页）已上线；`shot.hulatu.com`、`share.hulatu.com` 暂未启用，源码在 `sites/`
-- **SEO**：canonical、Open Graph、Twitter Card、JSON-LD、sitemap、robots、旧链接 301 跳转
+## 功能特点
 
-## 📁 目录结构
+- **导航栏**：关于 / 归档 / 周刊 / 分类；右侧是搜索、深浅色切换、RSS 三个图标按钮
+- **首页**：按时间倒序每页 10 篇（`hugo.toml` 的 `[pagination] pagerSize`），底部箭头翻页
+- **文章页**：目录（宽屏右侧刻度栏，可钉住；窄屏排在正文开头）、相关文章、上一篇 / 下一篇、打赏、评论、「更新于」
+- **周更栏目**：周刊独立成栏（`/weekly/`），正文走 `/posts/年/月/日/slug/`，另有单独的 RSS
+- **搜索**：构建期生成 `search-index.json`，纯前端搜索（`/` 或 `⌘K` 打开）
+- **深浅色**：默认跟随系统，右上角按钮可手动切换（刷新后回到跟随系统，不记忆）
+- **归档**：按年、月折叠分组，统计总篇数和今年写字数
+- **分类 / 标签**：自动生成总览和文章列表页
+- **订阅**：RSS 2.0 全文输出，主源 `/index.xml` + 周刊专线 `/weekly/index.xml`，每源最多 20 条
+- **评论**：giscus（GitHub Discussions），按需加载
+- **站内预取**：浏览器原生 Speculation Rules，点链接前先把下一页渲染好
+- **SEO**：canonical、Open Graph、Twitter Card、JSON-LD、sitemap、robots、旧链接 301
+- **子站**：`run`（跑步数据）、`shot`（随手拍）、`share`（好物分享）、`profile`（个人主页），源码在 `sites/`，四个都已上线，配置见 [sites/README.md](sites/README.md)
+
+## 目录结构
 
 ```
 blog/
-├── hugo.toml                  # 站点配置文件
+├── hugo.toml                   # 主站配置（菜单、分页、订阅条数、评论、打赏…）
 ├── content/
-│   ├── about.md                # 「关于」页面
-│   ├── archive.md              # 「归档」页面
-│   ├── privacy.md              # 「隐私政策」页面
-│   ├── categories/             # 「分类」页面（_index.md）
-│   ├── tags/                   # 「标签」页面（_index.md）
-│   ├── media/                  # 「书影音」页面
 │   ├── posts/                  # 普通文章
-│   └── weekly/                 # 周刊文章
-├── layouts/                    # 页面模板
-│   ├── _default/
-│   ├── partials/                # 导航栏、页脚等公共模板
-│   ├── shortcodes/              # media / media-grid 等短代码
+│   ├── weekly/                 # 周刊（front matter 里额外开了 RSS）
+│   ├── about.md                # 「关于」页（版式走 layouts/_default/about.html）
+│   ├── archive.md              # 「归档」页
+│   ├── privacy.md              # 「隐私政策」（noindex）
+│   ├── friends/ media/         # 友链、书影音
+│   ├── categories/ tags/       # 分类、标签总览页
+│   └── posts/_index.md         # 「文章」栏目页（noindex，站内没有入口）
+├── layouts/                    # 模板：_default / partials / shortcodes
 ├── assets/
-│   ├── css/style.css            # 全站样式
-│   └── js/                      # 主题、目录等脚本
-├── scripts/                     # Garmin 同步、正文图片尺寸抓取、中文标题锚点补全等脚本
+│   ├── css/style.css           # 全站样式（设计令牌在文件顶部）
+│   └── js/                     # theme / ui / toc / lightbox / search / giscus
+├── scripts/                    # 发布前脚本、Garmin 同步、子站构建
 ├── data/
-│   ├── runs.json                # 跑步数据（唯一一份；run.hulatu.com 挂载读取，不复制）
-│   └── image_dims.json          # 正文远程图片的宽高缓存（避免图片加载时页面跳动）
-├── static/
-│   ├── images/                  # 头像、分享图
-│   ├── img/                     # 本地图片资源
-│   ├── js/                      # 本地脚本
-├── archetypes/posts.md         # 新建文章的默认模板
-└── hugo.toml                   # 站点配置
+│   ├── runs.json               # 跑步数据（唯一一份，run 子站挂载读取）
+│   └── image_dims.json         # 正文远程图片的宽高缓存
+├── static/                     # 原样发布的文件：_headers / _redirects / 图标 / rss.xsl …
+├── sites/                      # 四个子站（各自独立的 Hugo 站点）
+├── archetypes/                 # hugo new 用的模板（posts / weekly）
+├── publish.sh                  # 发布：刷新数据 → 提交 → 推 GitHub
+└── deploy.sh                   # 只在本地干净构建到 public/，不部署
 ```
 
-> 详细维护说明见 [MAINTENANCE.md](MAINTENANCE.md)。
+## 本地运行
 
-## 🚀 本地运行
-
-### 1. 安装 Hugo（Extended 版本）
+### 1. 装 Hugo（Extended，0.166.0+）
 
 - macOS：`brew install hugo`
-- Windows：`winget install Hugo.Hugo.Extended` 或 `choco install hugo-extended`
-- Linux：参考 [官方安装文档](https://gohugo.io/installation/)
-
-安装完成后确认版本：
+- Windows：`winget install Hugo.Hugo.Extended`
+- Linux：参考[官方安装文档](https://gohugo.io/installation/)
 
 ```bash
-hugo version
+hugo version   # 期望：hugo v0.166.0+extended ...
 ```
 
-输出应该长这样，**版本号和 `extended` 两个都不能少**：
+**Extended 是硬要求**：`layouts/partials/head-meta.html` 要用 `imageConfig` 读 `static/images/share.webp` 的宽高，标准版 Hugo 解不了 WebP。
 
-```
-hugo v0.166.0+extended ...
-```
+版本要在三处一致，否则会出现「本地正常、线上构建失败」：本机、`.github/workflows/build.yml` 的 `hugo-version`、Cloudflare Pages 五个项目的环境变量 `HUGO_VERSION`。校验逻辑在 `layouts/partials/check-hugo-version.html`：版本不够直接失败并打印当前版本，缺 extended 只警告（Cloudflare 的 `HUGO_VERSION` 只能填版本号）。
 
-> 注意一定要装 **Extended 版本**（自带图片处理、Sass 编译等能力）。本站是硬依赖：`layouts/partials/head-meta.html` 要用 `imageConfig` 读 `static/images/share.webp` 的宽高，标准版 Hugo 解不了 WebP。
-
-**期望版本：0.166.0 或更高。** 三处必须一致，否则会出现「本机构建正常、线上构建失败」：
-
-| 在哪 | 怎么定版本 |
-|---|---|
-| 本机 | `brew upgrade hugo` 升到 0.166.0+ |
-| GitHub Actions | `.github/workflows/build.yml` 里的 `hugo-version` |
-| Cloudflare Pages | 五个项目（主站 + 四个子站）**都要**在 Settings → Environment variables 里加 `HUGO_VERSION=0.166.0` |
-
-版本不够时构建会**直接失败并打印当前版本**（检查逻辑在 `layouts/partials/check-hugo-version.html`，因为 `hugo.toml` 里的 `[module.hugoVersion]` 在项目自身配置里只会打 WARN、拦不住）。extended 缺失只打一条 WARN 不拦构建——Cloudflare 的 `HUGO_VERSION` 只能填版本号、没法指定 extended，硬拦会误伤线上；真用到 extended 功能时 Hugo 自己会报错。
-
-> ⚠️ **顺序：先设 Cloudflare 环境变量，再推代码。** Cloudflare 的 build image 默认装的是 Hugo **0.147.7**（v3 镜像，官方文档「Build image」页可查），比你本机低一大截——也就是说在你设 `HUGO_VERSION` 之前，线上和本地一直跑在两个版本上。设好之前推代码，线上构建会因版本检查失败；站点**不会掉线**（Cloudflare 保留上一次成功的部署），但内容会停在那一次。
-
-### 2. 启动本地预览
-
-在项目根目录下运行：
+### 2. 预览
 
 ```bash
-hugo server -D
+hugo server -D     # -D 连草稿一起显示，改文件自动刷新
 ```
 
-浏览器打开 `http://localhost:1313` 即可实时预览，修改文件会自动刷新（`-D` 表示同时显示草稿文章）。
+只想构建一份干净的产物看看（不部署）：
+
+```bash
+./deploy.sh        # 干净构建到 public/，并检查产物里没有 livereload 调试脚本
+```
 
 ### 3. 新建一篇文章
 
 ```bash
-hugo new content/posts/my-first-post.md
+hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周刊-第N期.md
 ```
 
-编辑生成的 Markdown 文件，把开头的 `draft: true` 删掉或改成 `false` 即可正式发布。
+按 `archetypes/posts.md` 里的清单填 front matter，写完把 `draft` 改成 `false` 即可发布。`date` 决定 URL（`/posts/年/月/日/slug/`），`slug` 决定 URL 的最后一段；`lastmod` 不用手改，`publish.sh` 会自动刷（文章页的「更新于」靠它）。
 
-## ⚙️ 常用自定义
+## 常用自定义
 
 | 想改什么 | 去哪改 |
 |---|---|
-| 博客名称 / 描述 / 作者 | `hugo.toml` 顶部的 `title`、`params` |
-| 导航栏链接 | `hugo.toml` 的 `[[menu.main]]` |
-| 页脚信息 | `layouts/partials/footer.html` |
-| 颜色 / 字体 / 间距 | `assets/css/style.css` 顶部的 CSS 变量 |
-| 正文 / 导航栏宽度 | `assets/css/style.css` 顶部的 `--content-width`（当前 680px，页头、正文、列表页共用同一个值，对齐 sspai 文章页） |
-| 网站图标（favicon） | 站点图标和导航 Logo 统一使用 `static/logo.svg`，iOS 图标使用 `static/apple-touch-icon.png` |
-| 个人头像 | 把图片放进 `static/images/`，然后在 `hugo.toml` 的 `params.avatar` 填 `/images/文件名.jpg`；不填则自动显示首字母头像 |
-| 相关文章数量与匹配 | `hugo.toml` 里 `[related]` 段 |
-| 目录显示断点 | `assets/css/style.css` 里搜 `1280px`（右侧刻度栏）/ `1279.98px`（正文开头那块目录）媒体查询 |
-| 周刊期号徽章 | 在周刊的 front matter 里写 `issue: 22`（不填就不显示徽章） |
+| 博客名 / 描述 / 作者 / 邮箱 | `hugo.toml` 顶部与 `[params]` |
+| 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
+| 页脚链接 | `layouts/partials/footer.html` |
+| 每页几篇 | `hugo.toml` 的 `[pagination] pagerSize`（模板里的 `.Paginate` 故意不传第二个参数） |
+| 颜色 / 字体 / 间距 | `assets/css/style.css` 顶部的 CSS 变量；**五个站要一起改**，见 [sites/README.md](sites/README.md) 的颜色约定 |
+| 正文 / 页头宽度 | `assets/css/style.css` 的 `--content-width`（当前 680px，五个站同宽） |
+| 头像 | 图片放 `static/images/`，路径填 `hugo.toml` 的 `params.avatar`；文件不在就退回「胡」字印章 |
+| 图标 | `static/logo.svg`、`static/favicon.svg`、`static/apple-touch-icon.png`、`icon-192/512.png` |
+| 目录显示断点 | `assets/css/style.css` 里搜 `1280px`（右侧刻度栏）和 `1279.98px`（正文开头那块） |
+| 周刊期号徽章 | 周刊 front matter 的 `issue: 23`（不填不显示徽章） |
+| 打赏 | `hugo.toml` 的 `[params.donate]`（留空则整块不显示） |
+| 评论 | `hugo.toml` 的 `[params.giscus]`；单篇用 `comments: false` 关掉 |
+| 统计 | `hugo.toml` 的 `[params.analytics]`（当前只有 GoatCounter） |
+| 分享图 | `hugo.toml` 的 `[params.assets] shareImage`；想给某篇单独指定，在它的 front matter 写 `cover`（预留能力，目前没有文章在用） |
 
-## 💬 接入 giscus 评论系统
+## 接入 giscus 评论
 
-giscus 是基于 GitHub Discussions 的免费评论系统，不需要自己搭后端。接入步骤：
+giscus 基于 GitHub Discussions，不用自建后端：
 
-1. 确保你的仓库是 **公开（public）** 仓库
-2. 打开仓库 **Settings → General → Features**，勾选开启 **Discussions**
-3. 打开 [https://giscus.app](https://giscus.app)，按页面提示填入你的仓库地址，它会自动检测配置是否正确
-4. 页面下方会生成一段 `<script>` 代码，把其中这几个值抄到 `hugo.toml` 的 `[params.giscus]` 里：
+1. 仓库设为 **public**
+2. 仓库 **Settings → General → Features** 里开启 **Discussions**
+3. 打开 [giscus.app](https://giscus.app)，填入仓库地址，按提示选分类
+4. 它生成的那段 `<script>` 里，把 `data-repo`、`data-repo-id`、`data-category`、`data-category-id` 抄进 `hugo.toml` 的 `[params.giscus]`
+5. 重新构建：文章页正文下方会出现评论区（`repo` 留空则整块不显示，关于 / 归档这类页面也不会显示）
 
-```toml
-[params.giscus]
-  repo = "你的用户名/仓库名"
-  repoId = "giscus.app 给你的 data-repo-id"
-  category = "giscus.app 里选的分类，比如 Announcements"
-  categoryId = "giscus.app 给你的 data-category-id"
-  mapping = "pathname"
-  reactions = true
-  inputPosition = "bottom"
-  lang = "zh-CN"
-```
+## 发布
 
-5. 保存后重新构建，评论区就会出现在每篇文章正文下方（`repo` 留空则不显示评论区，「关于」「归档」等非文章页面也不会显示）。
+线上是 **Cloudflare Pages 的 Git 集成**在构建：push 到 GitHub → 五个 Pages 项目（主站 + 四个子站）各自构建发布。本机不装 wrangler，也不手动上传。
 
-## 🌐 部署
-
-本仓库不包含 CI 工作流，部署由你在托管平台（如 GitHub Pages / Cloudflare Pages / Vercel）侧配置：把仓库关联到平台后，每次 `git push` 会自动触发构建发布。
-
-### 之后如何更新博客
+日常一条命令：
 
 ```bash
-hugo new content/posts/文章名.md
-# 编辑文章内容...
-git add .
-git commit -m "新增文章：文章标题"
-git push
+up            # 或 cd ~/Blog && ./publish.sh
 ```
 
-push 之后托管平台会自动重新构建并发布，通常几分钟内就能在线上看到更新。
+`publish.sh` 在提交前会自动做四件事（都是失败不阻断发布）：抓正文远程图尺寸、刷新花园页内容快照、给新写的中文标题补 `{#pinyin}` 锚点、刷新改动过文章的 `lastmod`；然后提交、推 GitHub、拉取远端、再推一次。
 
-> 提示：本地 `hugo server` 预览时会把 livereload 调试脚本写进 `public/`（仅本地影响，
-> 托管平台是 push 后独立构建的，不会带上）。如果你需要手动上传 `public/` 部署，
-> 先停掉 `hugo server`，再运行 `./deploy.sh`（会做一次干净的生产构建并自检）。
+CI（`.github/workflows/`）：
 
-### 关于 baseURL
+- `build.yml`：push / PR 时用同一个 Hugo 版本构建主站 + 四个子站，并检查周刊的 `issue` 字段、中文标题锚点，把「本地没事、平台构建失败」挡在推送前。
+- `sync-garmin.yml`：每天 22:00（Asia/Taipei）拉一次跑步数据，写进 `data/runs.json`。
 
-`hugo.toml` 里的 `baseURL` 建议直接改成你最终的访问地址（比如 `https://yourname.github.io/` 或你自己绑定的域名），这样生成的链接（RSS、canonical 等）才是正确的。
+## License
 
-### 绑定你自己的域名（可选）
-
-在托管平台的域名设置里填上你的域名，然后去域名服务商后台把 DNS 指向托管平台提供的地址，等待生效即可；HTTPS 证书一般由托管平台自动签发。
-
-## 📄 License
-
-内容部分默认采用 CC BY-NC-SA 4.0，可以在 `hugo.toml` 的 `copyright` 字段自行修改；代码部分你可以自由使用和修改。
+文章内容采用 CC BY-NC-SA 4.0（`hugo.toml` 的 `copyright`），代码部分随意取用。

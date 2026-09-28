@@ -48,6 +48,12 @@ if [ -n "$PYTHON_BIN" ]; then
   if ! "$PYTHON_BIN" scripts/add-heading-anchors.py; then
     echo "    !! 锚点补全失败，这次新加的中文标题可能还是 #%e4... 这种链接（不影响发布）" >&2
   fi
+  # 把这次改动过的文章的 front matter lastmod 刷成当前时间：文章页的「更新于」
+  #     只在 lastmod 比 date 晚时才显示，靠人手改这个字段一定会忘。
+  #     放在 add-heading-anchors 之后：锚点补全本身也算改动了正文，一起算进这次更新。
+  if ! "$PYTHON_BIN" scripts/sync-lastmod.py; then
+    echo "    !! 刷新 lastmod 失败，这次改过的文章页可能不显示「更新于」（不影响发布）" >&2
+  fi
 else
   echo "    !! 跳过图片尺寸抓取：没找到可用的 python3" >&2
 fi

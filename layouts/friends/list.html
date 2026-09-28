@@ -4,6 +4,10 @@
     <h1 class="page-title">{{ .Title }}</h1>
   </header>
 
+  {{- /* front matter 里的 intro 以前没有任何模板用到（写了等于没写），这里补上输出。
+         复用 .page-intro 的样式，不新增 CSS。 */ -}}
+  {{ with .Params.intro }}<p class="page-intro">{{ . }}</p>{{ end }}
+
   <p class="friends-exchange"><a href="mailto:{{ site.Params.email }}?subject=友链申请">交换友链</a></p>
 
   {{ with .Params.friends }}

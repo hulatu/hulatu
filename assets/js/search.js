@@ -13,7 +13,9 @@
   var loaded = false;
   var results = [];
   var active = -1;
-  var INDEX_URL = btn.getAttribute("data-index") || "/index.json";
+  var lastTrigger = null;
+  // 兜底路径要和 Hugo 实际输出的文件名一致（outputFormats.SearchIndex 的 baseName）
+  var INDEX_URL = btn.getAttribute("data-index") || "/search-index.json";
 
   function ensure() {
     if (panel) return;
@@ -68,8 +70,9 @@
       releaseTrap();
       releaseTrap = null;
     }
-    // 焦点还给搜索按钮：键盘用户按 Esc 之后能接着用，而不是被扔回 body
-    btn.focus();
+    // 焦点还给「打开搜索的那个按钮」：404 页上可能是正文里的按钮，不一定在页头
+    (lastTrigger || btn).focus();
+    lastTrigger = null;
   }
 
   function toggle() {
@@ -152,11 +155,14 @@
   }
 
   Array.prototype.forEach.call(document.querySelectorAll("#search-btn, [data-open-search]"), function (t) {
-    t.addEventListener("click", toggle);
+    t.addEventListener("click", function () {
+      lastTrigger = t;
+      toggle();
+    });
   });
 
   document.addEventListener("keydown", function (e) {
-    if (e.key === "/" && !isTyping(e.target)) { e.preventDefault(); open(); }
-    else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); toggle(); }
+    if (e.key === "/" && !isTyping(e.target)) { e.preventDefault(); lastTrigger = btn; open(); }
+    else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); lastTrigger = btn; toggle(); }
   });
 })();

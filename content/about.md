@@ -1,6 +1,5 @@
 ---
 title: "关于"
-hide_title: true
 date: 2026-08-01
 layout: "about"
 about:

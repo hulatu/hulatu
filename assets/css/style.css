@@ -48,7 +48,7 @@
   --radius-card: 22px;
   --radius-row: 14px;
   --radius-pill: 999px;
-  /* 字号尺度：16px 基准 × 1.2 比例；正文单独占一档（18px），不参与 UI 尺度 */
+  /* 字号尺度：16px 基准 × 1.2 比例；正文单独占一档（17px），不参与 UI 尺度 */
   --text-2xs: 0.72rem;      /* ≈11.5px 角标 / 极小元信息 */
   --text-xs: 0.86rem;       /* ≈13.8px 元信息 / 说明文字 */
   --text-sm: 1rem;          /* 16px    基础 UI */
@@ -1722,7 +1722,7 @@ a[target="_blank"]::after {
 
 /* ---------- 宽屏目录：一列刻度，悬停 / 钉住才展开文字 ----------
    参考 sspai 文章页的目录（.comp__Directory）：平时只有一列小刻度，
-   鼠标移上来（或点右上角图钉「钉住」）才展开成带标题文字的样子。
+   鼠标移上来（或点左上角图钉「钉住」）才展开成带标题文字的样子。
    关键手法：标题文字一直占位（只是 color: transparent），展开时只改高度和颜色，
    所以不会重排、不会把正文挤动。断点定在 1280px（sspai 自己也是这个宽度以内就不显示
    右侧目录了）：正文 680px 居中时两侧各留 300px，减去 244px 的目录还剩 56px 空隙；
@@ -1752,9 +1752,14 @@ a[target="_blank"]::after {
   }
 
   .post-toc-wrap {
-    position: relative;
     width: 100%;
-    /* 定位容器本身不吃点击，但目录本体要能点、能悬停 */
+    /* 纵向排两件东西：上面的图钉、下面的目录本体。
+       图钉用 visibility: hidden 藏着（不是 display: none），占位一直留着，
+       所以鼠标扫进来把它点亮时，目录不会跟着上下跳。 */
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    /* 这一层本身不吃点击，但里面的图钉和目录要能点、能悬停 */
     pointer-events: auto;
   }
 
@@ -1832,11 +1837,11 @@ a[target="_blank"]::after {
   /* 展开后，鼠标指着的那一条再亮一点（比展开态的 --muted 更清楚） */
   .post-rail .post-toc-nav a:hover { color: var(--ink); }
 
-  /* 图钉：平时藏着，鼠标进目录（或已钉住）才现身 */
+  /* 图钉：钉在目录框的左上角（wrap 的第一行、左对齐），平时藏着，
+     鼠标进目录（或已钉住）才现身。别改回 position: absolute 浮在面板上方——
+     那样它就跑出目录的边界了。 */
   .post-toc-pin {
-    position: absolute;
-    top: -1.75rem;
-    right: 0;
+    align-self: flex-start;
     display: flex;
     align-items: center;
     justify-content: center;

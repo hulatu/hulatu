@@ -1,6 +1,7 @@
 {{ define "main" }}
 {{- $all := .Pages.ByDate.Reverse -}}
-{{- $paginator := .Paginate $all 10 -}}
+{{- /* 每页期数跟着 hugo.toml 的 [pagination] pagerSize 走，模板不写死 */ -}}
+{{- $paginator := .Paginate $all -}}
 
 <div class="weekly-simple">
   <a class="weekly-rss" href="{{ "weekly/index.xml" | relURL }}">
@@ -16,10 +17,7 @@
 {{ if $paginator.Pages }}
 <section class="minimal-list group-card weekly-list">
   {{ range $paginator.Pages }}
-    <a class="minimal-row" href="{{ .Permalink }}">
-      <span class="minimal-title">{{ .Title }}</span>
-      <time class="minimal-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-    </a>
+    {{ partial "post-row-minimal.html" . }}
   {{ end }}
 </section>
 {{ else if not .Content }}

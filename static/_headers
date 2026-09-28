@@ -11,29 +11,50 @@
   X-Frame-Options: SAMEORIGIN
   Content-Security-Policy: frame-ancestors 'self'
 
+# HTML 一律「先问一句再用」：max-age=0 让浏览器每次访问都发一次条件请求，
+# 没变的话服务端返回 304（几十字节），变了立刻拿到新页面。
+#
+# 这几条和 Cloudflare Pages 给 HTML 的默认值一致（实测不写规则的 /privacy/
+# 也返回 public, max-age=0, must-revalidate）。之所以还是显式写一遍：默认值是
+# 平台给的，哪天平台改了默认、或者后台加了一条把 HTML 标成可缓存的 Cache Rule，
+# 这行注释和规则就是唯一还站在源站侧的说明。
+#
+# 这里的 stale-while-revalidate 是 2026-09-28 特意去掉的：它允许 CDN 在
+# 回源刷新期间继续把旧页面发出去（最长 24 小时），结果就是「发了新文章，
+# 首页和 RSS 还是旧的」——那次排查下来，源头在页面的 index.html 上还挂着
+# 前一天构建的缓存副本（响应头 age 已经 8 万多秒）。列表页、首页每次发布都会变，
+# 不值得为省这点回源换一个「页面上看不到新内容」的坑。
+#
+# 注意：CDN 那边如果给 HTML 单独配了 Cache Rule / Browser Cache TTL，
+# 会覆盖这里的值，改完记得在 Cloudflare 后台确认一遍。
 /
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 /posts/*
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 /weekly/*
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 /archive/*
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
+
+# 分页页（/page/2/ 这种）之前漏配了：它属于「每次发布都可能变」的列表页，
+# 走 Pages 默认头虽然也是 max-age=0，但显式写一条免得以后被别处统一改掉
+/page/*
+  Cache-Control: public, max-age=0, must-revalidate
 
 /categories/*
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 /tags/*
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 /about/
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 /friends/
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 /css/*
   Cache-Control: public, max-age=31536000, immutable
@@ -45,6 +66,13 @@
   Cache-Control: public, max-age=2592000
 
 /media/*
+  Cache-Control: public, max-age=2592000
+
+# /images/ 下是头像和分享卡片图（static/images/）：以前漏了这条规则，
+# 线上只能拿到平台默认值再被 Cloudflare 的 Browser Cache TTL 改写成 4 小时。
+# 和 /img/、/media/ 对齐成 30 天。注意：想在同一路径替换头像，改完在后台
+# Purge 一下，或者换个文件名，否则 30 天内大家看到的还是旧图。
+/images/*
   Cache-Control: public, max-age=2592000
 
 /logo.svg
@@ -65,19 +93,19 @@
 /site.webmanifest
   Cache-Control: public, max-age=3600
 
+# 订阅源 / 搜索索引 / 站点地图同理：发布完就该是新的，
+# 条件请求的开销比「订阅里少一篇」小得多
 /index.xml
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 /weekly/index.xml
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
-# 搜索索引只在发布时变：允许缓存 1 小时，过期后先用旧数据、后台再刷新，
-# 这样新文章最多 1 小时搜不到，又不用每次开搜索框都重新验证
 /search-index.json
-  Cache-Control: public, max-age=3600, stale-while-revalidate=604800
+  Cache-Control: public, max-age=0, must-revalidate
 
 /sitemap.xml
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 /rss.xsl
   Content-Type: text/xsl; charset=utf-8
