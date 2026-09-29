@@ -14,6 +14,13 @@ fi
 STAGE=$(mktemp -d)
 trap 'rm -rf "$STAGE"' EXIT
 
+# macOS 的 .DS_Store 放在 static/ 里会被 hugo 原样拷进构建产物，构建前清掉。
+#   用 find 而不是 rm 通配：zsh 遇到未匹配的 glob 会直接报错中止（本脚本虽用 bash，
+#   但保持和 up() 里同一套写法，免得改的时候两边不一致）。
+#   这里不需要 --cleanDestinationDir：本来就构建到空的临时目录，
+#   后面那句 rsync -a --delete 已经把 public/ 里的陈旧文件删干净了。
+find static sites -name .DS_Store -delete 2>/dev/null || true
+
 hugo --gc --minify --destination "$STAGE"
 
 if rg -q "livereload" "$STAGE/index.html" 2>/dev/null; then
