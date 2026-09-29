@@ -12,3 +12,13 @@
   X-Frame-Options: SAMEORIGIN
   Content-Security-Policy: frame-ancestors 'self'
   Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# 子站的样式表是 static/style.css（手写、没有内容指纹），改一次文件名不变，
+# 所以不能用 immutable，只能「7 天 + must-revalidate」：平时走缓存，回头客每次
+# 发一次条件请求，没改就 304。
+#
+# 2026-09-29 补：此前 share / profile 两份都没有这条，线上 /style.css 落到
+# Cloudflare 后台 Browser Cache TTL 改写出来的 4 小时；run / shot 一直有，
+# 四个子站现在对齐了。
+/style.css
+  Cache-Control: public, max-age=604800, must-revalidate

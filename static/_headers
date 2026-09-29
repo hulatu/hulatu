@@ -66,6 +66,20 @@
 /friends/
   Cache-Control: public, max-age=0, must-revalidate
 
+# /media/ 和 /privacy/ 是根级内容页，本来靠 Cloudflare Pages 的平台默认值（实测也是
+# max-age=0, must-revalidate，正确）。但上面那组 HTML 规则的注释说得很清楚：显式写一遍
+# 就是为了**不依赖平台的默认行为**——平台哪天改了默认，这几行就是唯一还站在源站侧的说明。
+# 而 /media/ 恰恰是历史上被误伤过的那条路径（见下面那段），最不该把它交给默认值。
+# 所以 2026-09-29 补上这两条。
+#
+# 注意：只写精确路径 `/media/`，**不要写成 `/media/*`** —— 通配会把该路径下的资源一起套上
+# 长缓存，而站内根本没有 /media/ 静态资源，只有 content/media/ 生成的内容页。
+/media/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/privacy/
+  Cache-Control: public, max-age=0, must-revalidate
+
 /css/*
   Cache-Control: public, max-age=31536000, immutable
 
@@ -79,7 +93,9 @@
 # 2026-09-28 实测发现是误伤：站内根本没有 `/media/` 静态资源（static/ 下只有 images/），
 # 而 `content/media/` 生成的书影音页正好在 `/media/`——线上 `curl -sSI https://hulatu.com/media/`
 # 返回的是 `cache-control: public, max-age=2592000`，等于改书影音内容后老访客 30 天看不到。
-# 删掉后 `/media/` 落到平台默认（和 /privacy/ 一样是 max-age=0, must-revalidate）。
+# 删掉那条通配规则后，`/media/` 一度落到平台默认。2026-09-29 改成显式声明：
+# 上面 `/media/` 和 `/privacy/` 两条**精确路径**（不是 `/*`）负责把它们钉在 max-age=0，
+# 不再依赖平台默认值。
 # 以后真要给某个内容路径下的资源加长缓存，先确认那条路径没有被内容页占用。
 
 # /images/ 下是头像和分享卡片图（static/images/）：以前漏了这条规则，
