@@ -185,6 +185,12 @@ hugo server -D
 
 **加载组合由 `layouts/partials/css-modules.html` 决定**：它按页型返回两组模块名（`critical` = 要内联的、`async` = 走异步包的），`baseof.html` 各 `resources.Concat` → `minify` 一次；异步那组再 `fingerprint`，用 `media="print" onload="this.media='all'"` 异步换回 `all`，另配一个 `<noscript>` 兜底（用 `media="print"` 而不是 `rel="preload"`，是为了保住 `integrity` 校验）。**两组各用各的目标名**（`css/crit-{{…}}.css` 与 `css/site-{{…}}.css`），否则会撞上下面第 1 条坑。
 
+**`static/css/style.min.b5ec9e20….css` 是干什么的（2026-09-29 加的，临时文件）**：它是**重构前**那个单包 `assets/css/style.css` 的构建产物（62,839 B，SRI `sha256-teyeICL…G25fo=`）。加它是因为：Cloudflare 边缘把**重构前**的首页 HTML 缓存住了（`age` 已 3.3 万～5.4 万秒、远超 `max-age=14400`，仍是 `HIT`），那份 HTML 里唯一的样式表就是它 —— 文件随 `d154d53` 删除后变成 404，于是命中旧缓存的访客看到的是**完全没样式**的首页（实测裸路径 `/` 12 次请求里 9 次命中旧变体；带 query string 的请求全部回源，所以「加个 `?x=` 就正常」正是这个现象）。
+
+补回这个文件后，旧缓存页靠它恢复完整样式（SRI 也对得上，所以浏览器不会拒收）。它 **content-addressed、永不变化**，`/css/*` 那条 `immutable` 正好适用。等边缘旧缓存自然淘汰（或手动 Purge）之后**就该删掉**，别让它长期躺在仓库里。复现办法：`git worktree add /tmp/blog-old d0d56d7 && hugo`，产物就是同一个哈希（同一个 Hugo 版本 + 同一份源，指纹是确定性的）。
+
+> ⚠️ 顺带暴露的真问题：Cloudflare 那边给 HTML 的下发头是 `public, max-age=14400, must-revalidate`，和 `static/_headers` 里写的 `max-age=0` **不一致**（被后台的 Browser Cache TTL / Cache Rule 改写了），而且过期后仍在发旧副本。**每次改 CSS 都会换文件名**，所以只要这个长缓存还在，以后每次发布都可能让一部分访客看到旧 HTML + 404 的 CSS。真要根治得去 Cloudflare 后台把 HTML 的 edge/browser TTL 调成 0（或加一条 Cache Rule 排除 HTML），并在发布后 Purge 一次。
+
 改这块时的坑，都踩过：
 
 1. **`resources.Concat` 按「目标路径」缓存**。目标名如果写死成 `css/site.css`，所有页面都会拿到第一次生成的那个包（当时表现为 310 个页面报样式缺失，但构建不报错）。所以目标名里必须带上模块组合：`css/site-{{ delimit $mods.async "-" }}.css`。
