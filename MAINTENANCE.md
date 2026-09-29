@@ -151,25 +151,35 @@ hugo server -D
 
 **四个内联模块**（都内联在 `<head>` 的 `<style>` 里，零往返、不闪）：
 
-| 模块 | 内容 | 谁内联 |
-|---|---|---|
-| `critical.css` | **全站公共首屏**：`:root` 令牌（`--accent` / `--line-strong` / `--tick` 都靠它）、reset、滚动条、`main [id]` 锚点偏移、`.container`、`.site-header` / `.nav-*` / `.nav-icon-btn` / `.site-brand`、**全局 `svg { stroke-width: 2 }`**、`.site-hero` / `.hero-line` + `@keyframes hero-in`、`.post-row*`、列表工具条与翻页、页脚、主题切换图标、`.back-top`、`.reading-progress`、`.skip-link`、`@media print` 的导航那几条 | **每页** |
-| `critical-post.css` | **文章/周刊正文首屏**：面包屑、`.post-header` / `.post-title` / `.post-meta*`、`.post-content` 及标题/锚点/链接/列表/复选框、`.post-toc*` / `.post-rail`（含刻度栏）/ `.post-toc-inline*`、`.article-image*`、`.code-block*` / `.chroma*`、`.table-wrap`、`.issue-badge*`、`.post-end`、`.post-tag-chip` | 文章页 / 周刊正文 |
-| `critical-page.css` | **列表型页首屏**：`.tag-cloud` / `.tag-chip*`、`.minimal-*`、`.group-card`、`.weekly-*`、`.page-intro`、`.category-*`、`.media-*` | 标签页 / 周刊列表 |
-| `critical-info.css` | **单页型页首屏**：`.archive-*`、`.about-*`、`.friends-*`、`.notfound*` | 归档 / 关于 / 隐私 / 404 |
+| 模块 | 内容 |
+|---|---|
+| `critical.css` | **全站公共首屏**：`:root` 令牌（`--accent` / `--line-strong` / `--tick` 都靠它）、reset、滚动条、`main [id]` 锚点偏移、`.container`、`.site-header` / `.nav-*` / `.nav-icon-btn` / `.site-brand`、**全局 `svg { stroke-width: 2 }`**、`.site-hero` / `.hero-line` + `@keyframes hero-in`、`.post-row*`、列表工具条与翻页、页脚、主题切换图标、`.back-top`、`.reading-progress`、`.skip-link`、`@media print` 的导航那几条 |
+| `critical-post.css` | **正文首屏**：面包屑、`.post-header` / `.post-title` / `.post-meta*`、`.post-content` 及标题/锚点/链接/列表/复选框、`.post-toc*` / `.post-rail`（含刻度栏）/ `.post-toc-inline*`、`.article-image*`、`.code-block*` / `.chroma*`、`.table-wrap`、`.issue-badge*`、`.post-end`、`.post-tag-chip` |
+| `critical-page.css` | **列表 / 卡片型首屏**：`.tag-cloud` / `.tag-chip*`、`.minimal-*`、`.group-card`、`.weekly-*`、`.page-intro`、`.category-*`、`.media-*` |
+| `critical-info.css` | **单页型首屏**：`.archive-*`、`.about-*`、`.friends-*`、`.notfound*` |
+
+（哪个页型内联哪几个，见下面的组合表——**模块表不再承担「谁用」这一列**，因为收窄之后同一个模块会被好几个页型以不同组合挑走，写在模块表里只会越来越糊。）
 
 **两个异步模块**（`resources.Concat` 合并后异步加载）：`core.css`（全站共用，已剔除 `critical` 里已有的部分）＋ `post.css`（只放**文末家具**：`.donate*`、`.giscus*`、`.related-posts`、`.post-nav*`、`.post-pill*`）。
 
-实测的加载组合与体积（2026-09-28，读的是构建产物里真正内联的那段 `<style>`）：
+实测的加载组合与体积（2026-09-29 收窄后，读的是构建产物里真正内联的那段 `<style>`）：
 
-| 页面 | 内联模块 | 内联 原始 / gzip | 异步包 原始 / gzip |
+| 页面 | 内联模块 | 内联 原始 / gzip | 异步包 |
 |---|---|---|---|
-| 首页、`/posts/` 列表 | `critical` | 19.7KB / 4.7KB | `site-core` 5.7KB / 1.8KB |
-| 标签页、周刊列表 | `critical` + `critical-page` | 25.1KB / 5.5KB | `site-core` 5.7KB / 1.8KB |
+| 首页、`/page/N/`、`/posts/` 列表 | `critical` | 19.7KB / 4.7KB | `site-core` 5.7KB / 1.8KB |
+| 标签页（列表 + 详情）、分类页（列表 + 详情）、周刊列表 | `critical` + `critical-page` | 25.1KB / 5.5KB | `site-core` 5.7KB / 1.8KB |
+| 归档、404 | `critical` + `critical-info` | 30.8KB / 6.3KB | `site-core` 5.7KB / 1.8KB |
+| 关于 | `critical` + `critical-info` | 30.8KB / 6.3KB | `site-core-post`（页尾有打赏块） |
+| 友链 | `critical` + `critical-info` + `critical-page` | 36.1KB / 7.0KB | `site-core` 5.7KB / 1.8KB |
+| 隐私政策 | `critical` + `critical-post` | 37.8KB / 7.8KB | `site-core` 5.7KB / 1.8KB |
 | 文章页、周刊正文 | `critical` + `critical-post` | 37.8KB / 7.8KB | `site-core-post` 10.6KB / 2.6KB |
-| 归档 / 关于 / 隐私 / 404 / 分类 / 书影音 | **默认全给**（4 个都内联） | 54.2KB / 9.9KB | `site-core-post` 10.6KB / 2.6KB |
+| 书影音 | `critical` + `critical-page` + `critical-post` | 43.1KB / 8.5KB | `site-core` 5.7KB / 1.8KB |
 
-> 兜底是「全给」：漏判某种页型的代价只是多下几 KB，不会掉样式。但反过来，**被兜底命中的页型会白内联一堆用不到的规则**——归档页内联了 18KB 的 `critical-post`，里面一条都匹配不上。2026-09-28 复查时落到兜底的还有 7 种页型，这是已知的、可以继续收窄的空间（不影响正确性，只影响首屏传输量）。
+> **兜底仍然是「全给」**（4 个内联 + `core` + `post`），但 2026-09-29 收窄之后**已经没有任何页型落在它上面**（最大内联从 54.3KB 降到 43.3KB，就是书影音页）。它现在是一条纯粹的安全网：以后新增的根级单页、或 Hugo 将来新加的 `.Kind` 落到这里时，最坏结果只是多内联几 KB，不会掉样式。
+>
+> 收窄的收益（每页首屏字节，内联 + 异步一起算）：分类页 −5.3KB gzip、归档/404 −4.4KB、友链 −3.7KB、关于 −3.6KB、隐私 −2.9KB、书影音 −2.2KB。方法是「解析页面用到的 class/id，看这些 token 的规则落在哪个模块，做贪心集合覆盖取最小集」；把这套方法代回首页 / 文章页 / 标签页 / 周刊列表，算出来的结果与原来已经写好的分支完全一致——这本身就是对方法的一次交叉验证。
+>
+> 两个**算过总账、刻意没做**的微优化：书影音页只需要 `critical-post` 里的 `.heading-anchor` 一条，友链页只需要 `critical-page` 里的 `.page-intro` 一条。把这两条挪进公共 `critical` 能让这两页各降一个模块，但会让 300+ 个页面每页多背 150–300B——单页的收益不值得全站付账。
 >
 > 2026-09-28 之前还有第 5 个模块 `home.css`（首页 hero、列表工具条、分页）。它整个都属于「首屏可见」，留在异步包里会让首屏先画错再重绘一次（标题先是浏览器默认的黑色粗体 h1、页脚先竖排、翻页按钮先是裸的 ‹ ›），所以整体并回了 `critical.css` 并删除。
 
@@ -182,7 +192,8 @@ hugo server -D
 3. **周刊文章的 `.Section` 是 `weekly`，但 URL 是 `/posts/...`**（见 `hugo.toml` 的 `[permalinks]`）。`css-modules.html` 里判页面类型必须**同时看 `.Kind` 和 `.Section`**，只判 `.Section` 会让 23 篇周刊文章落到全量包。
 4. **原子单元不能拆到两个文件**（2026-09-28 第二次复查时栽的）。`@keyframes`、`@font-face`、自定义属性定义、`position:fixed` 元素的定位规则，都必须和「用到它的那条规则」待在同一个文件里。当时的具体事故：`.hero-line` 的 `animation: hero-in …` 内联了，`@keyframes hero-in` 却留在 `core.css` —— 首屏这句 `animation` 解析不到关键帧，按规范**整条声明被丢弃**，标题反而一次画对；等 `core.css` 到达、关键帧可用，动画才从头跑，标题从最终态**闪成透明再淡入**，比不做动画更糟。同一轮还漏了 `.back-top`：它是 `position:fixed`，首屏第一帧就在视口里，规则留在 `core.css` 的结果是先以浏览器默认 `<button>` 的样子出现在**文档流末尾、左下角、方角**，异步包到了才跳到右下角变圆并隐藏。
 5. **「全局选择器」照样会命中首屏元素**（2026-09-28 第三次复查，靠逐像素比对抓到的）。前两条的经验容易让人只盯「这个元素在不在首屏」，于是把 `svg { stroke-width: 2 }` 当成通用规则留在 `core.css` —— 结果**全站每一页**都中招：页头的搜索/主题/RSS 三个图标和列表页的翻页箭头都靠它定粗细，首屏先按 SVG 属性默认的 `stroke-width: 1` 画出细线，异步包到了才变粗变深。判据仍然是「**这条规则**在首屏第一帧用不用得到」，跟它是不是全局选择器无关。
-6. **兜底是「全给」，而它会被一大堆页型命中**。`css-modules.html` 的默认分支是 4 个 `critical-*` 全内联 + `core` + `post`，所以归档/关于/隐私/404/分类/书影音这些页会白内联 18KB 的 `critical-post`（一条都匹配不上）。正确性没问题（最坏就是多下几 KB），但这是首屏传输量上明确的可优化项。
+6. **「不带 class 的选择器」是覆盖率脚本的盲区**（2026-09-29 栽的）。上面那套「按 class/id 逐个核对」的判据，对 `a[target="_blank"]::after` 这种**裸元素 / 属性选择器**完全失效——它一个 class 都没有，脚本根本不会把它列出来。当时的表现是：友链页首屏先画出没有箭头的链接，异步包到了才补上 `↗`，整行文字宽度跟着跳一次（逐像素比对量到 10,000+ 像素差异）。所以 `scripts/css-critical-coverage.py` 现在会**单独列出异步包里所有不含 class/id 的选择器**，提醒人工判断——脚本只负责把盲区摆到眼前，判不判得看人。目前只剩 `::view-transition-*` 三条（只在页面跳转时生效，与首屏无关）。
+7. **兜底现在是纯安全网，不再被任何页型命中**（2026-09-29 收窄后）。`css-modules.html` 的默认分支仍然是 4 个 `critical-*` 全内联 + `core` + `post`，但每种页型都已经有了实测确认过的最小集，最大内联从 54.3KB 降到 43.3KB。以后新增根级单页或 Hugo 新加的 `.Kind` 会落到兜底，最坏只是多下几 KB。
 
 **怎么验证「关键 CSS 覆盖够了没有」**（2026-09-28 用这套查出并修掉了 `.back-top`、`@keyframes hero-in`、`svg { stroke-width: 2 }` 三处首屏重绘）：
 
@@ -208,6 +219,12 @@ python3 scripts/css-critical-coverage.py public/index.html --all   # 列出全�
    脚本一律读页面里的 `<style>`。
 4. **`/css/…` 这类根相对路径要按站点根解析。** 拿页面父目录去拼会找不到异步包，
    把真缺口误判成「纯 JS 钩子」。
+
+**还有一个它结构上就管不到的盲区：不带 class/id 的选择器。** 整套判据是「页面用到的
+class/id 逐个核对」，所以 `a[target="_blank"]::after` 这种裸元素 / 属性选择器根本不会进入
+比对范围。脚本现在会**单独把异步包里所有不含 class/id 的选择器列出来**（带 ⚠ 标记），
+让人自己判断——2026-09-29 就是靠这个把外链 `↗` 标记的缺失补上的。**别把「0 真缺口」
+当成「一定没问题」，它只覆盖按 class 挂样式的那部分。**
 
 剩下的「真缺口」里还要再分两类：规则落在异步包里的才是问题（文章页剩下的
 `.donate-*` / `.giscus-*` / `.related-posts` 就属于这一类，是刻意留在下面的文末家具）；
@@ -237,7 +254,11 @@ PY
   不冻结就会把「动画演到一半」误判成「样式缺失」（文章页那个 2×6px 的目录刻度差异就是这么来的）。
   注入 `.hero-line{animation:none!important}` 和
   `.post-rail .post-toc-nav a,.post-rail .post-toc-nav a::before{transition:none!important}`
-  之后，8 种页型（首页 / 文章页 / 标签 / 周刊列表 / 分类 / 归档 / 关于 / 书影音）全部逐字节一致。
+  之后，**13 种页型**（首页 / 文章页 / 标签详情 / 标签列表 / 周刊列表 / 归档 / 关于 /
+  隐私 / 404 / 分类列表 / 分类详情 / 友链 / 书影音）全部逐字节一致。
+
+> **页型要铺满，别只测常用的那几个。** 2026-09-29 就是给「友链」补上第 13 个页型之后，
+> 才撞出外链 `↗` 缺失那个问题的——它不在覆盖率脚本的覆盖范围里，只有铺满页型才看得见。
 
 > Helium 无头截图有个坑：**图已经写出来了，但进程退出时挂住不返回**。别等它退出，
 > 轮询输出文件出现（`[ -s "$OUT" ]`）后再等 1–2 秒就 `kill -9`，否则脚本会卡在第一张。

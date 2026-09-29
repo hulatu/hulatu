@@ -56,6 +56,33 @@ def has(css, sel):
     return re.search(re.escape(sel) + r'(?![\w-])', css) is not None
 
 
+def style_rules(css):
+    """产出所有样式规则的选择器串（递归进 @media / @supports，跳过 @keyframes 内部）。"""
+    i, n, start = 0, len(css), 0
+    while i < n:
+        ch = css[i]
+        if ch == '{':
+            prelude = css[start:i].strip()
+            depth, j = 1, i + 1
+            while j < n and depth:
+                if css[j] == '{':
+                    depth += 1
+                elif css[j] == '}':
+                    depth -= 1
+                j += 1
+            if prelude.startswith('@'):
+                if prelude.startswith(('@media', '@supports')):
+                    yield from style_rules(css[i + 1:j - 1])
+            else:
+                yield prelude
+            i, start = j, j
+        elif ch == '}':
+            i += 1
+            start = i
+        else:
+            i += 1
+
+
 class Page(HTMLParser):
     """收集页面用到的 class/id，并抓出内联 <style> 与外部样式表链接。"""
 
@@ -127,6 +154,24 @@ def main():
     print(f'  —— 真缺口（规则只在异步包里）{len(real)} 个：')
     for s, where in real:
         print(f'       {s:<24} 落在 {where}{" ★首屏" if s in head else ""}')
+
+    # —— 盲区提醒：异步包里那些**不带 class/id** 的选择器 ——
+    # 上面整套核对是「按 class/id 逐个对」，所以 a[target="_blank"]::after 这种
+    # 裸元素 / 属性选择器完全不在它的覆盖范围内。2026-09-29 就是这么漏掉外链 ↗ 的：
+    # 友链页首屏缺了箭头、整行文字宽度跳一次，最后靠逐像素比对才发现。
+    # 这里只做提醒，不自动判定 —— 是不是首屏要用，得人看一眼。
+    bare = sorted({
+        (part.strip(), name)
+        for name, css in async_css.items()
+        for sel in style_rules(css)
+        for part in sel.split(',')
+        if part.strip() and not re.search(r'[.#]', part)
+    })
+    if bare:
+        print(f'  —— ⚠ 异步包里的裸元素 / 属性选择器 {len(bare)} 条'
+              f'（本检查按 class 核对，覆盖不到，需人工判断是否首屏要用）:')
+        for sel, name in bare:
+            print(f'       {sel:<44} 落在 {name}')
     if show_all and hooks:
         print(f'  —— 纯 JS 钩子 / 跳转锚点（哪都没有样式）{len(hooks)} 个：')
         print('       ' + ' '.join(s for s, _ in hooks))

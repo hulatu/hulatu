@@ -147,18 +147,10 @@
 
 
 
-a[target="_blank"]::after {
-  content: " ↗";
-  font-size: 0.78em;
-  opacity: 0.65;
-}
-
-
-
-.donate-btn[target="_blank"]::after,
-.about-link-list a[target="_blank"]::after {
-  content: none;
-}
+/* 外链的 ↗ 标记（a[target="_blank"]::after）连同 .donate-btn / .about-link-list
+   两条例外，已搬到 critical.css（2026-09-29）。它是**裸元素 + 属性选择器**、不带任何
+   class，所以按 class 归属的模块分析看不到它；是逐像素比对发现友链页首屏缺了 ↗、
+   整行文字宽度跳一次。这类选择器要单独留神，别只靠覆盖率脚本。 */
 
 
 

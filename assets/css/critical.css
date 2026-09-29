@@ -816,6 +816,24 @@ svg { stroke-width: 2; }
   content: none;
 }
 
+/* ---------- 外链的 ↗ 标记（原先在 core.css） ----------
+   2026-09-29 从 core.css 搬来。注意这条是**裸元素 + 属性选择器**（a[target="_blank"]），
+   一个 class 都没有 —— 所以它根本不在这套「按 class 归属」的模块分析覆盖范围内，
+   是逐像素比对抓出来的：友链页首屏先画出没有箭头的链接，异步包到了才补上 ↗，
+   整行文字的宽度跟着跳一次（实测 10,000+ 像素差异）。
+   判据还是「首帧用不用得到」：文章正文、友链、关于页的首屏都可能有外链。
+   下面两条例外**必须和它待在同一个文件**：只搬基础规则不搬例外的话，
+   首屏会先显示 ↗、异步包到了再消失，比不搬更糟。 */
+a[target="_blank"]::after {
+  content: " ↗";
+  font-size: 0.78em;
+  opacity: 0.65;
+}
+.donate-btn[target="_blank"]::after,
+.about-link-list a[target="_blank"]::after {
+  content: none;
+}
+
 /* ---------- 主题切换按钮：浅色显示月亮，深色显示太阳（原先在 core.css） ---------- */
 .theme-btn .theme-icon-sun { display: none; }
 [data-theme="dark"] .theme-btn .theme-icon-moon { display: none; }
