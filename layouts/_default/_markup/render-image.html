@@ -39,10 +39,10 @@
       {{ with $h }}height="{{ . }}"{{ end }}
     >
   </a>
-  <span class="article-image-zoom" aria-hidden="true">
-    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-    看大图
-  </span>
+  {{- /* 「看大图」角标（原 <span class="article-image-zoom">）2026-09-29 去掉了：
+         鼠标悬浮时会在图片右上角浮现一个小胶囊，用户反馈不美观。
+         现在图片只靠 cursor: zoom-in 和键盘焦点环暗示可点，点击照样开灯箱。
+         想恢复就把那个 span 加回来，样式在 critical-post.css 的「文章插图」段。 */ -}}
   {{ if .Text }}
   <figcaption>
     {{ .Text }}

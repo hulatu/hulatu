@@ -720,7 +720,15 @@
   position: relative;
   background: var(--surface-2);
   border-radius: var(--radius);
-}.article-image a { display: block; }.article-image a:focus-visible {
+}.article-image a {
+  display: block;
+  /* 正文里的 <a> 带一条「悬浮时从左划出」的下划线底纹（见上面 .post-content a 的
+     background-size: 0 → 100%）。图片链接是 display:block、整块包住图片，那条 1px 线
+     就横在图片正下方，很难看 —— 这里把底纹和那 1px 内边距一起清掉。
+     注意选择器要与 .post-content a 同级才能靠「后出现」压住它。 */
+  background-image: none;
+  padding-bottom: 0;
+}.article-image a:focus-visible {
   border-radius: var(--radius);
 }.article-image img {
   width: 100%;
@@ -736,25 +744,6 @@
   text-align: center;
   font-size: var(--text-xs);
   color: var(--muted);
-}.article-image-zoom {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
-  background: color-mix(in srgb, var(--ink) 52%, transparent);
-  color: var(--paper);
-  font-size: var(--text-2xs);
-  border-radius: var(--radius-pill);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}.article-image:hover .article-image-zoom {
-  opacity: 1;
-}.article-image:focus-within .article-image-zoom {
-  opacity: 1;
 }.issue-badge {
   display: inline-flex;
   align-items: center;
