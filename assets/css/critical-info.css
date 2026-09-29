@@ -189,39 +189,37 @@
 }.about-head {
   padding: var(--space-1) 0 var(--space-9);
 }.about-head-card {
-  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-6);
-  align-items: start;
-  padding: var(--space-8) var(--space-6) var(--space-7) calc(var(--space-8) + 5px);
+  gap: var(--space-7);
+  align-items: center;
+  padding: var(--space-8) var(--space-7);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-}.about-head-card::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: var(--space-6);
-  bottom: var(--space-6);
-  width: 3px;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent) 16%, transparent),
-    var(--accent) 52%,
-    color-mix(in srgb, var(--accent) 16%, transparent)
-  );
-}.about-avatar {
+}
+/* 2026-09-29 改版。原先这张卡片上有四处红：左边缘一根 3px 竖向渐变红柱（::before）、
+   头像外面一圈 --accent-soft 粉红光晕、角色行前的小红点、分隔线中间的红菱形。
+   用户反馈「不太美观，尤其是那个红色」—— 问题不是红本身，是一张卡上红了四次，
+   而且那圈粉红（#fbeae7）是「淡到发白的粉」，看着像印错了。
+   现在红色只留「角色行前那个 5px 小点」一处，其余全部删掉或改中性：
+     · 左柱整根删掉（卡片有边框 + 阴影已经能立形，不需要再画一根红条）
+     · 头像的粉红光晕 → 细描边 + 一层柔和投影
+     · 分隔线里的红菱形删掉，只留一条安静的短线
+   顺带：列间距 24 → 28px，两列改成垂直居中对齐，胶囊从「五等分拉伸」改成按内容宽度居中。
+   注意别再把 position: relative 加回来 —— 它是给那根左柱定位用的，柱已删。 */
+.about-avatar {
   display: block;
   width: 148px;
   height: 148px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--line-strong);
-  box-shadow: 0 0 0 6px var(--accent-soft);
+  /* 用 --shadow-sm 而不是写死 rgba(0,0,0,.08)：深色主题下 --shadow-sm 被重定义成
+     rgba(0, 0, 0, 0.35)，写死的浅色阴影在深色底上完全看不见。 */
+  box-shadow: var(--shadow-sm);
 }.about-avatar-fallback {
   display: flex;
   align-items: center;
@@ -280,33 +278,24 @@
   font-size: var(--text-xs);
   line-height: 1.75;
 }.about-divider {
-  position: relative;
   display: block;
-  width: 3rem;
+  width: 4rem;
   height: 1px;
   margin: 0 auto var(--space-5);
-  background: var(--line);
-}.about-divider::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--line-strong);
 }.about-focus {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-2);
   width: 100%;
 }.about-focus-chip {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   min-height: 26px;
-  padding: 0.18em 0.72em;
+  padding: 0.2em 0.82em;
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
   background: var(--paper);
@@ -462,7 +451,6 @@
     height: 124px;
   }.about-avatar {
     margin: 0 auto;
-    box-shadow: 0 0 0 5px var(--accent-soft);
   }.about-head-main {
     align-items: center;
   }.about-name { justify-content: center; }.about-tagline { margin: 0 auto var(--space-5); }.about-divider { margin: 0 auto var(--space-5); }.about-focus { justify-content: center; }.about-section {
