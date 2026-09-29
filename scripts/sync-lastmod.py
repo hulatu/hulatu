@@ -6,10 +6,15 @@
 lastmod 时会退回用 `date`——所以「改了文章、忘改 lastmod」的结果就是永远不显示。
 这里在发布前把**这次真正改动过**的文件的 lastmod 刷成当前时间，写文章时不用记着改。
 
-「真正改动过」怎么判断：把当前文件和上一个提交（HEAD）里的版本，都去掉 `lastmod:` 那一行
-之后再比较。相同就跳过——这样 publish.sh 反复跑也不会一直刷新（第一次刷完 lastmod 后，
-第二次比较时两边都被去掉，仍然相同）。HEAD 里没有的新文件也跳过：它们刚写出来，
-lastmod 和 date 本来就是一回事，不需要「更新于」。
+「真正改动过」怎么判断：把当前文件和上一个提交（HEAD）里的版本，都去掉 `lastmod:` 那一行、
+再抹平「无关紧要的空白」之后比较（见 content_fingerprint 的说明）。相同就跳过——这样
+publish.sh 反复跑也不会一直刷新（第一次刷完 lastmod 后，第二次比较时两边都被去掉，仍然相同）。
+HEAD 里没有的新文件也跳过：它们刚写出来，lastmod 和 date 本来就是一回事，不需要「更新于」。
+
+为什么还要单独抹平空白：编辑器或清理脚本收拾行尾空格时，git 会把整批文件标成「已修改」，
+但内容一个字没变。只按字符串比较的话，这些文章的 lastmod 会被集体刷成发布时刻
+（2026-09-29 那次行尾空白清理一次就是 106 篇），文章页的「更新于」跟着集体往前跳，
+git 里还多出上百行无意义的 diff。
 
 默认只处理 content/posts/ 和 content/weekly/ 下的文章——只有文章页会显示「更新于」，
 改「关于」「隐私政策」这类页面时没必要动它的 lastmod（那些页面的 lastmod 只影响 sitemap）。
@@ -18,12 +23,13 @@ lastmod 和 date 本来就是一回事，不需要「更新于」。
 用法：
   python3 scripts/sync-lastmod.py                # 刷新 content/ 下这次改动过的 .md
   python3 scripts/sync-lastmod.py --dry-run      # 只打印会刷哪些，不写文件
-  python3 scripts/sync-lastmod.py --force 某篇.md  # 指定文件强制刷新（内容没动也刷）
+  python3 scripts/sync-lastmod.py --force 某篇.md  # 指定文件强制刷新（内容没动、或只改了行尾硬换行时用）
 """
 
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -87,9 +93,43 @@ def head_text(rel_path: str) -> str | None:
     return result.stdout if result.returncode == 0 else None
 
 
+# 换行符只认这三种。不用 str.splitlines()：它还会在 \x0b \x0c \x85 \u2028 \u2029 这些
+# 「看起来不像换行」的字符上断行，Markdown 正文里万一出现就会被悄悄拆成两行。
+LINE_BREAK = re.compile(r"\r\n|\r|\n")
+
+
 def without_lastmod(text: str) -> str:
-    """去掉 front matter 里的 lastmod 行（比较「有没有实质改动」时用）。"""
+    """去掉 front matter 里的 lastmod 行（判断「有没有改动」时用）。"""
     return _frontmatter.remove(text, "lastmod")
+
+
+def content_fingerprint(text: str) -> str:
+    """在 without_lastmod 的基础上再抹平「无关紧要的空白」，用来判断有没有**实质**改动。
+
+    为什么必须抹平空白：2026-09-29 那次清理 front matter 行尾空格的提交（d154d53）
+    一共动了 113 个文件，其中 106 个只差行尾空格 —— 内容一个字没变。脚本原先只做
+    字符串相等判断，会把这 106 篇的 lastmod 全刷成发布时刻：git 里多出上百行无意义的
+    diff，文章页的「更新于」也集体往前跳到发布那天。所以比较前先抹平这三类空白：
+
+      1. 行尾空白 —— 就是上面那个例子的来源（`draft: false  ` → `draft: false`）；
+      2. 换行符 —— CRLF / CR 统一成 LF（跨平台编辑器的换行符不一致也算「没改」）；
+      3. 文件末尾多出来的空行。
+
+    刻意**不**抹平行首缩进和行内空格：Markdown 里行首缩进会改变语义（4 空格 = 代码块、
+    2 空格 = 嵌套列表），行内空格就是正文本身，这些都是真改动，不能被当成「没实质改动」
+    而漏刷 lastmod。
+
+    已知取舍：Markdown 里「行尾两个空格 = 硬换行 <br>」也会被一起忽略。它和「误留的行尾
+    空格」在文本上完全无法区分，只能偏向「不动 lastmod」这一边；真遇到只加了硬换行的
+    改动，用 `--force 某篇.md` 手动刷一次即可。
+    """
+    # 先把换行符统一成 LF 再交给 _frontmatter：它的正则只认 \r?\n，纯 \r 的旧式换行
+    # 会让它连 front matter 都找不到，lastmod 那一行就删不掉，两边指纹自然对不上。
+    body = without_lastmod(LINE_BREAK.sub("\n", text))
+    lines = [line.rstrip() for line in body.split("\n")]
+    while lines and not lines[-1]:
+        lines.pop()
+    return "\n".join(lines)
 
 
 def with_lastmod(text: str, stamp: str) -> tuple[str, bool]:
@@ -118,6 +158,7 @@ def main() -> int:
 
     touched: list[Path] = []
     skipped: list[str] = []
+    whitespace_only: list[str] = []
 
     for path in targets:
         if path.suffix != ".md" or path.name == "_index.md":
@@ -141,6 +182,11 @@ def main() -> int:
             if without_lastmod(previous) == without_lastmod(text):
                 skipped.append(f"{rel_path}（内容没实质改动）")
                 continue
+            # 走到这里说明字符串确实不同，但可能只差行尾空白（编辑器清理的）。
+            # 这种情况内容一个字没变，不该刷 lastmod —— 只记下来，不算「这次改过」。
+            if content_fingerprint(previous) == content_fingerprint(text):
+                whitespace_only.append(rel_path)
+                continue
 
         updated, changed = with_lastmod(text, stamp)
         if not changed:
@@ -161,6 +207,16 @@ def main() -> int:
 
     if not touched:
         print("    没有需要刷新 lastmod 的文章")
+    if whitespace_only:
+        # 这些文件在 git status 里显示「已修改」，但内容一个字没变（只差行尾空白）。
+        # 明说一句，免得看到一堆改动却没有任何 lastmod 更新时以为脚本没干活。
+        print(
+            f"    跳过 {len(whitespace_only)} 篇只差空白字符的改动"
+            "（内容没变，lastmod 不动）"
+        )
+        if args.files or args.force or args.dry_run:
+            for rel_path in whitespace_only:
+                print(f"      只差空白：{rel_path}")
     if skipped and (args.files or args.force or args.dry_run):
         for item in skipped:
             print(f"    跳过：{item}")
