@@ -22,6 +22,8 @@ communities:
     url: "https://storeweb.cn/"
   - name: "十年之约"
     url: "https://www.foreverblog.cn"
+  - name: "Blogfinder"
+    url: "https://bf.zzxworld.com/"
   - name: "iblogroll"
     url: "https://iblogroll.com/blog/125"
   - name: "BlogsClub"
