@@ -11,8 +11,20 @@
 {{ else if eq .Data.Plural "tags" }}
 <h1 class="page-title">{{ .Title }}</h1>
 <section class="tag-cloud" aria-label="全部标签">
+  {{- /* 按文章数分三档字号（样式见 assets/css/critical-page.css 的 .tag-chip-lg/-md/-sm）。
+         站点现在有 166 个标签，其中 116 个只出现过一次 —— 全都用同一个字号时，
+         这一页就是一面没有重点的墙，读者看不出哪些是真主题、哪些是顺手打的。
+         分档用的是全站已有的三档 UI 字号（1rem / 0.86rem / 0.72rem），不新造尺寸：
+           · ≥ 8 篇（写作 / 效率 / 跑步 …）→ --text-sm
+           · 3–7 篇                        → --text-xs
+           · 1–2 篇                        → --text-2xs，另压一档透明度
+         阈值是照真实分布定的：≥8 有 7 个、3–7 有 21 个、1–2 有 138 个，
+         正好是「一眼扫到的重点 / 常规 / 背景」三层。 */ -}}
   {{ range site.Taxonomies.tags.ByCount }}
-    <a class="tag-chip" href="{{ .Page.RelPermalink }}">
+    {{- $size := "tag-chip-sm" -}}
+    {{- if ge .Count 8 -}}{{- $size = "tag-chip-lg" -}}
+    {{- else if ge .Count 3 -}}{{- $size = "tag-chip-md" -}}{{- end -}}
+    <a class="tag-chip {{ $size }}" href="{{ .Page.RelPermalink }}">
       <span class="tag-chip-name">{{ .Page.Title }}</span>
       <span class="tag-chip-count" aria-label="{{ .Count }} 篇文章">{{ .Count }}</span>
     </a>

@@ -59,7 +59,27 @@
   transform: translateY(0);
 }.tag-chip:hover .tag-chip-count {
   color: var(--ctrl-hover-text);
-}.page-intro {
+}
+/* ---------- 标签云的三档字号 ----------
+   模板（layouts/_default/taxonomy.html）按标签的文章数发 tag-chip-lg / -md / -sm。
+   站点有 166 个标签、116 个只出现过一次，统一字号时整页是一面没有重点的墙；
+   分成 1rem / 0.86rem / 0.72rem 三档后，「写作、效率、跑步」这些真主题会自己浮上来。
+   三档都取全站已有的 UI 字号，没有新造尺寸。
+   必须写在这几条之后：.tag-chip-lg 和 .tag-chip 同为单类选择器（特异性一样），
+   靠的就是「后写的赢」。 */
+.tag-chip-lg { font-size: var(--text-sm); }
+.tag-chip-md { font-size: var(--text-xs); }
+.tag-chip-sm {
+  font-size: var(--text-2xs);
+  /* 最轻的一档压到 0.7：它占 138/166，不压下去整页看着还是平。
+     但悬停时要回到 1 —— 不然这些浅色胶囊看着像禁用态，鼠标扫过去也不亮。
+     透明度不在 --ctrl-transition 里，所以这里单独补一段，免得是硬跳变
+     （同样的写法见 critical.css 里那批浮动按钮）。 */
+  opacity: 0.7;
+  transition: var(--ctrl-transition), opacity 0.15s ease;
+}
+.tag-chip-sm:hover { opacity: 1; }
+.page-intro {
   /* 页面级容器统一用 --content-width：主站所有页面（首页 / 归档 / 分类 / 标签 /
      友链 / 关于 / 周刊列表 / 文章）都和文章正文同宽，只有组件自己的内层宽度
      （打赏盒 30rem、404 文案 24em 之类）才是特意更窄的。 */

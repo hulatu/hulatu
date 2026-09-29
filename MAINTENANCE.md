@@ -119,7 +119,7 @@ hugo server -D
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
 | 上一篇 / 下一篇导航 | `layouts/_default/single.html` 里的 `.post-nav` |
 | 标签云（展示哪些标签） | `layouts/_default/taxonomy.html` 里 `site.Taxonomies.tags.ByCount` |
-| 目录在哪显示 | `assets/css/critical-post.css` 搜 `1280px`。≥1280px 悬浮在正文右侧（刻度栏）；<1280px 排在正文开头（`.post-toc-inline`，可点标题栏收起），手机上默认收起。**页面里没有浮动目录按钮**：2026-09 按需求删掉了左下角那个按钮和它的底部抽屉，窄屏一律看正文开头那块 |
+| 目录在哪显示 | `assets/css/critical-post.css` 搜 `1152px`。≥1152px 悬浮在正文右侧（刻度栏，面板宽度 `clamp(212px, 50vw - 372px, 244px)` 随窗口伸缩）；<1152px 排在正文开头（`.post-toc-inline`，可点标题栏收起），手机上默认收起。**页面里没有浮动目录按钮**：2026-09 按需求删掉了左下角那个按钮和它的底部抽屉，窄屏一律看正文开头那块。断点是**一对**：`min-width: 1152px` 和文件末尾那两条 `max-width: 1151.98px` 必须同时改（`layouts/_default/single.html` 里还有一处注释跟着它） |
 | 正文 / 页头宽度 | 只有 `--content-width`（`assets/css/critical.css` 顶部，当前 **680px**，照 sspai 文章页量的：它的 `.article__section__wrapper` 是 728px 含 24px 内边距）。`.container` 用它加两侧 `--gutter` 当 max-width（内边距留在外面），所以**页头（导航栏）、正文、列表页是同一个内容宽度**；`.post-content`、`.post-toc-inline`、`.friends-page`、`.about-page`、`.page-intro` 也都引用它。**四个子站同宽**：各自 `static/style.css` 的 `:root` 里也有一份 `--content-width: 680px`，靠 `main { width: min(var(--content-width), calc(100% - 32px)) }` 取（profile 是 `- 40px`）。改宽度要五处一起改，详见 `sites/README.md` |
 | 文章排版（字号 / 行高 / 段间距） | 数值照 sspai 文章页（`.wangEditor-txt`）：正文 **17px / 1.8**、段间距 **32px**、H2 **32px**（上间距 56px = 段距 + 24px）、H3 **24px**（上 48px）、H4 与正文同号、文章标题 **38px**；手机（≤760px）各降一档：15px / 24px / 24px / 20px / 28px（= sspai 的 `<768px` 那一套）。变量是 `--text-reading`、`--reading-leading`、`--block-gap`、`--h2-size`、`--h3-size`、`--post-title-size`，`--h2-gap-top` / `--h3-gap-top` 由 `--block-gap` 自动跟着缩。**这套是单开的**：别顺手改全站的 `--text-lg` / `--text-md`，否则归档年份、友链 / 关于页的小标题会跟着跳 |
 | 脚注 | Goldmark 的 `footnote` 扩展（默认开着，`hugo.toml` 里没写就是开）。标记：正文里 `<sup id="fnref:N"><a class="footnote-ref">N</a></sup>`，文末 `<div class="footnotes"><hr><ol><li id="fn:N">…<a class="footnote-backref">↩︎</a></li></ol></div>`。**整块落在 `.post-content` 里面**，所以会继承正文的 `hr` 分节装饰（40% 宽 + 正中圆点）和 `ol` 的圆形序号徽章——「没写样式」不等于「没样式」。样式在 `assets/css/critical-post.css` 的「脚注」段，逐项压回附属信息的层级：`hr` 藏掉、改用容器的通栏细线；`ol` 换回紧凑的十进制序号；`li > p` 去掉 32px 段间距；整块降到 `--text-xs` 并降调成 `--muted`。作者自己在正文里手写的 `<hr>`（不在 `.footnotes` 内）不受影响，分节装饰该留还留着 |
@@ -378,11 +378,19 @@ PY
 
 | 断点 | 行为 |
 |---|---|
-| ≥ 1280px | 目录固定在正文右侧，平时收成一列小刻度；悬停展开成标题，点左上角图钉「钉住」后一直展开 |
-| < 1280px | 目录排在正文开头（`.post-toc-inline`），点标题栏可收起；手机上（≤760px）默认收起 |
+| ≥ 1152px | 目录固定在正文右侧，平时收成一列小刻度；悬停展开成标题，点左上角图钉「钉住」后一直展开。面板宽度 `clamp(212px, 50vw - 372px, 244px)`，窗口越窄面板越窄 |
+| < 1152px | 目录排在正文开头（`.post-toc-inline`），点标题栏可收起；手机上（≤760px）默认收起 |
 | < 760px / < 600px | 导航、卡片、列表、正文字号的移动端微调 |
 
-1280px 这个断点是照 sspai 取的（它自己也在这个宽度以内就不显示右侧目录）：正文 680px 居中，1280px 窗口两侧各留 300px，减去 244px 的目录还剩 56px 空隙；再窄目录就会贴到正文上。窗口宽到 1424px 以上时，目录左边缘离正文右边缘固定 128px（sspai 的取值），多出来的宽度都留给右边距。
+侧边目录的断点是**从 1280px 降到 1152px 的**（2026-09-29）。原来的 1280px 照 sspai 取：正文 680px 居中，1280px 窗口两侧各留 300px，减掉 244px 的目录只剩 56px 空隙，再窄目录就贴到正文上 —— 于是 1280px 以下一律走正文开头那块，而 13 寸笔记本缩放后的窗口宽度（≈1280）正好卡在门外。现在让面板宽度自己跟着窗口缩：
+
+```
+面板宽 = clamp(212px, 50vw - 372px, 244px)
+```
+
+`50vw - 372px` 就是「正文右侧还剩多少」减去 32px 最小空隙（正文右边缘 = `50vw + 340`）。窗口 ≥ 1232px 时它算出来 ≥ 244px，被 clamp 的上限吃掉 —— **1232px 以上和改之前逐像素一样**（1440 / 1512 / 1920 完全没动）。1152px 时面板 212px、空隙 24px，是这套比例下还能看的最后一档：212px 减掉 18px 的刻度槽还剩 194px，约 13 个汉字。窗口宽到 1424px 以上时，目录左边缘离正文右边缘固定 128px（sspai 的取值），多出来的宽度都留给右边距。
+
+改这个断点时**三处必须一起改**：`critical-post.css` 里那条 `min-width: 1152px`、同文件末尾两条 `max-width: 1151.98px`（一条藏刻度栏、一条显示 `.post-toc-inline`）、以及 `layouts/_default/single.html` 里的说明注释。只改一边会出现两种目录同时显示、或者同时消失。
 
 ### 跑步数据
 

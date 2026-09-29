@@ -87,7 +87,16 @@
 }.post-meta .post-chips-row {
   margin-top: 0;
   margin-left: 0;
-}.post-chips-cats { margin-left: 0; }.post-meta-sep { margin: 0 var(--space-2); }.post-content > *:first-child { margin-top: 0; }.post-content h2,
+}.post-chips-cats { margin-left: 0; }
+/* 元信息之间的「·」长在前一段的 ::after 上，不再写成独立的 <span class="post-meta-sep">。
+   那些 span 每个都是一个 flex item，换行时那个 · 会自己掉到第二行行首（手机上就是
+   「· 读 3 分钟」这么起头的）。伪元素长在 flex item 内部，永远跟着前一段走，
+   最坏也只是留在行尾，不会单独起一行。模板里对应的三个 span 已删。 */
+.post-meta-main > *:not(:last-child)::after {
+  content: "·";
+  margin: 0 var(--space-2);
+}
+.post-content > *:first-child { margin-top: 0; }.post-content h2,
 .post-content h3,
 .post-content h4 {
   font-family: var(--font-serif);
@@ -341,21 +350,37 @@
   border: none;
   padding: 0;
   color: var(--code-fg);
-}@media (min-width: 1280px) {.post-rail {
+}@media (min-width: 1152px) {.post-rail {
     position: fixed;
     /* 照 sspai 量出来的三个数字：
        · 面板宽 244px（它的 .comp__Directory 就是这个宽度）
        · 纵向居中（它 .comp__Directory__overlay 是 inset: 0 + padding-top: 顶栏高度 + align-items: center）
        · 面板左边缘离正文右边缘 128px
-         正文右边缘 = 50vw + 340，面板左边 = 100vw - right - 244，
+         正文右边缘 = 50vw + 340，面板左边 = 100vw - right - 面板宽，
          令两者相差 128px 解出 right = 50vw - 712px；窗口更窄时贴到右边就够了。
        居中写法：这一层铺满「顶栏以下」但本身 pointer-events: none（不吃点击、不挡正文），
        靠 align-items: center 把里面的目录摆正中间。容器高度固定，所以悬停展开那一瞬间
-       整块目录不会上下滑（这是直接写 top: 50% + translateY(-50%) 会有的毛病）。 */
+       整块目录不会上下滑（这是直接写 top: 50% + translateY(-50%) 会有的毛病）。
+
+       ---- 宽度和断点（2026-09-29 二改）----
+       原来是「面板固定 244px + 断点 1280px」：1280px 窗口两侧各留 300px，
+       减掉 244px 只剩 56px 空隙，再窄目录就贴到正文上了 —— 所以 1280px 以下
+       一律走正文开头那块，很多人的窗口（13 寸笔记本缩放后 ≈1280）正好卡在门外。
+       现在让**面板宽度自己跟着窗口缩**，把省下来的宽度还给「正文 ↔ 目录」的间距，
+       断点于是能一路降到 1152px：
+
+         面板宽 = clamp(212px, 50vw - 372px, 244px)
+
+       50vw - 372px 就是「正文右侧还剩多少」减去 32px 最小空隙（正文右边缘 = 50vw + 340）。
+       窗口 ≥ 1232px 时它算出来 ≥ 244px，被 clamp 的上限吃掉 —— 换句话说
+       **1232px 以上和改之前逐像素一样**，1440 / 1512 / 1920 这些常用宽度完全没动。
+       1152px 时面板 212px、空隙 24px，是这套比例下还能看的最后一档：再窄，
+       目录里的长标题就要频繁出省略号了，不如把目录收回正文开头。
+       212px 减掉 18px 的刻度槽还剩 194px，约 13 个汉字。 */
     top: var(--header-h);
     bottom: 0;
     right: max(0px, calc(50vw - 712px));
-    width: 244px;
+    width: clamp(212px, calc(50vw - 372px), 244px);
     display: flex;
     align-items: center;
     pointer-events: none;
@@ -456,13 +481,22 @@
     opacity: 1;
     visibility: visible;
     color: var(--accent);
-  }}@media (max-width: 1279.98px) {.post-rail { display: none; }}@media (max-width: 1279.98px) {.post-toc-inline { display: block; }}@media print {.post-content a {
+  }}/* 下面这两条必须和上面那条 min-width: 1152px 成对改：1152px 是「侧边刻度栏」和
+   「正文开头那块」的分界。只改一边的话，两种目录会同时出现（或同时消失）。 */
+@media (max-width: 1151.98px) {.post-rail { display: none; }}@media (max-width: 1151.98px) {.post-toc-inline { display: block; }}@media print {.post-content a {
     color: #000;
     text-decoration: underline;
   }.post-content a[href^="http"]::after {
     content: " (" attr(href) ")";
     font-size: 0.82em;
     color: #555;
+    /* 屏幕上的 ↗ 是 mask 画出来的（见 critical.css 的 a[target="_blank"]::after）。
+       打印时上面这条只换了 content，mask / 底色 / 右内边距还留在身上 ——
+       结果是整段 URL 文字被 mask 裁掉、只剩一个箭头。这里还原成最朴素的写法。 */
+    padding-right: 0;
+    background: none;
+    -webkit-mask: none;
+    mask: none;
   }.post-content img,
   .post-content pre,
   .post-content table,
