@@ -44,11 +44,41 @@
       '<div class="lightbox-counter"></div>';
     document.body.appendChild(root);
 
-    root.querySelector("[data-close]").addEventListener("click", close);
-    root.querySelector(".lightbox-backdrop").addEventListener("click", close);
+    /* 2026-09-30 修（既有缺陷）：原来第一行是 querySelector("[data-close]") —— 它只返回
+       **第一个**匹配，也就是背景层 .lightbox-backdrop；第二行又给背景层绑了一遍。
+       于是右上角那个「X」关闭按钮（同样带 data-close、aria-label="关闭"）从头到尾
+       没有监听，点了毫无反应 —— 而它恰恰是手机上最顺手的关闭入口（背景和两侧箭头
+       都容易误触）。改成给所有 [data-close] 都绑上。 */
+    Array.prototype.forEach.call(root.querySelectorAll("[data-close]"), function (el) {
+      el.addEventListener("click", close);
+    });
     root.querySelector(".lightbox-prev").addEventListener("click", function (e) { e.stopPropagation(); step(-1); });
     root.querySelector(".lightbox-next").addEventListener("click", function (e) { e.stopPropagation(); step(1); });
     document.addEventListener("keydown", onKey);
+
+    /* 左右滑动换图（2026-09-30 补）。手机上换图原来只能去点两侧那两个 46px 的箭头，
+       而它们在小屏上距边只有 8px、还压在图片边缘上，很难点。
+       用 Pointer Events（触摸 / 鼠标 / 笔一套走通），按下与抬起之间横向位移超过 40px、
+       且明显大于纵向位移才算滑动 —— 后者是为了不和「点一下关闭」以及纵向手势打架。
+       监听挂在 document 上而不是 root 上：手指划出灯箱范围也能收到 pointerup。
+       注意**没有**动 click 逻辑，所以「点背景关闭」照旧。 */
+    var swipeId = null, swipeX = 0, swipeY = 0;
+    root.addEventListener("pointerdown", function (e) {
+      if (figures.length < 2) return;
+      if (e.target.closest(".lightbox-btn")) return;
+      swipeId = e.pointerId;
+      swipeX = e.clientX;
+      swipeY = e.clientY;
+    });
+    document.addEventListener("pointerup", function (e) {
+      if (swipeId === null || e.pointerId !== swipeId) return;
+      swipeId = null;
+      var dx = e.clientX - swipeX;
+      var dy = e.clientY - swipeY;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      step(dx < 0 ? 1 : -1); // 往左划 = 看下一张
+    });
+    document.addEventListener("pointercancel", function () { swipeId = null; });
   }
 
   function render() {

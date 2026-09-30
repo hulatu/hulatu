@@ -23,6 +23,15 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") setNav(false);
     });
+    /* 点菜单/汉堡以外的任何地方都收起来（2026-09-30 补）。
+       手机上原来只能靠「再点一次汉堡」关掉，点正文空白处菜单一直挂着，很别扭。
+       注意汉堡自己的点击也会冒泡到这里，所以必须把它和菜单本身排除掉，
+       否则「点汉堡展开」会立刻被这里关掉。 */
+    document.addEventListener("click", function (e) {
+      if (!burger.classList.contains("is-open")) return;
+      if (nav.contains(e.target) || burger.contains(e.target)) return;
+      setNav(false);
+    });
   }
 
   /* ---------- 顶栏滚动状态（分割线 + 自动隐藏）与返回顶部 ---------- */

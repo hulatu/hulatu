@@ -38,7 +38,12 @@
     input = panel.querySelector(".search-input");
     list = panel.querySelector(".search-results");
     footer = panel.querySelector(".search-footer");
-    panel.querySelector("[data-close]").addEventListener("click", close);
+    /* 2026-09-30 修（既有缺陷，与 lightbox.js 同一处笔误）：querySelector("[data-close]")
+       只拿到第一个匹配 = 背景层 .search-backdrop，右上角那个写着「Esc」的关闭按钮
+       其实没有监听。手机上没有键盘，这个按钮是唯一的显式关闭入口，必须能点。 */
+    Array.prototype.forEach.call(panel.querySelectorAll("[data-close]"), function (el) {
+      el.addEventListener("click", close);
+    });
     input.addEventListener("input", function () { render(input.value); });
     input.addEventListener("keydown", onKey);
   }

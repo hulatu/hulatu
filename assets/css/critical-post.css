@@ -161,6 +161,17 @@
   text-decoration: none;
 }.post-content .heading-anchor:hover {
   color: var(--accent);
+}
+@media (hover: none) {
+  /* 2026-09-30：`.heading-anchor` 原本是 opacity:0，靠 h2/h3/h4:hover 才显形。
+     手机没有 hover，于是它**一直不可见、却仍然能被点中**（opacity 不移除命中测试）——
+     点标题末尾会莫名弹出「链接已复制」，而「复制标题链接」这个功能在触屏上又完全
+     没法被发现。触屏设备直接常显，把这层「看不见的机关」去掉。
+     用 hover:none 而不是 max-width：带触屏的笔记本仍然报 hover:hover，不该命中。 */
+  .post-content .heading-anchor {
+    opacity: 1;
+    transform: none;
+  }
 }.post-content p { margin: 0 0 var(--block-gap); }.post-content a {
   color: var(--accent);
   text-decoration: none;
@@ -232,6 +243,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }.post-toc-inline-head {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -240,7 +252,15 @@
   user-select: none;
   color: var(--muted);
   transition: color 0.15s ease;
-}.post-toc-inline-head::-webkit-details-marker { display: none; }.post-toc-inline-head::after {
+}.post-toc-inline-head::-webkit-details-marker { display: none; }
+/* 触控命中区（2026-09-30 补）：这行 <summary> 实测只有 20.1px 高，而它是手机上
+   「展开目录」的唯一入口。撑到 32px —— 用 ::before 是因为 ::after 已经被那个
+   会旋转的箭头占用了。 */
+.post-toc-inline-head::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}.post-toc-inline-head::after {
   content: "";
   margin-left: auto;
   width: 6px;
@@ -400,6 +420,9 @@
   }.post-toc {
     /* 上下各留 44px 呼吸（和 sspai 面板的上下内边距一致） */
     max-height: calc(100vh - var(--header-h) - 88px);
+    /* 2026-09-30：100vh 在移动端是「地址栏收起时」的高度，比实际可视区高，
+       内容会被压到屏幕外。补一条 dvh（动态视口高度），不支持的浏览器仍用上面那条。 */
+    max-height: calc(100dvh - var(--header-h) - 88px);
     overflow-y: auto;
   }.post-rail .post-toc-nav li { margin: 0; }.post-rail .post-toc-nav li > ul { padding-left: 0; }.post-rail .post-toc-nav ul ul a { padding-left: calc(18px + 16px); }.post-rail .post-toc-nav ul ul ul a { padding-left: calc(18px + 32px); }
   /* 刻度长度按层级递减 —— 移植自 bearneo 的目录刻度（那边是一级 16px、二级 12px、
@@ -578,7 +601,10 @@
   max-width: 100%;
   border-radius: var(--radius);
   cursor: zoom-in;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  /* 2026-09-30：原来写死 rgba(0,0,0,.06)。这违反本站自己的约定（见 critical-info.css
+     里那条注释：阴影一律用主题变量，写死的浅色阴影在深色底上完全看不见）——
+     深色主题下 --shadow-sm 是 rgba(0,0,0,.35)，照片的「浮起」感才立得住。 */
+  box-shadow: var(--shadow-sm);
 }.post-content table {
   width: 100%;
   border-collapse: collapse;
@@ -1003,6 +1029,7 @@
 
 .post-cat-chip,
 .post-tag-chip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   padding: 0.22em 0.7em;
@@ -1033,4 +1060,16 @@
 .post-tag-chip:hover {
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+/* 触控命中区（2026-09-30 补）：分类 / 标签胶囊实测只有 21.2px 高，低于 WCAG 2.5.8
+   要求的 24px —— 而它们本身还是链接。这里沿用 critical.css 里那套「::after 撑开
+   命中区、视觉尺寸不变」的手法，补到 29.2px。
+   inset 取 -4px 是因为胶囊之间的间距正好是 8px：左右各 4px 刚好相接、不重叠。
+   用 ::after 而不是 ::before，因为 ::before 已经被 ● / # 两个前置符号占用了。 */
+.post-cat-chip::after,
+.post-tag-chip::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
 }

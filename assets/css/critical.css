@@ -541,15 +541,52 @@ svg { stroke-width: 2; }
 }.post-pill,
 .tag-chip,
 .pager-btn,
-.nav-icon-btn {
+.nav-icon-btn,
+.nav-burger {
   position: relative;
 }.post-pill::after,
 .tag-chip::after,
 .pager-btn::after,
-.nav-icon-btn::after {
+.nav-icon-btn::after,
+.nav-burger::after {
   content: "";
   position: absolute;
   inset: -8px;
+}
+/* ---------- 触控命中区（2026-09-30 补漏） ----------
+   上面那条 `::after { inset: -8px }` 是站点原有的「视觉不变、只放大可点范围」手法，
+   页头三个图标按钮（搜索 / 深浅色 / RSS）靠它拿到 50×50。这次体检实测发现漏了三处
+   **手机上又小又常用**的目标，一并补上：
+
+     · `.nav-burger` —— 已并入上面那条。它和三个图标按钮共用同一套尺寸规则，却唯独
+       没进这份 `::after` 列表，实测命中区只有 34×34，是页头四个按钮里最小的，
+       而它恰恰是手机上最常点的那个。
+     · `.site-brand` —— ≤760px 时 `.site-brand-name` 被 display:none，只剩 25px 的 logo，
+       命中区 25×25，是全站最小的可点目标。
+     · `.footer-links a` —— 24px 高，正好压在 WCAG 2.5.8 的线上。
+
+   **这里用 ::before 而不是 ::after**：`.footer-links a[target="_blank"]::after` 已经被
+   「外链不显示 ↗」那条占用（content:none），复用 ::after 会被它盖掉；`.site-brand`
+   一并统一，免得以后被外链规则误伤。
+   inset 的取值都算过，保证相邻命中区**最多只重叠 4px**（即上面那条既有行为的重叠量），
+   不会出现「后一个按钮把前一个的边缘吃掉一大块」。 */
+.site-brand,
+.footer-links a {
+  position: relative;
+}.site-brand::before {
+  content: "";
+  position: absolute;
+  inset: -10px;          /* 25 + 20 = 45 → 够到 WCAG 2.5.5 的 44 */
+}.footer-links a::before {
+  content: "";
+  position: absolute;
+  /* 上下各扩 4px（24 → 32 高）；左右各扩 6px。
+     注意页脚链接是**横向**排列（flex + wrap）、不是纵向堆叠：列间距由 core.css 的
+     移动端覆盖 `.footer-links { gap: var(--space-2) }` 定为 8px（基础规则里的
+     `gap: var(--space-2) var(--space-3)` 在 ≤760px 被这条覆盖，行/列都变 8px）。
+     所以左右各 6px 会让相邻命中区重叠 4px —— 与页头三个图标按钮既有的重叠量一致，
+     属于可接受范围（实测命中区 34×33，视觉框 27.5×24）。 */
+  inset: -4px -6px;
 }.post-row:active,
 .minimal-row:active {
   transform: scale(0.995);
@@ -562,6 +599,11 @@ svg { stroke-width: 2; }
     /* 小屏把最大的两档各收一档，标题不至于顶满屏宽 */
     --text-2xl: 1.73rem;
     --text-xl: 1.44rem;
+    /* 2026-09-30：最小那一档在手机上只有 11.52px，而它管着列表行分类角标、标签云计数、
+       归档计数、周刊徽标、书影音作者、手机目录标题这一大票**经常要瞄一眼**的字。
+       屏幕更小、离眼更近，字号反而更小是反的 —— 单独提一档到 12px（移动端小字的通行下限）。
+       桌面维持 0.72rem 不动，所以这只是在 760px 以下生效的覆盖。 */
+    --text-2xs: 0.75rem;
     /* 文章排版照 sspai 的手机档：正文 15px、段间距 24px、H2 24px、H3 20px、文章标题 28px
        （H2 / H3 的上间距由 --block-gap 自动跟着缩，不用再改） */
     --text-reading: 0.9375rem;
@@ -569,7 +611,14 @@ svg { stroke-width: 2; }
     --h2-size: 1.5rem;
     --h3-size: 1.25rem;
     --post-title-size: 1.75rem;
-  }}@media (max-width: 760px) {.nav-left {
+  }}@media (max-width: 760px) {.nav-container {
+    /* 2026-09-30：.nav-links 在上面变成 absolute 之后就不再是 grid 子项了（规范如此），
+       于是 .nav-right 会被自动排到**第 2 列**，第 3 列永远空着 —— 实测 390px 下汉堡的
+       右边缘停在 277px，右边白白空出 113px，页头整体看着是歪的（logo 贴左、图标居中）。
+       手机上只有 .nav-left / .nav-right 两个真实子项，两列就够，第 2 列用 auto
+       让它正好包住图标、靠 justify-self:end 贴住右 gutter。 */
+    grid-template-columns: 1fr auto;
+  }.nav-left {
     justify-self: start;
     gap: var(--space-3);
   }.site-brand-name {
@@ -579,6 +628,12 @@ svg { stroke-width: 2; }
     top: 100%;
     left: 0;
     right: 0;
+    /* 2026-09-30：`.nav-container` 是 position:relative 的 grid 容器，这条
+       position:absolute 让 .nav-links 成了「绝对定位的 grid 子项」—— 而它**仍然会吃
+       justify-self**。基础规则里那条 justify-self:center 会把它 shrink-to-fit 再居中，
+       left/right:0 直接被架空：实测 390px 下菜单只有 80px 宽（本该是整宽下拉面板），
+       四个链接各 40px。这里显式 stretch 才对。 */
+    justify-self: stretch;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
@@ -603,7 +658,13 @@ svg { stroke-width: 2; }
     font-size: var(--text-sm);
   }.nav-links a::after {
     display: none;
-  }.nav-links a + a { border-top: 1px dashed var(--line); }.nav-burger { display: inline-flex; }.nav-right { gap: var(--space-1); }}@media (max-width: 760px) {.post-row-home {
+  }.nav-links a + a { border-top: 1px dashed var(--line); }.nav-burger { display: inline-flex; }.nav-right {
+    /* 2026-09-30：原来是 var(--space-1)=4px，和 .nav-actions 内部的 12px 不一致；
+       而下面给汉堡补了 ::after{inset:-8px} 的命中区（和三个图标按钮一致），
+       4px 的间距会让它的命中区和 RSS 图标重叠 12px。统一成 12px 后重叠降到 4px，
+       正好和三个图标按钮之间既有的重叠量一致。 */
+    gap: var(--space-3);
+  }}@media (max-width: 760px) {.post-row-home {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-3);
   }}@media (max-width: 600px) {main.container {

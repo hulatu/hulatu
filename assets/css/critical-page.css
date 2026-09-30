@@ -215,6 +215,13 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  /* 2026-09-30：这条是必须的，不是保险。`.media-card` 是 <figure>，浏览器 UA 样式表
+     给它挂了 `margin: 1em 40px`，而全站 CSS 从没重置过 figure 的边距。
+     结果每个网格列被左右各吃掉 40px：390px 下列宽 168px、卡片只剩 90px（标题可用宽
+     60px，「纳瓦尔宝典」被截成「纳瓦…」）；1440px 下列宽 210.7px、卡片只有 135.7px。
+     对照：另外两处 <figure>（render-image.html 的 .article-image、donate.html 的
+     .donate-qr）都显式清了边距，只有这里漏了 —— 是疏漏不是设计。 */
+  margin: 0;
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: var(--radius-row);
