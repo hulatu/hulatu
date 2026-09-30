@@ -57,14 +57,14 @@ blog/
 
 ## 本地运行
 
-### 1. 装 Hugo（Extended，0.166.0+）
+### 1. 装 Hugo（Extended，0.167.0+）
 
 - macOS：`brew install hugo`
 - Windows：`winget install Hugo.Hugo.Extended`
 - Linux：参考[官方安装文档](https://gohugo.io/installation/)
 
 ```bash
-hugo version   # 期望：hugo v0.166.0+extended ...
+hugo version   # 期望：hugo v0.167.0+extended ...
 ```
 
 **Extended 是硬要求**：`layouts/partials/head-meta.html` 要用 `imageConfig` 读 `static/images/share.webp` 的宽高，标准版 Hugo 解不了 WebP。

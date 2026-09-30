@@ -138,7 +138,7 @@ hugo server -D
 | 深浅色 | 默认跟随系统；右上角按钮手动切换（带旋转动效），**不记忆选择**（刷新后回到跟随系统）。逻辑在 `assets/js/theme.js`，配色变量在 `assets/css/critical.css` 的 `[data-theme="dark"]` |
 | 打赏 | `hugo.toml` 的 `[params.donate]`。收款码图片在 `layouts/partials/donate.html` 里走 `cf-image.html`（`width=400,format=auto`）——原图是没压缩的 JPEG，且文件后缀错写成 `.webp`（直接返回的 Content-Type 是 `image/jpeg`），过一层图片变换后按浏览器给 avif/webp，顺带把这个错误头一起修掉。换收款码时**别在模板里直接写原始 URL** |
 | Hugo 版本 | **三处必须一致**：本机 `hugo version`、`.github/workflows/build.yml` 的 `hugo-version`、Cloudflare 五个项目的 `HUGO_VERSION`（主站 + 四个子站）。硬校验在 `layouts/partials/check-hugo-version.html`（`baseof.html` 顶部引入）：**版本不够直接失败**并报出当前版本；**缺 extended 只打 WARN**（Cloudflare 的 `HUGO_VERSION` 只能填版本号，硬拦会误伤线上；真用到 extended 功能时 Hugo 自己会报错）。`hugo.toml` 的 `[module.hugoVersion]` 只起文档作用——实测它在项目自身配置里只打一行 WARN，拦不住构建 |
-| 构建校验（CI） | `.github/workflows/build.yml`：push / PR 时用 0.166.0 extended 构建主站 + 调用 `scripts/build-subdomains.sh` 构建四个子站，另外检查每篇周刊的 front matter 有没有 `issue` 字段（漏填只会不显示徽章、不报错，所以单独查一遍）。这是「本地没事、Cloudflare 构建失败」的第一道拦截 |
+| 构建校验（CI） | `.github/workflows/build.yml`：push / PR 时用 0.167.0 extended 构建主站 + 调用 `scripts/build-subdomains.sh` 构建四个子站，另外检查每篇周刊的 front matter 有没有 `issue` 字段（漏填只会不显示徽章、不报错，所以单独查一遍）。这是「本地没事、Cloudflare 构建失败」的第一道拦截 |
 | 订阅格式 | `layouts/_default/rss.xml`。首页主源 `/index.xml` + 周刊源 `/weekly/index.xml`（在 `content/weekly/_index.md` 里用 `outputs` 单独开）；栏目默认不出 RSS，改 `hugo.toml` 的 `[outputs] section`。每个源最多 20 条全文，见 `[services.rss] limit` |
 | 阅读时长 / 字数 | `layouts/_default/single.html` 的 `.post-meta-main`，按 350 字/分钟算阅读时长 |
 | 文章页的「更新于」 | 同一个 `.post-meta-main`：`lastmod` 比 `date` 晚才显示（比完整时间戳，不是比日期）。`lastmod` 由 `publish.sh` 里的 `scripts/sync-lastmod.py` 自动刷，别手改——手动盖章用 `python3 scripts/sync-lastmod.py --force 某篇.md`，详见「文章页的『更新于』」 |
@@ -470,8 +470,8 @@ curl -s "https://api.github.com/repos/hulatu/hulatu/commits/main/check-runs" \
 
 | 现象 | 原因 | 修法 |
 |---|---|---|
-| 五个项目一起挂 | 项目里没设 `HUGO_VERSION`，Cloudflare 用镜像默认的 Hugo 0.147.7，被 `check-hugo-version.html` 硬拦 | Settings → Environment variables → **Production** 作用域补 `HUGO_VERSION=0.166.0`（五个项目都要），再回 Deployments 点 **Retry deployment** |
-| 只有 run / profile 挂 | 模板用了 `hugo.Data`（0.156 才有），而子站项目还跑在 0.147.7 | 同上，把子站的 `HUGO_VERSION` 一起提到 0.166.0 |
+| 五个项目一起挂 | 项目里没设 `HUGO_VERSION`，Cloudflare 用镜像默认的 Hugo 0.147.7，被 `check-hugo-version.html` 硬拦 | Settings → Environment variables → **Production** 作用域补 `HUGO_VERSION=0.167.0`（五个项目都要），再回 Deployments 点 **Retry deployment** |
+| 只有 run / profile 挂 | 模板用了 `hugo.Data`（0.156 才有），而子站项目还跑在 0.147.7 | 同上，把子站的 `HUGO_VERSION` 一起提到 0.167.0 |
 
 > 环境变量改完**必须重新部署一次才生效**：Deployments → 最新那次 → Retry deployment（或再推一个提交）。构建期间站点不会掉线——失败时 Cloudflare 保留上一次成功的部署，只是内容停在那一次。
 

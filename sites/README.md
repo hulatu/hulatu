@@ -71,7 +71,7 @@ sites/profile/public
 
 | 变量 | 值 | 为什么 |
 |---|---|---|
-| `HUGO_VERSION` | `0.166.0` | 不设就跟随平台默认版本，可能与本机、CI 不一致。**四个子站项目都要设**，主站的 Pages 项目也一样（见根目录 `README.md` 的「安装 Hugo」一节） |
+| `HUGO_VERSION` | `0.167.0` | 不设就跟随平台默认版本，可能与本机、CI 不一致。**四个子站项目都要设**，主站的 Pages 项目也一样（见根目录 `README.md` 的「安装 Hugo」一节） |
 
 版本不合适时主站构建会直接失败并打印当前版本（`layouts/partials/check-hugo-version.html`）；子站构建由 `.github/workflows/build.yml` 在 push 时用同一版本预先验证。
 
