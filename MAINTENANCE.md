@@ -122,18 +122,21 @@ hugo server -D
 | 目录在哪显示 | `assets/css/critical-post.css` 搜 `1152px`。≥1152px 悬浮在正文右侧（刻度栏，面板宽度 `clamp(212px, 50vw - 372px, 244px)` 随窗口伸缩）；<1152px 排在正文开头（`.post-toc-inline`，可点标题栏收起），手机上默认收起。**页面里没有浮动目录按钮**：2026-09 按需求删掉了左下角那个按钮和它的底部抽屉，窄屏一律看正文开头那块。断点是**一对**：`min-width: 1152px` 和文件末尾那两条 `max-width: 1151.98px` 必须同时改（`layouts/_default/single.html` 里还有一处注释跟着它） |
 | 正文 / 页头宽度 | 只有 `--content-width`（`assets/css/critical.css` 顶部，当前 **680px**，照 sspai 文章页量的：它的 `.article__section__wrapper` 是 728px 含 24px 内边距）。`.container` 用它加两侧 `--gutter` 当 max-width（内边距留在外面），所以**页头（导航栏）、正文、列表页是同一个内容宽度**；`.post-content`、`.post-toc-inline`、`.friends-page`、`.about-page`、`.page-intro` 也都引用它。**四个子站同宽**：各自 `static/style.css` 的 `:root` 里也有一份 `--content-width: 680px`，靠 `main { width: min(var(--content-width), calc(100% - 32px)) }` 取（profile 是 `- 40px`）。改宽度要五处一起改，详见 `sites/README.md` |
 | 文章排版（字号 / 行高 / 段间距） | 数值照 sspai 文章页（`.wangEditor-txt`）：正文 **17px / 1.8**、段间距 **32px**、H2 **32px**（上间距 56px = 段距 + 24px）、H3 **24px**（上 48px）、H4 与正文同号、文章标题 **38px**；手机（≤760px）各降一档：15px / 24px / 24px / 20px / 28px（= sspai 的 `<768px` 那一套）。变量是 `--text-reading`、`--reading-leading`、`--block-gap`、`--h2-size`、`--h3-size`、`--post-title-size`，`--h2-gap-top` / `--h3-gap-top` 由 `--block-gap` 自动跟着缩。**这套是单开的**：别顺手改全站的 `--text-lg` / `--text-md`，否则归档年份、友链 / 关于页的小标题会跟着跳 |
-| 脚注 | Goldmark 的 `footnote` 扩展（默认开着，`hugo.toml` 里没写就是开）。标记：正文里 `<sup id="fnref:N"><a class="footnote-ref">N</a></sup>`，文末 `<div class="footnotes"><hr><ol><li id="fn:N">…<a class="footnote-backref">↩︎</a></li></ol></div>`。**整块落在 `.post-content` 里面**，所以会继承正文的 `hr` 分节装饰（40% 宽 + 正中圆点）和 `ol` 的圆形序号徽章——「没写样式」不等于「没样式」。样式在 `assets/css/critical-post.css` 的「脚注」段，逐项压回附属信息的层级：`hr` 藏掉、改用容器的通栏细线；`ol` 换回紧凑的十进制序号；`li > p` 去掉 32px 段间距；整块降到 `--text-xs` 并降调成 `--muted`。作者自己在正文里手写的 `<hr>`（不在 `.footnotes` 内）不受影响，分节装饰该留还留着 |
-| 点目录 / 带 `#锚点` 进页面时标题停在哪儿 | 只由 `assets/css/critical.css` 的 `--anchor-offset`（顶栏 `--header-h` + `--space-3` = 76px）决定，挂在 `main [id]` 的 `scroll-margin-top` 上。**别在 `html` 上再加 `scroll-padding-top`**——两个值会叠加，标题会被顶到离顶部将近 180px，看着就像没对准。带锚点进页面时 `assets/js/toc.js` 的 `initHashAnchor()` 会在图片 / 字体就位后重新对准一次；链接里是换成拼音之前的旧中文锚点（`#%e4%b9%a0%e6%83%af`）时，会自动退回按标题文字找 |
-| 关于页名片卡（红色只用一处） | `assets/css/critical-info.css` 的 `.about-head-card` 段。2026-09-29 改版：原先一张卡上出现了**四处红** —— 左边缘 3px 竖向渐变红柱（`::before`）、头像外圈 `--accent-soft` 粉红光晕、角色行前的小红点、分隔线中间的红菱形。用户反馈「不太美观，尤其是那个红色」，问题不是红本身，而是**同一张卡上红了四次**，而且那圈 `#fbeae7` 是「淡到发白的粉」，看着像印错了。现在红只留角色行前那个 5px 小点：左柱整根删掉、头像改细描边 + `--shadow-sm`、分隔线只留一条短线。顺带把 5 个「等分拉伸」的胶囊改成按内容宽度居中，列间距 24 → 28px、两列垂直居中。**再动这张卡时守住「一处红」**；`.about-body` 里各节标题前的小红点不受影响 —— 那是全站通用的分节标记，跟正文页一致 |
+| 正文列表（`ul` / `ol`） | **两种都是小点，全站只有脚注还带序号**（2026-10-02 改）。`ul` 走浏览器默认的 `disc` 圆点，只是用 `.post-content ul li::marker { color: var(--accent) }` 把点染成印章红。`ol` 原来是一套「红圈数字」徽章（`list-style: none` + `li::before` 画 `counter(ol-item)` 的圆环 + `li` 上 28px 让位缩进），按用户要求「只要 markdown 小点」整套删掉，现在和 `ul` 一样是 `list-style: disc` + 红色 marker。**删那套徽章必须三处一起删**（`ol` 的 `list-style`、`li` 的 `padding-left` / `position`、`::before` 整块），漏一处就会剩半个徽章、或多缩进 28px。想看效果：全站只有 4 篇写了 `1.` 列表（`平价跑步装备-实用篇`、`《小狗钱钱》对我的影响`、`手机双持方案…`、`周刊-第十八期`），其余全是 `-` 列表、本来就一直是小点 |
+| 脚注 | Goldmark 的 `footnote` 扩展（默认开着，`hugo.toml` 里没写就是开）。标记：正文里 `<sup id="fnref:N"><a class="footnote-ref">N</a></sup>`，文末 `<div class="footnotes"><hr><ol><li id="fn:N">…<a class="footnote-backref">↩︎</a></li></ol></div>`。**整块落在 `.post-content` 里面**，所以会继承正文的 `hr` 分节装饰（40% 宽 + 正中圆点）——「没写样式」不等于「没样式」。样式在 `assets/css/critical-post.css` 的「脚注」段，逐项压回附属信息的层级：`hr` 藏掉、改用容器的通栏细线；`ol` 换回紧凑的十进制序号；`li > p` 去掉 32px 段间距；整块降到 `--text-xs` 并降调成 `--muted`。作者自己在正文里手写的 `<hr>`（不在 `.footnotes` 内）不受影响，分节装饰该留还留着 |
+| 点目录 / 带 `#锚点` 进页面时标题停在哪儿 | **分两条路径，别混**。**① 点目录**（`assets/js/toc.js` 里 `init()` 的 `scrollToTarget()`，2026-10-02 加）：按方向算落点 —— **向下跳时不留顶栏那 76px，只留 5px 呼吸（`scrollToTarget()` 里的 `DOWN_GAP`，严格贴顶太挤）、标题几乎贴到页面最顶端**，因为顶栏是「向下滚就自动收起」的（`ui.js` 的 `updateHeader`），这时再留 76px 只会剩一片空白，看着像没对准；**向上跳时照旧留 `--anchor-offset`**，因为顶栏会随着向上滚动重新露出来，不留位就会被盖住。向下跳时还会顺手给顶栏加 `is-hidden`（人在页面顶部时 `ui.js` 要滚过 120px 才收起，等它不及）——**但判据是算出来的落点 `next` 是否真的更大，不是 `goingDown`**（2026-10-02 修）：`goingDown` 只看目标在不在下方，而向下跳的 `offset` 是 `DOWN_GAP`（5px），目标只比当前位置低 1~5px 时 `next` 反而比当前位置还小 —— 页面会往上滚一丁点，`ui.js` 的 `updateHeader` 立刻判成「向上滚」把 `is-hidden` 摘掉，顶栏先收起再弹回来、闪一下。现在只有 `next > window.scrollY` 才收。**点目录之后高亮会被「锁」住**（`lockHighlight()` / `unlockHighlight()`）：点击时先 `setActive(target)`，可紧接着第一帧 scroll 事件里 `sync()` 读到的还是旧的 `scrollY`，会算出「当前还在原来那一节」把高亮打回去，看上去就是高亮闪一下再走；现在锁到 `scrollend`（不支持的浏览器 700ms 兜底）才解封，解封时再按最终位置对一次。用户自己一动手（`wheel` / `touchstart` / `keydown`）立刻解封，免得高亮卡住。这条**故意不写进 CSS**：`scroll-margin-top` 是全站锚点共用的，脚注的 `#fn:` / `#fnref:` 回跳会跟着一起变。**② 其余锚点**（外部链接带 `#`、脚注回跳、`#main`）只由 `assets/css/critical.css` 的 `--anchor-offset`（顶栏 `--header-h` + `--space-3` = 76px）决定，挂在 **`main[id], main [id]`** 的 `scroll-margin-top` 上。**两个选择器缺一不可**（`main[id]` 是 2026-10-02 补的）：正文里 h2/h3 的 id 是 `main` 的后代，靠 `main [id]` 生效；但跳转链接的落点 `<main id="main">` **本身就是 `main`**，不是它的后代 —— 只写后代选择器它压根匹配不上，表现是点「跳到正文」后标题最上面约 24px 被 64px 的固定顶栏吃掉（`main.container` 的 `padding-top` 只有 40px，不够让位）。**别在 `html` 上再加 `scroll-padding-top`**——两个值会叠加，标题会被顶到离顶部将近 180px，看着就像没对准。带锚点进页面时 `assets/js/toc.js` 的 `initHashAnchor()` 会在图片 / 字体就位后重新对准一次；链接里是换成拼音之前的旧中文锚点（`#%e4%b9%a0%e6%83%af`）时，会自动退回按标题文字找 |
+| 关于页名片卡（红色只用一处） | `assets/css/critical-info.css` 的 `.about-head-card` 段。2026-09-29 改版：原先一张卡上出现了**四处红** —— 左边缘 3px 竖向渐变红柱（`::before`）、头像外圈 `--accent-soft` 粉红光晕、角色行前的小红点、分隔线中间的红菱形。用户反馈「不太美观，尤其是那个红色」，问题不是红本身，而是**同一张卡上红了四次**，而且那圈 `#fbeae7` 是「淡到发白的粉」，看着像印错了。现在红只留角色行前那个 5px 小点：左柱整根删掉、头像改细描边、分隔线只留一条短线。顺带把 5 个「等分拉伸」的胶囊改成按内容宽度居中，列间距 24 → 28px、两列垂直居中。**再动这张卡时守住「一处红」**；`.about-body` 里各节标题前的小红点不受影响 —— 那是全站通用的分节标记，跟正文页一致 |
 | 中文标题的锚点 | 中文标题要显式写 `{#pinyin}`（`## 习惯 {#xi-guan}`），不写的话分享链接是 `#%e4%b9%a0%e6%83%af`。日常不用手写，`publish.sh` 会跑 `scripts/add-heading-anchors.py` 自动补；想用英文词就自己写 `{#habit}`，脚本看到已有 `{#...}` 会跳过。CI 里另有一道 `--check` 兜底 |
 | 手动提交发布 | 终端输入 `up` → `publish.sh`（抓取正文图片宽高 → 提交本地改动 → 推 GitHub → 拉取远端 → 再推送）→ `hugo --minify`（**只写本地 `public/`，给自己看**）。**真正的上线由 Cloudflare Pages 的 Git 集成在 push 后自动构建完成**；本机没有 wrangler，也不做手动上传 |
 | 正文图片宽高 | 远程正文图（图床）构建期读不到尺寸，会让页面加载时跳动。`scripts/fetch-image-dims.py` 抓一次尺寸写进 `data/image_dims.json`（已提交），模板 `layouts/_default/_markup/render-image.html` 查表输出 `width`/`height`。新增图片后跑一次脚本即可，已缓存的会跳过 |
 | 脚本怎么读 front matter | 统一走 `scripts/_frontmatter.py`（`split` / `fields` / `read` / `write` / `remove`）。它只做「按行找字段」，不做 YAML 解析——front matter 里有中文注释、对齐用的行尾空格，用 PyYAML 解析再 dump 回去会把注释和空行冲掉，diff 变成整块重写。以前 `fetch-profile-content.py` 和 `sync-lastmod.py` 各写一份正则，字段清单和换行处理都不一致：**`fetch-profile-content.py` 的字段清单漏了 `image`，导致 `_shot_item()` 永远返回 None、`selected_photos.json` 恒为空**（2026-09 修），加字段时记得两边都看。 |
 | 图片灯箱 | 结构在 `layouts/_default/_markup/render-image.html`：图片被 `<a class="article-image-link" href="原图">` 包着，JS 拦下点击打开灯箱，JS 不可用时退化成「点开原图」。样式在 `assets/css/critical-post.css` 的「文章插图」段，逻辑在 `assets/js/lightbox.js`（原图地址直接读链接的 `href`，不再用 `data-full`）。**2026-09-29 去掉了两处「鼠标悬浮才出现」的效果**：① 右上角那个「看大图」小胶囊（`.article-image-zoom`，span 已从模板删掉、CSS 也删了）——它原先靠 `:hover` / `:focus-within` 显隐；② 图片正下方那条 1px 强调色下划线——它其实是正文链接 `.post-content a` 的「从左划出」底纹（`background-size: 0 → 100%`），图片链接 `display:block` 整块包住图片，线就横在图片底下，所以在 `.article-image a` 上加了 `background-image: none; padding-bottom: 0` 压掉。图片现在只靠 `cursor: zoom-in` 和全局 `:focus-visible` 焦点环暗示可点，点击/回车照样开灯箱 |
-| 键盘可达性 / 焦点陷阱 | 两个弹层（搜索框、图片灯箱）共用 `assets/js/focus-trap.js` 提供的 `window.hulatuFocusTrap(容器, 初始焦点)`，关闭时记得调用它返回的 `release()` 并把焦点还给触发按钮。**这个文件必须在 `layouts/partials/scripts.html` 的打包顺序里排第一**，否则后面几个脚本运行时拿不到它 |
-| 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false`。DOM 在 `layouts/partials/giscus.html`，行为逻辑在 `assets/js/giscus.js`：滚到评论区前 400px **在后台把 giscus 预加载好，但整块收着不展开**，「显示评论」按钮一直留着；读者点了才展开——因为内容已经加载完，展开是瞬间的、不会先白一下。状态机只有一个 `state` 变量（`idle → loading → ready → slow → open`，`opening` 表示「读者已经在等」），并镜像到 `.giscus-body` 的 `data-state`，调试时在开发者工具里直接看得见。等 iframe 用的是 **MutationObserver，不是定时轮询**；两个超时各管一段：点开后 12 秒没出来才变「重新加载评论」，预加载 2 分钟没结果就静默作废。**这个脚本单独打包、只在带评论的文章页加载**（`giscus.html` 里的 `resources.Get`），不塞进全站 bundle。收起用的 `.giscus-body { max-height: 0; visibility: hidden }`，**别改成 `display: none`**，那样 iframe 没有布局尺寸，giscus 会把高度算成 0 |
-| 文章目录 | 同一份目录在页面里有两份副本：宽屏刻度栏（`id="TableOfContents"`）和正文开头那块（`TableOfContentsInline`，<1280px 显示），后者的 id 由 `single.html` 里的 `replaceRE` 改掉，避免重复 id。四段逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮（对页面里所有 `.post-toc-nav` 一起生效），`initPin()` 管宽屏图钉的「钉住」，`initInlineToc()` 负责手机上把正文开头那块默认收起，`initHashAnchor()` 管带 `#锚点` 进页面后的重新对准。新增目录副本时记得同步改 id，样式挂 `.post-toc-nav` 就能直接复用编号和高亮 |
-| 宽屏目录的刻度栏 / 钉住 | 样式在 `assets/css/critical-post.css` 的 `@media (min-width: 1280px)` 段。参考 sspai 文章页的目录（`.comp__Directory`），尺寸照它量：**面板 244px 宽、纵向居中、面板左边缘离正文右边缘 128px**（`right: max(0px, calc(50vw - 712px))`，推导写在样式表注释里）、文字 15px、收起一行 12px、展开一行 33px（`border-radius: 6px`）、二级标题的文字再缩进 16px（**刻度始终排在同一列**，只缩进文字）。**刻度尺寸走 `--tick`**：按层级递减 6 / 5 / 4 / 3px，展开时统一 `calc(var(--tick) * 3.5)`（一级 6×3.5 = 21px，与改造前的固定值一致）。递减这个做法移植自 bearneo 的目录刻度——那边是一级 16px、二级 12px、三级 8px 的横线，这边刻度是竖条，对应的「长度」就是高度，所以落到高度上。刻度绝对定位在 `left: 0`、不占文本宽度，所以**不需要** bearneo 那套「宽度减多少、`margin-right` 就补多少」的补偿；缩进由 `a` 的 `padding-left` 单独负责。收起态用 `color: transparent` 让标题占位：**别改成 `display: none` 或收掉宽度**，否则展开时会把正文挤动。图钉按钮 `#toc-pin` 由 `initPin()` 切成 `.is-pinned`，状态不跨页面记；它只在 ≥1280px 生效（窄屏整块 `.post-rail` 是 `display: none`）。**图钉的位置**：`.post-toc-wrap` 是 `display: flex; flex-direction: column`，图钉是它的第一行（`align-self: flex-start`），所以钉在**目录框左上角**、目录本体从它下面 4px（`gap: var(--space-1)`）开始——不要改回 `position: absolute` 浮在面板上方，那样它会跑出目录的边界 |
+| 正文图片的淡入 / 加载失败兜底 | 加载逻辑在 `assets/js/ui.js` 的「图片渐进加载」段，三态样式在 `assets/css/critical-post.css` 的 `.js .article-image img`（默认 `opacity: 0`）、`.is-loaded`、`.is-failed`。**成败两个方向都要挂**（2026-10-02 修）：只挂 `load` 的话，图挂掉就等不到 `load`，这张图会连着 `alt` 文字一起停在 `opacity: 0` —— 读者只看到一个灰色空盒子，等于静默丢内容（JS 被禁用时反而正常，所以最容易漏掉）。还有一个更隐蔽的漏：**`img.complete` 为 `true` 只说明「浏览器已经有结论了」，失败同样算 complete**，所以老代码的 `complete && naturalWidth > 0` 会把失败的图塞进 `else` 分支去等一个永远不会来的 `load`。现在的判法是「已经 `complete` 的就当场按 `naturalWidth` 定生死，没 `complete` 的 `load` / `error` 都挂上」。失败态 `.is-failed` 只做两件事：还原不透明度让 `alt` 文字露出来，再补一圈虚线说明「这里本该有图、没加载出来」。**虚线用 `outline` 而不是 `border`**：不参与盒模型，失败的图不会比成功的图窄 2px |
+| 键盘可达性 / 焦点陷阱 | 两个弹层（搜索框、图片灯箱）共用 `assets/js/focus-trap.js` 提供的 `window.hulatuFocusTrap(容器, 初始焦点)`，关闭时记得调用它返回的 `release()` 并把焦点还给触发按钮。**这个文件必须在 `layouts/partials/scripts.html` 的打包顺序里排第一**，否则后面几个脚本运行时拿不到它。**跳转链接**（`.skip-link`，`baseof.html` 里紧跟 `<body>` 之后的第一个元素）聚焦时落在 `top: calc(var(--header-h) + 0.75rem)`（2026-10-02 改）：原来是 `0.75rem`，正好落在 0–64px 那条固定顶栏里 —— `z-index: 1000` 压得过顶栏的 `100`、所以没被盖住，但会糊住导航；而且顶栏哪天因为 `transform` / `filter` / `opacity` 造出新的层叠上下文，这块就会被真盖掉，让到下方最稳。它指向的 `#main` 靠 `main[id]` 拿 `scroll-margin-top`，见上面「点目录 / 带 `#锚点` 进页面时标题停在哪儿」 |
+| 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false`。DOM 在 `layouts/partials/giscus.html`，行为逻辑在 `assets/js/giscus.js`：滚到评论区前 400px **在后台把 giscus 预加载好，但整块收着不展开**；读者点了才展开——因为内容已经加载完，展开是瞬间的、不会先白一下。**折叠开关就是标题行本身**（`#giscus-toggle`，一个 `<button>`，右边一个箭头，展开时箭头转 180°）：2026-10-02 改版，原来标题下面还杵着一个居中的「显示评论」胶囊按钮，收起时高度接近展开时的一半；现在 padding 下放到标题行与 `.giscus-inner`，收起时整块只剩标题行那么高。再点一次可收起，iframe 留在 DOM 里，再展开是瞬时的。状态机只有一个 `state` 变量（`idle → loading → ready → slow → open`，`opening` 表示「读者已经在等」），并镜像到 `.giscus-body` 的 `data-state`，调试时在开发者工具里直接看得见。等 iframe 用的是 **MutationObserver，不是定时轮询**；两个超时各管一段：点开后 12 秒没出来才提示重试，预加载 2 分钟没结果就静默作废。**这个脚本单独打包、只在带评论的文章页加载**（`giscus.html` 里的 `resources.Get`），不塞进全站 bundle。收起用的 `.giscus-body { max-height: 0; visibility: hidden }`，**别改成 `display: none`**，那样 iframe 没有布局尺寸，giscus 会把高度算成 0。加载 / 重试提示 `.giscus-loading` 必须留在 `.giscus-body` **外面**，否则 body 收着时它会被一起裁掉、看不见 |
+| 文章目录 | 同一份目录在页面里有两份副本：宽屏刻度栏（`id="TableOfContents"`）和正文开头那块（`TableOfContentsInline`，<1152px 显示），后者的 id 由 `single.html` 里的 `replaceRE` 改掉，避免重复 id。四段逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮（对页面里所有 `.post-toc-nav` 一起生效），`initPin()` 管宽屏图钉的「钉住」，`initInlineToc()` 负责手机上把正文开头那块默认收起，`initHashAnchor()` 管带 `#锚点` 进页面后的重新对准；`init()` 内部另有一个 `scrollToTarget()`，负责**点目录时的落点**（按方向决定留不留顶栏那 76px，详见上面「点目录 / 带 `#锚点` 进页面时标题停在哪儿」）；同一层还有一对 `lockHighlight()` / `unlockHighlight()`，负责点完目录后把高亮锁住，别让它在平滑滚动刚起步那几帧被 `sync()` 拿旧位置打回原处（不然会看到高亮闪一下再走，详见同一行）。新增目录副本时记得同步改 id，样式挂 `.post-toc-nav` 就能直接复用编号和高亮。**高亮是「祖先链」不是单点**（2026-10-02 改，做法取自 bearneo 的 `toc.html`）——详见下面「目录高亮为什么要亮一整条链」 |
+| 目录高亮为什么要亮一整条链 | `toc.js` 的 `setActive()` 不是只给命中的那个 `<a>` 加 `.is-active`，而是先用 `chainOf()` 沿 `li.parentElement.closest('li')` 往上爬，把**沿途每一级的 `<a>`** 都收进链里一起点亮。原因：只亮叶子的话，读到 `###` 小节时上面的 `##` 还是灰的，看不出「我在哪一章的哪一节」。**两份副本要一起处理**——同一份目录在刻度栏和正文开头各有一份，`hash` 相同的 link 都得亮，所以是「先找出所有同 hash 的 link，再把各自的链并成一条」。滚动时每帧都会走到 `setActive()`，所以只对**差集**增删 class（`activeChain` 记着上一条链），不做全量 `toggle`。**高亮这件事本身不用改 CSS**：① 刻度栏里那条 `.post-rail .post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 1 }` 把通用规则里的 `0.5` 重置回了 1，所以刻度栏靠**红色的刻度竖条**表达（链上每一级的 `--tick` 高度不同 → 收起来时是一串递减的红刻度）；② 正文开头那块仍走 `.post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 0.5 }`，链上三级各有一条红色左边框 + 红字，形成阶梯。**但改这个功能时暴露了一条必须先修的 CSS 坑**（2026-10-02 修）：刻度栏那条基础规则 `.post-rail .post-toc-nav a` 原先**并列写着一个 `.is-active`**（`.post-rail .post-toc-nav a, .post-rail .post-toc-nav a.is-active { … }`），`.is-active` 把特异性抬到 `(0,3,1)`，压过了按层级给的缩进 `.post-rail .post-toc-nav ul ul ul a`（`0,2,4`，先比类数所以输）—— 于是**任何一级被点亮时，它的 `padding-left` 都会被那条的 `padding: 0 0 0 18px` 打回一级缩进**：二级从 34px、三级从 50px 一起左移，看着就是「目录项往左跳、和上一级对齐」。目录缩进只该由层级决定、和高亮无关；刻度条又是绝对定位在 `left: 0`、不依赖 `padding`，所以那个 `.is-active` 纯属多余，已删（删掉后 active 项的 `color: transparent` / `border-left: 0` 照旧生效：本规则的 `(0,2,1)` 与 `.post-toc-nav a.is-active` 的 `(0,2,1)` 打平，靠「后出现」取胜）。**教训：给 `.post-toc-nav a` 加带状态的选择器时，别把「缩进」这类和状态无关的属性一起写进去。**（只亮叶子那会儿这个跳动就存在，只是不显眼；改成祖先链一起亮之后，被点亮的 `##` 和 `###` 一起掉到 18px、彼此对齐，才变得刺眼。） |
+| 宽屏目录的刻度栏 / 钉住 | 样式在 `assets/css/critical-post.css` 的 `@media (min-width: 1152px)` 段。参考 sspai 文章页的目录（`.comp__Directory`），尺寸照它量：**面板 244px 宽、纵向居中、面板左边缘离正文右边缘 128px**（`right: max(0px, calc(50vw - 712px))`，推导写在样式表注释里）、文字 15px、收起一行 12px、展开一行 33px（`border-radius: 6px`）、二级标题的文字再缩进 16px（**刻度始终排在同一列**，只缩进文字）。**刻度尺寸走 `--tick`**：按层级递减 6 / 5 / 4 / 3px，展开时统一 `calc(var(--tick) * 3.5)`（一级 6×3.5 = 21px，与改造前的固定值一致）。递减这个做法移植自 bearneo 的目录刻度——那边是一级 16px、二级 12px、三级 8px 的横线，这边刻度是竖条，对应的「长度」就是高度，所以落到高度上。刻度绝对定位在 `left: 0`、不占文本宽度，所以**不需要** bearneo 那套「宽度减多少、`margin-right` 就补多少」的补偿；缩进由 `a` 的 `padding-left` 单独负责，**而且只由层级决定** —— 别把 `padding-left` 写进带 `.is-active` 的选择器里，那会用特异性压掉层级缩进，让被点亮的目录项往左跳（2026-10-02 修过一次，见上面「目录高亮为什么要亮一整条链」）。收起态用 `color: transparent` 让标题占位：**别改成 `display: none` 或收掉宽度**，否则展开时会把正文挤动。图钉按钮 `#toc-pin` 由 `initPin()` 切成 `.is-pinned`，状态不跨页面记；它只在 ≥1152px 生效（窄屏整块 `.post-rail` 是 `display: none`）。**展开的触发条件里那条「键盘焦点」写的是 `.post-rail:has(.post-toc-nav a:focus-visible)`，不是 `.post-rail:focus-within`**（2026-10-02 改）：图钉按钮也在 `.post-rail` 里，而浏览器点按钮会给它焦点，用 `:focus-within` 的话「点一下图钉」就把 rail 的焦点态点亮、焦点赖在图钉上不走，目录被永久钉在展开态 —— 再点一次想取消钉住也收不回来（鼠标移开都没用），用户看到的就是「点第二次取消不了全部显示」。现在只看 `.post-toc-nav` **内部**有没有 `:focus-visible`，图钉被排除在外。**别顺手把图钉自己的 `.post-rail:focus-within .post-toc-pin` 一起改掉** —— 那条管的是「键盘 Tab 到图钉时它要保持可见」，必须留着。**图钉的位置**：`.post-toc-wrap` 是 `display: flex; flex-direction: column`，图钉是它的第一行（`align-self: flex-start`），所以钉在**目录框左上角**、目录本体从它下面 4px（`gap: var(--space-1)`）开始——不要改回 `position: absolute` 浮在面板上方，那样它会跑出目录的边界 |
 | 目录为什么居中得很稳 | `.post-rail` 是 `top: var(--header-h)` / `bottom: 0` 的固定容器（`display: flex; align-items: center; pointer-events: none`），里层 `.post-toc-wrap` 才裹着图钉和目录本体并把 `pointer-events` 打开。**容器高度是固定的**，所以悬停展开（一行 12px → 33px）时只有里面的行在长，整块目录不会上下滑——这正是不用 `top: 50% + translateY(-50%)` 的原因。改回居中时别丢掉这一层结构，也别把 `pointer-events` 一起放开（那样右侧一整条会挡住页面点击）。图钉用 `visibility: hidden` 藏着（**不是 `display: none`**），占位一直留着，所以鼠标扫进来把它点亮时目录不会上下跳 |
 | 深浅色 | 默认跟随系统；右上角按钮手动切换（带旋转动效），**不记忆选择**（刷新后回到跟随系统）。逻辑在 `assets/js/theme.js`，配色变量在 `assets/css/critical.css` 的 `[data-theme="dark"]` |
 | 打赏 | `hugo.toml` 的 `[params.donate]`。收款码图片在 `layouts/partials/donate.html` 里走 `cf-image.html`（`width=400,format=auto`）——原图是没压缩的 JPEG，且文件后缀错写成 `.webp`（直接返回的 Content-Type 是 `image/jpeg`），过一层图片变换后按浏览器给 avif/webp，顺带把这个错误头一起修掉。换收款码时**别在模板里直接写原始 URL** |
@@ -158,7 +161,7 @@ hugo server -D
 
 | 模块 | 内容 |
 |---|---|
-| `critical.css` | **全站公共首屏**：`:root` 令牌（`--accent` / `--line-strong` / `--tick` 都靠它）、reset、滚动条、`main [id]` 锚点偏移、`.container`、`.site-header` / `.nav-*` / `.nav-icon-btn` / `.site-brand`、**全局 `svg { stroke-width: 2 }`**、`.site-hero` / `.hero-line` + `@keyframes hero-in`、`.post-row*`、列表工具条与翻页、页脚、主题切换图标、`.back-top`、`.reading-progress`、`.skip-link`、`@media print` 的导航那几条 |
+| `critical.css` | **全站公共首屏**：`:root` 令牌（`--accent` / `--line-strong` / `--tick` 都靠它）、reset、滚动条、`main[id], main [id]` 锚点偏移、`.container`、`.site-header` / `.nav-*` / `.nav-icon-btn` / `.site-brand`、**全局 `svg { stroke-width: 2 }`**、`.site-hero` / `.hero-line` + `@keyframes hero-in`、`.post-row*`、列表工具条与翻页、页脚、主题切换图标、`.back-top`、`.reading-progress`、`.skip-link`、`@media print` 的导航那几条 |
 | `critical-post.css` | **正文首屏**：面包屑、`.post-header` / `.post-title` / `.post-meta*`、`.post-content` 及标题/锚点/链接/列表/复选框、`.post-toc*` / `.post-rail`（含刻度栏）/ `.post-toc-inline*`、`.article-image*`、`.code-block*` / `.chroma*`、`.table-wrap`、`.issue-badge*`、`.post-end`、`.post-tag-chip` |
 | `critical-page.css` | **列表 / 卡片型首屏**：`.tag-cloud` / `.tag-chip*`、`.minimal-*`、`.group-card`、`.weekly-*`、`.page-intro`、`.category-*`、`.media-*` |
 | `critical-info.css` | **单页型首屏**：`.archive-*`、`.about-*`、`.friends-*`、`.notfound*` |
@@ -309,9 +312,48 @@ PY
 1. **只用在纯数字 / 日期元素上**，或确认「汉字部分会落到末尾的中文栈」的元素上。它的栈是
    `ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", monospace`
    —— 末尾显式接了 `--font-sans` 的那套中文，是为了让混在元信息里的汉字（「发布于」「字」「篇」「第…期」）照旧按 PingFang SC 渲染，而不是交给系统按 `monospace` 去猜中文（macOS 和 Windows 会各猜一套）。**删掉末尾那三个中文族，混排元素里的汉字字形就会变。**
-2. **不要套在 `--font-serif` 的元素上**（`.archive-month-label`、`.archive-year`、`.post-title` 这类），否则里面的汉字会从宋体掉到黑体。所以 `.archive-month-label`（`12月`）和 `.issue-badge-label` 都**没有**用它。
+2. **不要套在 `--font-serif` 的元素上**（`.archive-year-num`、`.post-title` 这类），否则里面的汉字会从宋体掉到黑体。所以 `.archive-year-num`（`2026`）和 `.issue-badge-label` 都**没有**用它。归档页的月份标签 `.archive-month`（`10 月`）是反过来的例子：2026-10-02 起它**刻意**不挂 `--font-serif`，从「16px 宋体小标题」退成「11.5px 等宽标签」，那一个「月」字落到黑体栈是预期内的 —— 它是标签，不是标题。
 
-目前用上 `--font-meta` 的选择器，按模块分：`critical.css` 的 `.post-row-date`；`critical-post.css` 的 `.post-meta`、`.issue-badge-num`；`critical-page.css` 的 `.minimal-date`；`critical-info.css` 的 `.archive-item-date`、`.archive-total strong`、`.archive-count`。**新增日期类元素时记得挂上，否则列表里会出现「同宽的日期里夹一个比例宽度日期」的违和感。**
+目前用上 `--font-meta` 的选择器，按模块分：`critical.css` 的 `.post-row-date`；`critical-post.css` 的 `.post-meta`、`.issue-badge-num`；`critical-page.css` 的 `.minimal-date`；`critical-info.css` 的 `.archive-item-date`、`.archive-total strong`、`.archive-count`、`.archive-month`。**新增日期类元素时记得挂上，否则列表里会出现「同宽的日期里夹一个比例宽度日期」的违和感。**
+
+### 中文强调用着重号，不用斜体（2026-10-02 新增）
+
+Markdown 的 `*强调*` → `<em>`。**别让它斜着**：中文没有真正的斜体字重，浏览器会拿正体做
+「合成斜体」（把字形沿一个角度切变），字是歪的、笔画也跟着变形。bearneo 用
+`i { font-style: normal }` 躲的就是这个坑（那是无差别掰正，连英文的 `<i>` 一起管）。
+
+本站的做法是给强调一个正经的中文排法：**着重号**。GB/T 15834 里着重号用于「要求读者
+特别注意的字、词、句」，**横排是「文下打点」、直排标在字的右侧** —— 所以
+`text-emphasis-position` 取 `under right`，两个值刚好各自对应一种书写方向。
+样式在 `assets/css/critical-post.css` 的「正文强调」段：
+
+```css
+.post-content em,
+.page-intro em {
+  font-style: normal;
+  text-emphasis: filled dot var(--accent);
+  text-emphasis-position: under right;
+}
+```
+
+为什么是着重号而不是「改成加粗」：
+
+- **和另外两套标记互不撞车** —— `**加粗**` 是 `<strong>`，走浏览器默认的真粗体
+  （PingFang SC 有真 Bold，不是合成的）；正文链接是「印泥淡痕底 + 红字」。再加一种粗体就分不清了。
+- **不依赖任何字重** —— 思源宋体有没有 600 都能正常显示，比「改加粗」稳。
+- 点的颜色用 `--accent` 印章红，就是纸账上那支红铅笔。
+
+几条要知道的：
+
+- **不做 `@supports` 降级**：`text-emphasis` 的支持（Chrome 99 / Firefox 46 / Safari 6.1+）比本文件里
+  已经在用的 `:has()`（Chrome 105）更老，所以不需要兜底。
+- **已知取舍**：`*强调*` 里混了英文单词时，点也会打在字母下面（CSS 没法按语种拆开）。
+- **`.page-intro` 是搭车的**：它是列表页的正文容器，样式本体在 `critical-page.css`，但这条 `em`
+  规则跟着正文排版放在 `critical-post.css`。今天真正有 `.page-intro` 正文的只有 `/media/`，
+  而那一页同时内联了 `critical-post`，所以能生效。**以后若给 `/posts/`、`/categories/`、`/tags/`
+  的 `_index.md` 写正文并用到 `*强调*`，那条规则不会生效**（那几页只内联 `critical` + `critical-page`）——
+  到那时把这条复制一份进 `critical-page.css`，或给那几页的模块组合加上 `critical-post`。
+- 改这块时**别顺手给 `strong` 也加样式**：它现在没有专门规则（走浏览器默认粗体）是刻意的。
 
 用色的两条硬规则：
 
@@ -334,6 +376,19 @@ PY
 上面这段是**摘抄**，真值以 `assets/css/critical.css` 顶部为准（以前这里抄着 18px / `< 600px`，和文件里的 17px / `< 760px` 对不上，2026-09 对齐过一次）。
 
 写新样式时**不要再随手写 `font-size: 1.05rem` 这种值**，从上表里挑一档；字距同理，用 `--tracking-title`（中文标题 0.02em）、`--tracking-label`（中文小标签 0.06em）、`--tracking-num`（数字 / 日期 0.04em）。真正的"大字距"只留给纯英文或数字，套在汉字上会显得字被掰开。
+
+### 层级用线，不用影（2026-10-02 收敛）
+
+一句话：**让纸和线赢，别让卡片和玻璃赢。** 站点身份是「纸账 + 印章」，而账本没有投影，只有横线和墨。之前实现漂向了「卡片 + 玻璃 + 大圆角」，2026-10-02 按 `DESIGN.md`（仓库根目录，参照 getdesign.md 的 Wired / Notion / Linear / Claude）做了一轮减法：
+
+- **列表退回纸上**：`.post-list` 去掉白底 / 边框 / 投影，只留 `border-top`；行与行用 `--line` 发丝线分。`.post-row:hover` **只把标题染成 `--accent`**，不再整行位移 + 变色块。归档 / 分类的 `.group-card`、`.category-card` 同理去底。
+- **圆角收敛**：`--radius` 16→12、`--radius-card` 22→12、`--radius-row` 14→10。大圆角是 App 的语言，博客的容器语言应更接近印刷品。
+- **阴影只留给浮层**：`--shadow-sm` / `--shadow-md` 现在**只**用在搜索面板、灯箱、移动端下拉菜单、返回顶部按钮。卡片一律改用「发丝线 + 纸背色（`--surface-2`）」表达层级。
+- **全站去毛玻璃**：`.site-header` 与 `.back-top` 的 `backdrop-filter` 都删了，改纸底 / 实底。层级交给 `.nav-container::after` 那条「滚动时才出现」的 1px 底线。
+- **`--surface`（白）不再是卡片底**：只给真正「抬起」的浮层。日常表面用 `--paper`，次一级用 `--surface-2`。
+- **签名时刻保留**：印章红仍用在链接 / 悬停 / 激活 / 焦点环 / 文章末尾那枚旋转的圆章 / `hr` 中点 / 书影音卡片的 ±1.2° 旋转（全站唯一的装饰性「贴纸」）。阅读进度条从 3px 收到 2px。
+
+改这些之前先读 `DESIGN.md`。新加容器时先问一句：**这条线够不够？** 够就别加底色，更别加投影。
 
 ### 控件四态（按钮手感）
 
@@ -391,6 +446,96 @@ PY
 `50vw - 372px` 就是「正文右侧还剩多少」减去 32px 最小空隙（正文右边缘 = `50vw + 340`）。窗口 ≥ 1232px 时它算出来 ≥ 244px，被 clamp 的上限吃掉 —— **1232px 以上和改之前逐像素一样**（1440 / 1512 / 1920 完全没动）。1152px 时面板 212px、空隙 24px，是这套比例下还能看的最后一档：212px 减掉 18px 的刻度槽还剩 194px，约 13 个汉字。窗口宽到 1424px 以上时，目录左边缘离正文右边缘固定 128px（sspai 的取值），多出来的宽度都留给右边距。
 
 改这个断点时**三处必须一起改**：`critical-post.css` 里那条 `min-width: 1152px`、同文件末尾两条 `max-width: 1151.98px`（一条藏刻度栏、一条显示 `.post-toc-inline`）、以及 `layouts/_default/single.html` 里的说明注释。只改一边会出现两种目录同时显示、或者同时消失。
+
+### 站内搜索（2026-10-02 重写：从「子串命中」到「加权打分」）
+
+搜索分两半：**索引**（构建时生成）和 **匹配排序**（浏览器里跑）。
+
+- 索引：`layouts/index.searchindex.json` → 输出 `/search-index.json`，字段 `title / summary / description / body / tags / categories / url / date`。
+- 匹配：`assets/js/search.js`。索引在 `open()` 时才 `fetch`，**不是首屏资源**。
+
+**为什么重写。** 旧实现是「把 title+summary+description 拼起来做一次 `indexOf`，命中即算 1 分，然后按索引顺序 `slice(0, 20)`」。两个硬伤叠在一起：
+
+1. **没有相关度**。谁命中都是 1 分，结果按时间倒序排 —— 「最新」被当成了「最相关」。
+2. **`slice(0, 20)` 是硬截断**。中文单字「我」在 122 篇里命中 75 篇，标题就叫《关于我》的那篇恰好是最老的一篇，永远排在第 122 位，直接被砍掉。
+
+于是就有了那个很反直觉的现象：搜「我」找不到《关于我》。**顺带一提，搜「关于」其实也找不到**（8 篇命中，但只有第 2、18 位落在前 20 里），只是命中数少的时候不容易察觉。
+
+**现在怎么排。** 每个字段一个权重，命中次数走对数衰减（出现 1 次得满权重，第 2 次只多 0.45 倍，避免长正文靠刷词堆分），再按总分排序：
+
+| 字段 | 权重 | 说明 |
+|---|---|---|
+| `title` | 100 | 标题命中，最高 |
+| `tags` | 60 | |
+| `categories` | 40 | |
+| `summary` | 30 | |
+| `description` | 20 | |
+| `body` | 8 | 只负责「召回」，不负责「排序」 |
+
+再叠两个加成：**标题与查询完全一致 +300**（搜「关于我」时《关于我》必须第一）；**标题覆盖率加成**（查询词占标题的比例，最高 +50）—— 搜「我」时《关于我》(1/3) 要压过《我是个爱折腾的人》(1/8)。时间只在**同分**时当兜底。结果上限从 20 提到 30。
+
+几条前端约定：
+
+- **多词是 AND**：按空白 / `,，、;；|` 切词，每个词都得在某个字段里出现，否则整条淘汰。
+- **中文单字兜底**：短语查不到、且查询是 2–4 个**纯汉字**时，退化成「这几个字都得有」。拉丁字母绝不能拆 —— 否则「zzzzz」会被拆成 5 个 z，去正文里翻出一堆含 z 的文章。
+- **高亮所有命中**（旧版只标第一处），并且合并重叠区间，否则「关于我」里的「关于」和「我」会套出嵌套的 `<mark>`。
+- **正文命中时换摘要**：如果命中只发生在正文，摘要行改为显示命中位置附近的上下文片段，并标注「正文匹配」—— 否则用户看到一条结果，摘要里一个关键词都没有，会莫名其妙。
+
+**要调什么，去哪调：**
+
+| 想改 | 改哪 |
+|---|---|
+| 权重 / 结果上限（`MAX_RESULTS` = 30）/ 兜底规则 | `assets/js/search.js` 顶部的 `W` 和 `MAX_RESULTS` |
+| 正文进索引的长度（`$bodyCap`，当前 500 字） | `layouts/index.searchindex.json` |
+| 索引收哪些字段 | 同上，那个 `dict` |
+
+`$bodyCap` 是「体积 ↔ 召回」的旋钮，本机 122 篇实测（已剔除代码块）：
+
+| `$bodyCap` | 未压缩 | gzip | 完整覆盖 |
+|---|---|---|---|
+| **500 字（当前）** | **224 KB** | **94 KB** | **3/122** |
+| 600 字 | 258 KB | 108 KB | 15/122 |
+| 800 字 | 323 KB | 137 KB | 16/122 |
+| 1200 字 | 442 KB | 187 KB | 31/122 |
+| 不限 | 921 KB | 389 KB | 122/122 |
+
+停在 500 是刻意的取舍：正文只负责「召回」，排序权重压得很低（`W.body` = 8），所以**宁可少进一点，也别让索引变胖**。500 字 ≈ 220 个汉字，够覆盖「引言 + 第一个小节」；本机正文中位数 2056 字，也就是中位覆盖约四分之一。索引是打开搜索面板才拉的非关键路径，Cloudflare 还会 brotli 压缩。
+
+**踩过的坑（改这块之前先看）：**
+
+- **Hugo 的 `trim` 参数是 `(字符串, cutset)`，不是 `(cutset, 字符串)`**。所以 `{{ $s | trim " " }}` 会变成 `trim(" ", $s)` —— 拿一个空格去「按正文内容裁剪」，结果直接返回空串，而且**不报错**。裁首尾空白请用 `{{ $s | strings.TrimSpace }}`。
+- **`len` 数的是字节，`truncate` 数的是字符**。中文 1 字 = 3 字节，`$bodyCap` 的单位是「字」，别拿 `len` 的结果去对。
+- 正文取自 `.Content`，摘掉 `<pre>` 和 `.code-block-bar` 之后再 `plainify`。代码块是高熵内容（拖 gzip、又是检索噪音），`.code-block-bar` 里还有「语言名 + 复制」，不摘掉的话搜「复制」会命中一堆文章。
+- 改完用 `hugo --gc --minify --cleanDestinationDir` 构建。不带 `--cleanDestinationDir` 的话，旧的 `bundle.min.*.js` 会残留在 `public/js/` 里，看起来像「改了没生效」。
+
+### 归档页（2026-10-02 改造：去掉三处重复）
+
+归档页原来是「时间轴 + 年 + 月 + 条目」四层，每层都想有存在感，结果**同一件事被说了三遍**：
+
+- **篇数说两遍**：年报一次「110 篇」，下面每个月的标题又各报一次。
+- **月份说两遍**：分组标题已经写了「12月」，每条文章前面又写 `12-05`。
+- **折叠控件说两遍**：年一个箭头、月一个箭头，一屏里竖着排两列三角。
+
+再加上左侧一条 2px 时间轴竖线（挂着年的 12px 空心圆环 + 月的 6px 实心点）和月份之间的 1px 虚线 —— **竖线 + 虚线 + 两种圆点，四套「线/点」语言同时出现**，这就是「乱」的直接来源。每行元素数：年行 4 个、月行 4 个、条目行 2 个。
+
+**改法**（对齐 `DESIGN.md`「让纸和线赢」+ bearneo 的平铺列表）：
+
+| 改动 | 说明 |
+|---|---|
+| 篇数只留年一级 | 删掉月级计数；`.archive-count` 加 `margin-left: auto` 推到最右，不再紧贴年号 |
+| 月份退成标签行 | `.archive-month` 从「16px 宋体 + 计数 + 箭头 + 圆点」退成「11.5px 等宽小字 + 字距」，**不再折叠** |
+| 条目日期只渲染「日」 | `.Date.Format "02"`，月份交给上面的标签；`.archive-item-date` 写死 `flex: 0 0 2.2ch` |
+| 去掉时间轴与虚线 | 年份下加 `border-bottom: 1px solid var(--line)` 承担全部层级 |
+| 行高松绑 | `.archive-item` 上下 padding 8px → 11px；hover 只染红标题，不再铺底色 |
+| 只有 1 个月的年份不出月份标签 | 2025 只有 12 月，出标签就是「2025 · 12 篇」紧接「12月 · 12 篇」 |
+
+每行元素数从 **4 + 4 + 2 降到 2 + 1 + 2**。
+
+**结构**：`<section class="archive-list">` → 每年一个 `<details class="archive-year-block" open>` → `<summary class="archive-year">` 里放 `<h2 class="archive-year-num">`（年）+ `<span class="archive-count">`；下面是 `<h3 class="archive-month">` 标签 + `<div class="archive-month-list">` 条目。加 h2 / h3 是为了让读屏能在这 122 条里按年、按月跳转（原来整页只有 h1）。
+
+**月份折叠是刻意去掉的**（2026-10-02 用户拍板），所以一屏里只有「年」这一列箭头。
+
+**注意**：`.archive-timeline` 与 `.archive-month-label` 两个类名已彻底移除（前者改名 `.archive-list`），旧的 `.archive-year-block summary` 选择器也一并去掉 —— 样式直接挂在 `.archive-year`（它就是那个 `summary`）上。改这块时别再引旧类名。
 
 ### 跑步数据
 

@@ -152,14 +152,25 @@
   }
 
   /* ---------- 图片渐进加载（blur-up） ---------- */
+  /* CSS 里 .js .article-image img 是 opacity: 0，只有 .is-loaded 才亮起来。
+     所以「什么时候算完事」必须两个方向都覆盖，否则失败的图永远不亮：
+       · 原来只挂 load → 图挂掉就等不到 load，图停在 opacity: 0，
+         连带 alt 文字一起透明，读者只看到一个灰色空盒子（静默丢内容）。
+       · 原来那句 `img.complete && img.naturalWidth > 0` 也有漏：
+         complete 为 true 只说明「浏览器已经给出结论了」，失败同样算 complete。
+         于是失败的图会被塞进 else 分支，去等一个永远不会来的 load。
+     正确判法：已经 complete 的就当场按 naturalWidth 定生死；还没 complete 的，
+     load 和 error 都挂上，谁先来听谁的。 */
   Array.prototype.forEach.call(document.querySelectorAll(".article-image img"), function (img) {
-    if (img.complete && img.naturalWidth > 0) {
-      img.classList.add("is-loaded");
-    } else {
-      img.addEventListener("load", function () {
-        img.classList.add("is-loaded");
-      });
+    function settle(cls) {
+      img.classList.add(cls);
     }
+    if (img.complete) {
+      settle(img.naturalWidth > 0 ? "is-loaded" : "is-failed");
+      return;
+    }
+    img.addEventListener("load", function () { settle("is-loaded"); });
+    img.addEventListener("error", function () { settle("is-failed"); });
   });
 
   /* ---------- 代码块复制 ---------- */

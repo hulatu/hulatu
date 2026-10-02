@@ -10,7 +10,10 @@
      所以高亮对页面里所有 .post-toc-nav 一起生效；点哪一份都是这里接管、平滑滚动。 */
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  /* 目录高亮的状态：当前命中的锚点 id，以及它那条「祖先链」上的所有 <a>。
+     记着链是为了滚动时只做差集增删，不每帧全量清 class —— 见 setActive()。 */
   var activeId = null;
+  var activeChain = [];
 
   function scrollBehavior() {
     return reduceMotion.matches ? "auto" : "smooth";
@@ -21,12 +24,52 @@
     return href.charAt(0) === "#" ? decodeURIComponent(href.slice(1)) : "";
   }
 
+  /* 命中的小节要连带它的各级父级一起亮（做法来自 bearneo 的 toc.html：buildChainFromLink）。
+     只亮叶子的话，读到 ### 小节时上面的 ## 还是灰的，看不出「我在哪一章的哪一节」。
+     沿 li.parentElement.closest('li') 一层层往上爬，把沿途每个 <a> 收进链里。
+     Hugo 生成的目录是 <ul><li><a>A</a><ul><li><a>B</a></li></ul></li></ul>，
+     所以 B 的父级 li 就是 A 所在的那个 li，parentLi.querySelector("a") 取到的正是 A 本身
+     （A 的 <a> 在嵌套 <ul> 之前，文档序上排第一）。 */
+  function chainOf(link) {
+    var chain = [];
+    if (!link) return chain;
+    chain.push(link);
+    var li = link.closest("li");
+    while (li) {
+      var parentLi = li.parentElement ? li.parentElement.closest("li") : null;
+      if (parentLi) {
+        var parentLink = parentLi.querySelector("a");
+        if (parentLink) chain.push(parentLink);
+      }
+      li = parentLi;
+    }
+    return chain;
+  }
+
   function setActive(links, id) {
     if (!id || id === activeId) return;
     activeId = id;
+
+    /* 同一份目录有两份副本，hash 相同的 link 都要亮，
+       所以先把它们全找出来，再把各自的祖先链并成一条（indexOf 去重）。 */
+    var chain = [];
     links.forEach(function (link) {
-      link.classList.toggle("is-active", hashOf(link) === id);
+      if (hashOf(link) !== id) return;
+      chainOf(link).forEach(function (el) {
+        if (chain.indexOf(el) === -1) chain.push(el);
+      });
     });
+
+    /* 只对差集做增删：滚动时每帧都会走到这里，全量 toggle 会把没必要的
+       class 变更和随之而来的样式重算都做一遍。 */
+    activeChain.forEach(function (el) {
+      if (chain.indexOf(el) === -1) el.classList.remove("is-active");
+    });
+    chain.forEach(function (el) {
+      if (!el.classList.contains("is-active")) el.classList.add("is-active");
+    });
+
+    activeChain = chain;
   }
 
   function init() {
@@ -45,7 +88,40 @@
       .filter(Boolean);
     if (!targets.length) return;
 
+    /* ---------- 点目录之后把高亮「锁」住 ----------
+       不锁的话会看到高亮闪一下（2026-10-02 修）：点击时我们先 setActive(target)，
+       但紧接着的第一帧 scroll 事件里，sync() 读到的还是**旧的** scrollY
+       （平滑滚动刚起步、几乎没动），于是算出「当前还在原来那一节」，
+       把高亮立刻打回去，然后才随着滚动一格格往前挪。
+       顺序就成了「目标 → 原来那节 → … → 目标」，中间那下回跳就是那记「闪」。 */
+    var activeLocked = false;
+    var unlockTimer = 0;
+
+    function unlockHighlight() {
+      if (!activeLocked) return;
+      activeLocked = false;
+      window.clearTimeout(unlockTimer);
+      /* 解封时按最终位置重新对一次：锁着这段时间 sync() 一直被挡着，
+         不补这一刀的话，高亮会停在我们点的那一节上、和实际位置脱节。 */
+      sync();
+    }
+
+    function lockHighlight() {
+      activeLocked = true;
+      window.clearTimeout(unlockTimer);
+      /* 首选信号是 scrollend；不支持的浏览器（老 Safari）靠这个兜底。
+         700ms 比一次平滑滚动略长，够用，也不会让高亮卡太久。 */
+      unlockTimer = window.setTimeout(unlockHighlight, 700);
+    }
+
+    /* 用户自己一动手就立刻解封，别让兜底计时器把高亮按住不放。 */
+    window.addEventListener("scrollend", unlockHighlight);
+    ["wheel", "touchstart", "keydown"].forEach(function (name) {
+      window.addEventListener(name, unlockHighlight, { passive: true });
+    });
+
     function sync() {
+      if (activeLocked) return;
       var line = window.scrollY + 130;
       var active = targets[0];
       for (var i = 0; i < targets.length; i++) {
@@ -64,6 +140,45 @@
       });
     }, { passive: true });
 
+    var header = document.querySelector(".site-header");
+
+    /* 向下跳时留的呼吸：严格贴顶（0）的话，中文标题的字形上沿正好顶到视口边缘，
+       看着挤。5 不是间距 token（--space-* 从 4px 起跳、下一档就是 8px），
+       是照着「刚刚不贴边」单独定下来的。 */
+    var DOWN_GAP = 5;
+
+    /* ---------- 点目录的落点 ----------
+       向下跳时标题**几乎贴到页面最顶端**，只留上面那 5px（不留 --anchor-offset 那 76px）。
+       为什么可以不留：顶栏是「向下滚就自动收起」的（见 ui.js 的 updateHeader），
+       所以向下跳的过程中它本来就会滑走；这时候还照旧留 76px 就成了一片空白 ——
+       读者看到标题悬在页面下方，上面什么都没有，像是没对准。
+       反方向（往上跳）必须保持原样：顶栏会随着向上滚动重新露出来，
+       这时候 76px 的留位正是需要的，否则标题一落地就被顶栏盖住。
+       所以不能把这条写进 CSS 的 scroll-margin-top 里（那是全站锚点共用的，
+       脚注的 #fn: / #fnref: 回跳也会跟着变），只能在目录这条点击路径上按方向算。 */
+    function scrollToTarget(target) {
+      var top = target.getBoundingClientRect().top + window.scrollY;
+      var goingDown = top > window.scrollY + 1;
+      var offset = goingDown ? DOWN_GAP : anchorOffset(target);
+
+      /* 顺手把顶栏状态定下来：向下跳本来就该收起。
+         不这么做的话，「人在页面顶部、顶栏还露着，点一个就在下面的小节」时，
+         标题贴顶的同时会被顶栏盖住（ui.js 要滚过 120px 才收起）。
+         ui.js 之后的滚动处理会维持这个状态（向下滚它只管收起、不主动展开），
+         所以两边不会打架。
+
+         但判断依据必须是**落点** next，不能是 goingDown（2026-10-02 修）：
+         goingDown 只看目标在不在下方，而向下跳的 offset 是 DOWN_GAP（5px）。
+         当目标只比当前位置低 1~5px 时，next 反而比当前位置还小 —— 页面会往上滚一丁点，
+         ui.js 的 updateHeader 立刻判成「向上滚」把 .is-hidden 摘掉，
+         顶栏于是先收起再弹回来，闪一下。现在只有 next 真的更大才收。 */
+      var max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      var next = Math.min(Math.max(top - offset, 0), max);
+      if (next > window.scrollY && header) header.classList.add("is-hidden");
+
+      window.scrollTo({ top: next, behavior: scrollBehavior() });
+    }
+
     navs.forEach(function (nav) {
       nav.addEventListener("click", function (event) {
         var link = event.target.closest("a");
@@ -71,8 +186,11 @@
         var target = document.getElementById(hashOf(link));
         if (!target) return;
         event.preventDefault();
-        target.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+        scrollToTarget(target);
+        /* 先把高亮定在目标上，再锁住 —— 顺序不能反：
+           锁的作用就是挡住「滚动刚起步那几帧里 sync() 拿旧位置算出旧章节」。 */
         setActive(links, target.id);
+        lockHighlight();
       });
     });
 

@@ -43,14 +43,12 @@
   gap: var(--space-2);
   min-width: 0;
   padding: var(--space-5) var(--space-5);
-  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }.post-nav-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-  border-color: var(--line-strong);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
 }.post-nav-next { text-align: right; }.post-nav-label {
   font-size: var(--text-2xs);
   color: var(--muted);
@@ -112,7 +110,6 @@
   padding: 1.2rem 1.4rem 1.1rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--surface);
 }.donate-tip {
   color: var(--muted);
   font-size: var(--text-xs);
@@ -137,24 +134,61 @@
   letter-spacing: var(--tracking-label);
 }.donate-link-btn { text-decoration: none; }.giscus-wrap {
   margin-top: var(--space-12);
-  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  padding: var(--space-5) var(--space-6) var(--space-6);
-}.giscus-title {
+  overflow: hidden;
+  /* 2026-10-02 改版：折叠开关搬到标题行本身（右边一个箭头）。
+     原来这里是 padding: 20/24/24 + 标题 margin-bottom 16 + 一个居中的胶囊按钮，
+     收起时高度接近展开时的一半；现在 padding 下放到标题行与 .giscus-inner，
+     收起时整块只剩标题行那么高。overflow:hidden 是给标题行的悬停底色收圆角。 */
+}.giscus-head {
+  margin: 0;
+  font: inherit;
+}.giscus-toggle {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  border: none;
+  background: none;
+  color: var(--ink);
   font-family: var(--font-serif);
   font-size: var(--text-md);
+  font-weight: 700;
+  line-height: 1.4;
   letter-spacing: var(--tracking-title);
-  margin: 0 0 var(--space-4);
-}.giscus-title::before {
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}.giscus-toggle::before {
   content: "";
+  flex: none;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
+}.giscus-toggle:hover {
+  color: var(--accent);
+  background: var(--surface-2);
+}.giscus-arrow {
+  flex: none;
+  margin-left: auto;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  transition: transform 0.25s var(--ease), color 0.15s ease;
+}.giscus-toggle:hover .giscus-arrow {
+  color: var(--accent);
+}.giscus-toggle[aria-expanded="true"] .giscus-arrow {
+  transform: rotate(180deg);
+}.giscus-loading {
+  margin: 0;
+  padding: 0 var(--space-5) var(--space-4);
+  color: var(--muted);
+  font-size: var(--text-xs);
+}.giscus-loading[hidden] {
+  display: none;
 }.giscus-body {
   max-height: 0;
   overflow: hidden;
@@ -162,27 +196,8 @@
 }.giscus-body.is-open {
   max-height: none;
   visibility: visible;
-}.giscus-loading {
-  color: var(--muted);
-  font-size: var(--text-xs);
-  text-align: center;
-  padding: var(--space-4) 0;
-}.giscus-loading[hidden] {
-  display: none;
-}.giscus-load-btn {
-  display: flex;
-  width: fit-content;
-  margin: var(--space-3) auto 0;
-}.giscus-load-btn:disabled {
-  background: var(--ctrl-disabled-bg);
-  color: var(--ctrl-disabled-text);
-  border-color: var(--ctrl-disabled-border);
-  box-shadow: var(--ctrl-disabled-shadow);
-  opacity: var(--ctrl-disabled-opacity);
-  cursor: default;
-  transform: none;
-}.giscus-load-btn[hidden] {
-  display: none;
+}.giscus-inner {
+  padding: 0 var(--space-5) var(--space-5);
 }.post-pill svg {
   width: 16px;
   height: 16px;

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>「胡拉图说」设计评审 · 向 Bear Neo 收敛</title>
+<style>
+  :root{
+    --paper:#f6f6f8; --surface:#fff; --surface-2:#ececf1;
+    --ink:#1d1d1f; --ink-soft:#3f3f45; --muted:#56565c;
+    --line:#e4e4e9; --line-strong:#d3d3da;
+    --accent:#c73e2f; --accent-ink:#a83226; --accent-soft:#fbeae7; --on-accent:#fff8f5;
+    --serif:"Source Han Serif SC","Noto Serif SC","Songti SC",Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"PingFang SC",monospace;
+    --gutter:clamp(20px,5vw,32px);
+    --w:760px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+       font-size:17px;line-height:1.8;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:calc(var(--w) + 2*var(--gutter));margin:0 auto;padding:0 var(--gutter)}
+  h1,h2,h3{font-family:var(--serif);letter-spacing:.02em;font-weight:500;text-wrap:balance}
+  a{color:var(--accent-ink);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+  code{font-family:var(--mono);font-size:.82em;background:var(--surface-2);
+       padding:.12em .42em;border-radius:6px;color:var(--ink)}
+  .mono{font-family:var(--mono);font-size:.82rem;color:var(--muted);letter-spacing:.04em}
+
+  /* 页头 */
+  header.top{border-bottom:1px solid var(--line);padding:clamp(48px,9vw,96px) 0 clamp(32px,5vw,48px);margin-bottom:clamp(40px,6vw,64px)}
+  .kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin:0 0 18px}
+  header.top h1{font-size:clamp(1.9rem,5vw,2.6rem);line-height:1.35;margin:0 0 20px}
+  header.top .lede{color:var(--ink-soft);font-size:1.02rem;margin:0;max-width:40em}
+  .meta-row{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:26px;font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+  .meta-row b{color:var(--ink-soft);font-weight:500}
+
+  /* 章节 */
+  section{margin-bottom:clamp(48px,7vw,72px)}
+  section > .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 26px;
+       padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .sec-head .no{font-family:var(--mono);font-size:.8rem;color:var(--accent);letter-spacing:.06em}
+  .sec-head h2{font-size:clamp(1.3rem,3.4vw,1.6rem);margin:0}
+  p{margin:0 0 1.1em}
+  .muted{color:var(--muted)}
+  .small{font-size:.9rem}
+
+  /* 论点块 */
+  .thesis{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));
+          border-radius:12px;padding:clamp(22px,4vw,32px)}
+  .thesis .q{font-family:var(--serif);font-size:clamp(1.15rem,3vw,1.4rem);line-height:1.6;margin:0 0 14px;color:var(--ink)}
+  .thesis .q em{font-style:normal;color:var(--accent-ink);font-weight:600}
+  .thesis p{margin:0;color:var(--ink-soft);font-size:.95rem}
+
+  /* 光谱图 */
+  .spectrum{margin:8px 0 4px}
+  .sp-track{position:relative;height:6px;border-radius:999px;
+       background:linear-gradient(90deg,#cfd6e6,#e8e8ee 46%,#f0d9d3)}
+  .sp-marks{position:relative;height:74px;margin-top:-6px}
+  .sp-mark{position:absolute;top:0;transform:translateX(-50%);text-align:center;width:150px}
+  .sp-mark .dot{width:12px;height:12px;border-radius:50%;background:var(--surface);
+       border:2px solid var(--line-strong);margin:0 auto 8px}
+  .sp-mark .lbl{font-family:var(--serif);font-size:.86rem;color:var(--ink)}
+  .sp-mark .sub{font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:.03em}
+  .sp-mark.is-you .dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 5px var(--accent-soft)}
+  .sp-mark.is-you .lbl{color:var(--accent-ink);font-weight:600}
+  .sp-mark.is-target .dot{background:var(--surface);border-color:var(--accent)}
+  .sp-legend{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.7rem;
+       color:var(--muted);margin-top:6px;letter-spacing:.04em}
+
+  /* 参考卡片 */
+  .refs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .ref{border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px;background:transparent}
+  .ref h3{font-size:1rem;margin:0 0 4px}
+  .ref .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;color:var(--accent);
+       display:block;margin-bottom:8px}
+  .ref p{margin:0;font-size:.88rem;color:var(--muted);line-height:1.7}
+  .ref.pick{border-color:color-mix(in srgb,var(--accent) 40%,var(--line));
+       background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+
+  /* 前后对比 */
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.ba{grid-template-columns:1fr}}
+  .ba-col{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .ba-col .cap{padding:10px 14px;border-bottom:1px solid var(--line);font-family:var(--mono);
+       font-size:.72rem;letter-spacing:.06em;color:var(--muted);display:flex;justify-content:space-between}
+  .ba-col.before .cap b{color:#a83226}
+  .ba-col.after .cap b{color:#0f6e56}
+  .ba-body{padding:16px}
+  .mini-card{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 14px rgba(0,0,0,.05);padding:8px}
+  .mini-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+       padding:10px 12px;border-radius:14px}
+  .mini-row+.mini-row{border-top:1px solid var(--line)}
+  .mini-row .t{font-family:var(--serif);font-size:.86rem;color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .mini-row .d{font-family:var(--mono);font-size:.72rem;color:var(--muted);white-space:nowrap}
+  .mini-hov{background:var(--surface-2)}
+  .flat-list{border-top:1px solid var(--line)}
+  .flat-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+       padding:11px 2px;border-bottom:1px solid var(--line)}
+  .flat-row .t{font-family:var(--serif);font-size:.88rem;color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .flat-row .d{font-family:var(--mono);font-size:.72rem;color:var(--muted);white-space:nowrap}
+  .flat-row.red .t{color:var(--accent)}
+  .ba-note{font-size:.84rem;color:var(--muted);margin:14px 0 0;line-height:1.7}
+
+  /* 路线图 */
+  .road{display:flex;flex-direction:column;gap:0}
+  .step{display:grid;grid-template-columns:64px 1fr;gap:18px;padding:18px 0;border-top:1px solid var(--line)}
+  .step:last-child{border-bottom:1px solid var(--line)}
+  .step .p{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--muted);padding-top:4px}
+  .step .p b{display:block;font-size:.9rem;color:var(--accent);letter-spacing:.04em}
+  .step h3{font-size:1rem;margin:0 0 6px}
+  .step p{margin:0 0 10px;font-size:.9rem;color:var(--muted);line-height:1.75}
+  .step ul{margin:0;padding-left:1.15em;font-size:.9rem;color:var(--ink-soft)}
+  .step li{margin:3px 0}
+  .step li code{font-size:.76em}
+
+  /* 保留清单 */
+  .keep{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+  .keep div{border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.86rem;color:var(--ink-soft);
+       display:flex;align-items:center;gap:9px}
+  .keep .seal{flex:none;width:16px;height:16px;border-radius:50%;background:var(--accent-soft);
+       border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));
+       display:inline-flex;align-items:center;justify-content:center}
+  .keep .seal::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent)}
+
+  /* 交付物 */
+  .deliver{border:1px solid var(--line);border-radius:12px;padding:22px 24px;background:transparent}
+  .deliver .file{font-family:var(--mono);font-size:.86rem;color:var(--ink);background:var(--surface-2);
+       padding:.28em .6em;border-radius:6px;display:inline-block;margin-bottom:12px}
+  .deliver p{margin:0;font-size:.92rem;color:var(--ink-soft)}
+
+  footer{border-top:1px solid var(--line);padding:32px 0 64px;color:var(--muted);font-size:.84rem}
+  footer .mono{display:block;margin-top:8px}
+  .hr-orn{display:flex;align-items:center;justify-content:center;gap:12px;margin:44px 0;color:var(--line-strong)}
+  .hr-orn::before,.hr-orn::after{content:"";height:1px;background:var(--line);flex:1}
+  .hr-orn span{width:7px;height:7px;background:var(--accent);transform:rotate(45deg);opacity:.85}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <p class="kicker">Design review · 2026-10-02</p>
+    <h1>向 Bear Neo 收敛：<br>让纸和线赢，别让卡片和玻璃赢</h1>
+    <p class="lede">一份基于 <b>getdesign.md</b> 参考库、对比 hugo-bearneo 极简血统与 hulatu.com 现有实现的改造建议。目标不是变成 Bear Blog，而是把 Bear Blog 的克制，装进你自己的「纸账 + 印章」身份里。</p>
+    <div class="meta-row">
+      <span><b>画布</b> 冷白纸 / 墨染夜色</span>
+      <span><b>强调色</b> 印章红 ×1</span>
+      <span><b>阅读宽</b> 680px</span>
+      <span><b>圆角</b> 10–12px</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <div class="sec-head"><span class="no">01</span><h2>一句话诊断</h2></div>
+    <div class="thesis">
+      <p class="q">你的博客已经在做 Bear Blog 的<em>内容</em>，但还没完全用 Bear Blog 的<em>容器</em>。</p>
+      <p>你保留了极简的血统——窄栏、衬线、深色模式、快。但视觉实现一度漂向了「Apple App」：白卡片 + 投影 + 22px 大圆角 + 页头毛玻璃。而你自己给出的比喻「<b>纸账 + 印章</b>」本来就指向 Bear Blog 的克制——<b>一本账本没有投影，只有横线和墨。</b>所以方向不是"再设计一套"，而是让纸的比喻赢回来。</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="no">02</span><h2>你现在站在哪</h2></div>
+    <p class="muted small">把「容器语言的重量」当作一根轴：左端是 Bear Blog 的裸纸，右端是移动 App 的卡片玻璃。你的<b>内容与声音</b>在左端，但<b>容器与装饰</b>偏在右端。</p>
+    <div class="spectrum">
+      <div class="sp-track"></div>
+      <div class="sp-marks">
+        <div class="sp-mark" style="left:12%">
+          <div class="dot"></div>
+          <div class="lbl">Bear Blog</div>
+          <div class="sub">纸 + 字，零容器</div>
+        </div>
+        <div class="sp-mark is-target" style="left:46%">
+          <div class="dot"></div>
+          <div class="lbl">← 目标</div>
+          <div class="sub">纸 + 线 + 印章</div>
+        </div>
+        <div class="sp-mark is-you" style="left:78%">
+          <div class="dot"></div>
+          <div class="lbl">你现在</div>
+          <div class="sub">卡片 + 玻璃</div>
+        </div>
+      </div>
+      <div class="sp-legend"><span>裸纸</span><span>卡片玻璃</span></div>
+    </div>
+    <p class="ba-note">结论：要移动的只有「容器」这一端，内容、字体、功能全部原地保留。这是一次<b>减法</b>，不是重做。</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="no">03</span><h2>getdesign.md 里，谁和你对得上</h2></div>
+    <p class="muted small">从 <code>npx getdesign@latest list</code> 列出的 80+ 个品牌里筛出四个气质相符的，作为「借纪律」的对象。它们不替代你的身份，只提供成熟的克制手法。</p>
+    <div class="refs">
+      <div class="ref pick">
+        <span class="tag">最贴 · 编辑血统</span>
+        <h3>Wired</h3>
+        <p>纸白画布、衬线标题 + 无衬线结构 + 等宽标签的三分工、用 <b>1px 发丝线</b>分行而非卡片、无投影。这正是「衬线标题 + 等宽元信息」的权威版本。</p>
+      </div>
+      <div class="ref pick">
+        <span class="tag">最贴 · 暖色 + 单一强调</span>
+        <h3>Claude / Anthropic</h3>
+        <p>暖色画布 + <b>一个暖强调色</b>（珊瑚橙，气质接近你的印章红），且强调色用得极稀缺。它证明了"暖红 + 编辑式排版"是一套成立的组合。</p>
+      </div>
+      <div class="ref">
+        <span class="tag">借纪律 · 层级</span>
+        <h3>Notion</h3>
+        <p><b>hairline elevation</b>——层级靠 1px 线和表面色深浅，不靠投影；一个结构性强调色，其余用装饰性"贴纸"。你的书影音卡片正好可以定位成"贴纸"。</p>
+      </div>
+      <div class="ref">
+        <span class="tag">借纪律 · 克制</span>
+        <h3>Linear</h3>
+        <p>表面阶梯代替投影，圆角统一 12px，强调色只出现在品牌标 / 焦点 / 主 CTA。是"圆角别放大、强调色别滥用"的最好参照。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="no">04</span><h2>最关键的一处：文章列表</h2></div>
+    <p class="muted small">首页列表是全站最常被看到的一屏。它现在是"一张带投影的白卡片"，改成"落在纸上的账目行"——这一个改动，方向就对了。</p>
+    <div class="ba">
+      <div class="ba-col before">
+        <div class="cap"><span>改造前</span><b>白卡 + 投影 + 22px</b></div>
+        <div class="ba-body">
+          <div class="mini-card">
+            <div class="mini-row mini-hov"><span class="t">AI 时代，也应该拥抱英语</span><span class="d">2026-09-28</span></div>
+            <div class="mini-row"><span class="t">三类财富杠杆</span><span class="d">2026-09-20</span></div>
+            <div class="mini-row"><span class="t">一个人不自信的根源是什么</span><span class="d">2026-09-12</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="ba-col after">
+        <div class="cap"><span>改造后</span><b>纸面 + 发丝线 + 只变红</b></div>
+        <div class="ba-body">
+          <div class="flat-list">
+            <div class="flat-row red"><span class="t">AI 时代，也应该拥抱英语</span><span class="d">2026-09-28</span></div>
+            <div class="flat-row"><span class="t">三类财富杠杆</span><span class="d">2026-09-20</span></div>
+            <div class="flat-row"><span class="t">一个人不自信的根源是什么</span><span class="d">2026-09-12</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="ba-note">左边：容器很重，行悬停还会整行位移 + 变色块。右边：内容直接落在纸上，行间一条 1px 线，悬停只把标题染成印章红——像手指划过账目。</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="no">05</span><h2>改造路线图</h2></div>
+    <div class="road">
+      <div class="step">
+        <div class="p"><b>P0</b>收益最大</div>
+        <div>
+          <h3>把「卡片」退回「纸 + 线」</h3>
+          <p>这是唯一一个"改了就对了"的动作，先做它。</p>
+          <ul>
+            <li><code>.post-list</code> 去掉 <code>background/border/box-shadow</code>，列表落到纸上，行间改发丝线</li>
+            <li><code>.post-row:hover</code> 去掉底色块与 <code>translateY</code>，只保留标题变红</li>
+            <li><code>.group-card</code> / <code>.category-card</code> / <code>.media-card</code> 撤掉 <code>--shadow-sm</code>，层级改线 + 纸背色</li>
+          </ul>
+        </div>
+      </div>
+      <div class="step">
+        <div class="p"><b>P1</b>手感</div>
+        <div>
+          <h3>圆角与阴影收敛</h3>
+          <p>把"App 感"的两个来源同时收一档。</p>
+          <ul>
+            <li><code>--radius-card</code> 22→12 · <code>--radius</code> 16→12 · <code>--radius-row</code> 14→10</li>
+            <li>全局清理阴影：只留给 <code>.search-box</code> / 灯箱 / 移动菜单 / <code>.back-top</code></li>
+          </ul>
+        </div>
+      </div>
+      <div class="step">
+        <div class="p"><b>P1</b>性能 + 观感</div>
+        <div>
+          <h3>页头去玻璃</h3>
+          <p>毛玻璃在常驻固定元素上每帧重算，是滚动掉帧的大头；在中文长文博客里收益很小。</p>
+          <ul>
+            <li>去掉或大幅降低 <code>.site-header</code> 的 <code>backdrop-filter</code></li>
+            <li>改「纸底 + 滚动时出现一条 1px 底线」（Wired 的 masthead 手法）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="step">
+        <div class="p"><b>P2</b>品牌电压</div>
+        <div>
+          <h3>让印章红更稀缺</h3>
+          <p>红是品牌电压，电压要省着用才亮。复核每一处 <code>var(--accent)</code>。</p>
+          <ul>
+            <li>保留：链接 / 悬停 / 激活 / 焦点环 / 一个「签名时刻」</li>
+            <li>降级：纯装饰性的红（如阅读进度条、导航装饰线）可考虑降到 <code>--ink-soft</code></li>
+          </ul>
+        </div>
+      </div>
+      <div class="step">
+        <div class="p"><b>P2</b>锦上添花</div>
+        <div>
+          <h3>借一点 bearneo 的能力</h3>
+          <p>功能上你已经很全，只差这两样可选。</p>
+          <ul>
+            <li>首页可选做「年份分组」（归档页已有该能力）</li>
+            <li>上赞（Kudos）可选——Bear Blog 的标志性互动</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="no">06</span><h2>这些别动</h2></div>
+    <p class="muted small">极简不等于删功能。以下都是你的身份与能力，全部保留——要收敛的是装饰，不是这些。</p>
+    <div class="keep">
+      <div><span class="seal"></span>印章红 + 纸账比喻</div>
+      <div><span class="seal"></span>衬线标题 + 等宽元信息</div>
+      <div><span class="seal"></span>680px 阅读宽 / 17px·1.8</div>
+      <div><span class="seal"></span>深色「墨染夜色」</div>
+      <div><span class="seal"></span>阅读进度条</div>
+      <div><span class="seal"></span>目录（右栏 + 内联）</div>
+      <div><span class="seal"></span>站内搜索</div>
+      <div><span class="seal"></span>图片灯箱</div>
+      <div><span class="seal"></span>周刊 / 归档 / 友链</div>
+      <div><span class="seal"></span>打赏 / giscus 评论</div>
+      <div><span class="seal"></span>关键 CSS 内联 + 预渲染</div>
+      <div><span class="seal"></span>书影音卡片的小旋转</div>
+    </div>
+    <p class="ba-note">书影音卡片的 ±1.2° 旋转，建议定位成全站唯一的"贴纸"——按 Notion 的原则：装饰永不承担结构，只负责一点手温。</p>
+  </section>
+
+  <div class="hr-orn"><span></span></div>
+
+  <section>
+    <div class="sec-head"><span class="no">07</span><h2>交付物</h2></div>
+    <div class="deliver">
+      <span class="file">DESIGN.md</span>
+      <p>已按 getdesign.md 的格式（YAML front matter + Markdown 章节）写好，放在仓库根目录。里面是完整的色彩 / 字体 / 间距 / 圆角 / 组件 token，以及一份 Do's &amp; Don'ts 和改造路线图。以后让任何 AI 助手改模板时，只要说一句「参考根目录的 DESIGN.md」，它就会按这套语言来——这就是 getdesign.md 的用法。</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    参考：getdesign.md（wired / claude / notion / linear）· hugo-bearneo · bearblog.dev
+    <span class="mono">评审生成于 2026-10-02 · 用「纸 + 印章」的目标语言排版</span>
+  </div>
+</footer>
+
+</body>
+</html>

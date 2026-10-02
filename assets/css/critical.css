@@ -51,10 +51,12 @@
      带 #锚点进来，标题就停在这个位置（用法见下面「锚点落点」那段）。 */
   --anchor-gap: var(--space-3);
   --anchor-offset: calc(var(--header-h) + var(--anchor-gap));
-  --radius: 16px;
+  /* 2026-10-02 圆角收敛：大圆角是「移动 App」的语言，博客的容器语言应更接近印刷品。
+     22 → 12 / 16 → 12 / 14 → 10。参照 Notion(12) / Linear(12) / Wired(0)。 */
+  --radius: 12px;
   --radius-sm: 10px;
-  --radius-card: 22px;
-  --radius-row: 14px;
+  --radius-card: 12px;
+  --radius-row: 10px;
   --radius-pill: 999px;
   /* 字号尺度：16px 基准 × 1.2 比例；正文单独占一档（17px），不参与 UI 尺度 */
   --text-2xs: 0.72rem;      /* ≈11.5px 角标 / 极小元信息 */
@@ -230,7 +232,16 @@
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
-}main [id] {
+}main[id],
+main [id] {
+  /* 为什么要多写一个 main[id]（2026-10-02 补）：
+     跳转链接的落点是 <main id="main">，而 <main> **本身就是** main、不是 main 的后代
+     —— 只写后代选择器 `main [id]` 的话它压根匹配不上，于是 #main 没有 scroll-margin-top，
+     滚过去就贴在视口顶端，被 position: fixed 的顶栏（--header-h: 64px）吃掉标题最上面约 24px
+     （main.container 的 padding-top 只有 40px，不够让位）。
+     正文里 h2/h3 的 id 是 main 的后代，本来就靠 `main [id]` 生效，所以两个都要留着。
+     不用 html { scroll-padding-top } 来解：那个值会和这里的 scroll-margin-top 叠加
+     （见 core.css 顶部的说明），会把所有锚点又往下多推一截。 */
   scroll-margin-top: var(--anchor-offset);
 }::-webkit-scrollbar {
   width: 8px;
@@ -273,7 +284,9 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 3px;
+  /* 2026-10-02 P2：3 → 2px。印章红是品牌电压，常驻元素越细越像「墨线」，
+     不至于在纸面上压出一大块红。 */
+  height: 2px;
   background: var(--accent);
   z-index: 101;
   /* 只做合成动画：逐帧改 transform，不碰布局也不挂 transition */
@@ -286,17 +299,13 @@
   left: 0;
   right: 0;
   z-index: 100;
-  background: color-mix(in srgb, var(--paper) 72%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(1.6);
-  backdrop-filter: blur(18px) saturate(1.6);
+  /* 2026-10-02 去玻璃：纸底 + 滚动时出现的一条 1px 底线（见 .nav-container::after）。
+     backdrop-filter 在常驻固定元素上每帧都要重算，是滚动掉帧的大头，而中文长文博客里
+     它带来的观感收益很小。层级交给那条线。 */
+  background: var(--paper);
   transition: background 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.3s var(--ease);
-}@media (max-width: 760px) {.site-header {
-    -webkit-backdrop-filter: blur(12px) saturate(1.4);
-    backdrop-filter: blur(12px) saturate(1.4);
-  }}.site-header.is-hidden {
+}.site-header.is-hidden {
   transform: translateY(-100%);
-}.site-header.is-scrolled {
-  background: color-mix(in srgb, var(--paper) 78%, transparent);
 }.nav-container {
   position: relative;
   display: grid;
@@ -439,30 +448,23 @@
   letter-spacing: var(--tracking-title);
   margin: 0 0 var(--space-6);
 }.post-list {
+  /* 2026-10-02 列表直接落在纸上：去掉白卡、边框、投影。行与行用发丝线分
+     （见 .post-row + .post-row）。这是「纸账」的语言——一本账本没有投影，只有横线和墨。 */
   display: flex;
   flex-direction: column;
   transition: opacity 0.18s ease;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-2);
-  overflow: hidden;
+  border-top: 1px solid var(--line);
 }.post-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: var(--space-4);
-  padding: 10px var(--space-4);
+  /* 列表已不在卡片里，行自己贴着正文列；左右不再内缩，和 hero / 页标题对齐。 */
+  padding: 12px 0;
   margin: 0;
-  border-radius: var(--radius-row);
-  transition: background 0.2s var(--ease), transform 0.2s var(--ease);
+  transition: color 0.15s ease;
 }.post-row + .post-row {
   border-top: 1px solid var(--line);
-}.post-row:hover {
-  background: var(--surface-2);
-  transform: translateY(-1px);
-  z-index: 1;
 }.post-row-main {
   min-width: 0;
   display: flex;
@@ -587,9 +589,6 @@ svg { stroke-width: 2; }
      所以左右各 6px 会让相邻命中区重叠 4px —— 与页头三个图标按钮既有的重叠量一致，
      属于可接受范围（实测命中区 34×33，视觉框 27.5×24）。 */
   inset: -4px -6px;
-}.post-row:active,
-.minimal-row:active {
-  transform: scale(0.995);
 }.post-pill:active,
 .tag-chip:active,
 .pager-btn:active,
@@ -672,12 +671,8 @@ svg { stroke-width: 2; }
     padding-bottom: var(--space-7);
   }.post-row {
     gap: var(--space-3);
-    padding: 10px var(--space-3);
+    padding: 12px 0;
     margin: 0;
-    border-radius: var(--radius-row);
-  }.post-list {
-    border-radius: var(--radius-card);
-    padding: var(--space-1);
   }}.post-title,
 .page-title,
 .hero-line {
@@ -701,8 +696,14 @@ svg { stroke-width: 2; }
   text-decoration: none;
   font-family: var(--font-sans);
 }.skip-link:focus {
+  /* 聚焦时落到顶栏**下面**，别压在顶栏上（2026-10-02 调）。
+     原来是 `top: 0.75rem`（12px），正好落在 0–64px 的固定顶栏那一条里：
+     z-index 1000 > 顶栏的 100，所以不会被盖住，但会糊在导航上；
+     而且一旦哪天顶栏的层叠顺序变了（比如给它加 transform / filter / opacity，
+     造出一个新的层叠上下文），这块就会被真盖掉。直接让到顶栏下方最稳。
+     保持 absolute 不改 fixed：它只该在「从页面顶部 Tab 进来」时出现。 */
   left: 0.75rem;
-  top: 0.75rem;
+  top: calc(var(--header-h) + 0.75rem);
 }
 
 /* ============================================================
@@ -942,9 +943,9 @@ a[target="_blank"]::after {
   justify-content: center;
   border: 1px solid var(--ctrl-float-border);
   border-radius: 50%;
-  background: var(--ctrl-float-bg);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  /* 2026-10-02：一并去掉毛玻璃，改实底。全站不再有 backdrop-filter——
+     它是滚动掉帧的大头，而这里是唯一剩下的常驻玻璃。 */
+  background: var(--surface);
   color: var(--ctrl-text);
   cursor: pointer;
   box-shadow: var(--ctrl-float-shadow);

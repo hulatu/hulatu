@@ -184,6 +184,38 @@
 }.post-content a:hover {
   color: var(--accent-ink);
   background-size: 100% 1px;
+}
+/* ---------- 正文强调（<em>，Markdown 的 *强调*）----------
+   为什么不能就让它斜着：中文没有真正的斜体字重，浏览器会拿正体做「合成斜体」
+   （把字形沿一个角度切变），字是歪的、笔画也跟着变形。bearneo 用
+   `i { font-style: normal }` 躲的就是这个坑 —— 那是无差别掰正，连英文的 <i> 一起管。
+
+   这里不照抄「一律掰正」，而是给强调一个正经的中文排法：**着重号**。
+   着重号（字下加实心点）是 GB/T 15834 规定的中文强调方式，和另外两套标记互不撞车：
+     · `**加粗**` → <strong>，走浏览器默认的真粗体（PingFang SC 有真 Bold，不是合成的）；
+     · 正文链接 → .post-content a，印泥淡痕底 + 红字。
+   它也不依赖任何字重 —— 思源宋体有没有 600 都能正常显示（这一点比「改加粗」稳）。
+   点的颜色用印章红，就是纸账上那支红铅笔。
+
+   已知取舍：`*强调*` 里混了英文单词时，点也会打在字母下面（CSS 没法按语种拆开）。
+   不做降级：text-emphasis 的支持（Chrome 99 / Firefox 46 / Safari 6.1+）比本文件里
+   已经在用的 `:has()`（Chrome 105）更老，所以不需要 @supports 兜底。
+
+   `.page-intro` 是列表页的正文容器（定义在 critical-page.css），这里一起带上：
+   今天真正有 .page-intro 正文的只有 /media/，而那一页同时内联了 critical-post。
+   以后若给 /posts/、/categories/、/tags/ 的 _index.md 写正文并用到 `*强调*`，
+   那条规则不会生效（那几页只内联 critical + critical-page）—— 到那时把这条复制
+   一份进 critical-page.css，或给那几页的模块组合加上 critical-post。 */
+.post-content em,
+.page-intro em {
+  font-style: normal;
+  text-emphasis: filled dot var(--accent);
+  -webkit-text-emphasis: filled dot var(--accent);
+  /* 横排时点标在字下方。GB/T 15834 里着重号用于「要求读者特别注意的字、词、句」，
+     横排是「文下打点」、直排标在字的右侧 —— 所以 under 和 right 两个值刚好对应。
+     第二个值 right 在横排下不生效，但语法要求给全。 */
+  text-emphasis-position: under right;
+  -webkit-text-emphasis-position: under right;
 }.post-content ul,
 .post-content ol {
   margin: 0 0 var(--block-gap);
@@ -211,35 +243,30 @@
   vertical-align: -0.08em;
   accent-color: var(--accent);
   cursor: default;
-}.post-content ol {
-  list-style: none;
-  counter-reset: ol-item;
-}.post-content ol > li {
-  counter-increment: ol-item;
-  position: relative;
-  padding-left: var(--space-7);
-}.post-content ol > li::before {
-  content: counter(ol-item);
-  position: absolute;
-  left: 0;
-  top: 0.3em;
-  width: 1.45em;
-  height: 1.45em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--accent);
-  border-radius: 50%;
+}
+/* 有序列表也按「markdown 小点」显示（2026-10-02 用户拍板）。
+   这里原来是一套「红圈数字」徽章：ol 上 list-style: none，再由 li::before
+   画一个 counter(ol-item) 的圆环。现在改成和 ul 完全一样的小点。
+   删徽章要三处一起删，否则会剩半个：
+     ① ol 的 list-style: none 换回 disc；
+     ② li 上为徽章让位的那条 padding-left: var(--space-7)（28px）和
+        position: relative 要去掉 —— ul 的 li 没有这两条，留着会比 ul 多缩进 28px；
+     ③ ::before 整块删掉（counter-reset / counter-increment 一并删，
+        全站只有这里用 ol-item 这个计数器）。
+   marker 颜色得单独补一条：上面 `.post-content ul li::marker` 只管 ul，
+   想让 ol 的小点也是印章红就得加上这条。
+   脚注不受影响：`.post-content .footnotes ol`（0,2,1）比这条（0,1,1）更具体，
+   它仍然 list-style: decimal —— 脚注该带序号还是带序号。 */
+.post-content ol {
+  list-style: disc;
+}
+.post-content ol li::marker {
   color: var(--accent);
-  font-size: 0.72em;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }.post-toc { font-size: var(--text-2xs); }.post-toc-inline {
   display: none;
   max-width: var(--content-width);
   margin: 0 auto var(--space-7);
   padding: var(--space-4) var(--space-5);
-  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }.post-toc-inline-head {
@@ -435,8 +462,19 @@
   .post-rail .post-toc-nav a { --tick: 6px; }
   .post-rail .post-toc-nav ul ul a { --tick: 5px; }
   .post-rail .post-toc-nav ul ul ul a { --tick: 4px; }
-  .post-rail .post-toc-nav ul ul ul ul a { --tick: 3px; }.post-rail .post-toc-nav a,
-  .post-rail .post-toc-nav a.is-active {
+  .post-rail .post-toc-nav ul ul ul ul a { --tick: 3px; }.post-rail .post-toc-nav a {
+    /* 选择器里原本还并列着一个 `.post-rail .post-toc-nav a.is-active`，2026-10-02 删掉了。
+       它是个坑：`.is-active` 把特异性抬到 (0,3,1)，压过了上面按层级给的缩进
+       `.post-rail .post-toc-nav ul ul ul a`（0,2,4）—— 于是**任何一级被点亮时，
+       它的 padding-left 都会被这条的 `padding: 0 0 0 18px` 打回一级缩进**：
+       二级从 34px、三级从 50px 一起左移，看着就是「目录项往左跳、和上一级对齐」。
+       目录缩进只该由层级决定，和高亮状态无关；刻度条是绝对定位在 left: 0 的，
+       不依赖 padding，所以这条 `.is-active` 纯属多余 —— 直接删。
+       删除后 active 项的 color: transparent / border-left: 0 仍然生效：
+       本规则的 (0,2,1) 与 `.post-toc-nav a.is-active` 的 (0,2,1) 打平，
+       靠「后出现」取胜，不需要靠抬高特异性。
+       （只亮叶子那会儿这个跳动就存在，只是不显眼；改成祖先链一起亮之后，
+       被点亮的 ## 和 ### 一起掉到 18px、彼此对齐，才变得刺眼。） */
     position: relative;
     display: block;
     height: 12px;
@@ -463,19 +501,30 @@
     background: var(--line-strong);
     transition: height 0.22s ease, background 0.22s ease;
   }.post-rail .post-toc-nav a.is-active::before { background: var(--accent); }.post-rail .post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 1; }.post-rail:hover .post-toc-nav a,
-  .post-rail:focus-within .post-toc-nav a,
+  .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a,
   .post-rail.is-pinned .post-toc-nav a {
+    /* 展开的三个触发条件：鼠标停在 rail 上 / 键盘焦点落在**目录项**上 / 被钉住。
+       中间那条原来是 `.post-rail:focus-within`（2026-10-02 改），它有个坑：
+       图钉按钮 `#toc-pin` 也在 `.post-rail` 里面，而浏览器点按钮会给它焦点 ——
+       于是「点一下图钉」就让 rail 命中了 :focus-within，焦点赖在图钉上不走，
+       目录被永久钉在展开态：再点一次想取消钉住也收不回来（鼠标移开都没用），
+       用户看到的就是「点第二次取消不了全部显示」。
+       现在只看 `.post-toc-nav` **内部**有没有焦点，图钉被排除在外。
+       用 :focus-visible 而不是 :focus：鼠标点目录项不靠焦点展开（悬停已经展开了），
+       只有 Tab 进来的键盘用户才需要这一条。
+       注意：图钉自己的「被聚焦时保持可见」仍由下面的 `.post-rail:focus-within .post-toc-pin`
+       负责，那条不要动。 */
     height: 33px;
     line-height: 33px;
     color: var(--muted);
   }.post-rail:hover .post-toc-nav a::before,
-  .post-rail:focus-within .post-toc-nav a::before,
+  .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a::before,
   .post-rail.is-pinned .post-toc-nav a::before {
     /* 3.5 这个系数是倒推出来的：一级 6×3.5 = 21px，和改造前的固定值一模一样，
        所以展开时的观感不变；二三四级跟着各自的 --tick 等比放大。 */
     height: calc(var(--tick) * 3.5);
   }.post-rail:hover .post-toc-nav a.is-active,
-  .post-rail:focus-within .post-toc-nav a.is-active,
+  .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a.is-active,
   .post-rail.is-pinned .post-toc-nav a.is-active {
     color: var(--accent);
   }.post-rail .post-toc-nav a:hover { color: var(--ink); }.post-toc-pin {
@@ -552,14 +601,18 @@
 }
 .post-content .footnotes hr { display: none; }
 
-/* 脚注列表：关掉圆形徽章和 1.75rem 缩进，换回紧凑的十进制序号 */
+/* 脚注列表：用紧凑的十进制序号，别跟着正文一起变小点。
+   2026-10-02 正文 ol 改成小点之后，这里的 `list-style: decimal` 成了**必须留**的
+   一条：本规则的 (0,2,1) 比 `.post-content ol` 的 (0,1,1) 更具体，正是它压住
+   正文那条 disc，脚注才还带序号。
+   原来这里还有两条兜底 —— `li { padding-left: 0 }` 和 `li::before { display: none }`
+   （用来压掉正文 ol 的圆形徽章和 1.75rem 让位缩进）—— 徽章已经整个删掉了，
+   这两条随之成为死代码，一并清掉。 */
 .post-content .footnotes ol {
   margin: 0;
   padding-left: var(--space-5);
   list-style: decimal;
 }
-.post-content .footnotes ol > li { padding-left: 0; }
-.post-content .footnotes ol > li::before { display: none; }
 .post-content .footnotes ol > li::marker {
   color: var(--accent);
   font-variant-numeric: tabular-nums;
@@ -584,7 +637,6 @@
   padding: var(--space-4) var(--space-5) var(--space-4) var(--space-7);
   border-left: 3px solid var(--accent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background: var(--surface);
   color: var(--ink-soft);
   position: relative;
 }.post-content blockquote::before {
@@ -601,10 +653,9 @@
   max-width: 100%;
   border-radius: var(--radius);
   cursor: zoom-in;
-  /* 2026-09-30：原来写死 rgba(0,0,0,.06)。这违反本站自己的约定（见 critical-info.css
-     里那条注释：阴影一律用主题变量，写死的浅色阴影在深色底上完全看不见）——
-     深色主题下 --shadow-sm 是 rgba(0,0,0,.35)，照片的「浮起」感才立得住。 */
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--line);
+  /* 2026-10-02：撤掉 --shadow-sm，改一条发丝线描边。照片的「存在感」交给边线，
+     不再靠投影 —— 和列表、卡片一致：层级用线，不用影。 */
 }.post-content table {
   width: 100%;
   border-collapse: collapse;
@@ -617,7 +668,7 @@
 }.table-wrap table {
   margin: 0;
 }.post-content th {
-  background: var(--surface);
+  background: var(--surface-2);
   font-weight: 600;
   text-align: left;
 }.post-content th,
@@ -625,7 +676,7 @@
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--line);
 }.post-content tbody tr:nth-child(even) {
-  background: var(--surface);
+  background: var(--surface-2);
 }.post-content tbody tr {
   transition: background 0.15s ease;
 }.post-content tbody tr:hover {
@@ -675,7 +726,7 @@
   margin: 0;
   overflow: visible;
 }.post-content code {
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 0.12em 0.42em;
@@ -693,7 +744,7 @@
   gap: var(--space-3);
   padding: 0.5em 0.9em;
   border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  background: var(--surface-2);
 }.code-block-dots {
   display: flex;
   align-items: center;
@@ -799,6 +850,19 @@
   transition: opacity 0.4s ease;
 }.js .article-image img.is-loaded {
   opacity: 1;
+}
+/* 加载失败也要让它可见 —— ui.js 原来只挂 load、不挂 error：
+   图挂掉就永远等不到 load，这张图会连着 alt 文字一起停在 opacity: 0，
+   读者只看到一个灰色空盒子，等于静默丢内容（JS 关掉时反而正常，所以很容易漏掉）。
+   失败时由 JS 挂上 .is-failed：还原不透明度让 alt 文字露出来，
+   再补一圈虚线说明「这里本该有图、没加载出来」，而不是看着像刻意留白。
+   用 outline 而不是 border：不参与盒模型，失败的图不会比成功的图窄 2px；
+   outline-offset: -1px 把线画在盒子内侧，和 --radius 的圆角也对得上。 */
+.js .article-image img.is-failed {
+  opacity: 1;
+}.article-image:has(img.is-failed) {
+  outline: 1px dashed var(--line-strong);
+  outline-offset: -1px;
 }.article-image figcaption {
   margin-top: var(--space-2);
   text-align: center;

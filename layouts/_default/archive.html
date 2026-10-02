@@ -6,36 +6,49 @@
        以前这里数的是所有 RegularPages（连「关于」「隐私政策」「归档」这几个页面也算进去），
        还用「去掉空白后数 rune」另一套算法，结果和文章页上的字数字对不上。 */ -}}
 {{- $yearChars := 0 -}}
-{{- range where $posts "Date.Year" now.Year }}{{ $yearChars = add $yearChars .WordCount }}{{ end -}}
-{{ $currentYear := now.Format "2006" }}
+{{- range where $posts "Date.Year" now.Year }}{{ $yearChars = add $yearChars .WordCount }}{{ end }}
 
 <h1 class="page-title">{{ .Title }}</h1>
 <p class="archive-total">共 <strong>{{ len $posts }}</strong> 篇文章 · 今年写了 <strong>{{ lang.FormatNumber 0 $yearChars }}</strong> 字</p>
 
-<section class="archive-timeline">
+{{- /* 2026-10-02 改造。原来这里是「时间轴 + 年 + 月 + 条目」四层，每层都想有存在感，
+       同一件事被说了三遍：篇数说两遍（年、月），月份说两遍（分组标题、每条日期），
+       折叠控件也给两遍（年一个箭头、月一个箭头）。加上左侧 2px 竖线、月份之间的 1px
+       虚线、两种圆点 —— 四套「线/点」语言同时出现，就是「乱」的来源。
+
+       现在：篇数只留年一级并右对齐；月份退成一条标签行（不折叠、无计数、无箭头）；
+       条目日期只渲染「日」，月份交给上面的标签；去掉时间轴与虚线，
+       年份下面一条 1px 横线承担全部层级。每行元素数从 4 + 4 + 2 降到 2 + 1 + 2。
+       详见 MAINTENANCE.md「归档页」。 */ -}}
+<section class="archive-list">
 {{- /* GroupByDate 直接给出「年 → 月 → 文章」的树，而且默认就是新的在前，
        不用像以前那样对每一层再遍历一遍全量文章做筛选。 */ -}}
 {{ range $posts.GroupByDate "2006" }}
   {{- $yearKey := .Key -}}
+  {{- $months := .Pages.GroupByDate "1" -}}
   <details class="archive-year-block" open>
-    <summary class="archive-year">{{ $yearKey }} <span class="archive-count">{{ len .Pages }} 篇</span></summary>
+    <summary class="archive-year">
+      <h2 class="archive-year-num">{{ $yearKey }}</h2>
+      <span class="archive-count">{{ len .Pages }} 篇</span>
+    </summary>
 
     <div class="archive-year-list">
-      {{ range .Pages.GroupByDate "1" }}
-        <details class="archive-month" {{ if eq $yearKey $currentYear }}open{{ end }}>
-          <summary>
-            <span class="archive-month-label">{{ .Key }}月</span>
-            <span class="archive-count">{{ len .Pages }} 篇</span>
-          </summary>
-          <div class="archive-month-list">
-            {{ range .Pages }}
-              <a class="archive-item" href="{{ .Permalink }}">
-                <time class="archive-item-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01-02" }}</time>
-                <span class="archive-item-title">{{ .Title }}</span>
-              </a>
-            {{ end }}
-          </div>
-        </details>
+      {{ range $months }}
+        {{- /* 这一年只有一个月时（2025 只有 12 月），月份标签不提供任何信息 ——
+               省掉它，免得出现「2025 · 12 篇」紧接着「12月 · 12 篇」这种重复。 */ -}}
+        {{ if gt (len $months) 1 }}
+          <h3 class="archive-month">{{ .Key }} 月</h3>
+        {{ end }}
+        <div class="archive-month-list">
+          {{ range .Pages }}
+            <a class="archive-item" href="{{ .Permalink }}">
+              {{- /* 只渲染「日」：月份已经由上面的标签承担，这里再写一遍就是重复。
+                     日期列宽度在 CSS 里写死，几百行对齐成一条左轨。 */ -}}
+              <time class="archive-item-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "02" }}</time>
+              <span class="archive-item-title">{{ .Title }}</span>
+            </a>
+          {{ end }}
+        </div>
       {{ end }}
     </div>
   </details>

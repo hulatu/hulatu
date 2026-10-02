@@ -14,6 +14,18 @@
    （层叠顺序不变）；搬走的 + 留下的与原件规则多重集完全一致（零损失）。
    改样式请改这个文件；验证见 MAINTENANCE.md「CSS 怎么加载」。
    ============================================================ */
+/* ---------- 归档页 ----------
+   2026-10-02 改造。原来这页是「时间轴 + 年 + 月 + 条目」四层，每层都想有存在感：
+   年行挤了 4 个元素（12px 圆环 + 年号 + 计数 + 箭头），月行也挤了 4 个（圆点 + 月名 +
+   计数 + 箭头），条目日期还写一遍月份。再加上左侧 2px 竖线、月份之间 1px 虚线、
+   两种圆点 —— 四套「线/点」语言同时出现，就是「乱」的直接来源。
+
+   改法（对齐 DESIGN.md「让纸和线赢」+ bearneo 的平铺列表）：
+     · 篇数只留年一级，右对齐，不再紧贴年号；
+     · 月份退成一条安静的标签行（无计数 / 无箭头 / 无圆点，也不再折叠）；
+     · 条目日期只渲染「日」，月份交给上面的标签；日期列写死宽度成一条左轨；
+     · 去掉时间轴与虚线，年份下面一条 1px 横线承担全部层级。
+   每行元素数从 4 + 4 + 2 降到 2 + 1 + 2。 */
 .archive-total {
   color: var(--muted);
   font-size: var(--text-xs);
@@ -24,119 +36,70 @@
   /* 纯数字（篇数 / 字数），走等宽；见 critical.css 的 --font-meta。 */
   font-family: var(--font-meta);
   font-variant-numeric: tabular-nums;
-}.archive-timeline {
-  position: relative;
-  padding-left: var(--space-1);
-}.archive-timeline::before {
-  content: "";
-  position: absolute;
-  /* 竖线中心（13px + 1px 半宽 = 14px）与圆环中心对齐 */
-  left: 13px;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  border-radius: var(--radius-sm);
-  background: var(--line);
-}.archive-year-block { position: relative; padding-left: var(--space-8); }.archive-year-block + .archive-year-block { margin-top: var(--space-7); }.archive-year {
-  position: relative;
-  font-family: var(--font-serif);
-  font-size: var(--text-lg);
-  letter-spacing: var(--tracking-title);
+}.archive-year-block + .archive-year-block {
+  margin-top: var(--space-10);
+}.archive-year {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-2);
-}.archive-year::before {
-  content: "";
-  position: absolute;
-  /* 圆环挂在 summary 上（点击可展开/收起）；
-     左移 28px 使圆环中心与竖线中心（14px）重合 */
-  left: -28px;
-  top: 0.42em;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--paper);
-  border: 3px solid var(--accent);
-  box-shadow: 0 0 0 3px var(--paper);
-  box-sizing: border-box;
-}.archive-year-block summary::-webkit-details-marker { display: none; }.archive-year-block summary {
+  gap: var(--space-3);
+  /* 年份下面这条 1px 横线替代了原来的纵向时间轴 —— 账本的语言是横线。 */
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--space-2);
+  margin: 0;
   list-style: none;
   cursor: pointer;
   user-select: none;
-}.archive-year-block summary::after {
+  transition: color 0.15s ease;
+}.archive-year::-webkit-details-marker { display: none; }.archive-year:hover { color: var(--accent); }.archive-year-num {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: inherit;
+  line-height: 1.3;
+  letter-spacing: var(--tracking-title);
+}.archive-year::after {
   content: "";
   flex: none;
   align-self: center;
-  margin-left: auto;
-  margin-right: var(--space-2);
   width: 6px;
   height: 6px;
   border-top: 2px solid var(--accent);
   border-right: 2px solid var(--accent);
   transform: rotate(45deg);
   transition: transform 0.2s ease;
-}.archive-year-block[open] summary::after { transform: rotate(135deg); }.archive-year-block summary:hover { color: var(--accent); }.archive-count {
-  /* 「N 篇」的篇数是数字，走等宽让年和月两级的计数对齐；
-     汉字「篇」由 --font-meta 末尾的中文栈兜住，字形不变。 */
+}.archive-year-block[open] .archive-year::after { transform: rotate(135deg); }.archive-count {
+  /* 篇数只在这一级出现。margin-left:auto 把它推到最右，不再紧贴在年号旁边。
+     数字走等宽；汉字「篇」由 --font-meta 末尾的中文栈兜住，字形不变。 */
+  margin-left: auto;
   font-family: var(--font-meta);
   font-size: var(--text-2xs);
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tracking-num);
 }.archive-month {
-  position: relative;
-  border-bottom: 1px dashed var(--line);
-}.archive-month::before {
-  content: "";
-  position: absolute;
-  left: -25px;
-  top: 0.82em;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 3px var(--paper);
-}.archive-month:last-child { border-bottom: none; }.archive-month summary {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  list-style: none;
-  cursor: pointer;
-  padding: var(--space-2) 0;
-  color: var(--ink-soft);
-  user-select: none;
-  transition: color 0.15s ease;
-}.archive-month summary::-webkit-details-marker { display: none; }.archive-month summary::after {
-  content: "";
-  flex: none;
-  align-self: center;
-  margin-left: auto;
-  margin-right: var(--space-2);
-  width: 6px;
-  height: 6px;
-  border-top: 2px solid var(--accent);
-  border-right: 2px solid var(--accent);
-  transform: rotate(45deg);
-  transition: transform 0.2s ease;
-}.archive-month[open] summary::after { transform: rotate(135deg); }.archive-month summary:hover { color: var(--ink); }.archive-month-label {
-  font-family: var(--font-serif);
-  font-size: var(--text-sm);
-  letter-spacing: var(--tracking-title);
+  /* 月份退成标签行：等宽小字 + 字距，靠字号差和留白建立层级。
+     刻意不挂 --font-serif —— 它是「标签」不是「标题」，理由见 MAINTENANCE「等宽字」。 */
+  margin: var(--space-5) 0 var(--space-1);
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: var(--tracking-label);
+  color: var(--muted);
 }.archive-month-list {
   display: flex;
   flex-direction: column;
-  padding: 0 0 var(--space-2);
 }.archive-item {
   display: flex;
   align-items: baseline;
   gap: var(--space-4);
-  padding: var(--space-2) var(--space-1) var(--space-2) var(--space-4);
-  border-radius: var(--radius-sm);
-  transition: background 0.15s ease;
-}.archive-item:hover { background: var(--surface-2); }.archive-item-date {
-  flex-shrink: 0;
-  /* 纯日期（01-02），整条换等宽。归档里几百行日期一列对齐，靠的就是这个。 */
+  /* 行高松绑：上下 8px → 11px，行与行靠留白分隔（原来靠月份之间的虚线）。
+     hover 只把标题染成印章红，不再给整行铺底色 —— 见 DESIGN.md「列表退回纸上」。 */
+  padding: 11px 0;
+}.archive-item-date {
+  /* 写死列宽，锁住标题的起始位置。以前只写 flex-shrink:0，能对齐纯属
+     「日期恰好都是等长的 MM-DD」；现在只渲染「日」，更要靠固定宽度立住这条左轨。 */
+  flex: 0 0 2.2ch;
   font-family: var(--font-meta);
   font-size: var(--text-xs);
   color: var(--muted);
@@ -147,7 +110,8 @@
   color: var(--ink);
   line-height: 1.55;
   transition: color 0.15s ease;
-}.archive-item:hover .archive-item-title { color: var(--accent); }.friends-page {
+}.archive-item:hover .archive-item-title { color: var(--accent); }
+.friends-page {
   max-width: var(--content-width);
   margin: 0 auto;
 }.friends-head {
@@ -194,10 +158,8 @@
   gap: var(--space-7);
   align-items: center;
   padding: var(--space-8) var(--space-7);
-  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 /* 2026-09-29 改版。原先这张卡片上有四处红：左边缘一根 3px 竖向渐变红柱（::before）、
@@ -205,7 +167,7 @@
    用户反馈「不太美观，尤其是那个红色」—— 问题不是红本身，是一张卡上红了四次，
    而且那圈粉红（#fbeae7）是「淡到发白的粉」，看着像印错了。
    现在红色只留「角色行前那个 5px 小点」一处，其余全部删掉或改中性：
-     · 左柱整根删掉（卡片有边框 + 阴影已经能立形，不需要再画一根红条）
+     · 左柱整根删掉（卡片有边框已经能立形，不需要再画一根红条）
      · 头像的粉红光晕 → 细描边 + 一层柔和投影
      · 分隔线里的红菱形删掉，只留一条安静的短线
    顺带：列间距 24 → 28px，两列改成垂直居中对齐，胶囊从「五等分拉伸」改成按内容宽度居中。
@@ -217,9 +179,6 @@
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--line-strong);
-  /* 用 --shadow-sm 而不是写死 rgba(0,0,0,.08)：深色主题下 --shadow-sm 被重定义成
-     rgba(0, 0, 0, 0.35)，写死的浅色阴影在深色底上完全看不见。 */
-  box-shadow: var(--shadow-sm);
 }.about-avatar-fallback {
   display: flex;
   align-items: center;
@@ -304,10 +263,8 @@
   letter-spacing: var(--tracking-label);
 }.about-body {
   margin: 0 0 var(--space-6);
-  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }.about-section {
   padding: var(--space-6) var(--space-7);
@@ -434,13 +391,7 @@
 }.notfound {
   text-align: center;
   padding: var(--space-10) 0 var(--space-6);
-}@media (max-width: 600px) {.archive-year-block { padding-left: var(--space-6); }.archive-year::before {
-    left: -1.6rem;
-    width: 10px;
-    height: 10px;
-  }.archive-month::before {
-    left: calc(4px + 0.2rem - var(--space-6) - 6px);
-  }.archive-timeline::before { left: calc(4px + 0.2rem); }.about-head-card {
+}@media (max-width: 600px) {.about-head-card {
     grid-template-columns: 1fr;
     gap: var(--space-5);
     padding: var(--space-7) var(--space-5) var(--space-6);
