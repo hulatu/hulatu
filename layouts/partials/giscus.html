@@ -1,12 +1,10 @@
 {{- if site.Params.giscus.repo -}}
-  {{- /* 折叠开关就是标题行本身：左边「评论」+ 印章红小点，右边一个箭头，点整行展开 / 收起。
-         收起时整块只剩这一行的高度——原来是「标题 + 一个居中的『显示评论』胶囊按钮」，
-         标题下面还杵着个按钮，收起时占掉将近一半高度。
-         样式见 assets/css/post.css 的 .giscus-toggle / .giscus-arrow；
-         行为逻辑见 assets/js/giscus.js。 */ -}}
+  {{- /* 折叠开关精简为「标题 + 右侧箭头按钮」。
+         2026-10-03：去掉全宽按钮行，h2 标题正常显示，右侧放一个圆形箭头按钮控制展开/收起。
+         行为逻辑见 assets/js/giscus.js（点击目标仍是 #giscus-toggle，无需改动）。 */ -}}
   <h2 class="giscus-head">
-    <button type="button" class="giscus-toggle" id="giscus-toggle" aria-expanded="false" aria-controls="giscus-body">
-      <span class="giscus-head-text">{{ .title | default "评论" }}</span>
+    <span class="giscus-head-text">{{ .title | default "评论" }}</span>
+    <button type="button" class="giscus-toggle" id="giscus-toggle" aria-expanded="false" aria-controls="giscus-body" aria-label="展开评论">
       <svg class="giscus-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
     </button>
   </h2>

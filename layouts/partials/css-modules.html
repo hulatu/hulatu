@@ -1,147 +1,57 @@
-{{- /* 这一页要加载哪些 CSS。
+{{- /* CSS 模块路由表。
 
-       返回一个 dict：
-         critical —— **内联**进 <head> 的模块（首屏画完之前就需要的规则）
-         async    —— 组合成一个包，media="print" onload 异步加载
+     返回 dict：critical（内联）/ async（异步加载）。
+     判据只有一条：这条规则在首屏第一帧用不用得到。
+     组合是拿构建产物实测出来的——解析每页 HTML 收集 class/id，再做贪心集合覆盖。
+     默认「全给」，没被精确命中的页型都落回这里（最坏只是多内联几 KB，不会掉样式）。
 
-       「关键 CSS 该收什么」的判据只有一条：**这条规则在首屏第一帧用不用得到**。
-       不是「这个元素在不在首屏」—— .back-top 是 position:fixed，元素在首屏、
-       但它的定位规则留在异步包里，首屏就会先把它当普通 button 排进文档流末尾。
-       也不是「这条规则是不是全局的」—— 全局的 svg { stroke-width: 2 } 命中的是
-       首屏第一帧就可见的页头图标和翻页箭头，留在异步包里会让全站每页重绘一次。
-       归属判定的手法与验证过程见 MAINTENANCE.md「CSS 怎么加载」。
+     六个模块：critical / critical-post / critical-page / critical-info（内联）
+              + core / post（异步）。
 
-       模块一共 6 个：4 个内联候选（critical / critical-post / critical-page /
-       critical-info）+ 2 个异步（core / post）。按页型的实际组合：
+     两个刻意没为省字节做的事：
+       · 书影音页只需 critical-post 的 .heading-anchor 一条，但挪进公共 critical
+         会让 304 页每页多背 ~150B，单页收益不值得全站付账；
+       · 友链页同理（只需 critical-page 的 .page-intro 一条，~300B × 304 页）。
 
-         critical                              —— 首页、/posts/ 列表
-         critical + critical-post              —— 文章页、周刊正文、隐私政策
-         critical + critical-page              —— 标签、分类、周刊列表
-         critical + critical-info              —— 归档、404
-         critical + critical-info              —— 关于（异步额外带 post：页尾的打赏块 .donate-* 在里面）
-         critical + critical-info + critical-page  —— 友链（.friends-* + .page-intro）
-         critical + critical-page + critical-post  —— 书影音（.media-* + .page-intro + .heading-anchor）
+     踩过的坑：weekly 的 permalink 是 /posts/…，.Section 是 "weekly"、URL 却在 /posts/ 下，
+     不能只看 .Section，必须连 .Kind 一起判。 */ -}}
 
-       为什么要按页型拆，而不是全塞进一个 critical：`.about-*` 有 32 条规则，
-       只有关于页用得到；塞进公共 critical 就是让 170 个标签页每页白背 1.2KB。
-       代价是文件多几个，收益是每个页面只背自己那份。
-
-       ⚠️ 四个 critical-* 之间**没有层叠顺序依赖**，但都排在异步包之前。
-       切分 post.css / page.css 时逐条校验过两件事：① 搬走的规则在原先的文件里
-       都排在留下的规则之前，所以内联到前面不改变任何一条的胜负；② 搬走的 +
-       留下的，规则多重集与原件完全一致（零丢失零新增）。
-
-       组合不是拍脑袋定的，是拿构建产物实测出来的：解析每个页面的 HTML 收集它用到的
-       class/id，再看这些 token 的样式规则落在哪个模块里，做贪心集合覆盖取最小集。
-       所以「归档只要 critical + critical-info」这句话是有依据的，不是猜的。
-       顺带验证了这套方法：把首页 / 文章页 / 标签页 / 周刊列表代进去算，
-       得到的结果与下面已经写好的分支完全一致。
-
-       **默认仍然是「全给」**（4 个内联 + core + post）。上面每个分支都是
-       「已经实测确认过的最小集」，凡是没被任何分支精确命中的页型——比如以后新增的
-       根级单页、或 Hugo 将来新加的 .Kind——都落回全给。最坏结果只是多内联几 KB，
-       **不会首屏重绘、不会掉样式**。宁可少省，不可掉样。
-
-       两个刻意**没有**为省字节而做的事（算过总账，不划算）：
-         · 书影音页只需要 critical-post 里的 .heading-anchor 一条，但把 .heading-anchor
-           挪进公共 critical 会让 304 个页面每页多背约 150B，只为省 1 个页面的 12KB；
-         · 友链页只需要 critical-page 里的 .page-intro 一条，同理（约 300B × 304 页）。
-       所以这两页宁可多带一个模块——单页的收益不值得全站付账。
-
-       踩过的坑：周刊正文存在 content/weekly/ 下，但 hugo.toml 给 weekly 配的 permalink
-       是 /posts/:year/:month/:day/:slug/，所以它们的 .Section 是 "weekly"、URL 却在
-       /posts/ 下。**不能只看 .Section，必须连 .Kind 一起判**——只判 .Section 会把
-       23 篇周刊正文当成周刊列表，白送一个全量包。 */ -}}
-
-{{- /* 默认值 = 全给。没被下面任何分支精确命中的页型都走这里。 */ -}}
-{{- $c := slice "critical" "critical-post" "critical-page" "critical-info" -}}
-{{- $m := slice "core" "post" -}}
-
-{{- /* 根级单页（content/xxx.md）靠文件名区分：归档 / 关于 / 隐私三者要的模块不同。
-       .File 对 404、taxonomy、首页是 nil，所以必须用 with 兜一下。 */ -}}
 {{- $base := "" -}}
 {{- with .File -}}{{- $base = .ContentBaseName -}}{{- end -}}
 
+{{- $isPostPage := and (eq .Kind "page") (in (slice "posts" "weekly") .Section) -}}
+{{- $isTaxonomy := in (slice "taxonomy" "term") .Kind -}}
+{{- $isTagCat := and $isTaxonomy (in (slice "tags" "categories") .Data.Plural) -}}
+
+{{- $c := slice "critical" "critical-post" "critical-page" "critical-info" -}}
+{{- $m := slice "core" "post" -}}
+
 {{- if .IsHome -}}
-  {{- /* 首页 + /page/N/ 分页：卷首、文章行、工具条、翻页、页脚都在内联的 critical 里，
-         异步包只需要 core */ -}}
-  {{- $c = slice "critical" -}}
-  {{- $m = slice "core" -}}
-
+  {{- $c = slice "critical" -}}{{- $m = slice "core" -}}
 {{- else if eq .Kind "404" -}}
-  {{- /* 404 页：只有 .notfound*（critical-info），没有正文、没有评论/打赏，
-         所以既不需要 critical-post，异步也不用带 post */ -}}
-  {{- $c = slice "critical" "critical-info" -}}
-  {{- $m = slice "core" -}}
-
+  {{- $c = slice "critical" "critical-info" -}}{{- $m = slice "core" -}}
+{{- else if $isPostPage -}}
+  {{- $c = slice "critical" "critical-post" -}}{{- $m = slice "core" "post" -}}
 {{- else if eq .Kind "page" -}}
-  {{- if in (slice "posts" "weekly") .Section -}}
-    {{- /* 121 篇文章 + 23 篇周刊正文：只吃 core + post，是除首页外收益最大的一档 */ -}}
-    {{- $c = slice "critical" "critical-post" -}}
-    {{- $m = slice "core" "post" -}}
-  {{- else if eq $base "privacy" -}}
-    {{- /* 隐私政策：正文走文章骨架（.post-content / .breadcrumb / 目录刻度），
-           但文末既没有评论也没有打赏，所以异步只要 core */ -}}
-    {{- $c = slice "critical" "critical-post" -}}
-    {{- $m = slice "core" -}}
+  {{- if eq $base "privacy" -}}
+    {{- $c = slice "critical" "critical-post" -}}{{- $m = slice "core" -}}
   {{- else if eq $base "about" -}}
-    {{- /* 关于页：.about-* 在 critical-info；页尾的打赏块 .donate-* 在 post，
-           所以异步要带 post —— 它现在**全站只有这一页**是非文章却要 post
-           （2026-10-02 第四轮把打赏从文章页撤了，但文章页自己还要 post 里的
-           giscus / related-posts / post-nav，所以这里不动）。
-
-           于是 post.css 里那 15 条 .donate-* 规则（minify 后约 1.7KB）也成了
-           文章页的「死重量」。两条出路，都量过了，都**先不做**：
-             · 挪进 critical-info → 关于页能丢掉 post，但 critical-info 是**内联**的，
-               等于给归档 / 404 / 友链三页各加 1.7KB 内联字节，换来的「省」是假的；
-             · 给关于页单独开一个 donate.css 异步模块 → 这是唯一真能省的走法
-               （文章页的 post 少 1.7KB、关于页拿 1.7KB 而不是 5KB），
-               但代价是第 7 个模块。
-           还有一条**反对搬走**的理由，比上面两条更硬：文章页和关于页现在共用
-           `site-core-post` 这同一个包，而「文章 → 关于」是站内最常见的跳转路径之一
-           —— 共用一个包就是一次缓存命中。搬走之后关于页会换成一个文章页没有的包，
-           反而多一次请求。按本文件开头那条「单页的收益不值得全站付账」的口径，
-           先留着。真要动，先看这三句。 */ -}}
-    {{- $c = slice "critical" "critical-info" -}}
-    {{- $m = slice "core" "post" -}}
+    {{- $c = slice "critical" "critical-info" -}}{{- $m = slice "core" "post" -}}
   {{- else if eq $base "archive" -}}
-    {{- /* 归档页：只有 .archive-* 时间线（critical-info），异步只要 core */ -}}
-    {{- $c = slice "critical" "critical-info" -}}
-    {{- $m = slice "core" -}}
+    {{- $c = slice "critical" "critical-info" -}}{{- $m = slice "core" -}}
   {{- end -}}
-
 {{- else if eq .Kind "section" -}}
   {{- if eq .Section "posts" -}}
-    {{- /* /posts/ 列表页 */ -}}
-    {{- $c = slice "critical" -}}
-    {{- $m = slice "core" -}}
+    {{- $c = slice "critical" -}}{{- $m = slice "core" -}}
   {{- else if eq .Section "weekly" -}}
-    {{- /* /weekly/ 列表页：列表项用 page 的 .weekly-* / .minimal-*，翻页已在内联的 critical。
-           这里**刻意不含 post**：实测该页与 post.css 的交集只有 1 个 class，而那个 class
-           在 critical.css / page.css 里也有定义，所以 post 整包（约 5KB）是白送的。
-           敢去掉的依据有两条：① post.css 里所有选择器都带 class 或 id，没有裸元素规则，
-           不会误伤列表页的 p / a / ul；② 去掉后逐个 class 校验过，失去样式的集合为空。 */ -}}
-    {{- $c = slice "critical" "critical-page" -}}
-    {{- $m = slice "core" -}}
+    {{- $c = slice "critical" "critical-page" -}}{{- $m = slice "core" -}}
   {{- else if eq .Section "media" -}}
-    {{- /* 书影音：卡片是 .media-*（critical-page），页首导语 .page-intro 也在那一份，
-           另外正文里的小标题带 .heading-anchor（在 critical-post）。异步只要 core */ -}}
-    {{- $c = slice "critical" "critical-page" "critical-post" -}}
-    {{- $m = slice "core" -}}
+    {{- $c = slice "critical" "critical-page" "critical-post" -}}{{- $m = slice "core" -}}
   {{- else if eq .Section "friends" -}}
-    {{- /* 友链：.friends-* 在 critical-info，.page-intro 在 critical-page，异步只要 core */ -}}
-    {{- $c = slice "critical" "critical-info" "critical-page" -}}
-    {{- $m = slice "core" -}}
+    {{- $c = slice "critical" "critical-info" "critical-page" -}}{{- $m = slice "core" -}}
   {{- end -}}
-
-{{- else if in (slice "taxonomy" "term") .Kind -}}
-  {{- /* 标签页和分类页都只有胶囊云 / 卡片网格（critical-page）。
-         以前这里只给标签页减，因为当时分类页要 post 里的正文样式；
-         现在 post.css 只剩文末家具，分类页也不需要它了，两档合并成一条。 */ -}}
-  {{- if in (slice "tags" "categories") .Data.Plural -}}
-    {{- $c = slice "critical" "critical-page" -}}
-    {{- $m = slice "core" -}}
-  {{- end -}}
-
+{{- else if $isTagCat -}}
+  {{- $c = slice "critical" "critical-page" -}}{{- $m = slice "core" -}}
 {{- end -}}
+
 {{- return (dict "critical" $c "async" $m) -}}

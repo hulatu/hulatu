@@ -867,6 +867,8 @@
   position: relative;
   background: var(--surface-2);
   border-radius: var(--radius);
+  content-visibility: auto;
+  contain-intrinsic-size: 0 300px;
 }.article-image a {
   display: block;
   /* 正文里的 <a> 带一条「悬浮时从左划出」的下划线底纹（见上面 .post-content a 的
@@ -885,7 +887,8 @@
   width: 100%;
   height: auto;
   display: block;
-}/* 渐显只在 JS 可用时生效 —— 所以整条挂在 `.js` 前缀下（ui.js 就绪后给 <html> 挂 .js）。
+}
+/* 渐显只在 JS 可用时生效 —— 所以整条挂在 `.js` 前缀下（ui.js 就绪后给 <html> 挂 .js）。
    脚本被拦或加载失败时，正文图要照常显示；不加这个前缀的话图会永远停在 opacity: 0，
    读者看到一片空白 —— 而且因为「关掉 JS 反而正常」，这类 bug 极难发现。
    （这条原在 core.css 的「文章插图」段，2026-10-02 晚随规则一起挪来。） */

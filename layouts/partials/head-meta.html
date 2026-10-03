@@ -53,10 +53,8 @@
   {{ with .GetTerms "tags" }}{{ range . }}<meta property="article:tag" content="{{ .Title }}">{{ end }}{{ end }}
 {{ end }}
 
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ $title }}">
-<meta name="twitter:description" content="{{ $desc }}">
-<meta name="twitter:image" content="{{ $shareImageAbs }}">
+{{- /* Twitter Card 已删除（2026-10-03）：X/Twitter 2023 年起已优先读取 Open Graph，
+       twitter:* 标签冗余。保留 og:* 即可覆盖所有社交平台。 */ -}}
 
 {{- $author := dict "@type" "Person" "name" site.Params.author -}}
 {{- if $isArticle -}}

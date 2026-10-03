@@ -49,13 +49,7 @@
   background: var(--surface-2);
   border-radius: var(--radius-pill);
 }.tag-chip:hover {
-  /* 2026-10-02：去掉 translateY(-1px)。悬停位移全站原有 7 处，
-     位移只该留给真正的「卡片」和「主按钮」（.post-nav-card / .notfound-btn）；
-     胶囊是控件，靠颜色和底色回应就够了，抬 1px 只是 App 目录的习惯动作。
-     :active 里那条 translateY(0) 是给位移收尾用的，一并删掉。
-     2026-10-02（第二轮）：连 box-shadow: var(--ctrl-hover-shadow) 一起撤 ——
-     那个 token 两套主题下都近乎不可见，却让「投影只给浮层」处处破例。
-     hover 现在只剩「字色 + 边线 + 底色」三样。 */
+  /* 悬停位移已撤（只留给卡片和主按钮）；hover 不带影，只靠字色 + 边线 + 底色 */
   background: var(--ctrl-hover-bg);
   color: var(--ctrl-hover-text);
   border-color: var(--ctrl-hover-border);
@@ -206,13 +200,7 @@
   border-radius: var(--radius);
   transition: var(--ctrl-transition);
 }
-/* 不挂投影：DESIGN.md 把投影留给真正的浮层（搜索面板 / 灯箱 / 手机菜单 / 返回顶部），
-   卡片这一层靠边线和底色就够了。
-   2026-10-02（第二轮）：这条原本写的是「**刻意不给** .category-card 挂
-   --ctrl-hover-shadow」—— 当时 .tag-chip / .pager-btn / .search-close / .notfound-btn
-   四处都挂着那个 token，只有这里在遵守原则。现在 token 已整体删除（见 critical.css
-   的控件四态注释），全站 hover 一律不带影，所以这条不再是「特例」，而是通则。
-   同理也不做位移 —— 位移只留给 .post-nav-card 与 .notfound-btn。 */
+/* 不挂投影、不做位移：DESIGN.md 把投影留给真正的浮层，卡片靠边线和底色就够了 */
 .category-card:hover {
   background: var(--ctrl-hover-bg);
   border-color: var(--ctrl-hover-border);

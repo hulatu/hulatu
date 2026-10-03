@@ -409,11 +409,7 @@
   text-decoration: none;
   transition: var(--ctrl-transition);
 }.notfound-btn:hover {
-  /* 2026-10-02（第二轮）：撤掉 box-shadow: var(--ctrl-hover-shadow)。
-     那个 token 在两套主题下都近乎不可见（浅色 5% 黑、深色是黑影叠近黑底），
-     却让 DESIGN.md 的「投影只给浮层」在代码里处处破例 —— 而 .category-card
-     有一条注释在遵守它，同一份原则两种待遇。现在全站 hover 一律不挂影，
-     只靠字色 + 边线 + 底色回应。 */
+  /* hover 不带影，只靠字色 + 边线 + 底色 */
   background: var(--ctrl-hover-bg);
   color: var(--ctrl-hover-text);
   border-color: var(--ctrl-hover-border);

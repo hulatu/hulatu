@@ -67,7 +67,7 @@
      去掉内边距正好 680px 的文字宽度。 */
   --content-width: 680px;
   --gutter: clamp(20px, 5vw, 32px);
-  --header-h: 64px;
+  --header-h: 68px;
   /* 锚点落点：顶栏高度 + 一点呼吸空间。点目录、点标题上的 #、从别人的链接
      带 #锚点进来，标题就停在这个位置（用法见下面「锚点落点」那段）。 */
   --anchor-gap: var(--space-3);
@@ -153,15 +153,8 @@
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* 控件四态：default / hover / active / disabled。
-     所有按钮、图标按钮只引用这里的变量，不写死颜色——要调整全站手感，只改这一段。
      三套：ctrl（描边按钮）/ ctrl-solid（印章红实心主按钮）/ ctrl-ghost（无底图标按钮）。
-
-     2026-10-02（第二轮）：hover 不再带「影」。原先这里有个 --ctrl-hover-shadow，
-     两套主题下都近乎不可见（浅色 5% 黑、深色是黑影叠近黑底），却让 DESIGN.md 的
-     「投影只给浮层」在 .tag-chip / .pager-btn / .search-close / .notfound-btn 四处破例，
-     而同一页的 .category-card 有一条注释在遵守它 —— 同一份原则两种待遇。
-     现在 hover 只靠「底 · 字 · 边」三样，全站一致；影只留给 --shadow-sm / --shadow-md
-     （真正的浮层）和 ctrl-solid 那套主按钮。 */
+     hover 只靠「底 · 字 · 边」三样，影只留给真正的浮层。 */
   --ctrl-bg: var(--surface);
   --ctrl-text: var(--ink-soft);
   --ctrl-border: var(--line);
@@ -197,11 +190,6 @@
   --ctrl-solid-active-border: var(--accent-ink);
   --ctrl-solid-active-shadow: none;
 
-  --ctrl-solid-disabled-bg: var(--accent);
-  --ctrl-solid-disabled-text: var(--on-accent);
-  --ctrl-solid-disabled-border: var(--accent);
-  --ctrl-solid-disabled-shadow: none;
-
   /* ghost：默认完全安静，只靠字色 + 一层极淡的印泥底色回应悬停 */
   --ctrl-ghost-bg: transparent;
   --ctrl-ghost-text: var(--muted);
@@ -222,18 +210,7 @@
   --ctrl-ghost-disabled-text: var(--muted);
   --ctrl-ghost-disabled-border: transparent;
 
-  /* 浮动按钮（返回顶部 / 手机目录）：**只单独定义「边」和「影」**。
-     底和字直接走上面 ctrl 家族 —— 它就是个描边按钮，只是浮着。
-
-     2026-10-02（第三轮）：删掉了 --ctrl-float-bg 与 --ctrl-float-hover-bg。
-     这两条是「去毛玻璃」做了一半的残骸：
-       · --ctrl-float-bg 的值是 color-mix(--paper 88%, transparent)（半透明），
-         但 .back-top 早就改用实心 var(--surface) 了 —— 定义 1 次、引用 **0** 次。
-       · --ctrl-float-hover-bg 是 color-mix(--surface 94%, transparent)，
-         .back-top:hover 还在用它 —— 于是「改实底」之后，**鼠标一悬停按钮反而变透明了 6%**，
-         和那次决定正好相反。
-     更根本的是：ctrl 家族的 --ctrl-bg 与 --ctrl-hover-bg **本来就同值**（都是 --surface），
-     描边按钮悬停时不换底、只换字色和边色。浮动按钮没有理由例外。 */
+  /* 浮动按钮（返回顶部 / 手机目录）：只单独定义「边」和「影」，底和字走 ctrl 家族。 */
   --ctrl-float-border: var(--line-strong);
   --ctrl-float-shadow: var(--shadow-sm);
 
@@ -306,9 +283,7 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.45), 0 28px 80px rgba(0, 0, 0, 0.55);
 
-  /* 深色下只有阴影要重写：其余四态变量都引用上面的取色，会自动跟着变。
-     2026-10-02（第二轮）：--ctrl-hover-shadow 已删除（hover 不再挂影），
-     这里只剩实心主按钮那两套影。 */
+  /* 深色下只有阴影要重写：其余四态变量都引用上面的取色，会自动跟着变。 */
   --ctrl-solid-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 26%, transparent);
   --ctrl-solid-hover-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 32%, transparent);
 }* { box-sizing: border-box; }html {
@@ -484,8 +459,8 @@ main [id] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--ctrl-ghost-border);
   border-radius: var(--radius-pill);
   background: var(--ctrl-ghost-bg);
@@ -1122,9 +1097,6 @@ a[target="_blank"]::after {
   transform: translateY(0);
 }
 .back-top:hover {
-  /* 2026-10-02（第三轮）：这里原本是 background: var(--ctrl-float-hover-bg)
-     （94% 半透明的 surface）。悬停不换底，和 ctrl 家族的描边按钮一致
-     （--ctrl-bg 与 --ctrl-hover-bg 本来就同值），只换字色与边色。 */
   color: var(--ctrl-hover-text);
   border-color: var(--ctrl-hover-border);
 }

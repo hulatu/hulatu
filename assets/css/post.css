@@ -146,49 +146,58 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   overflow: hidden;
-  /* 2026-10-02 改版：折叠开关搬到标题行本身（右边一个箭头）。
-     原来这里是 padding: 20/24/24 + 标题 margin-bottom 16 + 一个居中的胶囊按钮，
-     收起时高度接近展开时的一半；现在 padding 下放到标题行与 .giscus-inner，
-     收起时整块只剩标题行那么高。overflow:hidden 是给标题行的悬停底色收圆角。 */
+  /* 2026-10-03：折叠开关精简为「标题 + 右侧箭头按钮」。
+     原来 .giscus-toggle 是 width:100% 的全宽按钮行；现在 h2 正常显示标题，
+     右侧放一个 36×36 的圆形箭头按钮控制展开/收起，更轻量。 */
 }.giscus-head {
   margin: 0;
   font: inherit;
-}.giscus-toggle {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  width: 100%;
+  justify-content: space-between;
   padding: var(--space-4) var(--space-5);
-  border: none;
-  background: none;
-  color: var(--ink);
+}.giscus-head-text {
   font-family: var(--font-serif);
   font-size: var(--text-md);
   font-weight: 700;
   line-height: 1.4;
   letter-spacing: var(--tracking-title);
-  text-align: left;
-  cursor: pointer;
-  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
-}.giscus-toggle::before {
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}.giscus-head-text::before {
   content: "";
   flex: none;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
+}.giscus-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--ctrl-ghost-border);
+  border-radius: 50%;
+  background: var(--ctrl-ghost-bg);
+  color: var(--ctrl-ghost-text);
+  cursor: pointer;
+  transition: var(--ctrl-transition);
 }.giscus-toggle:hover {
-  color: var(--accent);
-  background: var(--surface-2);
+  background: var(--ctrl-ghost-hover-bg);
+  color: var(--ctrl-ghost-hover-text);
+  border-color: var(--ctrl-ghost-hover-border);
+}.giscus-toggle:active {
+  background: var(--ctrl-ghost-active-bg);
+  color: var(--ctrl-ghost-active-text);
+  border-color: var(--ctrl-ghost-active-border);
 }.giscus-arrow {
-  flex: none;
-  margin-left: auto;
   width: 18px;
   height: 18px;
-  color: var(--muted);
-  transition: transform var(--dur-base) var(--ease), color var(--dur-fast) var(--ease);
-}.giscus-toggle:hover .giscus-arrow {
-  color: var(--accent);
+  transition: transform var(--dur-base) var(--ease);
 }.giscus-toggle[aria-expanded="true"] .giscus-arrow {
   transform: rotate(180deg);
 }.giscus-loading {

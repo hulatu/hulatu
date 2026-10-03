@@ -17,7 +17,7 @@
 - **订阅**：RSS 2.0 全文输出，主源 `/index.xml` + 周刊专线 `/weekly/index.xml`，每源最多 20 条
 - **评论**：giscus（GitHub Discussions），按需加载
 - **站内预取**：浏览器原生 Speculation Rules，点链接前先把下一页渲染好
-- **SEO**：canonical、Open Graph、Twitter Card、JSON-LD、sitemap、robots、旧链接 301
+- **SEO**：canonical、Open Graph、JSON-LD、sitemap、robots、旧链接 301（Twitter Card 已删除，X 优先读取 Open Graph）
 - **子站**：`run`（跑步数据）、`shot`（随手拍）、`share`（好物分享）、`profile`（个人主页），源码在 `sites/`，四个都已上线，配置见 [sites/README.md](sites/README.md)
 
 ## 目录结构

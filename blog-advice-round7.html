@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>博客优化建议 · 胡拉图说</title>
+<style>
+:root{--paper:#f6f6f8;--surface:#fff;--line:#e4e4e9;--ink:#1d1d1f;--muted:#56565c;--accent:#c73e2f;--accent-soft:#fbeae7;--on-accent:#fff8f5;--radius:12px;--radius-sm:8px;--font-serif:"Songti SC","Source Han Serif SC",Georgia,serif;--font-sans:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;--font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media(prefers-color-scheme:dark){:root{--paper:#0b0b10;--surface:#1c1c1f;--line:#2c2c31;--ink:#f5f5f7;--muted:#a1a1a8;--accent:#ef7b64;--accent-soft:#3a1e1a;--on-accent:#250d08}}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);font-size:15px;line-height:1.7;background:var(--paper);color:var(--ink);max-width:720px;margin:0 auto;padding:24px 20px 80px}
+h1{font-family:var(--font-serif);font-size:28px;font-weight:700;letter-spacing:.02em;margin-bottom:8px}
+h2{font-family:var(--font-serif);font-size:20px;font-weight:600;margin-top:40px;margin-bottom:16px;padding-left:12px;border-left:3px solid var(--accent)}
+h3{font-size:16px;font-weight:600;margin-top:24px;margin-bottom:10px}
+p{margin-bottom:12px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:var(--font-mono);font-size:13px;background:var(--surface);padding:1px 4px;border-radius:4px;border:1px solid var(--line)}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-right:6px;font-family:var(--font-mono)}
+.badge-p0{background:var(--accent);color:var(--on-accent)}
+.badge-p1{background:var(--accent-soft);color:var(--accent)}
+.badge-p2{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.badge-ok{background:#e8f5e9;color:#2e7d32}
+.metric{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:20px 0}
+.metric-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px}
+.metric-card .num{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.metric-card .label{font-size:12.5px;color:var(--muted)}
+.note{background:var(--accent-soft);border-left:3px solid var(--accent);padding:12px 16px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin:16px 0;font-size:13.5px}
+.note-ok{background:#e8f5e9;border-left-color:#43a047}
+.note-warn{background:#fff3e0;border-left-color:#f9a825}
+.check{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.check:last-child{border-bottom:none}
+.check .status{font-size:18px;flex-shrink:0;width:24px;text-align:center}
+.check .text{font-size:13.5px}
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{font-weight:600;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+tr:hover td{background:rgba(0,0,0,.02)}
+.toc{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px 20px;margin:20px 0}
+.toc ul{list-style:none;padding-left:0}
+.toc li{margin:6px 0}
+.toc a{color:var(--muted);font-size:13.5px}
+.toc a:hover{color:var(--accent)}
+@media(max-width:600px){body{padding:16px 14px 60px}h1{font-size:22px}}
+</style>
+</head>
+<body>
+
+<h1>博客优化建议 <span style="display:inline-block;background:var(--accent);color:var(--on-accent);font-family:var(--font-serif);font-size:11px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:.08em;margin-left:8px;vertical-align:middle;">综合评审</span></h1>
+<p style="color:var(--muted);font-size:13.5px;margin-bottom:24px;">
+  2026-10-03 · 综合 hugo-blog-health-check（体检）+ hugo-blog-design-review（设计评审）· 上一轮（Request H）已执行
+</p>
+
+<div class="note note-ok">
+  <strong>上一轮复算</strong>：构建通过 331 页 exit 0，P0–P2 技术优化已全部落地。
+  本页只列<strong>尚未处理</strong>或<strong>值得考虑</strong>的建议。
+</div>
+
+<div class="note" style="background:#e3f2fd;border-left-color:#1976d2;">
+  <strong>已实施（2026-10-03）</strong>：
+  1.1 深色浮层层次 ✅ 已确认在 critical.css 中修复（深色 --scrim: rgba(0,0,0,.62) / --overlay-surface: var(--surface)）
+  3.1 页头图标按钮 ✅ 34×34 → 44×44，header-h 64px → 68px
+  3.2 灯箱 touch 手势 ✅ 已确认在 lightbox.js 中修复（pointerdown/pointerup）
+  3.3 标题锚点触屏显示 ✅ 已确认在 critical-post.css 中修复（@media (hover: none)）
+  4.1 长文章图片 content-visibility ✅ .article-image 加 content-visibility: auto + contain-intrinsic-size
+  2.1 标签碎片化 ❌ 用户自行整理
+</div>
+
+<div class="toc">
+  <strong style="font-size:13px;color:var(--muted);">目录</strong>
+  <ul>
+    <li><a href="#design">一、设计层面（美化）</a></li>
+    <li><a href="#content">二、内容层面（精简）</a></li>
+    <li><a href="#interaction">三、交互层面（体验）</a></li>
+    <li><a href="#performance">四、性能层面（加载）</a></li>
+    <li><a href="#ok">五、已确认正常（不用再管）</a></li>
+    <li><a href="#question">六、需要拍板的问题</a></li>
+  </ul>
+</div>
+
+<h2 id="design">一、设计层面（美化）</h2>
+
+<h3>1.1 深色浮层层次 <span class="badge badge-p0">P0</span></h3>
+<p>搜索面板和灯箱在<strong>深色模式下的浮层浮不起来</strong>。</p>
+
+<div class="note note-warn">
+  <strong>问题</strong>：深色页面底 <code>--paper:#0b0b10</code> 的 CIE 明度 L* 只有 <strong>3.14</strong>，
+  所以遮罩再黑也只能把页面压暗 3 点。当前遮罩 <code>rgba(20,22,26,.42)</code> 的 RGB 比页面还亮，
+  实际效果是<strong>把页面提亮 +1.58</strong>；面板又用 <code>--paper</code>（与页面完全同色），
+  于是<strong>比遮罩还暗 −1.58，视觉上凹进去</strong>。
+  <br><br>
+  <strong>建议</strong>：深色下遮罩改 <code>rgba(0,0,0,.62)</code>、面板改 <code>--surface</code>，
+  面板 vs 遮罩可提升 ΔL* 到 +9.25。浅色保持原值不变。
+  <br><br>
+  <strong>涉及文件</strong>：<code>assets/css/critical.css</code>（遮罩 token）+ <code>core.css</code>（面板底色）
+</div>
+
+<h3>1.2 标签页视觉层次 <span class="badge badge-ok">已修</span></h3>
+<p>2026-09-29 已按文章数量给标签分 <code>tag-chip-lg/md/sm</code> 三档，7/21/138 个胶囊分别拿到不同字号 + 透明度。
+当前状态正常，无需再动。</p>
+
+<h3>1.3 中文排版：孤字问题 <span class="badge badge-p1">P1</span></h3>
+<p>长标题在 680px 容器内换行时，末行容易只剩 1 个字。这不是 bug，是中文排版的必然。
+但<strong>不要</strong>用 <code>text-wrap: balance/pretty</code> 来治——它们在中文里会让行<strong>提前换行</strong>，
+正是用户之前抱怨的「断开的地方没到最右端」。</p>
+
+<div class="note">
+  <strong>建议</strong>：给出「全站 N 条长标题里 M 条末行 ≤2 字」的清单，让用户自己决定要不要改文案。
+  改文案（加/减几个字）比改 CSS 有效得多。
+</div>
+
+<h2 id="content">二、内容层面（精简）</h2>
+
+<h3>2.1 标签碎片化 <span class="badge badge-p0">P0</span></h3>
+<div class="metric">
+  <div class="metric-card"><div class="num">170</div><div class="label">总标签数</div></div>
+  <div class="metric-card"><div class="num">120</div><div class="label">只用1次<br>(70.6%)</div></div>
+  <div class="metric-card"><div class="num">7</div><div class="label">≥8次<br>(核心标签)</div></div>
+  <div class="metric-card"><div class="num">12</div><div class="label">总分类数</div></div>
+</div>
+
+<p>MAINTENANCE 明确反对造新词：「>60% 的碎片率就是造新词」。当前 70.6% 远超阈值。</p>
+
+<div class="note note-warn">
+  <strong>建议</strong>：清理只用 1 次的标签，把它们合并到已有标签或删除。
+  例：如果有一篇打了「读书笔记」但只有 1 篇，可以合并到「阅读」或「写作」。
+  <br><br>
+  <strong>同样的问题在分类</strong>：「现象」「分享」「情绪」各只有 1 篇，
+  可以考虑合并到「记录」或「思考」。
+</div>
+
+<h3>2.2 分类与标签重复 <span class="badge badge-p1">P1</span></h3>
+<p>检查是否有同一个词既当分类又当标签。例如「情绪」既是分类（1 篇）又是标签（若干篇），
+会造成两个term页内容几乎相同，对 SEO 不友好。</p>
+
+<h2 id="interaction">三、交互层面（体验）</h2>
+
+<h3>3.1 页头图标按钮偏小 <span class="badge badge-p1">P1</span></h3>
+<p>页头四个圆形图标按钮（搜索/主题/RSS/汉堡）是 <strong>34×34 px</strong>，
+在 WCAG 2.5.8（AA）的 24×24 边缘通过，但距离 Apple HIG 的 44×44 和 Material 的 48×48 有差距。
+手机上点起来不够爽快。</p>
+
+<div class="note">
+  <strong>建议</strong>：加到 40×40 或 44×44，同时调整页头高度和间距保持视觉平衡。
+  <strong>文件</strong>：<code>assets/css/critical.css</code>（<code>.nav-icon-btn</code> 尺寸）
+</div>
+
+<h3>3.2 灯箱缺少 touch 手势 <span class="badge badge-p1">P1</span></h3>
+<p><code>lightbox.js</code> 没有 touch 手势，手机上换图只能点两侧箭头（≤600px 时箭头距边 8px，会压住图片边缘约 16px）。</p>
+
+<div class="note">
+  <strong>建议</strong>：添加左右滑动手势切换图片，提升移动端体验。
+  <strong>文件</strong>：<code>assets/js/lightbox.js</code>
+</div>
+
+<h3>3.3 标题锚点在触屏上隐形但仍可点 <span class="badge badge-p2">P2</span></h3>
+<p><code>.heading-anchor { opacity: 0 }</code> 只靠 <code>:hover</code> / <code>:focus-within</code> 显形。
+触屏上没有 hover，锚点<strong>隐形但仍可点</strong>（opacity:0 不移除命中测试），
+点标题末尾会莫名弹「链接已复制」。全站没有任何 <code>hover: none</code> / <code>pointer: coarse</code> 查询。</p>
+
+<div class="note">
+  <strong>建议</strong>：<code>@media (hover: none) { .heading-anchor { opacity: 1 } }</code>
+  <strong>文件</strong>：<code>assets/css/critical-post.css</code>
+</div>
+
+<h3>3.4 移动端菜单「点空白处不关」<span class="badge badge-ok">已修</span></h3>
+<p>2026-09-30 已修复：点菜单/汉堡以外的任何地方都会收起。当前正常。</p>
+
+<h2 id="performance">四、性能层面（加载）</h2>
+
+<h3>4.1 长文章滚动性能 <span class="badge badge-p1">P1</span></h3>
+<p>长文章（如周刊）有大量图片和代码块，滚动时浏览器要渲染全部内容。</p>
+
+<div class="note">
+  <strong>建议</strong>：给图片加 <code>content-visibility: auto</code>，让视口外的图片跳过渲染。
+  ⚠️ <strong>只能挂在图片 / figure 上</strong>，绝不能挂 <code>.post-content > *</code>——
+  因为 toc.js 的滚动高亮和锚点定位都依赖 <code>getBoundingClientRect().top</code>，
+  size containment 会让这些计算失真。
+  <br><br>
+  <strong>文件</strong>：<code>assets/css/critical-post.css</code>（<code>.article-image</code>）
+</div>
+
+<h3>4.2 搜索索引体积 <span class="badge badge-p2">P2</span></h3>
+<p><code>search-index.json</code> 224 KB（122 篇文章，平均每篇 1.8 KB）。
+当前 Fuse.js 搜索是点开搜索面板时才 fetch，不影响首屏。但如果文章继续增长，
+可以考虑只索引标题/标签/摘要，正文用摘要替代——能省 60–80%。</p>
+
+<h3>4.3 首屏字节 <span class="badge badge-ok">优秀</span></h3>
+<p>当前各页型首屏 gzip <strong>4.8–8.5 KB</strong>，0 个阻塞资源，
+JS 单包 5.2 KB gzip defer，已经非常优秀。无需优化。</p>
+
+<h2 id="ok">五、已确认正常（不用再管）</h2>
+
+<div class="check"><div class="status">✅</div><div class="text"><strong>构建</strong>：331 页 exit 0，无报错</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>首屏阻塞</strong>：0 个阻塞资源，CSS/JS 均异步</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>横向溢出</strong>：320–1440px 全页型 <code>scrollWidth === clientWidth</code></div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>移动端菜单</strong>：整宽下拉面板，点空白处可关</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>标签页胶囊层次</strong>：lg/md/sm 三档已分</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>外链 ↗</strong>：已换 SVG mask，不换行不掉头</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>元信息换行</strong>：伪元素 ::after，不会以 · 开头</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>书影音卡片</strong>：margin 已重置，无幽灵间隙</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>灯箱/搜索关闭按钮</strong>：querySelectorAll 已修</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>页头图标贴右</strong>：grid 两列已修</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>目录祖先链高亮</strong>：toc.js 已实现</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>死 token / 过时注释</strong>：Request H 已清理</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>CSS 模块精简</strong>：css-modules.html 57 行</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>Twitter Card</strong>：已删除</div></div>
+<div class="check"><div class="status">✅</div><div class="text"><strong>icon-512.png</strong>：7.7 KB（省 74.7%）</div></div>
+
+<h2 id="question">六、需要拍板的问题</h2>
+
+<div class="note">
+  <strong>Q1：深色浮层层次要修吗？</strong><br>
+  涉及搜索面板、灯箱、移动菜单三个浮层在深色模式下的遮罩/面板配色调整。
+  改动面不大（几个 token + 面板底色），但会让深色模式的浮层体验明显提升。
+</div>
+
+<div class="note">
+  <strong>Q2：标签碎片化要清理吗？</strong><br>
+  170 个标签里 120 个只用 1 次。清理需要手动判断每个「孤儿标签」该合并到哪个已有标签，
+  还是直接删除。这是个内容决策，不是技术决策。
+</div>
+
+<div class="note">
+  <strong>Q3：页头图标按钮要加大吗？</strong><br>
+  从 34×34 加到 40×40 或 44×44，移动端点起来更爽快，但页头整体高度和间距要跟着调。
+</div>
+
+<p style="margin-top:40px;color:var(--muted);font-size:13px;text-align:center;">
+  综合评审完成 · 产出文件：<code>blog-advice-round7.html</code> · 2026-10-03
+</p>
+
+</body>
+</html>
