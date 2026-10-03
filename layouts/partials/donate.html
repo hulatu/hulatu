@@ -1,39 +1,57 @@
 {{- $d := site.Params.donate -}}
 {{- if not $d.enabled }}{{ return }}{{ end -}}
-{{- $hint := $d.hint -}}
-{{- if reflect.IsMap . }}{{ with .hint }}{{ $hint = . }}{{ end }}{{ end -}}
+{{- /* 打赏块。2026-10-02 第四轮：它已经**收进关于页的页面结构**里了。
+
+       在此之前它挂在 .about-body 卡片**外面**，所以得自己写
+       `border-top: 1px solid var(--line)` 和 `max-width: 30rem` 居中 ——
+       这两条是「只有它这样」的特例，还在 DESIGN.md 里留了记录。
+       现在它自己就是一个 .about-section，和「我是谁 / 网站导览 / 订阅 / 平台 / 联系」
+       平级地排在 .about-body 里面，分隔线直接吃现成的
+       `.about-section + .about-section`，两条特例一起删掉了。
+
+       也因此 hint 只有一个来源：hugo.toml 的 params.donate.hint。
+       调用方不再传 dict 覆盖（那个 reflect.IsMap 分支已删）—— 全站只有关于页一个调用点。
+
+       全站只此一处（文章页的调用已在 single.html 里移除并留了注释）。 */ -}}
 {{- $qr := slice -}}
-{{- with $d.wechat }}{{ $qr = $qr | append (dict "src" . "label" "微信") }}{{ end -}}
-{{- with $d.alipay }}{{ $qr = $qr | append (dict "src" . "label" "支付宝") }}{{ end -}}
+{{- with $d.wechat }}{{ $qr = $qr | append (dict "src" . "label" "微信" "alt" "微信赞赏码") }}{{ end -}}
+{{- with $d.alipay }}{{ $qr = $qr | append (dict "src" . "label" "支付宝" "alt" "支付宝赞赏码") }}{{ end -}}
 {{- if and (not $qr) (not $d.url) }}{{ return }}{{ end -}}
-<section class="donate" aria-label="打赏支持">
-  {{ with $hint }}<p class="donate-hint">{{ . }}</p>{{ end }}
+<section class="about-section donate" aria-labelledby="donate-title">
+  <h2 id="donate-title">{{ $d.title | default "支持" }}</h2>
+  {{ with $d.hint }}<p class="about-section-desc">{{ . }}</p>{{ end }}
   {{ if $qr }}
+  {{- /* 用 <details> 折叠：打赏是可选动作，两个收款码是页面上最重的方块，
+         默认展开会盖过这一页真正的主角（自我介绍和栏目导航）。 */ -}}
   <details class="donate-box">
     <summary class="donate-btn">
-      {{ with $d.button }}{{ . }}{{ else }}打赏支持{{ end }}
+      {{- with $d.button }}{{ . }}{{ else }}打赏支持{{ end -}}
     </summary>
     <div class="donate-panel">
-      <p class="donate-tip">感谢支持</p>
       <div class="donate-qrs">
+        {{- /* 图片是站内静态资源（static/images/donate/），自带白静区、无损 WebP，
+               所以这里既不套 Cloudflare 变换、也不写 srcset —— 尺寸固定、一个文件通吃。
+               width/height 写 220 是**渲染尺寸**（post.css 的 .donate-qr img 是
+               `width:100% + max-width:220px`，实际恒定落在 220），不是素材的 440：
+               这两个数只影响展开那一瞬间的占位，写对了就不会跳一下。改 max-width 要回来改这里。 */ -}}
         {{ range $qr }}
-        {{- /* 收款码原图是没有压缩过的 JPEG（文件后缀还错写成了 .webp，直接返回
-               的 Content-Type 是 image/jpeg），这里套一层 Cloudflare 图片变换：
-               format=auto 会按浏览器给 avif / webp，顺手把那个错误的 Content-Type
-               一起修掉。实测 wechat：37732 字节 → avif 14711 / jpeg 24912。 */ -}}
-        {{- $qrSrc := partial "cf-image.html" (dict "src" .src "params" "width=400,format=auto,quality=80,metadata=none") -}}
         <figure class="donate-qr">
-          <img src="{{ $qrSrc }}" alt="{{ .label }}赞赏码" width="200" height="200" loading="lazy" decoding="async">
+          <img src="{{ .src | relURL }}" alt="{{ .alt }}" width="220" height="220" loading="lazy" decoding="async">
           <figcaption>{{ .label }}</figcaption>
         </figure>
         {{ end }}
       </div>
+      {{- /* 收款方提示：让付款的人先核对再扫。名字来自 hugo.toml 的 params.donate.payee，
+             两边不一样时在 toml 里拆成两个字段，这里再分成两句。 */ -}}
+      {{ with $d.payee }}<p class="donate-note">收款方均为 {{ . }}，请核对后再付款。</p>{{ end }}
     </div>
   </details>
   {{ end }}
   {{ with $d.url }}
-  <a class="donate-btn donate-link-btn" href="{{ . }}" target="_blank" rel="noopener">
-    {{ with $d.urlLabel }}{{ . }}{{ else }}去支持我{{ end }}
-  </a>
+  <p class="donate-alt">
+    <a class="donate-btn" href="{{ . }}" target="_blank" rel="noopener">
+      {{- with $d.urlLabel }}{{ . }}{{ else }}去支持我{{ end -}}
+    </a>
+  </p>
   {{ end }}
 </section>

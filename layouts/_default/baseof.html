@@ -27,7 +27,15 @@
   {{ end }}
   {{- $imageHost := site.Params.imageCDN.host | default "img.hulatu.com" -}}
   {{- $imageCDNOrigin := printf "https://%s" $imageHost -}}
-  {{- $hasImageCDN := or (in .Content $imageHost) (and site.Params.donate.enabled (in (slice "posts" "weekly") .Type)) -}}
+  {{- /* 图床预连接只按「正文里真的有图床图」判断。
+         2026-10-02 第四轮：原来后半句是 `and site.Params.donate.enabled (in (slice "posts" "weekly") .Type)`
+         —— 打赏码放在图床上，所以让**所有**文章页都预连接一次。那半句本来就是白开的：
+         打赏码是 <details> 里的 loading="lazy" 图，不展开根本不请求
+         （perf-interaction-review.html 的 P3 记过这一条）。
+         现在打赏块又只留在关于页，这半句连「页面判断」都错了，直接去掉。
+         代价：关于页不再预连接图床 —— 但同一个道理，那张码要等用户展开才请求，
+         那时再建连接反而更准。 */ -}}
+  {{- $hasImageCDN := in .Content $imageHost -}}
   {{ if $hasImageCDN }}
   <link rel="preconnect" href="{{ $imageCDNOrigin }}">
   <link rel="dns-prefetch" href="{{ $imageCDNOrigin }}">

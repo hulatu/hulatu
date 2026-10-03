@@ -1,38 +1,13 @@
 .related-posts {
   margin-top: var(--space-8);
   padding-top: 0;
-}.post-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0.34em 1em;
-  font-size: var(--text-xs);
-  color: var(--ctrl-text);
-  background: var(--ctrl-bg);
-  border: 1px solid var(--ctrl-border);
-  border-radius: var(--radius-pill);
-  box-shadow: var(--ctrl-shadow);
-  cursor: pointer;
-  transition: var(--ctrl-transition);
-}.post-pill:hover {
-  background: var(--ctrl-hover-bg);
-  color: var(--ctrl-hover-text);
-  border-color: var(--ctrl-hover-border);
-  box-shadow: var(--ctrl-hover-shadow);
-}.post-pill:active {
-  background: var(--ctrl-active-bg);
-  color: var(--ctrl-active-text);
-  border-color: var(--ctrl-active-border);
-  box-shadow: var(--ctrl-active-shadow);
-}.post-pill:disabled {
-  background: var(--ctrl-disabled-bg);
-  color: var(--ctrl-disabled-text);
-  border-color: var(--ctrl-disabled-border);
-  box-shadow: var(--ctrl-disabled-shadow);
-  opacity: var(--ctrl-disabled-opacity);
-  cursor: default;
-  transform: none;
-}a.post-pill { text-decoration: none; }.post-nav {
+}
+/* 2026-10-02：删掉 .post-pill 一整套（.post-pill / :hover / :active / :disabled 与
+   a.post-pill 共 5 条规则）。全站 grep layouts/ + content/ + assets/js/ 零引用 ——
+   它是某个版本留下的按钮残骸，没有任何标记会挂上这个类名。
+   注意 critical.css 里它还是三份共享选择器列表的成员（position: relative /
+   ::after 命中区 / :active 缩放），那边的名字也一并摘掉了，规则本身留着给其他控件用。 */
+.post-nav {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
@@ -45,7 +20,7 @@
   padding: var(--space-5) var(--space-5);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease);
 }.post-nav-card:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
@@ -58,81 +33,115 @@
   font-size: var(--text-sm);
   line-height: 1.55;
   color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}.donate {
-  margin: 2.4rem auto 0;
-  max-width: 30rem;
-  text-align: center;
-  padding-top: 1.5rem;
-  border-top: 1px dashed var(--line);
-}.donate-hint {
-  color: var(--muted);
-  font-size: var(--text-xs);
-  margin: 0 0 1rem;
-}.donate-btn {
+  /* 2026-10-02（第三轮）：去掉 overflow:hidden + text-overflow:ellipsis + white-space:nowrap。
+     上下篇卡片在桌面是两列（grid 1fr 1fr），每张卡内宽约 292px ≈ 18 个全角字 ——
+     全站 122 篇里有 9 篇的标题超过这个宽度，也就是**约 7% 的文章，文末的「上一篇/下一篇」
+     看到的是一句被砍断的话**。这正是读者决定「要不要接着读」的地方，最不该省字。
+     现在自由换行；.post-nav-card 已经是 flex column + min-width:0，不需要额外处理。
+     两张卡在同一行 grid 里会自动等高，不会一高一矮。 */
+}
+/* ---------- 打赏块（全站只有关于页一处，见 layouts/partials/donate.html）----------
+   2026-10-02 第四轮把它**收进了关于页的页面结构**：它自己就是一个 .about-section，
+   和「我是谁 / 网站导览 / 订阅 / 平台 / 联系」平级地排在 .about-body 卡片里，
+   分隔线直接吃现成的 `.about-section + .about-section`。
+
+   所以这里**删掉了四条「只有它这样」的特例**：原来它挂在 .about-body 外面，
+   得自己写 margin: 2.4rem auto 0（居中）、max-width: 30rem（收窄）、
+   padding-top: 1.5rem（给分隔线留位）、border-top: 1px solid var(--line)（自己画线）。
+   收进去之后这四条全是多余的，DESIGN.md 里对应的两条特例记录也一并划掉。
+
+   剩下的规则只描述块内部的两件事：折叠触发器、展开后的两个收款码。 */
+.donate-box summary { list-style: none; }.donate-box summary::-webkit-details-marker { display: none; }.donate-box:not([open]) .donate-panel { display: none; }
+/* 触发器是「可选动作」，不是主 CTA（2026-10-02 第四轮）。
+   原来走 --ctrl-solid-*（印章红实心 + 红晕投影）—— 那是「这就是那个动作」的信号，
+   而关于页的主线是「读我是谁 / 逛栏目」，打赏只是页尾的一个可选项。
+   结果是这个按钮成了整页视觉最重的元素，比页标题还抢眼。
+   现在换成安静的 --ctrl-* 描边按钮（底 · 字 · 边三样，无影，和 .tag-chip 同一套四态），
+   红让给节标题前那颗小菱形（.about-section h2::before）。 */
+.donate-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--space-2);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
-  color: var(--ctrl-solid-text);
-  background: var(--ctrl-solid-bg);
-  border: 1px solid var(--ctrl-solid-border);
+  color: var(--ctrl-text);
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
   border-radius: var(--radius-pill);
   padding: 0.6em 1.6em;
   cursor: pointer;
-  box-shadow: var(--ctrl-solid-shadow);
+  box-shadow: var(--ctrl-shadow);
   transition: var(--ctrl-transition);
 }.donate-btn:hover {
-  background: var(--ctrl-solid-hover-bg);
-  border-color: var(--ctrl-solid-hover-border);
-  color: var(--ctrl-solid-hover-text);
-  box-shadow: var(--ctrl-solid-hover-shadow);
-  transform: translateY(-1px);
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
 }.donate-btn:active {
-  background: var(--ctrl-solid-active-bg);
-  border-color: var(--ctrl-solid-active-border);
-  color: var(--ctrl-solid-active-text);
-  box-shadow: var(--ctrl-solid-active-shadow);
-  transform: translateY(0);
-}.donate-btn:disabled {
-  background: var(--ctrl-solid-disabled-bg);
-  border-color: var(--ctrl-solid-disabled-border);
-  color: var(--ctrl-solid-disabled-text);
-  box-shadow: var(--ctrl-solid-disabled-shadow);
-  opacity: var(--ctrl-disabled-opacity);
-  cursor: default;
-  transform: none;
-}.donate-box summary { list-style: none; }.donate-box summary::-webkit-details-marker { display: none; }.donate-box:not([open]) .donate-panel { display: none; }.donate-panel {
-  margin-top: 1rem;
-  padding: 1.2rem 1.4rem 1.1rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}.donate-tip {
-  color: var(--muted);
-  font-size: var(--text-xs);
-  margin: 0 0 0.9rem;
-}.donate-qrs {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
+}
+/* 折叠指示：summary 上的原生三角被上面那两条 reset 抹掉了，抹掉之后按钮就看不出
+   「能展开」—— 这是原来就有的缺口（一个和普通胶囊长得一模一样的按钮）。
+   补一个自己画的 V 形：两条 1.5px 边框拼成，展开时转 180°。不引图形资源。
+   注意 critical.css 里有一条 `.donate-btn[target="_blank"]::after { content: none }`：
+   那是给「url 版」（是 <a> 不是 <summary>）用的 —— 链接不能展开，就不该有箭头。
+   它靠属性选择器的权重压过下面这条，跟加载顺序无关。 */
+.donate-btn::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform var(--dur-base) var(--ease);
+}.donate-box[open] .donate-btn::after {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+/* 展开区**不套外框**（2026-10-02 第四轮）。原来是一个 border + radius 的面板，
+   但里面的两个收款码本身就是白底 + 发丝线的卡片 —— 再包一层就是「卡片里的卡片」，
+   正是 DESIGN.md 反复要收敛的那种装饰。层级交给间距和码自己的边框就够了。 */
+.donate-panel { margin-top: var(--space-4); }
+/* auto-fit + minmax(150px, 1fr)：宽屏两列、窄屏自动落成一列。
+   150px 这个下限是量过的 —— 手机（375px）上节内容宽约 295px，
+   两列需要 2×150 + 16 的 gap = 316px，放不下，所以会老老实实变一列。 */
+.donate-qrs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-4);
+}.donate-qr {
+  margin: 0;
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 1.2rem;
-}.donate-qr { margin: 0; }.donate-qr img {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}.donate-qr img {
   display: block;
-  width: 180px;
-  height: 180px;
-  object-fit: contain;
+  width: 100%;
+  max-width: 220px;
+  height: auto;
   border-radius: var(--radius-sm);
-  background: var(--paper);
   border: 1px solid var(--line);
+  /* 写死白底是**物理要求**，不是主题选择：二维码要靠白静区才扫得出来，
+     而深色模式下 var(--paper) 是近黑 —— 拿它当底，整张码当场作废。
+     素材本身已经烤进了白边（static/images/donate/，无损 WebP），这里是第二道保险：
+     以后换成透明 PNG 也不会在深色下烂掉。 */
+  background: #fff;
 }.donate-qr figcaption {
-  margin-top: 0.5rem;
   font-size: var(--text-2xs);
   color: var(--muted);
   letter-spacing: var(--tracking-label);
-}.donate-link-btn { text-decoration: none; }.giscus-wrap {
+}
+/* 收款方提示：让付款的人先核对再扫。 */
+.donate-note {
+  margin: var(--space-4) 0 0;
+  color: var(--muted);
+  font-size: var(--text-2xs);
+  line-height: 1.6;
+}
+/* url 版（爱发电之类）：它是一条真链接，不是可展开的触发器。 */
+.donate-alt { margin: var(--space-4) 0 0; }.giscus-wrap {
   margin-top: var(--space-12);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
@@ -160,7 +169,7 @@
   letter-spacing: var(--tracking-title);
   text-align: left;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }.giscus-toggle::before {
   content: "";
   flex: none;
@@ -177,7 +186,7 @@
   width: 18px;
   height: 18px;
   color: var(--muted);
-  transition: transform 0.25s var(--ease), color 0.15s ease;
+  transition: transform var(--dur-base) var(--ease), color var(--dur-fast) var(--ease);
 }.giscus-toggle:hover .giscus-arrow {
   color: var(--accent);
 }.giscus-toggle[aria-expanded="true"] .giscus-arrow {
@@ -189,7 +198,13 @@
   font-size: var(--text-xs);
 }.giscus-loading[hidden] {
   display: none;
-}.giscus-body {
+}/* 评论区默认「预加载好但收起来」：滚到附近就开始加载，但整块压成 0 高度藏住，
+   「显示评论」那一行标题留着，等读者自己点开。
+   用 max-height + visibility 而**不是** display:none —— iframe 仍保有正常的布局尺寸，
+   giscus 测算高度不会算出 0，点开时能瞬间展开、不跳动；
+   visibility:hidden 顺带把它从无障碍树里摘掉，Tab 也不会跑进收起的 iframe。
+   （这条原在 core.css 的「打赏」段之后，2026-10-02 晚随规则一起挪来。） */
+.giscus-body {
   max-height: 0;
   overflow: hidden;
   visibility: hidden;
@@ -198,7 +213,4 @@
   visibility: visible;
 }.giscus-inner {
   padding: 0 var(--space-5) var(--space-5);
-}.post-pill svg {
-  width: 16px;
-  height: 16px;
 }@media (max-width: 600px) {.post-nav { grid-template-columns: 1fr; }.post-nav-next { text-align: left; }}

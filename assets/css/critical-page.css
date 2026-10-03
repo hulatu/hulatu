@@ -14,7 +14,10 @@
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  /* 2026-10-02：10px → var(--space-2)(8px)。10 不在 4px 刻度上，
+     而全站其它「胶囊簇」用的都是 8px（.post-chips / .post-chips-row / .about-focus），
+     标签云没有理由单独用 10。 */
+  gap: var(--space-2);
   margin-top: var(--space-5);
 }.tag-chip {
   display: inline-flex;
@@ -46,17 +49,21 @@
   background: var(--surface-2);
   border-radius: var(--radius-pill);
 }.tag-chip:hover {
+  /* 2026-10-02：去掉 translateY(-1px)。悬停位移全站原有 7 处，
+     位移只该留给真正的「卡片」和「主按钮」（.post-nav-card / .notfound-btn）；
+     胶囊是控件，靠颜色和底色回应就够了，抬 1px 只是 App 目录的习惯动作。
+     :active 里那条 translateY(0) 是给位移收尾用的，一并删掉。
+     2026-10-02（第二轮）：连 box-shadow: var(--ctrl-hover-shadow) 一起撤 ——
+     那个 token 两套主题下都近乎不可见，却让「投影只给浮层」处处破例。
+     hover 现在只剩「字色 + 边线 + 底色」三样。 */
   background: var(--ctrl-hover-bg);
   color: var(--ctrl-hover-text);
   border-color: var(--ctrl-hover-border);
-  box-shadow: var(--ctrl-hover-shadow);
-  transform: translateY(-1px);
 }.tag-chip:active {
   background: var(--ctrl-active-bg);
   color: var(--ctrl-active-text);
   border-color: var(--ctrl-active-border);
   box-shadow: var(--ctrl-active-shadow);
-  transform: translateY(0);
 }.tag-chip:hover .tag-chip-count {
   color: var(--ctrl-hover-text);
 }
@@ -76,7 +83,7 @@
      透明度不在 --ctrl-transition 里，所以这里单独补一段，免得是硬跳变
      （同样的写法见 critical.css 里那批浮动按钮）。 */
   opacity: 0.7;
-  transition: var(--ctrl-transition), opacity 0.15s ease;
+  transition: var(--ctrl-transition), opacity var(--dur-fast) var(--ease);
 }
 .tag-chip-sm:hover { opacity: 1; }
 .page-intro {
@@ -90,25 +97,41 @@
   display: flex;
   flex-direction: column;
 }.minimal-row {
+  /* 2026-10-02：四套内边距归一。改之前这里是 10px 8px，而 .post-row 是 12px 0、
+     .weekly-list 是 10px 16px、.group-card 是 12px 0 —— 视觉上完全相同的列表，
+     左留白从 0 到 16px 不等，跨页面看就是「左轨对不齐」。现在统一向 .post-row 看齐。
+     横向内边距归 0 之后，原来靠它给底色块留的呼吸也就没有意义了（见下）。
+     2026-10-02（第二轮）：12px 换成刻度名 var(--space-3)（同值）。三处列表行
+     （.post-row / .minimal-row / .archive-item）现在都写刻度名 —— 以后再有人想
+     整体调列表疏密，改一处 token 就够；谁写了个不在刻度上的值（比如曾经的 11px）
+     也会立刻显出来。 */
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-6);
-  padding: 10px var(--space-2);
-  transition: background 0.18s ease, transform 0.18s ease;
-}.minimal-row + .minimal-row { border-top: 1px solid var(--line); }.minimal-row:hover {
-  background: var(--surface-2);
-  transform: translateY(-1px);
-  z-index: 1;
-}.minimal-title {
+  padding: var(--space-3) 0;
+}.minimal-row + .minimal-row { border-top: 1px solid var(--line); }
+/* 2026-10-02：删掉整行 hover 反馈（--surface-2 底色 + translateY(-1px) + z-index）。
+   这三样正是 DESIGN.md 为 .post-row 明文禁掉的动作：「不做整行 translateY + 底色块
+   —— 那是卡片的语言」。首页守住了、分类页没守住，同一站里两处列表就成了两种生物。
+   现在只留下面 `.minimal-row:hover .minimal-title` 那条染标题的规则。
+   z-index 是给上抬的行压住相邻行用的，不位移了自然一并删。
+   连带：.minimal-row 上原来的 transition（background / transform）已无属性可过渡，
+   也去掉了 —— 颜色过渡挂在 .minimal-title 自己身上（见下）。 */
+.minimal-title {
   font-family: var(--font-serif);
   font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color 0.15s ease;
+  /* 2026-10-02（第三轮）：去掉 white-space:nowrap + overflow:hidden + text-overflow:ellipsis。
+     这三件套把标题压成**一行**，超出就带省略号截掉 —— 和首页 .post-row-title 的
+     两行 clamp 是同一个毛病，只是更狠。分类 / 标签 / 周刊三个页面都吃这条。
+     一行能放多少字取决于屏宽：390px 手机上 .minimal-row 的标题列约 243px，
+     约 15 个全角字 —— 二十来个字的标题就被砍掉尾巴。
+     现在自由换行；min-width:0 让它在 grid 的 minmax(0,1fr) 列里能正常收窄。
+     行的 align-items 是 center，日期会跟着标题在垂直方向居中，观感不变。 */
+  min-width: 0;
+  transition: color var(--dur-fast) var(--ease);
 }.minimal-row:hover .minimal-title { color: var(--accent); }.minimal-date {
   /* 等宽元信息：见 critical.css 的 --font-meta。下面是纯日期（2006-01-02），
      没有汉字，所以直接整条换字体。 */
@@ -136,7 +159,7 @@
   padding: 0;
   list-style: none;
 }.minimal-list.group-card .minimal-row {
-  padding: 12px 0;
+  /* padding 已和基础规则一致（12px 0），这里只留 margin 重置。 */
   margin: 0;
 }.minimal-list.group-card .minimal-row + .minimal-row {
   border-top: 1px solid var(--line);
@@ -154,19 +177,26 @@
   width: 16px;
   height: 16px;
   color: var(--accent);
-}.weekly-list .minimal-row {
-  padding: 10px var(--space-4);
-}@media (max-width: 760px) {.minimal-row {
+}
+/* 2026-10-02：删掉 .weekly-list 的 padding 覆盖（原 10px 16px）——
+   它和 .minimal-row 的基础内边距现在同为 12px 0，留着只是多一处要同步的地方。
+   同理删掉 .group-card 在 600px 以下的 padding 覆盖（原 10px 4px）。 */
+@media (max-width: 760px) {.minimal-row {
+    /* 手机端只收紧行距；横向内边距交给基础规则（0），不再单独覆盖。 */
     gap: var(--space-4);
-    padding: 10px var(--space-1);
-  }}@media (max-width: 600px) {.minimal-list.group-card .minimal-row {
-    padding: 10px var(--space-1);
   }}.category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  /* 2026-10-02：裸数字 12px → var(--space-3)（同值）。换刻度名，
+     免得以后有人把它当成一个可以随手改的魔法值。 */
+  gap: var(--space-3);
   margin-top: var(--space-2);
 }.category-card {
+  /* 2026-10-02：补上交互四态。它在模板里是 <a class="category-card" href=…>
+     （分类页 / 标签页复用同一段），但改之前一条交互规则都没有 ——
+     鼠标移上去光标都不变，键盘 Tab 过去只有浏览器默认焦点环。
+     而同一页的 .minimal-row 是有反馈的：同一页上「卡片」和「行」成了两种生物。
+     四态直接复用现成的 --ctrl-* 变量，不新造颜色。 */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -174,10 +204,44 @@
   padding: var(--space-4) var(--space-4);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-}.category-card-name {
+  transition: var(--ctrl-transition);
+}
+/* 不挂投影：DESIGN.md 把投影留给真正的浮层（搜索面板 / 灯箱 / 手机菜单 / 返回顶部），
+   卡片这一层靠边线和底色就够了。
+   2026-10-02（第二轮）：这条原本写的是「**刻意不给** .category-card 挂
+   --ctrl-hover-shadow」—— 当时 .tag-chip / .pager-btn / .search-close / .notfound-btn
+   四处都挂着那个 token，只有这里在遵守原则。现在 token 已整体删除（见 critical.css
+   的控件四态注释），全站 hover 一律不带影，所以这条不再是「特例」，而是通则。
+   同理也不做位移 —— 位移只留给 .post-nav-card 与 .notfound-btn。 */
+.category-card:hover {
+  background: var(--ctrl-hover-bg);
+  border-color: var(--ctrl-hover-border);
+}
+.category-card:hover .category-card-name { color: var(--accent); }
+.category-card:active {
+  background: var(--ctrl-active-bg);
+  border-color: var(--ctrl-active-border);
+}
+/* 2026-10-02（第二轮）：按下时把计数胶囊「捞」回来。
+   --ctrl-active-bg 就是 --accent-soft，而 .category-card-count 的底也是 --accent-soft ——
+   卡一按下，两个色块重合，胶囊的形就没了，只剩一串 accent-ink 的数字悬在右下角。
+   为什么不去改 --ctrl-active-bg：它一改，5 个控件的按下底色全变，而且会让卡片
+   hover 时那行印章红标题的对比度从 4.33:1 掉到 3.4:1（深色 5.57 → 4.10）—— 得不偿失。
+   改用它本来就该用的东西：**一道线**（DESIGN.md 的「层级用线，不用影」）。
+   用 outline 而不是 border，是因为 outline 不参与布局 —— 按下时胶囊宽度一像素都不会跳。
+   浅色下 accent 对 accent-soft 是 4.33:1、深色 5.57:1，两套主题都读得出来。 */
+.category-card:active .category-card-count {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+.category-card-name {
   font-family: var(--font-serif);
   font-size: var(--text-sm);
   color: var(--ink);
+  /* 2026-10-02：补一条颜色过渡。上面的 .category-card:hover 会把标题染成 accent，
+     而 --ctrl-transition 挂在父级、管不到子元素的 color —— 不补这条就是硬跳变。
+     写法和 .minimal-title 一致。 */
+  transition: color var(--dur-fast) var(--ease);
 }.category-card-count {
   display: inline-flex;
   align-items: center;
@@ -193,7 +257,10 @@
   font-variant-numeric: tabular-nums;
 }@media (max-width: 600px) {.category-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    /* 2026-10-02（第二轮）：10px → var(--space-3)（12px）。
+       上一轮把基础档的 gap 换成刻度名，却漏了这条 ≤600px 的覆盖 —— 结果手机端
+       反而比桌面更紧，和「小屏该给更大呼吸」正好相反。这里跟上基础档。 */
+    gap: var(--space-3);
   }.category-card {
     flex-direction: column;
     align-items: flex-start;
@@ -221,7 +288,7 @@
   /* 书影音卡片保留 ±1.2° 的轻微旋转 —— 全站唯一的装饰性「贴纸」，
      只做点缀、不承担结构（参照 Notion 的贴纸调色板原则）。投影撤掉。 */
   transform: rotate(-1.2deg);
-  transition: transform 0.25s ease, border-color 0.25s ease;
+  transition: transform var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease);
 }.media-card:nth-child(even) { transform: rotate(1.3deg); }.media-card:hover {
   transform: rotate(0deg) translateY(-4px);
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
@@ -234,8 +301,16 @@
 }.media-body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 10px 13px 13px;
+  /* 2026-10-02（第三轮）：收进刻度。原来这里是 gap:3px + padding:10px 13px 13px ——
+     三个值一个都不在 --space-* 上（刻度是 4/8/12/16/20/24/28/32/36/40/44/48/56）。
+     上一轮把归档页的 11px 收了，却漏了这一页：同一个毛病，只按「列表行」去搜就搜不到卡片页。
+     gap 3px 管的是标题与作者两行**文字**之间，本来就有 line-height 在撑，收到 4px 后更匀。
+     原来的 padding 上下不对称（上 10 / 左右下 13），差 3px 肉眼分不出，
+     与其留一个不在刻度上的「伪设计」，不如均一化成 12px。
+     若日后确实想要「标题离封面更近」，刻度上的写法是
+     var(--space-2) var(--space-3) var(--space-3)（8 / 12 / 12）。 */
+  gap: var(--space-1);
+  padding: var(--space-3);
 }.media-title {
   font-family: var(--font-serif);
   font-size: var(--text-sm);
@@ -253,5 +328,10 @@
   white-space: nowrap;
 }@media (max-width: 600px) {.media-grid {
     grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-    gap: 14px;
+    /* 2026-10-02（第三轮）：14px → var(--space-4)（16px）。
+       14 不在刻度上；更要紧的是方向 —— 桌面是 var(--space-6)=24px，手机反而收到 14px（58%），
+       而上一轮给 .category-grid 立的原则是「小屏不该比桌面更紧」。卡片在手机上确实更小，
+       间距跟着缩可以理解，但缩到一个刻度外的数就没必要了：
+       按 390px 宽算，16px 与 14px 的列宽只差 1px（167px vs 168px），代价为零。 */
+    gap: var(--space-4);
   }.media-card { transform: rotate(-0.7deg); }.media-card:nth-child(even) { transform: rotate(0.8deg); }}

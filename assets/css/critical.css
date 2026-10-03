@@ -23,6 +23,27 @@
   --line: #e4e4e9;
   --line-strong: #d3d3da;
 
+  /* ---------- 浮层的两层「底」：遮罩 + 面板（2026-10-02 晚新增）----------
+     四个浮层（搜索面板 / 灯箱 / 手机菜单 / 返回顶部）原来各写各的 rgba，
+     于是深色下集体失效。这里统一成三个 token。
+
+     深色为什么会失效（用 ΔL* 量，不用 WCAG —— 近黑区间 WCAG 被压得看不出来）：
+       浅色 页面 L*=96.94 → 遮罩 rgba(20,22,26,.42) 后 L*=62.82，面板(=paper) 96.94
+            ⇒ 面板 − 遮罩 = **+34.11**，浮层确实「浮」起来了。
+       深色 页面 L*=3.14 → 同一个遮罩叠上去 L*=4.61 —— 页面已经接近黑，
+            这个深灰遮罩反而把页面**提亮**了；面板又是 --paper 同色 ⇒ **−1.47**，层次倒挂。
+     根因：深色下「压暗」这条路走不通。--paper 的 L* 只有 3.14，遮罩再黑也只能压掉 3 点。
+
+     所以深色改成反方向：**遮罩用纯黑压实、面板抬亮**（见 [data-theme="dark"]）。
+     浅色这三个值全部保持原样，渲染零变化。 */
+  --scrim: rgba(20, 22, 26, 0.42);        /* 搜索 / 手机菜单的轻遮罩 */
+  --scrim-deep: rgba(10, 12, 16, 0.88);   /* 灯箱的重遮罩：要压到接近全黑 */
+  /* 浮层面板的底色。浅色下**故意**用 --paper 而不是 --surface：
+     浅色 --surface(#fff, L*=100) 比 --paper(#f6f6f8, L*=96.94) 还亮，
+     面板若用它就成了「比页面更亮的一块白纸」，而不是浮层；
+     浅色下浮层的对比本来就由遮罩提供（+34.11），面板与页面同色才是对的。 */
+  --overlay-surface: var(--paper);
+
   --accent: #c73e2f;          /* 印章红 */
   --accent-ink: #a83226;
   --accent-soft: #fbeae7;     /* 印泥淡痕 */
@@ -98,11 +119,49 @@
   --space-14: 3.5rem;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 14px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08), 0 24px 64px rgba(0, 0, 0, 0.13);
+  /* ---------- 动效词表（2026-10-02 建立）----------
+     三档时长，一条缓动。要改全站手感，只改这一段。
+
+     为什么要有词表：建表前全站有 10 个不同的过渡时长
+     （0.15s ×36、0.2s ×13、0.25s ×10、0.18s ×9、0.22s ×6、0.3s / 0.4s / 0.5s / 0.6s / 0.04s 各 1），
+     其中只有 --ctrl-transition 是 token，其余全是硬编码；缓动更是清一色裸 `ease`
+     —— 那是浏览器默认值，等于「没做决定」。彼此只差 1–3 帧，读者感觉不到快慢，
+     只觉得「这里好像跟别处不太一样」。收敛之后，动效才成了一套语言。
+
+     档位怎么分：
+       fast .15s —— 悬停 / 聚焦 / 颜色变化。这类「即时回应」多一分就显迟钝。
+       base .22s —— 展开 / 淡入 / 位移。要能看清过程，但不能等。
+       slow .40s —— 图片入场 / 页面转场。块越大越要慢，否则会糊。
+
+     归并规则（建表时一次性替换 84 处时长字面量；同期另删掉 4 条永不触发的死 transition，
+     所以最终落到 80 处 var(--dur-*) + 2 处刻意保留的字面量。这个数 2026-10-02 复算过：
+     数的是 transition / animation 声明里的时长，源码要先剥掉注释，或者直接数构建产物）：
+       0.15s ×41                             → fast  41
+       0.18s ×9 / 0.2s ×13 / 0.22s ×7
+         / 0.25s ×10 / 0.3s ×1 = 40 处        → base  36（差额 4 就是那 4 条被删的死 transition）
+       0.4s / 0.5s / 0.6s 各 ×1 = 3 处        → slow   3
+
+     刻意留在词表外的两个例外，理由都写在下面对应处：
+       ① @keyframes hero-in 的 cubic-bezier(0.2, 0.7, 0.2, 1) —— 卷首入场是一次性的，
+          要的是「推上来」不是「滑上来」，不属于通用状态切换；
+       ② ::view-transition-group(page-title) 的 0.32s —— 比页面档慢 0.1s，
+          是为了让标题领着页面走，是刻意的错位。
+     ---- */
+  --dur-fast: 0.15s;
+  --dur-base: 0.22s;
+  --dur-slow: 0.4s;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
 
-  /* 控件四态：default / hover / active / disabled，每态四件套「底 · 字 · 边 · 影」。
+  /* 控件四态：default / hover / active / disabled。
      所有按钮、图标按钮只引用这里的变量，不写死颜色——要调整全站手感，只改这一段。
-     三套：ctrl（描边按钮）/ ctrl-solid（印章红实心主按钮）/ ctrl-ghost（无底图标按钮） */
+     三套：ctrl（描边按钮）/ ctrl-solid（印章红实心主按钮）/ ctrl-ghost（无底图标按钮）。
+
+     2026-10-02（第二轮）：hover 不再带「影」。原先这里有个 --ctrl-hover-shadow，
+     两套主题下都近乎不可见（浅色 5% 黑、深色是黑影叠近黑底），却让 DESIGN.md 的
+     「投影只给浮层」在 .tag-chip / .pager-btn / .search-close / .notfound-btn 四处破例，
+     而同一页的 .category-card 有一条注释在遵守它 —— 同一份原则两种待遇。
+     现在 hover 只靠「底 · 字 · 边」三样，全站一致；影只留给 --shadow-sm / --shadow-md
+     （真正的浮层）和 ctrl-solid 那套主按钮。 */
   --ctrl-bg: var(--surface);
   --ctrl-text: var(--ink-soft);
   --ctrl-border: var(--line);
@@ -111,7 +170,6 @@
   --ctrl-hover-bg: var(--surface);
   --ctrl-hover-text: var(--accent);
   --ctrl-hover-border: color-mix(in srgb, var(--accent) 45%, var(--line));
-  --ctrl-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
   --ctrl-active-bg: var(--accent-soft);
   --ctrl-active-text: var(--accent-ink);
@@ -164,15 +222,25 @@
   --ctrl-ghost-disabled-text: var(--muted);
   --ctrl-ghost-disabled-border: transparent;
 
-  /* 毛玻璃浮动按钮（返回顶部 / 手机目录）专用：底和影单独一套，四态仍走上面 */
-  --ctrl-float-bg: color-mix(in srgb, var(--paper) 88%, transparent);
-  --ctrl-float-hover-bg: color-mix(in srgb, var(--surface) 94%, transparent);
+  /* 浮动按钮（返回顶部 / 手机目录）：**只单独定义「边」和「影」**。
+     底和字直接走上面 ctrl 家族 —— 它就是个描边按钮，只是浮着。
+
+     2026-10-02（第三轮）：删掉了 --ctrl-float-bg 与 --ctrl-float-hover-bg。
+     这两条是「去毛玻璃」做了一半的残骸：
+       · --ctrl-float-bg 的值是 color-mix(--paper 88%, transparent)（半透明），
+         但 .back-top 早就改用实心 var(--surface) 了 —— 定义 1 次、引用 **0** 次。
+       · --ctrl-float-hover-bg 是 color-mix(--surface 94%, transparent)，
+         .back-top:hover 还在用它 —— 于是「改实底」之后，**鼠标一悬停按钮反而变透明了 6%**，
+         和那次决定正好相反。
+     更根本的是：ctrl 家族的 --ctrl-bg 与 --ctrl-hover-bg **本来就同值**（都是 --surface），
+     描边按钮悬停时不换底、只换字色和边色。浮动按钮没有理由例外。 */
   --ctrl-float-border: var(--line-strong);
   --ctrl-float-shadow: var(--shadow-sm);
 
   /* 控件共用过渡：四态切换只动这几样，时长统一 */
-  --ctrl-transition: color 0.15s ease, background 0.15s ease,
-    border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s var(--ease);
+  --ctrl-transition: color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 
   --font-serif: "Source Han Serif SC", "Noto Serif SC", "Noto Serif CJK SC",
     "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif;
@@ -202,6 +270,21 @@
   --line: #2c2c31;
   --line-strong: #3a3a40;
 
+  /* 浮层三层（2026-10-02 晚）。浅色那套在深色下会**倒挂**，推演写在 :root 的注释里。
+     深色的方向是反的：遮罩压实、面板抬亮 —— 因为 --paper 已经接近黑，
+     「压暗」最多只能压掉 3 点 L*，拉不出层次。
+     实测：遮罩 rgba(0,0,0,.62) 落到 L*=1.18，面板 --surface(#1c1c1f) L*=10.38
+          ⇒ 面板 − 遮罩 = **+9.20**（浅色 +34.11，方向一致，量级差是物理限制）。
+     灯箱的重遮罩同样要压实：现状 rgba(10,12,16,.88) 在深色下叠完是 L*=3.28，
+     和页面 3.14 只差 −0.13，等于没有遮罩；改纯黑 .92 后落到 0.25，页面 − 遮罩 = +2.89。
+     注意 --overlay-surface 在两个主题下指向**不同**的 token（浅 paper / 深 surface）——
+     这是刻意的：浅色面板该和页面同色，深色面板该比页面亮一档。
+     另：.back-top **不走** --overlay-surface，它用 --surface —— 它背后没有遮罩，
+     得自己跟页面对比；浅色下 --surface 的纯白正是它可见的原因。 */
+  --scrim: rgba(0, 0, 0, 0.62);
+  --scrim-deep: rgba(0, 0, 0, 0.92);
+  --overlay-surface: var(--surface);
+
   --accent: #ef7b64;
   --accent-ink: #ff9a86;
   --accent-soft: #3a1e1a;
@@ -223,8 +306,9 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.45), 0 28px 80px rgba(0, 0, 0, 0.55);
 
-  /* 深色下只有阴影要重写：其余四态变量都引用上面的取色，会自动跟着变 */
-  --ctrl-hover-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  /* 深色下只有阴影要重写：其余四态变量都引用上面的取色，会自动跟着变。
+     2026-10-02（第二轮）：--ctrl-hover-shadow 已删除（hover 不再挂影），
+     这里只剩实心主按钮那两套影。 */
   --ctrl-solid-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 26%, transparent);
   --ctrl-solid-hover-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 32%, transparent);
 }* { box-sizing: border-box; }html {
@@ -240,8 +324,10 @@ main [id] {
      滚过去就贴在视口顶端，被 position: fixed 的顶栏（--header-h: 64px）吃掉标题最上面约 24px
      （main.container 的 padding-top 只有 40px，不够让位）。
      正文里 h2/h3 的 id 是 main 的后代，本来就靠 `main [id]` 生效，所以两个都要留着。
-     不用 html { scroll-padding-top } 来解：那个值会和这里的 scroll-margin-top 叠加
-     （见 core.css 顶部的说明），会把所有锚点又往下多推一截。 */
+     不用 html { scroll-padding-top } 来解：那个值会和这里的 scroll-margin-top 叠加 ——
+     两条都生效时偏移会翻倍（曾经就是 84px + 92px），标题被顶到离顶部将近 180px 的地方，
+     看着像根本没对准。所以偏移量全站只留 --anchor-offset 这一份，不要写第二处。
+     （这段理由原在 core.css 的「锚点落点」段，2026-10-02 晚随规则一起挪来。） */
   scroll-margin-top: var(--anchor-offset);
 }::-webkit-scrollbar {
   width: 8px;
@@ -259,7 +345,7 @@ main [id] {
   font-family: var(--font-sans);
   padding-top: var(--header-h);
   line-height: 1.75;
-  transition: background 0.25s ease, color 0.25s ease;
+  transition: background var(--dur-base) var(--ease), color var(--dur-base) var(--ease);
 }a { color: inherit; text-decoration: none; }::selection {
   background: var(--accent-soft);
   color: var(--ink);
@@ -276,7 +362,9 @@ main [id] {
   min-height: 60vh;
   padding-top: var(--space-10);
   padding-bottom: var(--space-10);
-  transition: opacity 0.18s ease;
+  /* 2026-10-02：删掉这里原有的 transition: opacity —— 没有任何 CSS 规则或 JS 会改
+     main.container 的 opacity（全站对 opacity 的写入只落在 .article-image 的
+     .is-loaded / .is-failed 上），这条过渡永远不触发。 */
 }main.container.is-home {
   padding-bottom: var(--space-4);
 }.reading-progress {
@@ -303,7 +391,7 @@ main [id] {
      backdrop-filter 在常驻固定元素上每帧都要重算，是滚动掉帧的大头，而中文长文博客里
      它带来的观感收益很小。层级交给那条线。 */
   background: var(--paper);
-  transition: background 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.3s var(--ease);
+  transition: background var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
 }.site-header.is-hidden {
   transform: translateY(-100%);
 }.nav-container {
@@ -321,7 +409,7 @@ main [id] {
   height: 1px;
   background: var(--line);
   opacity: 0;
-  transition: opacity 0.25s var(--ease);
+  transition: opacity var(--dur-base) var(--ease);
 }.site-header.is-scrolled .nav-container::after {
   opacity: 1;
 }.site-brand {
@@ -344,7 +432,7 @@ main [id] {
   letter-spacing: var(--tracking-title);
   color: var(--ink);
   white-space: nowrap;
-  transition: color 0.15s ease;
+  transition: color var(--dur-fast) var(--ease);
 }.site-brand:hover .site-brand-name,
 .site-brand:focus-visible .site-brand-name {
   color: var(--accent);
@@ -368,7 +456,7 @@ main [id] {
   font-size: var(--text-xs);
   color: var(--muted);
   white-space: nowrap;
-  transition: color 0.15s ease;
+  transition: color var(--dur-fast) var(--ease);
 }.nav-links a::after {
   content: "";
   position: absolute;
@@ -380,7 +468,7 @@ main [id] {
   background: var(--accent);
   opacity: 0;
   transform: translateX(-50%) scaleX(0.35);
-  transition: opacity 0.18s var(--ease), transform 0.18s var(--ease);
+  transition: opacity var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
 }.nav-links a:hover { color: var(--accent); }.nav-links a.is-active {
   color: var(--ink);
   font-weight: 600;
@@ -407,11 +495,12 @@ main [id] {
   transition: var(--ctrl-transition);
 }.nav-icon-btn:hover,
 .nav-burger:hover {
+  /* 2026-10-02：去掉 translateY(-1px)。顶栏图标按钮是「控件」不是「卡片」，
+     悬停靠颜色和底色回应；位移全站只留给 .post-nav-card 与 .notfound-btn。 */
   background: var(--ctrl-ghost-hover-bg);
   color: var(--ctrl-ghost-hover-text);
   border-color: var(--ctrl-ghost-hover-border);
   box-shadow: var(--ctrl-ghost-hover-shadow);
-  transform: translateY(-1px);
 }.nav-icon-btn:active,
 .nav-burger:active {
   background: var(--ctrl-ghost-active-bg);
@@ -436,7 +525,7 @@ main [id] {
   height: 2px;
   border-radius: var(--radius-sm);
   background: currentColor;
-  transition: transform 0.25s ease, opacity 0.2s ease;
+  transition: transform var(--dur-base) var(--ease), opacity var(--dur-base) var(--ease);
 }.nav-burger.is-open .burger-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }.nav-burger.is-open .burger-bar:nth-child(2) { opacity: 0; }.nav-burger.is-open .burger-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }.nav-burger.is-open {
   background: var(--ctrl-ghost-active-bg);
   color: var(--ctrl-ghost-active-text);
@@ -452,17 +541,25 @@ main [id] {
      （见 .post-row + .post-row）。这是「纸账」的语言——一本账本没有投影，只有横线和墨。 */
   display: flex;
   flex-direction: column;
-  transition: opacity 0.18s ease;
+  /* 同上：.post-list 的 opacity 从没有过写入方，这条 transition 是残留。 */
   border-top: 1px solid var(--line);
 }.post-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: var(--space-4);
-  /* 列表已不在卡片里，行自己贴着正文列；左右不再内缩，和 hero / 页标题对齐。 */
-  padding: 12px 0;
+  /* 列表已不在卡片里，行自己贴着正文列；左右不再内缩，和 hero / 页标题对齐。
+     2026-10-02（第二轮）：12px 换成刻度名 var(--space-3)（同值）—— 三处列表行
+     （.post-row / .minimal-row / .archive-item）现在都写刻度名，改一处 token 就能
+     整体调列表疏密；谁写了个不在刻度上的值（比如曾经的 11px）也会立刻显出来。 */
+  padding: var(--space-3) 0;
   margin: 0;
-  transition: color 0.15s ease;
+  /* 2026-10-02（第三轮）：删掉这里的 transition: color。
+     它是死声明 —— .post-row 自身**从不改变 color**（唯一的变色是子元素 .post-row-title
+     在 hover 时转印章红），而 transition 不继承：父元素上这条永远不会被触发。
+     真正让标题平滑变红的是 .post-row-title 自己那条（下面有）。
+     归档页 .archive-item 与极简列表 .minimal-row 都没挂这条，只有首页多了，
+     留着只会让后来者以为「整行会渐变」。 */
 }.post-row + .post-row {
   border-top: 1px solid var(--line);
 }.post-row-main {
@@ -480,11 +577,17 @@ main [id] {
   font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--ink);
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  transition: color 0.15s ease;
+  /* 2026-10-02（第三轮）：去掉 -webkit-line-clamp:2（连同 display:-webkit-box /
+     -webkit-box-orient / overflow:hidden 一起）。
+     原来超过两行就带省略号截掉。而**被截掉的那半句，正是读者判断「要不要点」的全部依据**——
+     列表省下的那点行高，换的是读者必须点进去才知道标题在说什么。
+     实测：全站 122 篇里最长的标题（23.5 个全角字宽）在 680px 正文列里只占 0.55 行、
+     在 390px 手机上占 1.53 行 —— 也就是说这个 clamp **从来没触发过**，
+     它只是在「等着」截断下一篇长标题。这种「平时看不出、一触发就丢信息」的规则最该删。
+     现在与归档页 .archive-item-title 一致：自由换行，行高随内容。
+     min-width:0 是给 .post-row-title-line 那个 flex 容器用的，让标题在窄屏能收窄换行。 */
+  min-width: 0;
+  transition: color var(--dur-fast) var(--ease);
 }.post-row:hover .post-row-title { color: var(--accent); }.post-row-home .post-row-title {
   font-weight: 700;
   letter-spacing: var(--tracking-title);
@@ -504,7 +607,14 @@ main [id] {
   font-size: var(--text-2xs);
   color: var(--ink-soft);
 }.empty-tip { color: var(--muted); }.post-row-home {
+  /* 两列：标题 + 日期。
+     2026-10-02（第二轮）：间距从「父级 gap + 子元素 padding」两套算法合并成一处。
+     原来这里是 --space-4(16px) 列间距，而 .post-row-date 又挂了 padding-left:
+     --space-2(8px)，实际 16+8=24px 由两条规则叠出来 —— 想调这个间距，改 gap 只动
+     一半、改 padding-left 只动另一半，两条规则里都没提还有另一半。
+     现在 24px 直接写在这里，.post-row-date 的 padding-left 已删除。 */
   grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-6);
 }.post-row-date {
   /* 等宽元信息（见上面 --font-meta）。这条在首屏关键 CSS 里，
      因为首页 / 文章列表的第一屏就是这个日期，不能等异步包。 */
@@ -514,12 +624,38 @@ main [id] {
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--tracking-num);
   white-space: nowrap;
-  padding-left: var(--space-2);
-}.hero-line,
+}/* 多行中文标题换行时左右均衡，避免参差（浏览器不支持时自动忽略这条）。
+   ⚠️ 2026-10-02 晚：`.post-title` **已经不在这一组里** —— 作者反馈「长标题换行时第一行
+   没排到最右」，根因正是 balance（它按「各行字符数尽量相等」去排，多行标题的第一行必然
+   停在半途、右边空一大块）。文章标题改走 text-wrap: wrap，见下面那一条。
+   剩下这三个（卷首 hero / 页面标题 / 关于页姓名）内容都很短、实际不换行，balance 只是保险。
+   （这条原在 core.css 的「头部导航」段，2026-10-02 晚随规则一起挪来。） */
+.hero-line,
 .page-title,
-.post-title,
 .about-name {
   text-wrap: balance;
+}.post-title {
+  /* 文章标题**不参与** balance —— 2026-10-02 从上面那组里单独摘出来。
+     作者的原话是「断开的地方并不是从最右端开始的」。根因就是 balance：
+     它按「各行的字符数尽量相等」去排，标题一多行，第一行就必然停在半途，
+     右边空一大块。它治的是英文标题的孤词，代价却是**每一条**多行标题都变短。
+
+     但摘掉它要付什么代价，先量清楚再说。用真实字体（Songti SC Bold 38px、
+     字距 0.02em，即 --tracking-title）量本机最长的两条标题：
+       · 「当我谈喜欢 or 讨厌的博客，我在谈些什么」  713.8px
+       · 「什么都想做 or 什么都不想做，可能有相同的原因」830.1px
+     容器（--content-width）680px。于是第一条只超出 33.8px —— 自然换行
+     （wrap）会把第二行压成孤零零一个「么」。
+
+     权衡：wrap 让**少数**多行标题可能孤一个字，balance 让**每一条**多行标题
+     第一行都短一截。中文排版的常态是「第一行排到最右」，所以选 wrap。
+     孤字是自然换行的偶发代价，不是常态；若将来某条标题孤得难看，
+     该改的是标题本身（或那条标题的文案），不是把 balance 加回来。
+
+     ⚠️ 这条必须留在**内联的关键 CSS** 里，不能挪去 critical-post.css：
+     标题在文章页首屏，异步包到达前若按 balance 排、到达后再重排，
+     用户会看到换行位置当场跳一下。 */
+  text-wrap: wrap;
 }.nav-icon-btn[target="_blank"]::after {
   /* 必须是 none，不能是 ""："" 只是内容为空，伪元素**照样会生成**，而上面那条
      外链规则给它挂了 background-color + mask —— 空元素一样能把箭头画出来，
@@ -540,14 +676,12 @@ svg { stroke-width: 2; }
 .pager-btn svg {
   width: 20px;
   height: 20px;
-}.post-pill,
-.tag-chip,
+}.tag-chip,
 .pager-btn,
 .nav-icon-btn,
 .nav-burger {
   position: relative;
-}.post-pill::after,
-.tag-chip::after,
+}.tag-chip::after,
 .pager-btn::after,
 .nav-icon-btn::after,
 .nav-burger::after {
@@ -589,8 +723,7 @@ svg { stroke-width: 2; }
      所以左右各 6px 会让相邻命中区重叠 4px —— 与页头三个图标按钮既有的重叠量一致，
      属于可接受范围（实测命中区 34×33，视觉框 27.5×24）。 */
   inset: -4px -6px;
-}.post-pill:active,
-.tag-chip:active,
+}.tag-chip:active,
 .pager-btn:active,
 .nav-icon-btn:active {
   transform: scale(0.96);
@@ -641,12 +774,12 @@ svg { stroke-width: 2; }
     opacity: 0;
     transform: translateY(-8px);
     pointer-events: none;
-    background: var(--paper);
+    background: var(--overlay-surface);
     border-bottom: 1px solid var(--line);
     box-shadow: var(--shadow-md);
     padding: var(--space-2) var(--gutter) var(--space-3);
-    transition: opacity 0.18s var(--ease), transform 0.18s var(--ease),
-      visibility 0.18s var(--ease);
+    transition: opacity var(--dur-base) var(--ease), transform var(--dur-base) var(--ease),
+      visibility var(--dur-base) var(--ease);
   }.nav-links.is-open {
     visibility: visible;
     opacity: 1;
@@ -657,29 +790,47 @@ svg { stroke-width: 2; }
     font-size: var(--text-sm);
   }.nav-links a::after {
     display: none;
-  }.nav-links a + a { border-top: 1px dashed var(--line); }.nav-burger { display: inline-flex; }.nav-right {
+  }.nav-links a + a { border-top: 1px solid var(--line); }.nav-burger { display: inline-flex; }.nav-right {
     /* 2026-09-30：原来是 var(--space-1)=4px，和 .nav-actions 内部的 12px 不一致；
        而下面给汉堡补了 ::after{inset:-8px} 的命中区（和三个图标按钮一致），
        4px 的间距会让它的命中区和 RSS 图标重叠 12px。统一成 12px 后重叠降到 4px，
        正好和三个图标按钮之间既有的重叠量一致。 */
     gap: var(--space-3);
   }}@media (max-width: 760px) {.post-row-home {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--space-3);
+    /* 2026-10-02（第二轮）：--space-3(12px) → --space-5(20px)。
+       折叠 .post-row-date 的 padding-left 之前，窄屏的实际间距是 gap 12 + padding 8
+       = 20px；折叠之后必须把 20px 写全，否则会悄悄收紧 8px。
+       另外 grid-template-columns 和桌面档完全相同，是重复声明，一并删掉。 */
+    gap: var(--space-5);
   }}@media (max-width: 600px) {main.container {
     padding-top: var(--space-7);
     padding-bottom: var(--space-7);
-  }.post-row {
-    gap: var(--space-3);
-    padding: 12px 0;
-    margin: 0;
-  }}.post-title,
+  }/* 2026-10-02（第二轮）：这里原本是 .post-row { gap: var(--space-3);
+     padding: 12px 0; margin: 0 }，三条全删：
+       · gap —— .post-row 是**单列**网格（grid-template-columns: minmax(0, 1fr)），
+         只有一个子元素，gap 对它自己完全无效；它真正命中的是共用 class 的
+         .post-row-home，而那条已经在 ≤760px 里按 20px 处理了。
+       · padding / margin —— 与基础档的 var(--space-3) 0 / 0 完全同值，纯重复。
+     删掉后 ≤600px 的间距回落到 ≤760px 那条，仍是 20px，观感不变。 */
+  }/* 标题做成共享元素：从列表点进文章时，标题会从原来的位置「长」到新位置。
+   每页**只能有一个**同名元素，否则整段过渡会被浏览器直接丢弃 —— 所以这组选择器
+   只能出现一次，别在别处再加第二个 view-transition-name: page-title。
+   （这条理由原在 core.css 的「跨页面视图过渡」段，2026-10-02 晚随规则一起挪来。） */
+.post-title,
 .page-title,
 .hero-line {
   view-transition-name: page-title;
 }@media (prefers-reduced-motion: reduce) {*,
   *::before,
   *::after {
+    /* 2026-10-02：从「时长归零」改成「换一种做法」。
+       原来只把时长压到 0.01ms —— 过渡确实没了，但 hero-in / overlay-in / search-in
+       三个 @keyframes 仍然会「跑」，只是在一瞬间跑完，元素照样「跳」到终态。
+       对前庭敏感的用户来说，这一跳就是问题本身，所以现在直接把入场动画关掉。
+       好在三个动画的终态都等于元素自己的基础样式（.hero-line 本就没有 opacity/transform、
+       .search-box 的基础 transform 已经是 translateX(-50%)、两个 backdrop 本就全不透明），
+       关掉之后自动落到终态，不需要再补一遍 opacity: 1 / transform: none。 */
+    animation: none !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -692,7 +843,8 @@ svg { stroke-width: 2; }
   padding: 0.5rem 1rem;
   background: var(--ink);
   color: var(--paper);
-  border-radius: 0.375rem;
+  /* 2026-10-02：0.375rem(6px) → var(--radius-sm)。这是全站唯一一处硬编码的圆角。 */
+  border-radius: var(--radius-sm);
   text-decoration: none;
   font-family: var(--font-sans);
 }.skip-link:focus {
@@ -735,7 +887,9 @@ svg { stroke-width: 2; }
   font-weight: 500;
   color: var(--ink);
   margin: 0;
-  animation: hero-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.04s both;
+  /* 曲线留在词表外：卷首入场是一次性动画，要「推上来」不是「滑上来」。
+     0.04s 是入场延迟（不是时长），不参与词表。 */
+  animation: hero-in var(--dur-slow) cubic-bezier(0.2, 0.7, 0.2, 1) 0.04s both;
 }
 /* @keyframes 必须和内联的 animation 待在一起（2026-09-28）。
    原先它留在 core.css，于是首屏这句 animation 解析不到关键帧 —— 按规范整条声明被丢弃，
@@ -758,12 +912,13 @@ svg { stroke-width: 2; }
   font-size: var(--text-xs);
   color: var(--muted);
   white-space: nowrap;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }.home-archive-link:hover {
+  /* 2026-10-02：去掉 translateY(-1px)（transition 里的 transform 同步删掉）。
+     它是首页工具条上的一个文字链接，悬停变红 + 淡痕底已经足够。 */
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
   background: var(--accent-soft);
-  transform: translateY(-1px);
 }.list-toolbar {
   display: flex;
   justify-content: space-between;
@@ -800,13 +955,19 @@ svg { stroke-width: 2; }
   background: var(--ctrl-hover-bg);
   color: var(--ctrl-hover-text);
   border-color: var(--ctrl-hover-border);
-  box-shadow: var(--ctrl-hover-shadow);
 }.pager-btn:active:not(:disabled) {
   background: var(--ctrl-active-bg);
   color: var(--ctrl-active-text);
   border-color: var(--ctrl-active-border);
   box-shadow: var(--ctrl-active-shadow);
-  transform: translateY(1px);
+  /* 2026-10-02（第二轮）：删掉 transform: translateY(1px)。
+     翻页按钮的按压反馈原本有两套：critical.css 上面那条共享规则
+     `.tag-chip:active, .pager-btn:active, .nav-icon-btn:active { transform: scale(0.96) }`
+     给的是「缩到 96%」，而这里又用 translateY(1px) 写成「往下沉 1px」。
+     两条都设 transform，本条特异性 (0,3,0) 高于共享那条的 (0,2,0)，所以**本条一直赢**
+     —— 共享列表里的 scale(0.96) 对 .pager-btn 是永不生效的死声明，
+     而全站同时存在两种按压语言（胶囊 / 页头图标是缩，翻页是沉）。
+     删掉本条后，.pager-btn 自动回落到共享的 scale(0.96)，三个控件终于一种语言。 */
 }.pager-btn:disabled {
   background: var(--ctrl-disabled-bg);
   color: var(--ctrl-disabled-text);
@@ -873,7 +1034,7 @@ svg { stroke-width: 2; }
 }
 .footer-links a {
   color: var(--muted);
-  transition: color 0.15s ease;
+  transition: color var(--dur-fast) var(--ease);
 }
 .footer-links a:hover { color: var(--accent); }
 .footer-links a[target="_blank"]::after,
@@ -953,7 +1114,7 @@ a[target="_blank"]::after {
   opacity: 0;
   pointer-events: none;
   transform: translateY(8px);
-  transition: var(--ctrl-transition), opacity 0.2s ease;
+  transition: var(--ctrl-transition), opacity var(--dur-base) var(--ease);
 }
 .back-top.is-visible {
   opacity: 1;
@@ -961,7 +1122,9 @@ a[target="_blank"]::after {
   transform: translateY(0);
 }
 .back-top:hover {
-  background: var(--ctrl-float-hover-bg);
+  /* 2026-10-02（第三轮）：这里原本是 background: var(--ctrl-float-hover-bg)
+     （94% 半透明的 surface）。悬停不换底，和 ctrl 家族的描边按钮一致
+     （--ctrl-bg 与 --ctrl-hover-bg 本来就同值），只换字色与边色。 */
   color: var(--ctrl-hover-text);
   border-color: var(--ctrl-hover-border);
 }

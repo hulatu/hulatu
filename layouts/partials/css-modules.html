@@ -18,7 +18,7 @@
          critical + critical-post              —— 文章页、周刊正文、隐私政策
          critical + critical-page              —— 标签、分类、周刊列表
          critical + critical-info              —— 归档、404
-         critical + critical-info              —— 关于（异步额外带 post，因为页尾有打赏块）
+         critical + critical-info              —— 关于（异步额外带 post：页尾的打赏块 .donate-* 在里面）
          critical + critical-info + critical-page  —— 友链（.friends-* + .page-intro）
          critical + critical-page + critical-post  —— 书影音（.media-* + .page-intro + .heading-anchor）
 
@@ -85,8 +85,23 @@
     {{- $c = slice "critical" "critical-post" -}}
     {{- $m = slice "core" -}}
   {{- else if eq $base "about" -}}
-    {{- /* 关于页：.about-* 在 critical-info；页尾有打赏块（.donate-* 在 post），
-           所以异步要带 post */ -}}
+    {{- /* 关于页：.about-* 在 critical-info；页尾的打赏块 .donate-* 在 post，
+           所以异步要带 post —— 它现在**全站只有这一页**是非文章却要 post
+           （2026-10-02 第四轮把打赏从文章页撤了，但文章页自己还要 post 里的
+           giscus / related-posts / post-nav，所以这里不动）。
+
+           于是 post.css 里那 15 条 .donate-* 规则（minify 后约 1.7KB）也成了
+           文章页的「死重量」。两条出路，都量过了，都**先不做**：
+             · 挪进 critical-info → 关于页能丢掉 post，但 critical-info 是**内联**的，
+               等于给归档 / 404 / 友链三页各加 1.7KB 内联字节，换来的「省」是假的；
+             · 给关于页单独开一个 donate.css 异步模块 → 这是唯一真能省的走法
+               （文章页的 post 少 1.7KB、关于页拿 1.7KB 而不是 5KB），
+               但代价是第 7 个模块。
+           还有一条**反对搬走**的理由，比上面两条更硬：文章页和关于页现在共用
+           `site-core-post` 这同一个包，而「文章 → 关于」是站内最常见的跳转路径之一
+           —— 共用一个包就是一次缓存命中。搬走之后关于页会换成一个文章页没有的包，
+           反而多一次请求。按本文件开头那条「单页的收益不值得全站付账」的口径，
+           先留着。真要动，先看这三句。 */ -}}
     {{- $c = slice "critical" "critical-info" -}}
     {{- $m = slice "core" "post" -}}
   {{- else if eq $base "archive" -}}

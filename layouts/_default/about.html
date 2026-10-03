@@ -61,7 +61,14 @@
     <section class="about-section">
       <h2>我是谁</h2>
       {{ range $intro }}<p>{{ . }}</p>{{ end }}
-      <p>更完整的自我介绍，可以看这篇 <a href="{{ "/posts/2025/12/05/personal-profile/" | relURL }}">《关于我》</a>。</p>
+      {{- /* 这条链接用**行内站内链接**的样式（.about-section > p a，在 critical-info.css）。
+             2026-10-02 第四轮它一度被升格成「链接行」：发丝线描边 + 纸背底 + 常显箭头。
+             形态本身没错，但放在「我是谁」这段散文里太显性 —— 一句话读到一半，
+             中间插进来一个带边框的方块，读起来像广告位而不像句子的一部分。
+             现在退回段落里的行内链接：印章红 + 1px 下划线，和全站正文链接同一套语言。
+             它仍然比「裸 <a>」强：全站基础规则是 `a { color: inherit;
+             text-decoration: none }`，不显式写样式的话它和正文完全同色、看不出能点。 */ -}}
+      <p>更完整的自我介绍，可以看这篇<a href="{{ "/posts/2025/12/05/personal-profile/" | relURL }}"> 关于我</a>。</p>
     </section>
 
     {{- with $a.site -}}
@@ -87,8 +94,14 @@
       <h2>联系</h2>
       {{ partial "about-link-list" (dict "items" $a.contacts) }}
     </section>
-  </div>
 
-  {{ partial "donate.html" (dict "hint" "如果本站对你有帮助，可以请我喝杯咖啡") }}
+    {{- /* 打赏块：全站只此一处（文章页已移除，2026-10-02 第四轮）。
+           注意它在 **.about-body 里面** —— 它自己就是一个 .about-section，
+           和上面五节平级，分隔线由 `.about-section + .about-section` 给。
+           以前它挂在 .about-body 外面，于是得自己写 border-top 和 max-width 居中，
+           两条都是「只有它这样」的特例；收进来之后两条一起删了。
+           不传 hint —— 文案的唯一来源是 hugo.toml 的 params.donate.hint。 */ -}}
+    {{ partial "donate.html" . }}
+  </div>
 </div>
 {{ end }}

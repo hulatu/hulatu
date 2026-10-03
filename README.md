@@ -8,7 +8,7 @@
 
 - **导航栏**：关于 / 归档 / 周刊 / 分类；右侧是搜索、深浅色切换、RSS 三个图标按钮
 - **首页**：按时间倒序每页 10 篇（`hugo.toml` 的 `[pagination] pagerSize`），底部箭头翻页
-- **文章页**：目录（宽屏右侧刻度栏，可钉住；窄屏排在正文开头）、相关文章、上一篇 / 下一篇、打赏、评论、「更新于」
+- **文章页**：目录（宽屏右侧刻度栏，可钉住；窄屏排在正文开头）、相关文章、上一篇 / 下一篇、评论、「更新于」
 - **周更栏目**：周刊独立成栏（`/weekly/`），正文走 `/posts/年/月/日/slug/`，另有单独的 RSS
 - **搜索**：构建期生成 `search-index.json`，纯前端搜索（`/` 或 `⌘K` 打开）
 - **深浅色**：默认跟随系统，右上角按钮可手动切换（刷新后回到跟随系统，不记忆）
@@ -42,13 +42,13 @@ blog/
 │   │   ├── critical-page.css   #   ★内联：列表型页面额外要的（列表骨架 / 标签云 / 分类 / 书影音）
 │   │   ├── critical-info.css   #   ★内联：一页一型的信息页额外要的（归档 / 关于 / 友链 / 404）
 │   │   ├── core.css            #   异步包：全站共用（页头交互、搜索、灯箱、提示条…）
-│   │   └── post.css            #   异步包：只文章页，且只剩文末家具（打赏 / 评论 / 相关文章 / 上下篇）
+│   │   └── post.css            #   异步包：文末家具（评论 / 相关文章 / 上下篇 / 打赏）—— 文章页 + 关于页（后者只为打赏）
 │   └── js/                     # theme / ui / toc / lightbox / search / giscus
 ├── scripts/                    # 发布前脚本、Garmin 同步、子站构建
 ├── data/
 │   ├── runs.json               # 跑步数据（唯一一份，run 子站挂载读取）
 │   └── image_dims.json         # 正文远程图片的宽高缓存
-├── static/                     # 原样发布的文件：_headers / _redirects / 图标 / rss.xsl …
+├── static/                     # 原样发布的文件：_headers / _redirects / 图标 / 头像与分享卡（images/）/ 打赏收款码（images/donate/） / rss.xsl …
 ├── sites/                      # 四个子站（各自独立的 Hugo 站点）
 ├── archetypes/                 # hugo new 用的模板（posts / weekly）
 ├── publish.sh                  # 发布：刷新数据 → 提交 → 推 GitHub
@@ -105,7 +105,7 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 图标 | `static/logo.svg`、`static/favicon.svg`、`static/apple-touch-icon.png`、`icon-192/512.png` |
 | 目录显示断点 | `assets/css/critical-post.css` 里搜 `1280px`（右侧刻度栏）和 `1279.98px`（正文开头那块） |
 | 周刊期号徽章 | 周刊 front matter 的 `issue: 23`（不填不显示徽章） |
-| 打赏 | `hugo.toml` 的 `[params.donate]`（留空则整块不显示） |
+| 打赏 | `hugo.toml` 的 `[params.donate]`（留空则整块不显示）。**只出现在关于页**，文章页没有（2026-10-02 起）。收款码是站内静态图 `static/images/donate/{wechat,alipay}.webp`，不是图床图；换图覆盖同名文件后要去 Cloudflare Purge 一次 `/images/donate/*`（那条路径有 30 天缓存） |
 | 评论 | `hugo.toml` 的 `[params.giscus]`；单篇用 `comments: false` 关掉 |
 | 统计 | `hugo.toml` 的 `[params.analytics]`（当前只有 GoatCounter） |
 | 分享图 | `hugo.toml` 的 `[params.assets] shareImage`；想给某篇单独指定，在它的 front matter 写 `cover`（预留能力，目前没有文章在用） |

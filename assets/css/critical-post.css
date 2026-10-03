@@ -22,7 +22,7 @@
 }.breadcrumb a {
   color: var(--muted);
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color var(--dur-fast) var(--ease);
 }.breadcrumb a:hover {
   color: var(--accent);
 }.breadcrumb-sep {
@@ -48,6 +48,13 @@
   font-family: var(--font-serif);
   /* 文章标题：sspai 是 38px（手机 28px），见 :root 的 --post-title-size */
   font-size: var(--post-title-size);
+  /* 2026-10-02 晚补：对齐 DESIGN.md 层级表里写的「文章标题 字重 500」。
+     补之前这里**一条 font-weight 都没有**，全站也没有 h1 { font-weight } 规则，
+     于是它落在浏览器对 h1 的默认值 700（bold）上 —— 文档写 500、渲染是 700。
+     补上之后，本机（--font-serif 落到 Songti SC，只有 400/700 两档）请求 500
+     会按 CSS 字重匹配规则解析到 **400 Regular**，所以标题比之前细一档，这是预期内的。
+     换字体栈时留意：思源宋体有 500 这一档，届时会真的落在 Medium 上，比现在再粗一点。 */
+  font-weight: 500;
   line-height: 1.45;
   letter-spacing: var(--tracking-title);
   margin: 0 0 var(--space-4);
@@ -145,7 +152,7 @@
   text-decoration: none;
   opacity: 0;
   transform: translateX(-3px);
-  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  transition: opacity var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }.post-content h2:hover .heading-anchor,
 .post-content h3:hover .heading-anchor,
 .post-content h4:hover .heading-anchor,
@@ -179,8 +186,14 @@
   background-size: 0 1px;
   background-repeat: no-repeat;
   background-position: 0 100%;
+  /* 2026-10-02 晚：这个 1px 说清楚 —— 它不是「间距」，是**线宽本身**。
+     下划线是拿 1px 的 linear-gradient 当背景画的（见上面 background-image /
+     background-size / background-position），padding-bottom: 1px 是给这条线让出的缝：
+     不加的话线会贴着字形底缘、压到汉字下半部分（中文没有降部，线会和笔画粘在一起）。
+     所以它**刻意不落在 --space-* 刻度上**（刻度从 4px 起），别当越轨值收掉。
+     改线宽要三处一起改：这里的 1px、background-size 的 `0 1px` / `100% 1px`。 */
   padding-bottom: 1px;
-  transition: background-size 0.25s var(--ease), color 0.15s ease;
+  transition: background-size var(--dur-base) var(--ease), color var(--dur-fast) var(--ease);
 }.post-content a:hover {
   color: var(--accent-ink);
   background-size: 100% 1px;
@@ -209,8 +222,13 @@
 .post-content em,
 .page-intro em {
   font-style: normal;
-  text-emphasis: filled dot var(--accent);
-  -webkit-text-emphasis: filled dot var(--accent);
+  /* 2026-10-02：点从印章红改成中性灰。
+     改之前，正文一屏内同时有 6 处红（h2 竖条 / 链接 / 着重号 / 引用块 / 列表点 /
+     文末印章），红于是从「强调」退化成「配色」—— 每一处都对，叠起来就不对了。
+     现在红只留给三种语义：章节路标、可点链接、落款。
+     灰点照样把字标出来了，只是不再跟链接抢注意力。 */
+  text-emphasis: filled dot var(--ink-soft);
+  -webkit-text-emphasis: filled dot var(--ink-soft);
   /* 横排时点标在字下方。GB/T 15834 里着重号用于「要求读者特别注意的字、词、句」，
      横排是「文下打点」、直排标在字的右侧 —— 所以 under 和 right 两个值刚好对应。
      第二个值 right 在横排下不生效，但语法要求给全。 */
@@ -221,7 +239,7 @@
   margin: 0 0 var(--block-gap);
   padding-left: var(--space-6);
 }.post-content li { margin: var(--space-1) 0; }.post-content ul li::marker {
-  color: var(--accent);
+  color: var(--muted);
 }
 /* 任务清单（GFM 的 - [ ] / - [x]，移植自 bearneo 的 ul li:has(input)）。
    博客原来这块是空白：Goldmark 渲染出的 <li><input type=checkbox disabled>
@@ -261,7 +279,7 @@
   list-style: disc;
 }
 .post-content ol li::marker {
-  color: var(--accent);
+  color: var(--muted);
 }.post-toc { font-size: var(--text-2xs); }.post-toc-inline {
   display: none;
   max-width: var(--content-width);
@@ -278,7 +296,7 @@
   cursor: pointer;
   user-select: none;
   color: var(--muted);
-  transition: color 0.15s ease;
+  transition: color var(--dur-fast) var(--ease);
 }.post-toc-inline-head::-webkit-details-marker { display: none; }
 /* 触控命中区（2026-09-30 补）：这行 <summary> 实测只有 20.1px 高，而它是手机上
    「展开目录」的唯一入口。撑到 32px —— 用 ::before 是因为 ::after 已经被那个
@@ -295,14 +313,14 @@
   border-top: 2px solid var(--accent);
   border-right: 2px solid var(--accent);
   transform: rotate(45deg);
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-base) var(--ease);
 }.post-toc-inline[open] .post-toc-inline-head::after { transform: rotate(135deg); }.post-toc-inline-head:hover { color: var(--ink); }.post-toc-inline-title {
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-label);
 }.post-toc-inline:not([open]) .post-toc-inline-nav { display: none; }.post-toc-inline-nav {
   margin-top: var(--space-3);
   padding-top: var(--space-3);
-  border-top: 1px dashed var(--line);
+  border-top: 1px solid var(--line);
   font-size: var(--text-2xs);
   max-height: 42vh;
   overflow-y: auto;
@@ -318,7 +336,7 @@
   line-height: 1.45;
   padding: var(--space-1) 0 var(--space-1) var(--space-4);
   border-left: 2px solid transparent;
-  transition: color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
 }.post-toc-nav a:hover { color: var(--ink); }.post-toc-nav a.is-active {
   color: var(--accent);
   border-left-color: var(--accent);
@@ -451,7 +469,7 @@
        内容会被压到屏幕外。补一条 dvh（动态视口高度），不支持的浏览器仍用上面那条。 */
     max-height: calc(100dvh - var(--header-h) - 88px);
     overflow-y: auto;
-  }.post-rail .post-toc-nav li { margin: 0; }.post-rail .post-toc-nav li > ul { padding-left: 0; }.post-rail .post-toc-nav ul ul a { padding-left: calc(18px + 16px); }.post-rail .post-toc-nav ul ul ul a { padding-left: calc(18px + 32px); }
+  }.post-rail .post-toc-nav li { margin: 0; }.post-rail .post-toc-nav li > ul { padding-left: 0; }.post-rail .post-toc-nav ul ul a { padding-left: calc(var(--toc-indent) + var(--space-4)); }.post-rail .post-toc-nav ul ul ul a { padding-left: calc(var(--toc-indent) + var(--space-8)); }
   /* 刻度长度按层级递减 —— 移植自 bearneo 的目录刻度（那边是一级 16px、二级 12px、
      三级 8px 的横线）。这里的刻度是竖条，对应的「长度」就是高度，所以落成 6 / 5 / 4 / 3px。
      效果：目录收起来只剩一排刻度时，层级深浅一眼可辨，而不是一列等长的竖条。
@@ -459,14 +477,22 @@
      「宽度减多少、margin-right 就补多少」的补偿；缩进由 a 的 padding-left 单独负责。
      展开时统一乘 3.5（一级 6×3.5 = 21px，和改之前完全一致），
      所以「悬停刻度变长」的手感没变，只是各级之间的相对长短被保留下来了。 */
-  .post-rail .post-toc-nav a { --tick: 6px; }
+  /* 缩进基准（2026-10-02 晚）：一级缩进原来是写死的 18px，不在 --space-* 刻度上。
+     追了一下它的来源 —— 18 = 刻度槽宽 6 + 槽到文字的间隙 12，也就是 6 + --space-3。
+     所以它不是随手写的，只是「没说清从哪来」。现在给它一个名字，二级 / 三级的
+     calc(18px + 16px / 32px) 也都改成引用这个名字。
+     ⚠️ 这里写的是**字面量 6px**、不是 var(--tick)：--tick 是按层级递减的（6/5/4/3），
+     而 --toc-indent 必须是恒定的「一级缩进」基准，否则二级会算成 5+12=17、
+     三级 4+12=16，越深反而越靠左。这条规则匹配所有层级的 a，声明一次即可，
+     下面三条只覆盖 --tick。 */
+  .post-rail .post-toc-nav a { --tick: 6px; --toc-indent: calc(6px + var(--space-3)); }
   .post-rail .post-toc-nav ul ul a { --tick: 5px; }
   .post-rail .post-toc-nav ul ul ul a { --tick: 4px; }
   .post-rail .post-toc-nav ul ul ul ul a { --tick: 3px; }.post-rail .post-toc-nav a {
     /* 选择器里原本还并列着一个 `.post-rail .post-toc-nav a.is-active`，2026-10-02 删掉了。
        它是个坑：`.is-active` 把特异性抬到 (0,3,1)，压过了上面按层级给的缩进
        `.post-rail .post-toc-nav ul ul ul a`（0,2,4）—— 于是**任何一级被点亮时，
-       它的 padding-left 都会被这条的 `padding: 0 0 0 18px` 打回一级缩进**：
+       它的 padding-left 都会被这条的 `padding: 0 0 0 var(--toc-indent)` 打回一级缩进**：
        二级从 34px、三级从 50px 一起左移，看着就是「目录项往左跳、和上一级对齐」。
        目录缩进只该由层级决定，和高亮状态无关；刻度条是绝对定位在 left: 0 的，
        不依赖 padding，所以这条 `.is-active` 纯属多余 —— 直接删。
@@ -479,7 +505,7 @@
     display: block;
     height: 12px;
     line-height: 12px;
-    padding: 0 0 0 18px;
+    padding: 0 0 0 var(--toc-indent);
     border-left: 0;
     /* sspai 目录文字是 15px */
     font-size: 0.9375rem;
@@ -487,7 +513,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    transition: height 0.22s ease, line-height 0.22s ease, color 0.22s ease;
+    transition: height var(--dur-base) var(--ease), line-height var(--dur-base) var(--ease), color var(--dur-base) var(--ease);
   }.post-rail .post-toc-nav a::before {
     content: "";
     position: absolute;
@@ -499,7 +525,7 @@
     height: var(--tick);
     border-radius: 6px;
     background: var(--line-strong);
-    transition: height 0.22s ease, background 0.22s ease;
+    transition: height var(--dur-base) var(--ease), background var(--dur-base) var(--ease);
   }.post-rail .post-toc-nav a.is-active::before { background: var(--accent); }.post-rail .post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 1; }.post-rail:hover .post-toc-nav a,
   .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a,
   .post-rail.is-pinned .post-toc-nav a {
@@ -542,13 +568,13 @@
     cursor: pointer;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.2s ease, color 0.15s ease, visibility 0s 0.2s;
+    transition: opacity var(--dur-base) var(--ease), color var(--dur-fast) var(--ease), visibility 0s var(--dur-base);
   }.post-rail:hover .post-toc-pin,
   .post-rail:focus-within .post-toc-pin,
   .post-toc-pin:focus-visible {
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.2s ease, color 0.15s ease, visibility 0s 0s;
+    transition: opacity var(--dur-base) var(--ease), color var(--dur-fast) var(--ease), visibility 0s 0s;
   }.post-toc-pin:hover { color: var(--ink); }.post-rail.is-pinned .post-toc-pin {
     opacity: 1;
     visibility: visible;
@@ -614,7 +640,7 @@
   list-style: decimal;
 }
 .post-content .footnotes ol > li::marker {
-  color: var(--accent);
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 /* 脚注里的 <p> 不该背 32px 的段间距 */
@@ -635,7 +661,9 @@
 .post-content blockquote {
   margin: 0 0 var(--block-gap);
   padding: var(--space-4) var(--space-5) var(--space-4) var(--space-7);
-  border-left: 3px solid var(--accent);
+  /* 2026-10-02：左框从印章红退回中性线。引用块在长文里出现得比 h2 还密，
+     每一段引文都插一根红条，等于把红摊成了底色。它现在靠「粗线 + 缩进」立形。 */
+  border-left: 3px solid var(--line-strong);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   color: var(--ink-soft);
   position: relative;
@@ -647,8 +675,8 @@
   font-family: var(--font-serif);
   font-size: var(--text-2xl);
   line-height: 1;
-  color: var(--accent);
-  opacity: 0.45;
+  color: var(--line-strong);
+  opacity: 1;
 }.post-content blockquote p:last-child { margin-bottom: 0; }.post-content img {
   max-width: 100%;
   border-radius: var(--radius);
@@ -678,7 +706,7 @@
 }.post-content tbody tr:nth-child(even) {
   background: var(--surface-2);
 }.post-content tbody tr {
-  transition: background 0.15s ease;
+  transition: background var(--dur-fast) var(--ease);
 }.post-content tbody tr:hover {
   background: var(--surface-2);
 }.post-content hr {
@@ -748,7 +776,11 @@
 }.code-block-dots {
   display: flex;
   align-items: center;
-  gap: 6px;
+  /* 2026-10-02 晚：6px → var(--space-1)(4px)。这个 6 是随手写的，没有来源可追
+     （不像目录那条 18 = 刻度槽 6 + 间隙 12 能推出基准），而且落在 --space-* 刻度之外。
+     收进刻度后，三个 12px 圆点的总宽从 48px 变成 44px，间距紧一档；
+     觉得太挤就换 var(--space-2)(8px)，那也是刻度内的值。 */
+  gap: var(--space-1);
   flex-shrink: 0;
 }.code-block-lang {
   font-family: var(--font-mono);
@@ -776,7 +808,11 @@
   background: var(--ctrl-ghost-active-bg);
   color: var(--ctrl-ghost-active-text);
   border-color: var(--ctrl-ghost-active-border);
-}.code-block .highlight,
+}/* 容器样式由 .code-block 承担，内层去重：`.post-content pre` / `.highlight` 本来带着
+   自己的底色、描边、圆角和外边距（见上面那一组），套进 .code-block 之后必须全部清掉，
+   只留 .code-block 自己那一层壳。漏掉任何一条都会出现「框里还有一个框」。
+   （这条原在 core.css 的「代码块容器」段，2026-10-02 晚随规则一起挪来。） */
+.code-block .highlight,
 .code-block pre {
   background: transparent;
   border: none;
@@ -839,15 +875,23 @@
      注意选择器要与 .post-content a 同级才能靠「后出现」压住它。 */
   background-image: none;
   padding-bottom: 0;
-}.article-image a:focus-visible {
+}/* 聚焦圈的圆角要跟图片本身对齐 —— 全局 :focus-visible 给的是 10px（--radius-sm，
+   那是给按钮用的），而图片容器是 12px（--radius）。不覆盖就会在圆角图片外面
+   套一个「差 2px」的方框，看着像没对齐。
+   （这条原在 core.css 的「文章插图」段，2026-10-02 晚随规则一起挪来。） */
+.article-image a:focus-visible {
   border-radius: var(--radius);
 }.article-image img {
   width: 100%;
   height: auto;
   display: block;
-}.js .article-image img {
+}/* 渐显只在 JS 可用时生效 —— 所以整条挂在 `.js` 前缀下（ui.js 就绪后给 <html> 挂 .js）。
+   脚本被拦或加载失败时，正文图要照常显示；不加这个前缀的话图会永远停在 opacity: 0，
+   读者看到一片空白 —— 而且因为「关掉 JS 反而正常」，这类 bug 极难发现。
+   （这条原在 core.css 的「文章插图」段，2026-10-02 晚随规则一起挪来。） */
+.js .article-image img {
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity var(--dur-slow) var(--ease);
 }.js .article-image img.is-loaded {
   opacity: 1;
 }
@@ -891,205 +935,22 @@
   font-variant-numeric: tabular-nums;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* 菜单展开中：等同按下态，让「现在正开着」这件事在按钮上看得见 */
-
 
 /* ---------- 首页 · 卷首 ----------
    整段已搬到 critical.css（2026-09-28）：卷首标题、列表下方工具条与翻页都是首屏元素。
    @keyframes hero-in 也一并搬走 —— 它被内联的 animation 引用，留在异步包里会让标题
    先按最终态画对、再闪成透明淡入。改样式请去 critical.css。 */
 
-/* ---------- 文章列表 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 首页 · 列表工具栏 ---------- */
-
-
-
-
-
-
-/* ---------- 列表翻页 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 首页 · 文章行（标题居左 + 日期居右） ---------- */
-
-
-
-
-/* ---------- 分类 / 标签 · 极简列表 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 分类页 ---------- */
-
-
-
-
-
-
-
-/* ---------- 归档 · 时间线 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* ---------- 文章列表 / 列表工具栏 / 列表翻页 / 首页文章行 ----------
+   ---------- 分类·标签极简列表 / 分类页 / 归档·时间线 ----------
+   2026-10-02（第三轮）：上面这 6 个标题下面**没有规则**，不是漏删 ——
+   它们和「首页·卷首」一样，2026-09-28 一起搬到了 critical.css
+   （首页与列表页都是首屏元素，留在异步包里会让首屏重绘一次）。
+   原来是 6 个各占一行的空标题，读起来像「这里有东西但文件坏了」；
+   合并成一条，保留「这段曾经在哪、去了哪」这个信息即可。
+   本文件真正的规则到上面「菜单展开中」为止；再往下的 .post-cat-chip / .post-tag-chip
+   属于文章头的分类与标签胶囊。 */
 
 .post-cat-chip,
 .post-tag-chip {
@@ -1101,12 +962,8 @@
   line-height: 1.4;
   border-radius: var(--radius-pill);
   text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
-
-
-
-
 
 .post-tag-chip::before {
   content: "#";
@@ -1118,8 +975,6 @@
   background: var(--surface-2);
   color: var(--muted);
 }
-
-
 
 .post-tag-chip:hover {
   background: var(--accent-soft);

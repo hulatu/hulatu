@@ -71,15 +71,29 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   [params.imageCDN]
     host = "img.hulatu.com"
 
-  # 打赏：收款码图片放图床（img.hulatu.com），这里填完整 URL——模板会给它套一层
-  # Cloudflare 图片变换压缩（layouts/partials/cf-image.html 只处理这个域名下的图）。
+  # 打赏：这块现在**只出现在关于页**（layouts/_default/about.html），文章页已移除。
+  # 所以 hint 写的是「本站」而不是「这篇文章」——它是全站唯一一处打赏文案，
+  # 模板不再传自己的 hint 覆盖（见 layouts/partials/donate.html）。
+  #
+  # 收款码是**站内静态资源**（static/images/donate/），不再是图床图（2026-10-02 第四轮）。
+  # 理由：它是「站点家具」而不是文章内容，性质和头像 / 分享卡一样，所以跟它们一起放
+  # /images/（那条路径在 static/_headers 里已经配了 30 天缓存）；顺带也不必再套一层
+  # Cloudflare 图片变换（layouts/partials/cf-image.html 现在只服务正文插图）。
+  # 换码的正确姿势：把新图裁成「二维码本体 + 白静区」的正方形 webp 覆盖同名文件
+  # （生成与校验脚本的思路见 MAINTENANCE.md 的「打赏」一行），然后去 Cloudflare 后台
+  # Purge 一次 /images/donate/* —— 30 天缓存，不 purge 的话老访客看到的还是旧码。
+  # 想放回图床：把下面两行换成完整 https URL 即可，cf-image.html 会重新接管压缩。
   # 或用第三方平台（如爱发电）填 url。微信、支付宝、url 全空时整块不显示。
   [params.donate]
     enabled = true
-    hint = "如果这篇文章对你有帮助，请我喝杯咖啡吧"
+    title = "支持"
+    hint = "如果本站对你有帮助，可以请我喝杯咖啡"
     button = "打赏支持"
-    wechat = "https://img.hulatu.com/post/wechat.webp"
-    alipay = "https://img.hulatu.com/post/zhifubao.webp"
+    # 收款方显示名：微信和支付宝的收款码上都是这一串，展开后由模板写成一行提示，
+    # 让付款的人可以先核对再扫。两边的名字不一样就拆成 wechatPayee / alipayPayee。
+    payee = "hututu(**朋)"
+    wechat = "/images/donate/wechat.webp"
+    alipay = "/images/donate/alipay.webp"
     url = ""
     urlLabel = "去爱发电支持我"
 

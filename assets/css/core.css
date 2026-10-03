@@ -1,646 +1,47 @@
 
 /* ============================================================
-   胡拉图说 · 纸账 + 印章 设计系统（Apple 式玻璃质感）
+   胡拉图说 · 纸账 + 印章
    浅色 = 冷白纸 / 深色 = 墨染夜色
    ============================================================ */
 
+/* 本文件是**异步加载**的 core 包：只装「不在首屏第一帧、但一用就要」的规则。
+   ------------------------------------------------------------
+   判据是「这条规则在首屏第一帧用不用得到」，不是「元素在不在首屏」——
+   灯箱、搜索面板、toast 的容器都在 DOM 里，但要等交互才显示，所以放这里；
+   而它们的 token 定义在 critical.css（首屏就要解析）。
 
-
-
-
-/* ---------- 基础 ---------- */
-
-
-
-
-/* ---------- 锚点落点 ----------
-   所有带 id 的元素（正文标题、图片、段落……）被跳转时，顶部留出 --anchor-offset，
-   也就是「顶栏高度 + 12px」，标题紧贴在导航栏下面。
-
-   注意这里的偏移只写一份：如果 html 上再加 scroll-padding-top，两个值会叠加
-   （曾经是 84px + 92px），标题会被顶到离顶部将近 180px 的地方，看着就像没对准。 */
-
-
-/* 细滚动条（WebKit：Chrome / Safari / Edge） */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 阅读进度条 ---------- */
-
-
-/* ---------- 头部导航 ---------- */
-
-
-/* 窄屏把模糊半径收小：固定元素上的 backdrop-filter 每帧都要重算，是滚动掉帧的大头 */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+   2026-10-02（第三轮）整理过一次：原先散落在这里的「空板块标题」——
+   规则早搬走、标题和设计理由留在原地——已按「注释跟规则走」的原则处理完，
+   需要保留的理由挪到了所属规则旁边（critical*.css / post.css），
+   过时描述就地删除。 */
 
 /* 深色模式下把深色印章反白，保持可见 */
 [data-theme="dark"] .site-logo {
   filter: brightness(0) invert(1);
 }
 
-
-
-/* 多行中文标题换行时左右均衡，避免参差（不支持时自动忽略） */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* 外链的 ↗ 标记（a[target="_blank"]::after）连同 .donate-btn / .about-link-list
-   两条例外，已搬到 critical.css（2026-09-29）。它是**裸元素 + 属性选择器**、不带任何
-   class，所以按 class 归属的模块分析看不到它；是逐像素比对发现友链页首屏缺了 ↗、
-   整行文字宽度跳一次。这类选择器要单独留神，别只靠覆盖率脚本。 */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* 代码块容器（render-codeblock 包装：语言标签 + 复制按钮） */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* 容器样式由 .code-block 承担，内层去重 */
-
-
-
-
-
-
-/* ---------- 语法高亮（Hugo Chroma） ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 目录 ----------
-   规则本体在 assets/css/critical-post.css（2026-09-28 拆关键 CSS 时搬过去的）：
-   `.post-rail` 是 ≥1152px 的右侧刻度栏，`.post-toc-inline` 是更窄时排在正文开头的那块。
-   这里原先留着一个**空的** `@media (min-width: 1280px) { }` 和它的一堆注释。
-   空的媒体查询不产出任何 CSS，但里面「断点定在 1280px」的说法会把人带偏 ——
-   断点 2026-09-29 已经降到 1152px，面板宽度也改成随窗口伸缩了（clamp）。
-   一并删掉，只留这条指路；改目录样式请直接去 critical-post.css。 */
-
-/* ---------- 返回顶部按钮 ----------
-   整块已搬到 critical.css（2026-09-28）：它是 position:fixed，首屏第一帧就在视口里，
-   留在异步包里会让它先以浏览器默认 button 的样子出现在文档流末尾（左下角、方角），
-   再跳到右下角变圆并隐藏。改样式请去 critical.css。 */
-
 @keyframes overlay-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-/* ---------- 上一篇 / 下一篇 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 打赏 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* 评论区默认「预加载好但收起来」：
-   滚到附近就开始加载，但整块压成 0 高度藏住，「显示评论」按钮留着，等读者自己点开。
-   用 max-height + visibility 而不是 display:none —— iframe 仍保有正常的布局尺寸，
-   giscus 测算高度不会算出 0，点开时能瞬间展开、不跳动；
-   visibility:hidden 顺带把它从无障碍树里摘掉，Tab 也不会跑进收起的 iframe。 */
-
-
-
-
-
-
-
-
-
-
-/* 加载中：按钮留在原位但明显不可点，避免读者以为按钮失灵 */
-
-
-
-
-/* ---------- 目录滚动条 ---------- */
-
-
-
-
-
-
-/* ---------- 友链页 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 页脚 ---------- */
-/* 整段已搬到 critical.css（2026-09-28）：页脚属于首屏的一部分，
-   留在异步包里会让首屏先竖排堆叠、再跳成横排。改样式请去 critical.css。 */
-
-/* ---------- 关于页 ---------- */
-
-
-
-
-/* 两列布局：左头像右信息，顶部对齐，信息列内部全部左对齐 */
-
-
-/* 左侧一道印章红，像档案袋上的封边 */
-
-
-/* 头像：148px 圆形 + 印泥淡痕 */
-
-
-/* 只有文件缺失时才出现：一个印章红圆形里的「胡」字 */
-
-
-/* 信息列：flex column 左对齐，印章用 margin-left:auto 推到右下角，
-   不再需要 padding-right 避让绝对定位印章 */
-
-
-
-
-
-
-
-
-
-
-
-
-/* 短分隔线：左对齐，3rem 宽，中间一颗菱形 —— tagline 与 chips 之间的视觉呼吸 */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* 比 .about-section > p 更具体，靠选择器权重压过它，不用 !important */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 书影音 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 文章插图 ---------- */
-
-
-
-
-/* 聚焦圈的圆角跟图片本身对齐（全局 :focus-visible 的圆角是给按钮用的 10px） */
-
-
-
-
-/* 渐显只在 JS 可用时生效：脚本被拦或加载失败时，正文图要照常显示 */
-
-
-
-
-
-
-
-
-
-
-/* 键盘 Tab 到图片链接时，也把「看大图」提示亮出来，跟鼠标悬停一致 */
-
-
-/* ---------- 404 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- Apple 分组卡片（分类 / 标签 / 归档外壳） ---------- */
-
-
-
-
-
-
-
-
-/* ---------- 标签云（标签索引页 · 紧凑胶囊） ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------- 图标规格 ----------
-   全局的 svg { stroke-width: 2 } 已搬到 critical.css（2026-09-28）：它是全局选择器，
-   但命中的是首帧可见的页头图标和翻页箭头，留在异步包里会让它们先细后粗重绘一次。
-   各页型模块里的尺寸规则（控制按钮 20px、正文内联 16px）原地不动。 */
-
-
-
-
-
-/* 主题切换按钮：浅色显示月亮，深色显示太阳 */
-/* 三条图标可见性已搬到 critical.css（2026-09-28）：否则首屏会太阳月亮同时显示。
-   下面的旋转动效留在异步包里——它只在点击那一刻用得到，不参与首屏。 */
+/* 主题切换按钮（2026-10-02 晚整理）：三条图标可见性规则（浅色月亮 / 深色太阳）
+   已搬到 critical.css（2026-09-28），否则首屏会太阳月亮同时显示。
+   **但下面这条旋转动效要留在异步包里** —— 它只在点击那一刻用得到，不参与首屏，
+   搬过去只是让 304 个页面每页白背几十字节。 */
 
 /* 切换时按钮旋转动效 */
 .theme-btn.is-spinning {
-  animation: theme-spin 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: theme-spin var(--dur-slow) var(--ease);
 }
 
 @keyframes theme-spin {
   to { transform: rotate(360deg); }
 }
 
-/* ---------- 触控热区：视觉不变，仅扩大可点范围 ---------- */
-
-
-
-
-/* ---------- 按压反馈（只做 transform，触屏轻量） ---------- */
-
-
-
-
-/* ---------- 周刊 · 简单订阅 + 最近 10 期 ---------- */
-
-
-
-
-
-
-
-
-
-
-/* ---------- 周刊 · 单期：期号徽章 + 本期目录 ---------- */
-
-
-
-
-
-
-/* ---------- 文章 / 周刊目录编号：一、 1. 1） 更深层加粗 ---------- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* ---------- 响应式 ---------- */
 
-
-
-
 @media (max-width: 600px) {
-  
-
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-  
-  
-  
-
-
-  
-
-  
-
-  
-  
 
   .footer-container {
     grid-template-columns: 1fr;
@@ -660,29 +61,6 @@
     gap: var(--space-2);
   }
 
-  
-
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-  
-  
-  
-
-  
-
-  
-
-  
 }
 
 /* ---------- 跨页面视图过渡 ----------
@@ -695,10 +73,9 @@
 /* 标题做成共享元素：从列表点进文章时，标题会从原来的位置长到新位置。
    注意每页只能有一个同名的元素，否则整段过渡会被浏览器丢弃。 */
 
-
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.22s;
+  animation-duration: var(--dur-base);   /* 与 --dur-base 同值，只改写法 */
   animation-timing-function: var(--ease);
 }
 
@@ -707,17 +84,14 @@
   animation-timing-function: var(--ease);
 }
 
+/* 动效偏好的**页面级**部分：用户在系统里关了动效，就连跨页面过渡一起关。
+   元素级的那部分（入场动画、transition、scroll-behavior）在 critical.css，
+   因为要首屏就生效；这里只管 @view-transition —— 它拦不住别的，只拦整屏滑动。 */
 @media (prefers-reduced-motion: reduce) {
   @view-transition {
     navigation: none;
   }
 }
-
-/* ---------- 动效偏好 ---------- */
-
-
-
-
 
 /* ---------- 图片灯箱 ---------- */
 body.lightbox-open,
@@ -734,8 +108,10 @@ body.search-open { overflow: hidden; }
 .lightbox-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(10, 12, 16, 0.88);
-  animation: overlay-in 0.2s ease;
+  /* 浮层遮罩/面板三件套（--scrim / --scrim-deep / --overlay-surface）的取值与
+     ΔL* 推导统一记在 critical.css :root，这里只标消费点：灯箱要压到接近全黑。 */
+  background: var(--scrim-deep);
+  animation: overlay-in var(--dur-base) var(--ease);
 }
 
 .lightbox-figure {
@@ -746,17 +122,31 @@ body.search-open { overflow: hidden; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 72px;
+  /* 2026-10-02（第三轮）：把这两个「看着像随手写的」值说清楚 —— 它们其实各有来源。
+     横向 72px **不是**留白口味，是箭头的避让：.lightbox-prev/next 是 46px 宽、
+     定位在 left/right:18px（18+46=64），再留 8px 空隙，图片的左右起点就必须 ≥72px。
+     写成 calc(var(--space-14) + var(--space-4)) 是为了让「72 从哪来」看得见，
+     渲染结果与原来的 72px 完全一致（56+16=72）。
+     纵向 64px 与刻度上的 --space-14(56px) 只差 8px，收进刻度；
+     纵向真正的约束在 .lightbox-img 的 max-height（见下），不在这里。 */
+  padding: var(--space-14) calc(var(--space-14) + var(--space-4));
   pointer-events: none;
 }
 
 .lightbox-img {
   max-width: 100%;
-  max-height: calc(100vh - 120px);
+  /* 2026-10-02（第三轮）：原来是 calc(100vh - 120px) —— 那个 120 跟谁都对不上：
+     上下 padding 是 128px（比它多 8），而说明文字还要再占约 38px
+     （.lightbox-caption 的 margin-top 16px + 行高 13.8×1.6≈22px），
+     于是**带说明的高图会向下溢出，说明文字被顶出屏幕**。
+     现在按实际占用重算：上下 padding 56×2 = 112px，说明文字预留 64px（两行 + 余量），
+     合计 176px。caption 是按需显示的（无 data-caption 时 display:none），
+     但预留要按「有」算，否则有说明的那几张就会掉出去。 */
+  max-height: calc(100vh - 176px);
   /* 2026-09-30：100vh 在移动端是「地址栏收起时」的高度，比实际可视区高 ——
      灯箱图会被撑到屏幕外，底下的说明文字就看不见了。补一条 dvh，
      不支持的浏览器仍用上面那条。 */
-  max-height: calc(100dvh - 120px);
+  max-height: calc(100dvh - 176px);
   object-fit: contain;
   border-radius: 4px;
   pointer-events: auto;
@@ -781,7 +171,7 @@ body.search-open { overflow: hidden; }
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--dur-fast) var(--ease);
 }
 
 .lightbox-btn:hover { background: rgba(255, 255, 255, 0.2); }
@@ -831,8 +221,9 @@ body.search-open { overflow: hidden; }
 .search-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(20, 22, 26, 0.42);
-  animation: overlay-in 0.2s ease;
+  /* 消费点：搜索的轻遮罩。取值理由见 critical.css :root。 */
+  background: var(--scrim);
+  animation: overlay-in var(--dur-base) var(--ease);
 }
 
 .search-box {
@@ -844,12 +235,14 @@ body.search-open { overflow: hidden; }
   max-height: 72vh;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
+  /* 消费点：面板底色。浅色下它等于 --paper（与页面同色），深色下抬到 --surface。
+     为什么浅色不直接用 --surface，见 critical.css :root。 */
+  background: var(--overlay-surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   overflow: hidden;
-  animation: search-in 0.22s ease both;
+  animation: search-in var(--dur-base) var(--ease) both;
 }
 
 @keyframes search-in {
@@ -900,7 +293,6 @@ body.search-open { overflow: hidden; }
   background: var(--ctrl-hover-bg);
   color: var(--ctrl-hover-text);
   border-color: var(--ctrl-hover-border);
-  box-shadow: var(--ctrl-hover-shadow);
 }
 
 .search-close:active {
@@ -919,13 +311,17 @@ body.search-open { overflow: hidden; }
 .search-result {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  /* 2026-10-02（第三轮）：2px → var(--space-1)(4px)。
+     原来条目内部 2px、条目之间也 2px，而容器 .search-results 的 padding 是 8px ——
+     边缘留白是条目间距的 4 倍，观感上「条目挤成一坨、四周却很空」。
+     提到 4px 后比例变成 1:2。 */
+  gap: var(--space-1);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
   text-decoration: none;
 }
 
-.search-result + .search-result { margin-top: 2px; }
+.search-result + .search-result { margin-top: var(--space-1); }
 
 .search-result:hover,
 .search-result.is-active { background: var(--surface-2); }
@@ -980,7 +376,10 @@ body.search-open { overflow: hidden; }
 }
 
 @media (max-width: 600px) {
-  .lightbox-figure { padding: 56px 20px; }
+  /* 2026-10-02（第三轮）：56px 20px 换成刻度名（同值，56 = --space-14、20 = --space-5）。
+     注意手机端**故意**让箭头压住图片：390px 宽下如果两侧各留 72px，图片只剩 246px，
+     而箭头是半透明底（rgba(255,255,255,.08)），叠在图上比缩图划算。 */
+  .lightbox-figure { padding: var(--space-14) var(--space-5); }
   .lightbox-prev { left: 8px; }
   .lightbox-next { right: 8px; }
   .search-box { top: 7vh; }
@@ -1003,7 +402,7 @@ body.search-open { overflow: hidden; }
   opacity: 0;
   pointer-events: none;
   z-index: 1001;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
 }
 
 .toast.is-show {

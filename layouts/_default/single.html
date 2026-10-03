@@ -4,7 +4,7 @@
 {{- /* Hugo 的目录自带 `<nav id="TableOfContents">`，页面里有两份（右侧刻度栏 + 正文开头），
        这里给正文那份换个 id，避免重复 id 的无效 HTML。 */ -}}
 {{- $tocInline := replaceRE `id="TableOfContents"` `id="TableOfContentsInline"` $toc -}}
-{{- /* 是不是「文章」：文章才有发布/更新日期、分类标签、相关文章、打赏和评论。
+{{- /* 是不是「文章」：文章才有发布/更新日期、分类标签、相关文章和评论。
        周刊和普通文章都算（它们共用一套文章版式），根目录的普通页面不算。 */ -}}
 {{- $isArticle := and .IsPage (in (slice "posts" "weekly") .Type) -}}
 {{ $isWeekly := eq .Type "weekly" }}
@@ -149,7 +149,10 @@
   </nav>
   {{- end -}}
 
-  {{ partial "donate.html" . }}
+  {{- /* 打赏块**刻意不在这里**（2026-10-02 第四轮）。
+         全站只在关于页保留一处。理由：文章页每篇都挂一个收款码，等于「每篇都在要钱」；
+         收成一页之后，它变成一个「想支持我的人找得到」的地方，而不是每篇文末的固定家具。
+         要加回来就把这一行加回来：partial "donate.html" .  */ -}}
 
   {{ if and site.Params.giscus.repo (ne .Params.comments false) }}
   <section class="giscus-wrap">

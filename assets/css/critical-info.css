@@ -49,7 +49,7 @@
   list-style: none;
   cursor: pointer;
   user-select: none;
-  transition: color 0.15s ease;
+  transition: color var(--dur-fast) var(--ease);
 }.archive-year::-webkit-details-marker { display: none; }.archive-year:hover { color: var(--accent); }.archive-year-num {
   margin: 0;
   font-family: var(--font-serif);
@@ -66,7 +66,7 @@
   border-top: 2px solid var(--accent);
   border-right: 2px solid var(--accent);
   transform: rotate(45deg);
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-base) var(--ease);
 }.archive-year-block[open] .archive-year::after { transform: rotate(135deg); }.archive-count {
   /* 篇数只在这一级出现。margin-left:auto 把它推到最右，不再紧贴在年号旁边。
      数字走等宽；汉字「篇」由 --font-meta 末尾的中文栈兜住，字形不变。 */
@@ -90,16 +90,31 @@
   display: flex;
   flex-direction: column;
 }.archive-item {
-  display: flex;
+  /* 2026-10-02（第二轮）：和 .post-row / .minimal-row 真正对齐。
+     上一轮把「四套内边距归一」落在分类 / 标签 / 周刊列表上，**漏了这一页**：
+     这里还是 11px，而首页和列表已经是 12px；11 也不在 --space-* 刻度上（4/8/12/16…），
+     所以顺手换成刻度名。
+     行高也一起归：这里原本是 1.55，另外两处是 1.5 —— 字号同为 --text-sm，
+     行高却分两档，等于三处行高各有各的算法。现在三处完全一致：
+     --text-sm(16px) × 1.5 + 上下 var(--space-3)(12px) = 48px。
+     另外：行与行靠留白分隔（原来靠月份之间的虚线）；
+     hover 只把标题染成印章红，不给整行铺底色 —— 见 DESIGN.md「列表退回纸上」。
+
+     2026-10-02 晚：从 flex 换成 grid —— 日期从行首搬到了**行尾**（标题左 / 日期右），
+     用的就是首页 .post-row-home 那套 `minmax(0,1fr) auto`。原来 flex + 写死列宽
+     是为了「日期在左、几百行对齐成一条左轨」；日期一走，那条左轨就由标题自己立住了。
+     align-items 保持 baseline（**不是** .post-row-home 的 center）：标题换成两行时，
+     日期要咬住**第一行**的基线；用 center 的话它会掉到两行之间的半空。 */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   gap: var(--space-4);
-  /* 行高松绑：上下 8px → 11px，行与行靠留白分隔（原来靠月份之间的虚线）。
-     hover 只把标题染成印章红，不再给整行铺底色 —— 见 DESIGN.md「列表退回纸上」。 */
-  padding: 11px 0;
+  padding: var(--space-3) 0;
 }.archive-item-date {
-  /* 写死列宽，锁住标题的起始位置。以前只写 flex-shrink:0，能对齐纯属
-     「日期恰好都是等长的 MM-DD」；现在只渲染「日」，更要靠固定宽度立住这条左轨。 */
-  flex: 0 0 2.2ch;
+  /* 日期现在贴最右（靠上面那条 auto 列），所以原来「写死 2.2ch 锁住左轨」的
+     flex: 0 0 2.2ch 已经没用了，删掉 —— 何况 flex 简写在 grid 子项上本来就被忽略，
+     留着就是死声明。nowrap 跟 .post-row-date 一致，保证它永远是独立的一小块。 */
+  white-space: nowrap;
   font-family: var(--font-meta);
   font-size: var(--text-xs);
   color: var(--muted);
@@ -108,8 +123,12 @@
 }.archive-item-title {
   font-size: var(--text-sm);
   color: var(--ink);
-  line-height: 1.55;
-  transition: color 0.15s ease;
+  /* 1.55 → 1.5，和 .post-row-title / .minimal-title 一致（理由见上面 .archive-item 那段）。 */
+  line-height: 1.5;
+  /* min-width: 0：长标题要能在弹性列里正常收窄换行，而不是把日期挤出容器外。
+     和 .post-row-title / .minimal-title 一致。 */
+  min-width: 0;
+  transition: color var(--dur-fast) var(--ease);
 }.archive-item:hover .archive-item-title { color: var(--accent); }
 .friends-page {
   max-width: var(--content-width);
@@ -269,7 +288,7 @@
 }.about-section {
   padding: var(--space-6) var(--space-7);
 }.about-section + .about-section {
-  border-top: 1px dashed var(--line-strong);
+  border-top: 1px solid var(--line-strong);
 }.about-section h2 {
   display: flex;
   align-items: center;
@@ -294,7 +313,11 @@
   line-height: 1.85;
 }.about-section > p:last-child {
   margin-bottom: 0;
-}.about-section > p.about-section-desc {
+}/* 这条比 `.about-section > p`（上面那条）更具体，靠选择器权重就压过它，
+   所以不需要 !important —— 改这里的颜色/字号时别顺手加 !important，
+   那会让以后想再覆盖它的人没有退路。
+   （这条原在 core.css 的「关于页」段，2026-10-02 晚随规则一起挪来。） */
+.about-section > p.about-section-desc {
   color: var(--muted);
   font-size: var(--text-xs);
 }.about-link-list {
@@ -310,7 +333,7 @@
   gap: var(--space-2) var(--space-3);
   padding: var(--space-3) var(--space-1);
   color: var(--ink);
-  transition: color 0.15s ease, padding-left 0.15s ease;
+  transition: color var(--dur-fast) var(--ease), padding-left var(--dur-fast) var(--ease);
 }.about-link-list a:hover,
 .about-link-list a:focus-visible {
   color: var(--accent);
@@ -325,11 +348,37 @@
   margin-left: auto;
   color: var(--muted);
   font-size: var(--text-2xs);
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition: color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }.about-link-list a:hover .about-link-arrow,
 .about-link-list a:focus-visible .about-link-arrow {
   color: var(--accent);
   transform: translate(2px, -1px);
+}
+/* ---------- 关于页段落里的行内链接（2026-10-02 第四轮，第二次调整）----------
+   「我是谁」段里有一条指向《关于我》全文的链接。全站基础规则是
+   `a { color: inherit; text-decoration: none }`，所以裸 <a> 和正文完全同色、
+   没有下划线 —— 读起来就是一句话，看不出可以点。这条规则给它补回「链接该有的样子」。
+
+   它中间经历过一版「链接行」（发丝线描边 + 纸背底 + 常显箭头）。形态本身没错，
+   但放在散文里太显性：一句话读到一半，中间插进来一个带边框的方块，
+   读起来像广告位，而不像句子的一部分。现在退回**行内链接** ——
+   印章红 + 1px 下划线，和全站正文链接（.post-content a）同一套语言。
+
+   和 .post-content a 的唯一差别：那条把下划线画成 1px 的 linear-gradient 背景，
+   为的是 hover 时让线「从左划出」。这里不复制那套手法 ——
+   为一段散文里的单条链接再维护一份画线技术不值得，hover 只做颜色变化。
+
+   取 --accent 而不是 --accent-ink：和 .post-content a 的静止态用同一个值，
+   hover 才加深到 --accent-ink，两处链接的手感才一致。 */
+.about-section > p a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color var(--dur-fast) var(--ease);
+}.about-section > p a:hover,
+.about-section > p a:focus-visible {
+  color: var(--accent-ink);
 }.notfound-code {
   font-family: var(--font-serif);
   font-size: clamp(3.4rem, 10vw, 5.4rem);
@@ -360,10 +409,14 @@
   text-decoration: none;
   transition: var(--ctrl-transition);
 }.notfound-btn:hover {
+  /* 2026-10-02（第二轮）：撤掉 box-shadow: var(--ctrl-hover-shadow)。
+     那个 token 在两套主题下都近乎不可见（浅色 5% 黑、深色是黑影叠近黑底），
+     却让 DESIGN.md 的「投影只给浮层」在代码里处处破例 —— 而 .category-card
+     有一条注释在遵守它，同一份原则两种待遇。现在全站 hover 一律不挂影，
+     只靠字色 + 边线 + 底色回应。 */
   background: var(--ctrl-hover-bg);
   color: var(--ctrl-hover-text);
   border-color: var(--ctrl-hover-border);
-  box-shadow: var(--ctrl-hover-shadow);
   transform: translateY(-1px);
 }.notfound-btn:active {
   background: var(--ctrl-active-bg);
