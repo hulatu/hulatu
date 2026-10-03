@@ -1,17 +1,15 @@
 {{- if site.Params.giscus.repo -}}
-  {{- /* 折叠开关精简为「标题 + 右侧箭头按钮」。
-         2026-10-03：去掉全宽按钮行，h2 标题正常显示，右侧放一个圆形箭头按钮控制展开/收起。
-         行为逻辑见 assets/js/giscus.js（点击目标仍是 #giscus-toggle，无需改动）。 */ -}}
-  <h2 class="giscus-head">
-    <span class="giscus-head-text">{{ .title | default "评论" }}</span>
-    <button type="button" class="giscus-toggle" id="giscus-toggle" aria-expanded="false" aria-controls="giscus-body" aria-label="展开评论">
-      <svg class="giscus-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
-    </button>
-  </h2>
-  {{- /* 加载 / 重试提示放在 .giscus-body **外面**：正文没就绪时 body 是收着的
-         （max-height: 0），提示放里面就跟着被裁掉、看不见了。 */ -}}
-  <p class="giscus-loading" id="giscus-loading" hidden aria-live="polite">正在加载评论…</p>
-  <div class="giscus-body" id="giscus-body">
+{{- /* 2026-10-03：改成 <details> 胶囊按钮风格，与打赏块保持一致。
+       原生 <details> 提供语义和无障碍支持，JS 接管 click 阻止默认行为、
+       管理 iframe 加载与展开状态。 */ -}}
+  <details class="giscus-box" id="giscus-box">
+    <summary class="giscus-toggle" id="giscus-toggle" aria-label="展开评论">
+      <span class="giscus-toggle-text">{{ .title | default "评论" }}</span>
+    </summary>
+    {{- /* 加载 / 重试提示放在 .giscus-body **外面**：正文没就绪时 body 是收着的
+           （max-height: 0），提示放里面就跟着被裁掉、看不见了。 */ -}}
+    <p class="giscus-loading" id="giscus-loading" hidden aria-live="polite">正在加载评论…</p>
+    <div class="giscus-body" id="giscus-body">
     <div class="giscus-inner">
       <div id="giscus-slot"
         data-repo="{{ site.Params.giscus.repo }}"
@@ -27,6 +25,7 @@
         data-lang="{{ site.Params.giscus.lang | default "zh-CN" }}"></div>
     </div>
   </div>
+  </details>
   {{- /* 行为逻辑在 assets/js/giscus.js：只有这一页真的带评论才加载它，
          不塞进全站 bundle（那 320 个页面都要为它付费）。
          预加载 / 展开状态机、data-state 的含义都写在那个文件头部。 */ -}}

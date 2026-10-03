@@ -30,8 +30,9 @@
   var body = document.getElementById("giscus-body");
   var slot = document.getElementById("giscus-slot");
   var toggle = document.getElementById("giscus-toggle");
+  var box = document.getElementById("giscus-box");
   var loading = document.getElementById("giscus-loading");
-  if (!body || !slot || !toggle) return;
+  if (!body || !slot || !toggle || !box) return;
 
   var SLOW_MS = 12000;    // 读者点开之后 12 秒还出不来：提示重新点一次
   var GIVEUP_MS = 120000; // 预加载 2 分钟没结果：悄悄作废，等读者点的时候重新来一次
@@ -72,15 +73,17 @@
 
     if (next === "open") {
       stopWatchingFrames();
+      box.open = true;
       body.classList.add("is-open");
-      toggle.setAttribute("aria-expanded", "true");
+      toggle.setAttribute("aria-label", "收起评论");
       if (loading) loading.hidden = true;
       return;
     }
 
     // 其余都是「收起来」的状态
+    box.open = false;
     body.classList.remove("is-open");
-    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", "展开评论");
 
     if (loading) {
       if (next === "opening") {
@@ -177,7 +180,10 @@
     nearObserver.observe(slot);
   }
 
-  toggle.addEventListener("click", onToggle);
+  toggle.addEventListener("click", function (e) {
+    e.preventDefault();
+    onToggle();
+  });
   setState("idle");
 
   // 被预渲染（prerender）的页面不提前拉评论：等它真的被打开再挂监听

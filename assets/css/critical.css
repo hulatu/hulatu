@@ -399,7 +399,7 @@ main [id] {
   min-width: 0;
 }.site-logo {
   display: block;
-  height: 25px;
+  height: 30px;
   width: auto;
 }.site-brand-name {
   font-family: var(--font-serif);

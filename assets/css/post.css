@@ -141,65 +141,49 @@
   line-height: 1.6;
 }
 /* url 版（爱发电之类）：它是一条真链接，不是可展开的触发器。 */
-.donate-alt { margin: var(--space-4) 0 0; }.giscus-wrap {
-  margin-top: var(--space-12);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  overflow: hidden;
-  /* 2026-10-03：折叠开关精简为「标题 + 右侧箭头按钮」。
-     原来 .giscus-toggle 是 width:100% 的全宽按钮行；现在 h2 正常显示标题，
-     右侧放一个 36×36 的圆形箭头按钮控制展开/收起，更轻量。 */
-}.giscus-head {
-  margin: 0;
-  font: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-5);
-}.giscus-head-text {
-  font-family: var(--font-serif);
-  font-size: var(--text-md);
-  font-weight: 700;
-  line-height: 1.4;
-  letter-spacing: var(--tracking-title);
-  color: var(--ink);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}.giscus-head-text::before {
-  content: "";
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-}.giscus-toggle {
+.donate-alt { margin: var(--space-4) 0 0; }
+/* ---------- 评论区（<details> 胶囊按钮风格，与打赏块一致）---------- */
+.giscus-box { margin-top: var(--space-12); }
+.giscus-box summary { list-style: none; }
+.giscus-box summary::-webkit-details-marker { display: none; }
+.giscus-toggle {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 1px solid var(--ctrl-ghost-border);
-  border-radius: 50%;
-  background: var(--ctrl-ghost-bg);
-  color: var(--ctrl-ghost-text);
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--ctrl-text);
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
+  border-radius: var(--radius-pill);
+  padding: 0.6em 1.6em;
   cursor: pointer;
+  box-shadow: var(--ctrl-shadow);
   transition: var(--ctrl-transition);
-}.giscus-toggle:hover {
-  background: var(--ctrl-ghost-hover-bg);
-  color: var(--ctrl-ghost-hover-text);
-  border-color: var(--ctrl-ghost-hover-border);
-}.giscus-toggle:active {
-  background: var(--ctrl-ghost-active-bg);
-  color: var(--ctrl-ghost-active-text);
-  border-color: var(--ctrl-ghost-active-border);
-}.giscus-arrow {
-  width: 18px;
-  height: 18px;
+}
+.giscus-toggle:hover {
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+}
+.giscus-toggle:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+  box-shadow: var(--ctrl-active-shadow);
+}
+/* V 形箭头：展开时旋转 180°，与 donate-btn 同一套画法 */
+.giscus-toggle::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
   transition: transform var(--dur-base) var(--ease);
-}.giscus-toggle[aria-expanded="true"] .giscus-arrow {
-  transform: rotate(180deg);
+}
+.giscus-box[open] .giscus-toggle::after {
+  transform: rotate(225deg) translate(-1px, -1px);
 }.giscus-loading {
   margin: 0;
   padding: 0 var(--space-5) var(--space-4);
