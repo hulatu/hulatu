@@ -304,16 +304,24 @@
   font-size: var(--text-sm);
   line-height: 1.45;
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* 2026-10-04：去掉 overflow:hidden + text-overflow:ellipsis + white-space:nowrap。
+     这三件套把书影音标题压成**一行**、超出就带省略号截掉 —— 和首页 .post-row-title、
+     分类/标签/周刊的 .minimal-title 是同一个毛病（那两处 2026-10-02 第三轮已放开，
+     只按「列表行」去搜，漏了卡片页）。DESIGN.md 的 Don't 里写得很死：
+     「不要截断文章标题……截它等于把列表变成一串「…」」。卡片列宽在手机上只有
+     135–170px，一本中文书名就能吃掉整行，截断在这里比列表里更早触发。
+     现在自由换行；overflow-wrap 兜住超长英文单词。
+     卡片高度由网格行自己拉齐（封面是固定 aspect-ratio，标题多出的行只会让
+     卡片底部多一点留白），不会参差。 */
+  min-width: 0;
+  overflow-wrap: break-word;
 }.media-creator {
   font-size: var(--text-2xs);
   color: var(--muted);
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* 同上：作者名也放开换行，不再截断。 */
+  min-width: 0;
+  overflow-wrap: break-word;
 }@media (max-width: 600px) {.media-grid {
     grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
     /* 2026-10-02（第三轮）：14px → var(--space-4)（16px）。

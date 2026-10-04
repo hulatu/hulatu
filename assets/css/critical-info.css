@@ -304,7 +304,17 @@
   width: 7px;
   height: 7px;
   border-radius: var(--radius-sm);
-  background: var(--accent);
+  /* 2026-10-04：从印章红退回中性强线。关于页 .about-body 有 6 个 section，
+     原先每节标题前都点一颗红菱形 —— 一页 6 处红，把「印章红必须稀缺」
+     （DESIGN.md 设计目标第 3 条）摊成了底色。红的语义是「可交互 / 当前状态 /
+     焦点 / 一个签名时刻」，一个纯装饰的分节标记不在其列。
+     改中性后，这一页的红只剩有语义的几处：角色行前那个 5px 小点（本页
+     指定的「一处红」）、段落里的行内链接、可交互元素的 hover / active 态。
+     取 --line-strong 而不是 --muted：.about-body 的分节线
+     （.about-section + .about-section）用的就是它 —— 标记与分节线同色，
+     两者在 DESIGN.md「线的语法」里同属「结构性分节」。
+     形（45° 旋转的方 = 印章的方）保留，去掉的只是颜色。 */
+  background: var(--line-strong);
   transform: rotate(45deg);
 }.about-section > p {
   margin: 0 0 var(--space-3);

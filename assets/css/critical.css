@@ -296,7 +296,7 @@ main [id] {
   /* 为什么要多写一个 main[id]（2026-10-02 补）：
      跳转链接的落点是 <main id="main">，而 <main> **本身就是** main、不是 main 的后代
      —— 只写后代选择器 `main [id]` 的话它压根匹配不上，于是 #main 没有 scroll-margin-top，
-     滚过去就贴在视口顶端，被 position: fixed 的顶栏（--header-h: 64px）吃掉标题最上面约 24px
+     滚过去就贴在视口顶端，被 position: fixed 的顶栏（--header-h: 68px）吃掉标题最上面约 24px
      （main.container 的 padding-top 只有 40px，不够让位）。
      正文里 h2/h3 的 id 是 main 的后代，本来就靠 `main [id]` 生效，所以两个都要留着。
      不用 html { scroll-padding-top } 来解：那个值会和这里的 scroll-margin-top 叠加 ——
@@ -401,6 +401,12 @@ main [id] {
   display: block;
   height: 30px;
   width: auto;
+}
+/* 深色模式下把深色印章反白，保持可见。
+   2026-10-04：从 core.css（异步包）搬来 —— logo 是页头元素、首帧就在，
+   留在异步包里深色下会「先原色、后反白」闪一下。判据是「首帧用不用得到」。 */
+[data-theme="dark"] .site-logo {
+  filter: brightness(0) invert(1);
 }.site-brand-name {
   font-family: var(--font-serif);
   font-size: var(--text-sm);
@@ -494,7 +500,9 @@ main [id] {
 }.nav-burger {
   display: none;
   flex-direction: column;
-  gap: 4px;
+  /* 2026-10-04：4px → var(--space-1)（同值）。汉堡三条杠的间距是全站最后一个
+     没走刻度的硬编码间距值，收进刻度后改 token 就能整体调。 */
+  gap: var(--space-1);
 }.burger-bar {
   width: 17px;
   height: 2px;
@@ -672,8 +680,8 @@ svg { stroke-width: 2; }
      · `.nav-burger` —— 已并入上面那条。它和三个图标按钮共用同一套尺寸规则，却唯独
        没进这份 `::after` 列表，实测命中区只有 34×34，是页头四个按钮里最小的，
        而它恰恰是手机上最常点的那个。
-     · `.site-brand` —— ≤760px 时 `.site-brand-name` 被 display:none，只剩 25px 的 logo，
-       命中区 25×25，是全站最小的可点目标。
+     · `.site-brand` —— ≤760px 时 `.site-brand-name` 被 display:none，只剩 30px 的 logo，
+       命中区 30×30，是全站最小的可点目标。
      · `.footer-links a` —— 24px 高，正好压在 WCAG 2.5.8 的线上。
 
    **这里用 ::before 而不是 ::after**：`.footer-links a[target="_blank"]::after` 已经被
@@ -687,7 +695,7 @@ svg { stroke-width: 2; }
 }.site-brand::before {
   content: "";
   position: absolute;
-  inset: -10px;          /* 25 + 20 = 45 → 够到 WCAG 2.5.5 的 44 */
+  inset: -10px;          /* 30 + 20 = 50 → 够到 WCAG 2.5.5 的 44 */
 }.footer-links a::before {
   content: "";
   position: absolute;
@@ -824,7 +832,7 @@ svg { stroke-width: 2; }
   font-family: var(--font-sans);
 }.skip-link:focus {
   /* 聚焦时落到顶栏**下面**，别压在顶栏上（2026-10-02 调）。
-     原来是 `top: 0.75rem`（12px），正好落在 0–64px 的固定顶栏那一条里：
+     原来是 `top: 0.75rem`（12px），正好落在 0–68px 的固定顶栏那一条里：
      z-index 1000 > 顶栏的 100，所以不会被盖住，但会糊在导航上；
      而且一旦哪天顶栏的层叠顺序变了（比如给它加 transform / filter / opacity，
      造出一个新的层叠上下文），这块就会被真盖掉。直接让到顶栏下方最稳。
@@ -1123,8 +1131,7 @@ a[target="_blank"]::after {
   .list-toolbar,
   .search-panel,
   .lightbox,
-  .toast,
-  .pager {
+  .toast {
     display: none !important;
   }html,
   body {

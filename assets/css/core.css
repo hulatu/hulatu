@@ -15,10 +15,12 @@
    需要保留的理由挪到了所属规则旁边（critical*.css / post.css），
    过时描述就地删除。 */
 
-/* 深色模式下把深色印章反白，保持可见 */
-[data-theme="dark"] .site-logo {
-  filter: brightness(0) invert(1);
-}
+/* 2026-10-04：深色下把深色印章反白的那条 `[data-theme="dark"] .site-logo`
+   已搬到 critical.css（紧挨 `.site-logo` 定义）。
+   原因：页头 logo 是**首帧元素**，而这条规则原先落在异步包里 ——
+   深色模式下首帧先按原色画出深色 logo，等 core 包到达才被 filter 反白，
+   logo 会闪一下。判据仍是「这条规则在首屏第一帧用不用得到」，答案是「用得到」。
+   这是全站唯一一处违反六模块归属判据的规则，搬完即消。 */
 
 @keyframes overlay-in {
   from { opacity: 0; }

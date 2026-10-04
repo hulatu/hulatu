@@ -110,6 +110,18 @@
   line-height: 1.4;
   /* 落点偏移统一在「锚点落点」那段用 main [id] 定义，这里不要再写一遍 */
   position: relative;
+}
+/* 2026-10-04：正文标题字重「对齐文档」（DESIGN.md 层级表里写的是 500）。
+   补之前 h1/h2/h3/h4 **一条 font-weight 都没有**，全落在浏览器对标题的默认值 700 ——
+   于是章标题（h2/h3）比篇标题还重（.post-title 已经是 500）。
+   现在 h1/h2/h3 请求 500，整篇更平、更像杂志正文。
+   渲染事实与 .post-title 那条同源：--font-serif 在本机落到 Songti SC，
+   它只有 400 / 700 两档，所以 500 会解析成 **400 Regular**（比改之前细一档，是预期内的）；
+   换到思源宋体（有 Medium）时同一个 500 才会真的落到 500 上。 */
+.post-content h1,
+.post-content h2,
+.post-content h3 {
+  font-weight: 500;
 }.post-content h1 {
   /* 正文里真写了 # 一级标题时，用和文章标题同号（sspai 也是 38px） */
   font-size: var(--post-title-size);
@@ -135,6 +147,11 @@
 }.post-content h4 {
   /* 与正文同号，只靠字重区分：h4 比正文还小会读起来像「缩水」而不是层级 */
   font-size: var(--text-reading);
+  /* 2026-10-04：h4 **刻意不跟 h1/h2/h3 一起降到 500**。它和正文同号
+     （--text-reading），唯一的区分手段就是字重 —— 而本机 Songti 把 500 解析成 400，
+     h4 一旦写 500 就和正文一模一样、标题直接「消失」。所以这里显式写死 700，
+     让「h4 是正文里的小标题」这件事始终看得见。 */
+  font-weight: 700;
   margin: var(--block-gap) 0;
 }.heading-anchor {
   display: inline-flex;
