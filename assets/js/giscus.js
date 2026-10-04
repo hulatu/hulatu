@@ -9,9 +9,12 @@
           再点开还是瞬时的，不用重新加载；
        5) 预加载失败（比如 giscus 被墙）时保持静默，读者点了会重新试一次。
 
-     折叠开关就是标题行本身（#giscus-toggle，一个 <button>，右边一个箭头，
-     展开时箭头转 180°）。2026-10-02 之前开关是标题下方一个居中的「显示评论」
-     胶囊按钮，收起时标题 + 按钮占掉将近一半高度；现在整块收起时只剩标题行。
+     折叠开关是一个 <details> 的 <summary>（#giscus-toggle，胶囊按钮 + 右边 V 形箭头，
+     展开时箭头转 180°，与打赏块 .donate-btn 同一套）。
+     ⚠️ 那个 <details> **恒带 open**：折叠不靠 details 原生收起，而是靠 .is-open 类
+     切 .giscus-body 的 max-height + visibility —— 收起时 iframe 仍保有布局宽度，
+     giscus 测算高度不会算出 0，点开才不跳动。JS 里 preventDefault 掉 summary 的
+     原生 toggle，展开/收起完全由下面的状态机接管。
 
      状态机只有一个 state 变量，并镜像到 .giscus-body 的 data-state 上（方便在
      开发者工具里直接看到当前处于哪一步）：
@@ -73,16 +76,14 @@
 
     if (next === "open") {
       stopWatchingFrames();
-      box.open = true;
-      body.classList.add("is-open");
+      box.classList.add("is-open");
       toggle.setAttribute("aria-label", "收起评论");
       if (loading) loading.hidden = true;
       return;
     }
 
     // 其余都是「收起来」的状态
-    box.open = false;
-    body.classList.remove("is-open");
+    box.classList.remove("is-open");
     toggle.setAttribute("aria-label", "展开评论");
 
     if (loading) {

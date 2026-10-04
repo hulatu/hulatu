@@ -142,14 +142,26 @@
 }
 /* url 版（爱发电之类）：它是一条真链接，不是可展开的触发器。 */
 .donate-alt { margin: var(--space-4) 0 0; }
-/* ---------- 评论区（<details> 胶囊按钮风格，与打赏块一致）---------- */
-.giscus-box { margin-top: var(--space-12); }
+/* ---------- 评论区（<details> 胶囊按钮，与打赏块同一套样式）----------
+   2026-10-03：折叠开关从「h2 + 圆形箭头按钮」改回 <details> 胶囊按钮，
+   与 .donate-btn 共用 --ctrl-* 描边四态 + ::after 画的 V 形箭头。
+   外框仍由 single.html 的 <section class="giscus-wrap"> 提供 —— 和打赏块一样，
+   它也是嵌在一张卡片里（打赏嵌 .about-body，评论嵌 .giscus-wrap）。 */
+.giscus-wrap {
+  margin-top: var(--space-12);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+/* .giscus-box 是 <details>，恒带 open（见 layouts/partials/giscus.html 注释）：
+   折叠**不靠** details 原生收起，而是靠下面的 max-height + visibility + .is-open 类。 */
 .giscus-box summary { list-style: none; }
 .giscus-box summary::-webkit-details-marker { display: none; }
 .giscus-toggle {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  margin: var(--space-4) var(--space-5);
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-label);
   color: var(--ctrl-text);
@@ -182,7 +194,7 @@
   transform: rotate(45deg) translate(-1px, -1px);
   transition: transform var(--dur-base) var(--ease);
 }
-.giscus-box[open] .giscus-toggle::after {
+.giscus-box.is-open .giscus-toggle::after {
   transform: rotate(225deg) translate(-1px, -1px);
 }.giscus-loading {
   margin: 0;
@@ -192,7 +204,7 @@
 }.giscus-loading[hidden] {
   display: none;
 }/* 评论区默认「预加载好但收起来」：滚到附近就开始加载，但整块压成 0 高度藏住，
-   「显示评论」那一行标题留着，等读者自己点开。
+   胶囊按钮一直留着，等读者自己点开。
    用 max-height + visibility 而**不是** display:none —— iframe 仍保有正常的布局尺寸，
    giscus 测算高度不会算出 0，点开时能瞬间展开、不跳动；
    visibility:hidden 顺带把它从无障碍树里摘掉，Tab 也不会跑进收起的 iframe。
@@ -201,7 +213,7 @@
   max-height: 0;
   overflow: hidden;
   visibility: hidden;
-}.giscus-body.is-open {
+}.giscus-box.is-open .giscus-body {
   max-height: none;
   visibility: visible;
 }.giscus-inner {

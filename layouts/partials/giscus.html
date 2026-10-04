@@ -1,8 +1,10 @@
 {{- if site.Params.giscus.repo -}}
-{{- /* 2026-10-03：改成 <details> 胶囊按钮风格，与打赏块保持一致。
-       原生 <details> 提供语义和无障碍支持，JS 接管 click 阻止默认行为、
-       管理 iframe 加载与展开状态。 */ -}}
-  <details class="giscus-box" id="giscus-box">
+{{- /* 2026-10-03：折叠开关改成 <details> 胶囊按钮，与打赏块同一套样式。
+         ⚠️ <details> **恒带 open**（始终展开），折叠由 .is-open 类 + max-height 控制 ——
+         这是刻意的：收起态必须用 max-height:0 + visibility:hidden 藏住（而非 display:none），
+         iframe 才保有正常布局宽度，giscus 测算高度不会算出 0（理由详见 post.css 注释）。
+         JS 里 preventDefault 掉 summary 的原生 toggle，改由状态机接管展开/收起。 */ -}}
+  <details class="giscus-box" id="giscus-box" open>
     <summary class="giscus-toggle" id="giscus-toggle" aria-label="展开评论">
       <span class="giscus-toggle-text">{{ .title | default "评论" }}</span>
     </summary>
@@ -10,21 +12,21 @@
            （max-height: 0），提示放里面就跟着被裁掉、看不见了。 */ -}}
     <p class="giscus-loading" id="giscus-loading" hidden aria-live="polite">正在加载评论…</p>
     <div class="giscus-body" id="giscus-body">
-    <div class="giscus-inner">
-      <div id="giscus-slot"
-        data-repo="{{ site.Params.giscus.repo }}"
-        data-repo-id="{{ site.Params.giscus.repoId }}"
-        data-category="{{ site.Params.giscus.category }}"
-        data-category-id="{{ site.Params.giscus.categoryId }}"
-        data-mapping="{{ site.Params.giscus.mapping | default "pathname" }}"
-        data-strict="{{ if site.Params.giscus.strict }}1{{ else }}0{{ end }}"
-        data-reactions-enabled="{{ if site.Params.giscus.reactions }}1{{ else }}0{{ end }}"
-        data-emit-metadata="{{ if site.Params.giscus.emitMetadata }}1{{ else }}0{{ end }}"
-        data-input-position="{{ if .inputPosition }}{{ .inputPosition }}{{ else }}{{ site.Params.giscus.inputPosition | default "bottom" }}{{ end }}"
-        data-theme="preferred_color_scheme"
-        data-lang="{{ site.Params.giscus.lang | default "zh-CN" }}"></div>
+      <div class="giscus-inner">
+        <div id="giscus-slot"
+          data-repo="{{ site.Params.giscus.repo }}"
+          data-repo-id="{{ site.Params.giscus.repoId }}"
+          data-category="{{ site.Params.giscus.category }}"
+          data-category-id="{{ site.Params.giscus.categoryId }}"
+          data-mapping="{{ site.Params.giscus.mapping | default "pathname" }}"
+          data-strict="{{ if site.Params.giscus.strict }}1{{ else }}0{{ end }}"
+          data-reactions-enabled="{{ if site.Params.giscus.reactions }}1{{ else }}0{{ end }}"
+          data-emit-metadata="{{ if site.Params.giscus.emitMetadata }}1{{ else }}0{{ end }}"
+          data-input-position="{{ if .inputPosition }}{{ .inputPosition }}{{ else }}{{ site.Params.giscus.inputPosition | default "bottom" }}{{ end }}"
+          data-theme="preferred_color_scheme"
+          data-lang="{{ site.Params.giscus.lang | default "zh-CN" }}"></div>
+      </div>
     </div>
-  </div>
   </details>
   {{- /* 行为逻辑在 assets/js/giscus.js：只有这一页真的带评论才加载它，
          不塞进全站 bundle（那 320 个页面都要为它付费）。
