@@ -477,7 +477,8 @@ main [id] {
 }.nav-icon-btn:hover,
 .nav-burger:hover {
   /* 2026-10-02：去掉 translateY(-1px)。顶栏图标按钮是「控件」不是「卡片」，
-     悬停靠颜色和底色回应；位移全站只留给 .post-nav-card 与 .notfound-btn。 */
+     悬停靠颜色和底色回应；位移全站只剩 .notfound-btn 一处
+     （.post-nav-card 2026-10-05 随文末上下篇一起删除）。 */
   background: var(--ctrl-ghost-hover-bg);
   color: var(--ctrl-ghost-hover-text);
   border-color: var(--ctrl-ghost-hover-border);
@@ -1125,7 +1126,6 @@ a[target="_blank"]::after {
   .post-toc-inline,
   .post-end,
   .related-posts,
-  .post-nav,
   .donate,
   .giscus-wrap,
   .list-toolbar,

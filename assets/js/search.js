@@ -7,6 +7,7 @@
   var panel = null;
   var input = null;
   var list = null;
+  var filters = null;
   var footer = null;
   var releaseTrap = null;
   var index = [];
@@ -21,6 +22,60 @@
 
   // 最多渲染多少条。原版是 20 且没有任何排序，等于「谁新谁在前」。
   var MAX_RESULTS = 30;
+
+  /* ==================== 2026-10-05 新增：筛选 + 最近搜索 ====================
+     两件事互相独立，但属于同一次「缩小范围」的操作：
+
+       · 分类 / 标签筛选：索引里本来就有 tags / categories 字段，不用改
+         index.searchindex.json。分类全部列出（本机 13 个）；标签只列
+         「出现 ≥ 3 篇」的（本机 28 个），其余 138 个长尾标签走行尾的
+         「全部标签 ›」去 /tags/ 总览页 —— 一排塞 166 个标签等于没有重点。
+         选中一个筛选后，可以**不带关键词**直接浏览该分类 / 标签下的全部文章。
+       · 最近搜索：localStorage 存最近 5 条。写入时机是「提交」而不是每次
+         keystroke —— 否则「跑」「跑步」「跑步装」会被当成三次搜索存进去。
+         「提交」= 按 Enter / 点开一条结果 / 关面板时输入框里已有 ≥2 个字。
+
+     这是全站唯一一处 localStorage（主题是刻意的「跟随系统、刷新不记忆」，
+     见 DESIGN.md）。所以两件事都写进 MAINTENANCE.md 的「站内搜索」一节，
+     别让下一个人以为这里违反了那条设计决策。 */
+  var RECENT_KEY = "hulatu:search:recent";
+  var RECENT_MAX = 5;
+  var recent = readRecent();
+  var filter = null;          // { type: "categories" | "tags", value: "跑步" }
+  var facets = null;          // buildFacets() 的结果，索引加载完后算一次
+  var sessionRecorded = false; // 本次打开面板是否已经记过一条，避免 Enter + close 重复写
+  // 「全部标签」跳 /tags/：从 data-index 反推站点根，别写死 "/tags/"（子路径部署也成立）
+  var TAGS_URL = INDEX_URL.replace(/[^/]*$/, "") + "tags/";
+
+  function readRecent() {
+    try {
+      var raw = window.localStorage.getItem(RECENT_KEY);
+      var saved = raw ? JSON.parse(raw) : [];
+      return Array.isArray(saved) ? saved.filter(function (s) { return typeof s === "string" && s; }).slice(0, RECENT_MAX) : [];
+    } catch (e) {
+      // 隐私模式 / 禁 cookie 下 localStorage 会抛异常：静默退化成「不记住」，不报错
+      return [];
+    }
+  }
+
+  function writeRecent() {
+    try {
+      window.localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+    } catch (e) { /* 同上，存不了就算了 */ }
+  }
+
+  // 记一条搜索词。去重（忽略大小写与首尾空白），最新的在最前。
+  // 调用点：Enter 打开结果、点开一条结果、关面板时兜底（后者会先看 sessionRecorded）。
+  function commitQuery(q) {
+    var term = String(q == null ? "" : q).trim();
+    if (term.length < 2) return;
+    sessionRecorded = true;
+    var lower = term.toLowerCase();
+    recent = recent.filter(function (s) { return s.toLowerCase() !== lower; });
+    recent.unshift(term);
+    recent = recent.slice(0, RECENT_MAX);
+    writeRecent();
+  }
 
   // 字段权重：标题 >> 标签 > 分类 > 摘要 > 描述 > 正文。
   // 正文权重压得很低，是为了「召回」而不是「排序」—— 正文里偶然出现一个字，
@@ -40,13 +95,18 @@
           '<input class="search-input" type="search" placeholder="搜索标题、标签、摘要和正文…" autocomplete="off" spellcheck="false" aria-label="搜索关键词">' +
           '<button type="button" class="search-close" data-close aria-label="关闭">Esc</button>' +
         '</div>' +
-        '<div class="search-results" role="listbox"></div>' +
+        /* .search-results 不再挂 role="listbox"：空态里要放「最近搜索」按钮、
+           加载态要放一句「正在加载索引…」，把非 option 的孩子塞进 listbox 是无效
+           ARIA。listbox 现在挂在结果列表自己那层（见 render）。 */
+        '<div class="search-results"></div>' +
+        '<div class="search-filters" role="group" aria-label="按分类或标签筛选"></div>' +
         '<div class="search-footer"></div>' +
       '</div>';
     document.body.appendChild(panel);
 
     input = panel.querySelector(".search-input");
     list = panel.querySelector(".search-results");
+    filters = panel.querySelector(".search-filters");
     footer = panel.querySelector(".search-footer");
     /* 2026-09-30 修（既有缺陷，与 lightbox.js 同一处笔误）：querySelector("[data-close]")
        只拿到第一个匹配 = 背景层 .search-backdrop，右上角那个写着「Esc」的关闭按钮
@@ -56,14 +116,23 @@
     });
     input.addEventListener("input", function () { render(input.value); });
     input.addEventListener("keydown", onKey);
+    list.addEventListener("click", onListClick);
+    filters.addEventListener("click", onFacetClick);
   }
 
   function loadIndex() {
     if (loaded) return;
     fetch(INDEX_URL)
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { index = (d && d.items) || []; loaded = true; render(input.value); })
-      .catch(function () { index = []; loaded = true; render(input.value); });
+      .then(function (d) { index = (d && d.items) || []; loaded = true; afterLoad(); })
+      .catch(function () { index = []; loaded = true; afterLoad(); });
+  }
+
+  // 索引到位之后：先算一遍分类 / 标签的分布，再重画筛选行与结果区。
+  function afterLoad() {
+    facets = buildFacets();
+    renderFilters();
+    render(input.value);
   }
 
   function open() {
@@ -71,6 +140,10 @@
     panel.hidden = false;
     document.body.classList.add("search-open");
     input.value = "";
+    // 每次打开都回到「干净」状态：不带着上次的关键词，也不带着上次的筛选。
+    // 最近搜索是独立的一份记忆（localStorage），不受这里影响。
+    filter = null;
+    sessionRecorded = false;
     render("");
     loadIndex();
     // 焦点锁在搜索框里（Tab 不会跑到背后的页面上），并直接落到输入框
@@ -79,6 +152,9 @@
 
   function close() {
     if (!panel || panel.hidden) return;
+    // 关面板时兜底记一条：用户敲了字、没按 Enter 也没点结果就关掉，同样算一次搜索。
+    // 已经按 Enter / 点过结果的不会重复（sessionRecorded 在那两处已置 true）。
+    if (!sessionRecorded) commitQuery(input.value);
     panel.hidden = true;
     document.body.classList.remove("search-open");
     if (releaseTrap) {
@@ -226,6 +302,123 @@
     return { hits: scored, terms: ts, fallback: fallback };
   }
 
+  /* ==================== 分类 / 标签筛选（2026-10-05 新增） ====================
+     数据全部来自已有的索引字段（tags / categories），不用改 index.searchindex.json。
+
+     取哪些：
+       · 分类——全部列出（本机 13 个，最长的「学习科研」4 个字，一排放得下）；
+       · 标签——只列出现 ≥ TAG_MIN 篇的（本机 28 个），其余 138 个只出现 1–2 次的
+         长尾标签不塞进来（166 个标签横排 ≈ 13000px，等于没有重点），
+         行尾给一个「全部标签 ›」跳到 /tags/ 总览页。
+     顺序：出现多的在前，同数按名字 —— 排序固定，每次打开位置一致。
+
+     语义：筛一次只作用一个分类或标签（单选），再点一次取消。选中之后**可以不带关键词**，
+     直接浏览这一类下的全部文章 —— 「按分类缩小范围」正是 A5 里说的那条收益。 */
+  var TAG_MIN = 3;
+
+  function rankFacet(counts) {
+    return Object.keys(counts).map(function (name) {
+      return { name: name, count: counts[name] };
+    }).sort(function (a, b) {
+      return b.count - a.count || a.name.localeCompare(b.name, "zh");
+    });
+  }
+
+  function buildFacets() {
+    var cats = {}, tags = {};
+    for (var i = 0; i < index.length; i++) {
+      listOf(index[i].categories).forEach(function (c) { cats[c] = (cats[c] || 0) + 1; });
+      listOf(index[i].tags).forEach(function (t) { tags[t] = (tags[t] || 0) + 1; });
+    }
+    return {
+      cats: rankFacet(cats),
+      tags: rankFacet(tags).filter(function (d) { return d.count >= TAG_MIN; })
+    };
+  }
+
+  function matchesFacet(item, f) {
+    return listOf(item[f.type]).indexOf(f.value) !== -1;
+  }
+
+  // 分类 / 标签胶囊。前缀符号（● / #）用 CSS ::before 画，和文章页的
+  // .post-cat-chip / .post-tag-chip 是同一套语言；不写进文本，读屏也少念一个符号。
+  function facetChip(type, value, count) {
+    var active = !!(filter && filter.type === type && filter.value === value);
+    return '<button type="button" class="search-chip search-chip-facet' + (active ? " is-active" : "") + '"' +
+      ' data-facet="' + escapeHtml(type) + '" data-value="' + escapeHtml(value) + '"' +
+      ' aria-pressed="' + (active ? "true" : "false") + '">' +
+      escapeHtml(value) +
+      '<span class="search-chip-count">' + count + "</span>" +
+      "</button>";
+  }
+
+  function renderFilters() {
+    if (!filters) return;
+    if (!loaded || !facets) { filters.innerHTML = ""; return; }
+    // 行是横向滚动的，而每次筛选都要重建 innerHTML —— 先把两条行的滚动位置记下来，
+    // 重建完再放回去。不然点右边一个标签，整行会「啪」地弹回最左边。
+    var strips = filters.querySelectorAll(".search-filters-strip");
+    var scrolls = [];
+    Array.prototype.forEach.call(strips, function (el) { scrolls.push(el.scrollLeft); });
+    var clearActive = !filter;
+    var html = '<div class="search-filters-row">' +
+      '<span class="search-filters-label">分类</span>' +
+      '<div class="search-filters-strip">' +
+        '<button type="button" class="search-chip' + (clearActive ? " is-active" : "") + '"' +
+        ' data-facet="" data-value="" aria-pressed="' + (clearActive ? "true" : "false") + '">全部</button>';
+    facets.cats.forEach(function (c) { html += facetChip("categories", c.name, c.count); });
+    html += "</div></div>";
+    html += '<div class="search-filters-row">' +
+      '<span class="search-filters-label">标签</span>' +
+      '<div class="search-filters-strip">';
+    facets.tags.forEach(function (t) { html += facetChip("tags", t.name, t.count); });
+    html += '<a class="search-chip search-chip-more" href="' + escapeHtml(TAGS_URL) + '">全部标签</a>';
+    html += "</div></div>";
+    filters.innerHTML = html;
+    Array.prototype.forEach.call(filters.querySelectorAll(".search-filters-strip"), function (el, i) {
+      if (scrolls[i]) el.scrollLeft = scrolls[i];
+    });
+  }
+
+  function onFacetClick(e) {
+    var chip = e.target.closest ? e.target.closest(".search-chip") : null;
+    if (!chip) return;
+    // 「全部标签 ›」是一条真链接，交给浏览器
+    if (chip.classList.contains("search-chip-more")) return;
+    e.preventDefault();
+    var type = chip.getAttribute("data-facet");
+    var value = chip.getAttribute("data-value");
+    if (!type) filter = null;                                              // 点「全部」= 取消筛选
+    else if (filter && filter.type === type && filter.value === value) filter = null; // 再点一次 = 取消
+    else filter = { type: type, value: value };
+    renderFilters();
+    render(input.value);
+    input.focus();  // 点完筛选接着就能输字；筛选按钮自身会被 innerHTML 重建，焦点必须先移走
+  }
+
+  function onListClick(e) {
+    var el = e.target;
+    var recentBtn = el.closest ? el.closest("[data-recent]") : null;
+    if (recentBtn) {
+      e.preventDefault();
+      var term = recentBtn.getAttribute("data-recent") || "";
+      input.value = term;
+      render(term);
+      input.focus();
+      return;
+    }
+    if (el.closest && el.closest("[data-clear-recent]")) {
+      e.preventDefault();
+      recent = [];
+      writeRecent();
+      render(input.value);
+      input.focus();
+      return;
+    }
+    // 点开一条结果 = 这次搜索确实有用，记进最近搜索（<a> 自己会跳走，不用 preventDefault）
+    if (el.closest && el.closest(".search-result")) commitQuery(input.value);
+  }
+
   /* ==================== 渲染 ==================== */
 
   function escapeHtml(s) {
@@ -305,45 +498,96 @@
     return item.summary || item.description || "";
   }
 
+  // 数据行「按时间倒序」：索引里 date 就是 "2006-01-02"，可直接比字符串。
+  function byDateDesc(a, b) { return (b.date || "").localeCompare(a.date || ""); }
+
+  /* 空态。放两样东西（2026-10-05）：
+       · 快捷键提示 —— C1：面板里写了 ↑↓/Enter/Esc，却没写「怎么把面板叫出来」；
+       · 最近搜索 —— 点一下直接重跑，不用重敲。localStorage 读取失败时为空白，不报错。 */
+  function emptyState() {
+    var html = '<div class="search-empty">' +
+      '<p class="search-empty-tip">输入关键词，搜索标题、标签、摘要和正文</p>' +
+      '<p class="search-empty-hint">按 <kbd>/</kbd> 或 <kbd>⌘K</kbd> 随时打开搜索</p>';
+    if (recent.length) {
+      html += '<div class="search-recent">' +
+        '<p class="search-recent-head"><span>最近搜索</span>' +
+        '<button type="button" class="search-recent-clear" data-clear-recent>清除</button></p>' +
+        '<div class="search-recent-list">';
+      recent.forEach(function (r) {
+        html += '<button type="button" class="search-chip" data-recent="' + escapeHtml(r) + '">' + escapeHtml(r) + "</button>";
+      });
+      html += "</div></div>";
+    }
+    return html + "</div>";
+  }
+
+  // 页脚那行按键提示，四处都要用，抽出来免得改一处漏三处。
+  var KEYS_HINT = "↑↓ 选择　Enter 打开　Esc 关闭";
+
   function render(q) {
-    var res = search(q);
-    var ts = res.terms;
     active = -1;
-    totalHits = res.hits.length;
-    usedFallback = res.fallback;
-    results = res.hits.slice(0, MAX_RESULTS).map(function (r) { return r.item; });
 
     if (!loaded) {
+      results = [];
+      totalHits = 0;
       list.innerHTML = '<p class="search-empty">正在加载索引…</p>';
-      footer.textContent = "↑↓ 选择　Enter 打开　Esc 关闭";
-      return;
-    }
-    if (!ts.length) {
-      list.innerHTML = '<p class="search-empty">输入关键词，搜索标题、标签、摘要和正文</p>';
-      footer.textContent = "↑↓ 选择　Enter 打开　Esc 关闭";
-      return;
-    }
-    if (!results.length) {
-      list.innerHTML = '<p class="search-empty">没有找到相关文章，试试更短的关键词</p>';
-      footer.textContent = "↑↓ 选择　Enter 打开　Esc 关闭";
+      footer.textContent = KEYS_HINT;
       return;
     }
 
-    list.innerHTML = results.map(function (item) {
-      var src = matchSource(item, ts);
-      var meta = escapeHtml(item.date || "") + (src === "body" ? "　·　正文匹配" : "");
+    var res = search(q);
+    var ts = res.terms;
+    usedFallback = res.fallback;
+    var scored;
+
+    if (ts.length) {
+      scored = res.hits;
+    } else if (filter) {
+      // 没输关键词、但选了一个分类 / 标签：直接铺开这一类，按时间倒序。
+      scored = index.slice().sort(byDateDesc).map(function (item) { return { item: item, score: 0 }; });
+    } else {
+      // 空关键词 + 无筛选 = 空态（快捷键提示 + 最近搜索）
+      results = [];
+      totalHits = 0;
+      list.innerHTML = emptyState();
+      footer.textContent = KEYS_HINT;
+      return;
+    }
+
+    if (filter) {
+      scored = scored.filter(function (r) { return matchesFacet(r.item, filter); });
+    }
+    totalHits = scored.length;
+    results = scored.slice(0, MAX_RESULTS).map(function (r) { return r.item; });
+
+    if (!results.length) {
+      list.innerHTML = '<p class="search-empty">' + (filter
+        ? "这个筛选下没有匹配的文章，换个关键词或去掉筛选试试"
+        : "没有找到相关文章，试试更短的关键词") + "</p>";
+      footer.textContent = KEYS_HINT;
+      return;
+    }
+
+    // listbox 挂在结果列表这一层（而不是外层 .search-results）：外层还要装空态，
+    // 把按钮、提示塞进 listbox 是无效 ARIA。
+    list.innerHTML = '<div class="search-result-list" role="listbox">' + results.map(function (item) {
+      var src = ts.length ? matchSource(item, ts) : "";
+      var meta = escapeHtml(item.date || "");
+      if (src === "body") meta += "　·　正文匹配";
+      if (filter) meta += "　·　" + escapeHtml(filter.value);
       return '<a class="search-result" href="' + escapeHtml(item.url) + '" role="option">' +
         '<span class="search-result-title">' + highlight(item.title, ts) + "</span>" +
         '<span class="search-result-summary">' + highlight(pickSummary(item, ts), ts) + "</span>" +
         '<span class="search-result-meta">' + meta + "</span>" +
       "</a>";
-    }).join("");
+    }).join("") + "</div>";
 
     var head = usedFallback ? "按单字匹配　·　" : "";
+    if (filter) head = "筛选「" + filter.value + "」　·　" + head;
     if (totalHits > results.length) {
-      footer.textContent = head + "命中 " + totalHits + " 篇，显示前 " + results.length + " 篇　·　↑↓ 选择　Enter 打开　Esc 关闭";
+      footer.textContent = head + "命中 " + totalHits + " 篇，显示前 " + results.length + " 篇　·　" + KEYS_HINT;
     } else {
-      footer.textContent = head + totalHits + " 个结果　·　↑↓ 选择　Enter 打开　Esc 关闭";
+      footer.textContent = head + totalHits + " 个结果　·　" + KEYS_HINT;
     }
   }
 
@@ -363,6 +607,7 @@
     if (e.key === "ArrowUp") { e.preventDefault(); if (results.length) setActive((active - 1 + results.length) % results.length); return; }
     if (e.key === "Enter" && results.length) {
       e.preventDefault();
+      commitQuery(input.value);   // Enter 打开结果 = 一次「正经的搜索」，记进最近搜索
       var target = active >= 0 ? results[active] : results[0];
       window.location.href = target.url;
     }

@@ -11,6 +11,42 @@
 <h1 class="page-title">{{ .Title }}</h1>
 <p class="archive-total">共 <strong>{{ len $posts }}</strong> 篇文章 · 今年写了 <strong>{{ lang.FormatNumber 0 $yearChars }}</strong> 字</p>
 
+{{- /* 系列入口（2026-10-05 新增，用户要求）。
+       背景：站里有两组天然连载（综述写作之- 5 篇、居家流水账- 4 篇）加一组主题合集
+       （跑步 12 篇），但 front matter 里原本没有任何字段能表达「这几篇是一组」，
+       读者读完上篇不保证能走到下篇，周刊更是从设计上就没有上一期/下一期。
+       文末导航 2026-10-05 又收敛成只留「相关文章」，于是这一页成了系列唯一的、稳定的出口。
+
+       数据来源就是 content 的 `series:` 字段（本次给这 9 篇补上）。分组用
+       `where $posts "Params.series" $name`，排序用 `.ByDate`（升序 = 连载顺序）。
+       形态是**一行胶囊**（2026-10-05 二改，用户要求「更小的胶囊设计」）：左边系列名 +
+       篇数，右边按连载顺序一排小胶囊，每颗是「等宽序号 + 短标题」，超宽自动换行。
+       胶囊走全站既有那套控件描边四态（同 .tag-chip），红只出现在 hover。 */ -}}
+{{- $seriesNames := slice -}}
+{{- range $posts -}}{{- with .Params.series -}}{{- $seriesNames = $seriesNames | append . -}}{{- end -}}{{- end -}}
+{{- $seriesNames = $seriesNames | uniq | sort -}}
+{{ if $seriesNames }}
+<section class="archive-series" aria-label="系列文章">
+  <h2 class="series-head">系列</h2>
+  {{ range $seriesNames }}
+    {{- $name := . -}}
+    {{- $group := (where $posts "Params.series" $name).ByDate -}}
+    <div class="series-row">
+      <span class="series-label">{{ $name }}<span class="series-label-count">{{ len $group }} 篇</span></span>
+      <span class="series-pills">
+        {{- range $i, $p := $group -}}
+          {{- /* 标题里的系列前缀（「综述写作之-」「居家流水账-」）和旁边的系列名重复了，
+                 剥掉它胶囊才短得下来；完整标题留在 title 里，鼠标停一下还能看到。 */ -}}
+          {{- $label := strings.TrimPrefix (printf "%s之-" $name) $p.Title -}}
+          {{- $label = strings.TrimPrefix (printf "%s-" $name) $label -}}
+          <a class="series-pill" href="{{ $p.RelPermalink }}" title="{{ $p.Title }}"><span class="series-pill-num">{{ add $i 1 }}</span>{{ $label }}</a>
+        {{- end }}
+      </span>
+    </div>
+  {{ end }}
+</section>
+{{ end }}
+
 {{- /* 2026-10-02 改造。原来这里是「时间轴 + 年 + 月 + 条目」四层，每层都想有存在感，
        同一件事被说了三遍：篇数说两遍（年、月），月份说两遍（分组标题、每条日期），
        折叠控件也给两遍（年一个箭头、月一个箭头）。加上左侧 2px 竖线、月份之间的 1px

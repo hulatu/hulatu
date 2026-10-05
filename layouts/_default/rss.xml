@@ -30,6 +30,13 @@
       <title>{{ .Title }}</title>
       <link>{{ .Permalink }}</link>
       <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</pubDate>
+      {{- /* 2026-10-05 新增（D3）：文章页早就有「更新于」（靠 scripts/sync-lastmod.py 刷），
+             RSS 却只发 pubDate —— 订阅端感知不到一篇被修订过。atom:updated 用 RFC3339
+             （-07:00 这个写法输出 +08:00），是 Atom 里表达「更新于」的标准字段；
+             RSS 2.0 的 channel 已经在上面声明了 xmlns:atom，直接写就行。
+             Lastmod 等于 Date 的文章也照发（值相同，读者侧无副作用），
+             这样订阅端不必去区分「有没有更新」两套解析。 */ -}}
+      <atom:updated>{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}</atom:updated>
       <guid>{{ .Permalink }}</guid>
       {{ range .Params.categories }}<category>{{ . }}</category>{{ end }}
       {{ range .Params.tags }}<category>{{ . }}</category>{{ end }}

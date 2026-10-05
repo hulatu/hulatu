@@ -360,11 +360,134 @@ body.search-open { overflow: hidden; }
 }
 
 .search-empty {
-  padding: var(--space-8) var(--space-4);
+  padding: var(--space-6) var(--space-4) var(--space-5);
   margin: 0;
   text-align: center;
   color: var(--muted);
   font-size: var(--text-xs);
+}.search-empty-tip {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}.search-empty-hint {
+  /* 2026-10-05 新增（C1）：面板里原来只写了 ↑↓ / Enter / Esc，没写「怎么把面板叫出来」。
+     这里补上 / 与 ⌘K —— 和搜索按钮的 title 是同一句话，两处一起改。 */
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+}.search-empty kbd {
+  font-family: var(--font-meta);
+  font-size: 0.92em;
+  margin: 0 0.1em;
+  padding: 0.08em 0.4em;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+}
+
+/* ---------- 搜索面板：最近搜索（2026-10-05 新增，A5） ----------
+   只在「没输关键词、也没选筛选」的空态里出现，数据是 localStorage 里的最近 5 条。
+   点一条直接重跑；右上角「清除」清空。样式沿用面板自己的语言（发丝线 + 等宽标签）。 */
+.search-recent {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+  text-align: left;
+}.search-recent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  color: var(--muted);
+  letter-spacing: var(--tracking-label);
+}.search-recent-clear {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}.search-recent-clear:hover { color: var(--accent); }.search-recent-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------- 搜索面板：分类 / 标签筛选（2026-10-05 新增，A5） ----------
+   两行：分类一行、标签一行；行内横向滚动（166 个标签里只列 ≥3 篇的 28 个，
+   其余走行尾「全部标签 ›」）。选中态用印泥淡痕底 + accent-ink 字，
+   和文章页 .post-cat-chip:hover / .post-tag-chip:hover 是同一套语义。
+   前缀 ● / # 由属性选择器画（见下），不写进文本 —— 读屏不用念装饰符号。 */
+.search-filters {
+  flex: none;
+  border-top: 1px solid var(--line);
+  padding: var(--space-2) var(--space-4) var(--space-1);
+}.search-filters-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}.search-filters-row + .search-filters-row {
+  margin-top: var(--space-1);
+}.search-filters-label {
+  flex: none;
+  width: 2.6em;
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  color: var(--muted);
+  letter-spacing: var(--tracking-label);
+}.search-filters-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow-x: auto;
+  padding: var(--space-1) 0;
+  scrollbar-width: none;
+}.search-filters-strip::-webkit-scrollbar { display: none; }.search-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  flex: none;
+  padding: 0.22em 0.7em;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: var(--text-2xs);
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}.search-chip:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}.search-chip.is-active {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+  color: var(--accent-ink);
+}.search-chip[data-facet="categories"]::before {
+  content: "●";
+  font-size: 0.5em;
+  color: currentColor;
+}.search-chip[data-facet="tags"]::before {
+  content: "#";
+  color: var(--accent);
+}.search-chip-count {
+  font-family: var(--font-meta);
+  font-size: 0.92em;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}.search-chip.is-active .search-chip-count {
+  color: inherit;
+  opacity: 0.75;
 }
 
 .search-footer {

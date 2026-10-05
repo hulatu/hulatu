@@ -36,7 +36,12 @@
 }.post-cat-chip {
   background: var(--accent-soft);
   color: var(--accent-ink);
-}.post-cat-chip::before {
+}/* 分类 ● / 标签 # 两个前缀符号的颜色，2026-10-05 拍板**保留印章红**（不再是 Roadmap 里的
+   「待复核」项）。理由：它们是「可点的分类 / 标签目标」的前缀标记，落在 DESIGN.md
+   「可交互」那一条红的语义里，不是纯装饰；搜索面板新增的筛选胶囊用同一对前缀，
+   两处不一致会让读者重新学一遍符号。详见 DESIGN.md 的 Roadmap P2。
+   ● 走 currentColor（跟随胶囊文字 ink/accent-ink），# 走 accent —— 这是全站原有的分工。 */
+.post-cat-chip::before {
   content: "●";
   font-size: 0.5em;
   margin-right: 0.35em;
@@ -988,6 +993,7 @@
 .post-tag-chip::before {
   content: "#";
   margin-right: 0.12em;
+  /* 同上：2026-10-05 拍板保留印章红，# 是「可点的标签目标」的前缀。 */
   color: var(--accent);
 }
 

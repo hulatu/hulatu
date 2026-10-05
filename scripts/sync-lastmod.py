@@ -7,9 +7,14 @@ lastmod 时会退回用 `date`——所以「改了文章、忘改 lastmod」的
 这里在发布前把**这次真正改动过**的文件的 lastmod 刷成当前时间，写文章时不用记着改。
 
 「真正改动过」怎么判断：把当前文件和上一个提交（HEAD）里的版本，都去掉 `lastmod:` 那一行、
-再抹平「无关紧要的空白」之后比较（见 content_fingerprint 的说明）。相同就跳过——这样
+抹掉 `series:`（它只影响归档页的分组，不是内容修订）、再抹平「无关紧要的空白」之后比较
+（见 content_fingerprint 的说明）。相同就跳过——这样
 publish.sh 反复跑也不会一直刷新（第一次刷完 lastmod 后，第二次比较时两边都被去掉，仍然相同）。
 HEAD 里没有的新文件也跳过：它们刚写出来，lastmod 和 date 本来就是一回事，不需要「更新于」。
+
+为什么 series 也要抹掉（2026-10-05）：给一批老文章补 `series` 字段（归档页的「系列」入口）
+会让这 9 篇的指纹全变，于是它们一起冒出「更新于 发布当天」—— 但读者视角里一个字都没改。
+字段本身在文件里照旧写进去，只是不参与「有没有实质改动」的判断。
 
 为什么还要单独抹平空白：编辑器或清理脚本收拾行尾空格时，git 会把整批文件标成「已修改」，
 但内容一个字没变。只按字符串比较的话，这些文章的 lastmod 会被集体刷成发布时刻
@@ -98,13 +103,39 @@ def head_text(rel_path: str) -> str | None:
 LINE_BREAK = re.compile(r"\r\n|\r|\n")
 
 
+# 「判断有没有实质改动」时要连它一起抹掉的字段：
+#   lastmod —— 被刷新的对象本身；
+#   series  —— 只影响归档页的分组（2026-10-05 新增），补一个字段不算内容修订。
+# 正文、标题、摘要、tags、categories 照旧参与比较 —— 那些是真改动。
+IGNORED_FIELDS = ("lastmod", "series")
+
+
 def without_lastmod(text: str) -> str:
     """去掉 front matter 里的 lastmod 行（判断「有没有改动」时用）。"""
     return _frontmatter.remove(text, "lastmod")
 
 
+def fingerprint_body(text: str) -> str:
+    """把「不参与实质改动判断」的字段连它那一行整个删掉。
+
+    ⚠️ 没有直接用 `_frontmatter.remove()`：它只删掉字段那一行的**文字**，行尾换行
+    留在原地。两边都删同一个字段时（lastmod 就是），那个空行会互相抵消；但
+    「只有一边有该字段」正是 series 的场景 —— 留下的空行会让指纹判出「有改动」，
+    于是又要给老文章盖更新章。所以这里自己删整行，并把 front matter 里的纯空行一并压掉
+    （front matter 里的空行本来就只是排版）。正文一个字都不碰。
+    """
+    parts = _frontmatter.split(text)
+    if not parts:
+        return text
+    front_matter, body = parts
+    for key in IGNORED_FIELDS:
+        front_matter = re.sub(rf"^{re.escape(key)}:[^\n]*\n?", "", front_matter, flags=re.M)
+    front_matter = re.sub(r"\n[ \t]*(?=\n)", "", front_matter)
+    return front_matter + "\n" + body
+
+
 def content_fingerprint(text: str) -> str:
-    """在 without_lastmod 的基础上再抹平「无关紧要的空白」，用来判断有没有**实质**改动。
+    """先抹掉 IGNORED_FIELDS，再抹平「无关紧要的空白」，用来判断有没有**实质**改动。
 
     为什么必须抹平空白：2026-09-29 那次清理 front matter 行尾空格的提交（d154d53）
     一共动了 113 个文件，其中 106 个只差行尾空格 —— 内容一个字没变。脚本原先只做
@@ -125,7 +156,7 @@ def content_fingerprint(text: str) -> str:
     """
     # 先把换行符统一成 LF 再交给 _frontmatter：它的正则只认 \r?\n，纯 \r 的旧式换行
     # 会让它连 front matter 都找不到，lastmod 那一行就删不掉，两边指纹自然对不上。
-    body = without_lastmod(LINE_BREAK.sub("\n", text))
+    body = fingerprint_body(LINE_BREAK.sub("\n", text))
     lines = [line.rstrip() for line in body.split("\n")]
     while lines and not lines[-1]:
         lines.pop()
@@ -158,7 +189,7 @@ def main() -> int:
 
     touched: list[Path] = []
     skipped: list[str] = []
-    whitespace_only: list[str] = []
+    ignorable: list[str] = []
 
     for path in targets:
         if path.suffix != ".md" or path.name == "_index.md":
@@ -182,10 +213,11 @@ def main() -> int:
             if without_lastmod(previous) == without_lastmod(text):
                 skipped.append(f"{rel_path}（内容没实质改动）")
                 continue
-            # 走到这里说明字符串确实不同，但可能只差行尾空白（编辑器清理的）。
-            # 这种情况内容一个字没变，不该刷 lastmod —— 只记下来，不算「这次改过」。
+            # 走到这里说明字符串确实不同，但可能只差行尾空白（编辑器清理的）或只动了
+            # series 字段。这种情况读者视角里内容一个字没变，不该刷 lastmod ——
+            # 只记下来，不算「这次改过」。
             if content_fingerprint(previous) == content_fingerprint(text):
-                whitespace_only.append(rel_path)
+                ignorable.append(rel_path)
                 continue
 
         updated, changed = with_lastmod(text, stamp)
@@ -207,16 +239,17 @@ def main() -> int:
 
     if not touched:
         print("    没有需要刷新 lastmod 的文章")
-    if whitespace_only:
-        # 这些文件在 git status 里显示「已修改」，但内容一个字没变（只差行尾空白）。
-        # 明说一句，免得看到一堆改动却没有任何 lastmod 更新时以为脚本没干活。
+    if ignorable:
+        # 这些文件在 git status 里显示「已修改」，但内容一个字没变（只差行尾空白，
+        # 或只动了 series 字段）。明说一句，免得看到一堆改动却没有任何 lastmod 更新
+        # 时以为脚本没干活。
         print(
-            f"    跳过 {len(whitespace_only)} 篇只差空白字符的改动"
-            "（内容没变，lastmod 不动）"
+            f"    跳过 {len(ignorable)} 篇非实质改动"
+            "（行尾空白 / series 字段，内容没变，lastmod 不动）"
         )
         if args.files or args.force or args.dry_run:
-            for rel_path in whitespace_only:
-                print(f"      只差空白：{rel_path}")
+            for rel_path in ignorable:
+                print(f"      非实质改动：{rel_path}")
     if skipped and (args.files or args.force or args.dry_run):
         for item in skipped:
             print(f"    跳过：{item}")

@@ -7,39 +7,11 @@
    它是某个版本留下的按钮残骸，没有任何标记会挂上这个类名。
    注意 critical.css 里它还是三份共享选择器列表的成员（position: relative /
    ::after 命中区 / :active 缩放），那边的名字也一并摘掉了，规则本身留着给其他控件用。 */
-.post-nav {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-  margin-top: var(--space-14);
-}.post-nav-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
-  padding: var(--space-5) var(--space-5);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  transition: transform var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease);
-}.post-nav-card:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-}.post-nav-next { text-align: right; }.post-nav-label {
-  font-size: var(--text-2xs);
-  color: var(--muted);
-  letter-spacing: var(--tracking-label);
-}.post-nav-title {
-  font-family: var(--font-serif);
-  font-size: var(--text-sm);
-  line-height: 1.55;
-  color: var(--ink);
-  /* 2026-10-02（第三轮）：去掉 overflow:hidden + text-overflow:ellipsis + white-space:nowrap。
-     上下篇卡片在桌面是两列（grid 1fr 1fr），每张卡内宽约 292px ≈ 18 个全角字 ——
-     全站 122 篇里有 9 篇的标题超过这个宽度，也就是**约 7% 的文章，文末的「上一篇/下一篇」
-     看到的是一句被砍断的话**。这正是读者决定「要不要接着读」的地方，最不该省字。
-     现在自由换行；.post-nav-card 已经是 flex column + min-width:0，不需要额外处理。
-     两张卡在同一行 grid 里会自动等高，不会一高一矮。 */
-}
+/* 2026-10-05：删掉 .post-nav / .post-nav-card / .post-nav-card:hover / .post-nav-next /
+   .post-nav-label / .post-nav-title 一整套（40+ 行），连带文件末尾那条 ≤600px 的
+   `.post-nav { grid-template-columns: 1fr }`。理由：single.html 里「上一篇/下一篇」
+   与「相关文章」是 if/else 互斥，而 124 篇文章没有一篇算不出相关文章 —— 这一支从未渲染，
+   样式属于死代码。用户拍板文末只留「相关文章」。详见 blog-upgrade-review.html 的 A1。 */
 /* ---------- 打赏块（全站只有关于页一处，见 layouts/partials/donate.html）----------
    2026-10-02 第四轮把它**收进了关于页的页面结构**：它自己就是一个 .about-section，
    和「我是谁 / 网站导览 / 订阅 / 平台 / 联系」平级地排在 .about-body 卡片里，
@@ -218,4 +190,4 @@
   visibility: visible;
 }.giscus-inner {
   padding: 0 var(--space-5) var(--space-5);
-}@media (max-width: 600px) {.post-nav { grid-template-columns: 1fr; }.post-nav-next { text-align: left; }}
+}

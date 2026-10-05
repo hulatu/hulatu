@@ -80,20 +80,9 @@
     });
   }
 
-  /* ---------- 键盘快捷键 ---------- */
-  document.addEventListener("keydown", function (e) {
-    if (e.altKey || e.ctrlKey || e.metaKey) return;
-    var tag = document.activeElement && document.activeElement.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-
-    if (e.key === "[" || e.key === "]") {
-      var link = e.key === "[" ? document.querySelector(".post-nav-prev") : document.querySelector(".post-nav-next");
-      if (link && link.href) {
-        e.preventDefault();
-        link.click();
-      }
-    }
-  });
+  /* 2026-10-05：删掉 [ / ] 上下篇快捷键。它 click() 的是 .post-nav-prev / .post-nav-next，
+     而那两个元素在 single.html 里与「相关文章」互斥、从未渲染过 —— 按了没反应也不报错，
+     是本文件里唯一一条静默失效的监听。文末导航改为只留「相关文章」后，这条彻底没有意义。 */
 
   /* ---------- 复制标题链接 ---------- */
   function copyText(text) {

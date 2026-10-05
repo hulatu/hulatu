@@ -80,6 +80,24 @@
     "isAccessibleForFree" true
   -}}
   <script type="application/ld+json">{{ jsonify $ld | safeJS }}</script>
+  {{- /* 面包屑结构化数据（2026-10-05 新增，D2）。视觉上面包屑早在 single.html
+         就有了（首页 › 分类 › 标题），但 JSON-LD 一直只有 BlogPosting / Person / WebSite，
+         搜索结果里显示不出路径层级。层级与 single.html 的面包屑**逐字对齐**：
+         首页 → （第一个分类，没有分类就跳过这一级）→ 文章标题。
+         position 从 1 开始连续编号，所以先攒成 $crumbs 再统一生成，别在模板里手写序号。 */ -}}
+  {{- $crumbs := slice (dict "name" "首页" "url" site.BaseURL) -}}
+  {{- with .GetTerms "categories" -}}
+    {{- range first 1 . -}}
+      {{- $crumbs = $crumbs | append (dict "name" .Title "url" .Permalink) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $crumbs = $crumbs | append (dict "name" .Title "url" .Permalink) -}}
+  {{- $bcItems := slice -}}
+  {{- range $i, $c := $crumbs -}}
+    {{- $bcItems = $bcItems | append (dict "@type" "ListItem" "position" (add $i 1) "name" $c.name "item" $c.url) -}}
+  {{- end -}}
+  {{- $bc := dict "@context" "https://schema.org" "@type" "BreadcrumbList" "itemListElement" $bcItems -}}
+  <script type="application/ld+json">{{ jsonify $bc | safeJS }}</script>
 {{- else if eq .RelPermalink "/about/" -}}
   {{- /* jobTitle 的默认值和 layouts/_default/about.html 保持一致，免得两处默认值打架 */ -}}
   {{- $person := dict

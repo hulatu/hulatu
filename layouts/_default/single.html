@@ -132,27 +132,18 @@
   </section>
   {{- end -}}
 
-  {{- if not $relatedPosts -}}
-  <nav class="post-nav" aria-label="文章导航">
-    {{ with .PrevInSection }}
-      <a class="post-nav-card post-nav-prev" href="{{ .Permalink }}">
-        <span class="post-nav-label">{{ if $isWeekly }}上一期{{ else }}上一篇{{ end }}</span>
-        <span class="post-nav-title">{{ .Title }}</span>
-      </a>
-    {{ end }}
-    {{ with .NextInSection }}
-      <a class="post-nav-card post-nav-next" href="{{ .Permalink }}">
-        <span class="post-nav-label">{{ if $isWeekly }}下一期{{ else }}下一篇{{ end }}</span>
-        <span class="post-nav-title">{{ .Title }}</span>
-      </a>
-    {{ end }}
-  </nav>
-  {{- end -}}
+  {{- /* 文末「上一篇 / 下一篇」2026-10-05 整条移除（用户拍板）：
+         只留「相关文章」。理由与执行清单见 blog-upgrade-review.html 的 A1 ——
+         它原先与「相关文章」是 if/else 互斥，只有算不出相关文章时才渲染，
+         而 124 篇里没有一篇算不出，所以那一支其实从没亮过。
+         连带删掉的还有：post.css 的 .post-nav*（40+ 行）、ui.js 的 [ / ] 快捷键、
+         critical.css 打印规则里的 .post-nav。别再单独加回来 —— 要「按顺序连载」
+         就走 content 的 series 字段 + 归档页的「系列」入口。 */ -}}
 
   {{- /* 打赏块**刻意不在这里**（2026-10-02 第四轮）。
-         全站只在关于页保留一处。理由：文章页每篇都挂一个收款码，等于「每篇都在要钱」；
-         收成一页之后，它变成一个「想支持我的人找得到」的地方，而不是每篇文末的固定家具。
-         要加回来就把这一行加回来：partial "donate.html" .  */ -}}
+        全站只在关于页保留一处。理由：文章页每篇都挂一个收款码，等于「每篇都在要钱」；
+        收成一页之后，它变成一个「想支持我的人找得到」的地方，而不是每篇文末的固定家具。
+        要加回来就把这一行加回来：partial "donate.html" .  */ -}}
 
   {{ if and site.Params.giscus.repo (ne .Params.comments false) }}
   <section class="giscus-wrap">

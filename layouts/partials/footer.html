@@ -1,5 +1,8 @@
 <footer class="site-footer">
   <div class="container footer-container">
+    {{- /* 卷末统计（篇数 / 字数 / 写作时长）2026-10-05 加过一版，同日按用户要求撤掉：
+         页脚只留「版权 / 链接 / 协议」那一行。统计口径的复用点（archive.html 的
+         `$posts` 筛选与 `.WordCount`）没变，想再加回来照着那天的方式算就行。 */ -}}
     <p class="footer-copyright">&copy; {{ site.Params.since }}&ndash;{{ now.Format "2006" }} {{ site.Params.author }}</p>
 
     <p class="footer-links">

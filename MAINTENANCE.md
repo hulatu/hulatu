@@ -39,7 +39,9 @@ hugo new content/weekly/周刊-第N期.md       # 周刊
 
 坑在 Hugo 的默认行为：front matter 里没写 `lastmod` 时，`.Lastmod` 直接退回用 `date`——于是「改了文章、忘了改 lastmod」的结果就是这一行永远不出现。所以这件事不靠人手记：`publish.sh` 在 `git add` 之前会跑 `scripts/sync-lastmod.py`，把**这次真正改动过**的文章的 `lastmod` 刷成当前时间（+08:00）。
 
-它判断「真正改动过」的方式是：当前文件和上一个提交里的版本都去掉 `lastmod:` 那一行再比较，相同就跳过。这样一来，反复跑 `publish.sh` 不会一直刷新（刷完 lastmod 后，第二次比较两边都被去掉，仍然相同），新写的文章也不会多出一行「更新于」（HEAD 里没有的新文件直接跳过）。**默认只看 `content/posts/` 和 `content/weekly/`**——只有文章页会显示「更新于」，改「关于」「隐私政策」这类页面时不该跟着动 lastmod。
+它判断「真正改动过」的方式是：当前文件和上一个提交里的版本，把 `IGNORED_FIELDS`（`lastmod`、`series`）那两个字段整个删掉再比较，相同就跳过。这样一来，反复跑 `publish.sh` 不会一直刷新（刷完 lastmod 后，第二次比较两边都被去掉，仍然相同），新写的文章也不会多出一行「更新于」（HEAD 里没有的新文件直接跳过）。**默认只看 `content/posts/` 和 `content/weekly/`**——只有文章页会显示「更新于」，改「关于」「隐私政策」这类页面时不该跟着动 lastmod。
+
+**`series` 为什么不参与判断**（2026-10-05）：给一批老文章补 `series` 字段（归档页的「系列」入口）会让这 9 篇的指纹全变，于是它们一起冒出「更新于 发布当天」—— 但读者视角里一个字都没改。所以 `series` 和 `lastmod` 一样列进 `IGNORED_FIELDS`：字段本身照旧写进 front matter，只是不触发更新章。**正文、标题、摘要、tags、categories 照旧参与比较**（那些是真修订）。改这个清单时注意：`_frontmatter.remove()` 只删字段的文字、留下空行，所以 `fingerprint_body()` 是自己按整行删的，并把 front matter 内部的纯空行一并压掉 —— 否则「只有一边有该字段」会剩下一个空行，指纹照样判出「有改动」。
 
 **「只差空白字符」不算改动。** 编辑器或清理脚本收拾行尾空格时，git 会把整批文件标成「已修改」，但内容一个字没变——只按字符串比较的话，这些文章的 `lastmod` 会被集体刷成发布时刻：文章页的「更新于」跟着集体往前跳，git 里还多出上百行无意义的 diff。所以比较前会先抹平三类空白：行尾空白、换行符（CRLF / CR）、文件末尾多出来的空行。刻意**不**抹平行首缩进和行内空格——Markdown 里行首缩进会改变语义（4 空格 = 代码块、2 空格 = 嵌套列表），行内空格就是正文本身。已知取舍：Markdown 的「行尾两个空格 = 硬换行 `<br>`」也会被一起忽略，真遇到只加了硬换行的改动，用 `--force` 手动刷一次。
 
@@ -117,7 +119,7 @@ hugo server -D
 | 首页 / 周刊每页展示几篇 | `hugo.toml` 的 `[pagination] pagerSize`（当前 10）。模板里 `.Paginate` **故意不传第二个参数**，就是让它读这个配置——以前模板里写死 10，配置里那个 `pagerSize` 改了没用，等于两个数字打架 |
 | 周刊期号徽章 | 读 front matter 的 `issue: 22`（模板里是 `.Params.issue`）。**新写一期周刊记得填这个字段**，不填就不显示徽章。以前是从标题「第 X 期」里正则解析中文数字（`layouts/partials/issue-num.html`，2026-09 已删）：那种写法只在标题里能看出来，改标题就悄悄失效，还多一层中文数字解析 |
 | 相关文章（取几篇、按什么匹配） | `hugo.toml` 的 `[related]`；模板在 `layouts/_default/single.html` |
-| 上一篇 / 下一篇导航 | `layouts/_default/single.html` 里的 `.post-nav` |
+| 系列 / 连载 | content front matter 的 `series: "综述写作"`；归档页 `archive.html` 按它分组渲染「系列」区块（**2026-10-05 新增**）。文末的「上一篇 / 下一篇」已于同日整条移除：它和「相关文章」是 `if/else` 互斥、从未渲染过，样式与 `[` `]` 快捷键都是死代码 —— 别再加回来，要「按顺序读一组」就用 `series` |
 | 标签云（展示哪些标签） | `layouts/_default/taxonomy.html` 里 `site.Taxonomies.tags.ByCount` |
 | 目录在哪显示 | `assets/css/critical-post.css` 搜 `1152px`。≥1152px 悬浮在正文右侧（刻度栏，面板宽度 `clamp(212px, 50vw - 372px, 244px)` 随窗口伸缩）；<1152px 排在正文开头（`.post-toc-inline`，可点标题栏收起），手机上默认收起。**页面里没有浮动目录按钮**：2026-09 按需求删掉了左下角那个按钮和它的底部抽屉，窄屏一律看正文开头那块。断点是**一对**：`min-width: 1152px` 和文件末尾那两条 `max-width: 1151.98px` 必须同时改（`layouts/_default/single.html` 里还有一处注释跟着它） |
 | 正文 / 页头宽度 | 只有 `--content-width`（`assets/css/critical.css` 顶部，当前 **680px**，照 sspai 文章页量的：它的 `.article__section__wrapper` 是 728px 含 24px 内边距）。`.container` 用它加两侧 `--gutter` 当 max-width（内边距留在外面），所以**页头（导航栏）、正文、列表页是同一个内容宽度**；`.post-content`、`.post-toc-inline`、`.friends-page`、`.about-page`、`.page-intro` 也都引用它。**四个子站同宽**：各自 `static/style.css` 的 `:root` 里也有一份 `--content-width: 680px`，靠 `main { width: min(var(--content-width), calc(100% - 32px)) }` 取（profile 是 `- 40px`）。改宽度要五处一起改，详见 `sites/README.md` |
@@ -143,12 +145,12 @@ hugo server -D
 | 打赏 | `hugo.toml` 的 `[params.donate]`（`title` / `hint` / `button` / `payee` / `wechat` / `alipay` / `url`）。**这块全站只在关于页出现**，而且是**关于页的一个 `.about-section`**（2026-10-02 第四轮）：模板 `layouts/partials/donate.html` 直接输出 `<section class="about-section donate">`，由 `about.html` 放进 `.about-body` 里，和「我是谁 / 网站导览 / 订阅 / 平台 / 联系」平级。**所以它自己不再有 `border-top` / `max-width: 30rem` / `padding-top` / `margin: auto`** —— 那四条是它挂在卡片外面时才需要的「只有它这样」的特例，收进页面结构后一起删了，分隔线交给现成的 `.about-section + .about-section`。文章页的调用在 `layouts/_default/single.html` 里移除并留了注释（每篇文末都挂收款码 = 「每篇都在要钱」）。<br>**触发器刻意不是印章红实心按钮**：它一度走 `--ctrl-solid-*`（红底 + 红晕投影），成了整页视觉最重的元素；现在走中性的 `--ctrl-*` 描边四态（与 `.tag-chip` 同一套）。**节标题前那颗小菱形也已改中性线色**（2026-10-04，见上面「关于页名片卡」一行），所以这一页不再靠它承载红。`summary` 上的原生三角被 reset 抹掉了，所以另补了一个 `::after` 画的 V 形折叠指示（`[open]` 时转 180°）。展开区**不套外框** —— 两个收款码本身就是白底 + 发丝线的卡片，再包一层就是「卡片里的卡片」。<br>**收款码是站内静态图**（`static/images/donate/{wechat,alipay}.webp`，2026-10-02 第四轮从图床搬过来）：它是「站点家具」而不是文章内容，和头像 / 分享卡一个性质，所以跟它们一起放 `/images/`（`static/_headers` 里已有 30 天缓存），顺带不再需要 `cf-image.html` 那层图片变换（那个 partial 现在只服务正文插图）。生成方式：把手机截的收款码裁成「二维码本体 + 白静区」的正方形，输出**无损 WebP**。当前两份分别是 435×435（微信，17.5KB）和 440×440（支付宝，21.4KB），二维码本体约 350px —— 页面显示 180 CSS px，1x/2x/3x 屏分别是 180/360/540 设备 px，这个尺寸正好覆盖 2x。**两个关键坑**：① 静区必须有（QR 规范要 4 个模块，代码里用 12% 边长），而且素材必须自己带白底 —— 页面 CSS 里写死 `background: #fff` 是物理要求，深色模式下 `var(--paper)` 是近黑，拿它当底整张码就废了；② 微信那张要先**二值化**（源是 JPEG 截图，「白」带噪声、黑边有振铃，无损体积 47.7KB；二值化后 17.5KB 且模块边缘更硬、更好扫），但**中心彩色贴纸要按彩色像素包围盒原位贴回**，否则会被吃掉；支付宝那张**不能**二值化 —— 它中心的 logo 是灰阶气泡，Otsu 会把整块判成白、logo 直接消失。<br>**换图之后要去 Cloudflare 后台 Purge 一次 `/images/donate/*`**（30 天缓存，不 purge 老访客看到的还是旧码）。<br>撤文章页时顺带修了一处**白开的预连接**：`baseof.html` 里原来有半句 `and site.Params.donate.enabled (in (slice "posts" "weekly") .Type)`，让**所有**文章页都预连接图床，可打赏码是 `<details>` 里的 `loading="lazy"` 图、不展开根本不请求（`perf-interaction-review.html` 的 P3 记过这一条）。那半句现在整条去掉，只按「正文里真的有图床图」判断 —— 123 篇文章里有 60 篇正文无图，从此不再白连。<br>**`.donate-*` 规则仍在 `post.css` 里**（15 条，minify 后约 1.7KB；关于页的异步包要它），要不要拆成单独模块的判断写在 `css-modules.html` 的注释里 —— 结论是先留着，理由见那里 |
 | Hugo 版本 | **三处必须一致**：本机 `hugo version`、`.github/workflows/build.yml` 的 `hugo-version`、Cloudflare 五个项目的 `HUGO_VERSION`（主站 + 四个子站）。硬校验在 `layouts/partials/check-hugo-version.html`（`baseof.html` 顶部引入）：**版本不够直接失败**并报出当前版本；**缺 extended 只打 WARN**（Cloudflare 的 `HUGO_VERSION` 只能填版本号，硬拦会误伤线上；真用到 extended 功能时 Hugo 自己会报错）。`hugo.toml` 的 `[module.hugoVersion]` 只起文档作用——实测它在项目自身配置里只打一行 WARN，拦不住构建 |
 | 构建校验（CI） | `.github/workflows/build.yml`：push / PR 时用 0.167.0 extended 构建主站 + 调用 `scripts/build-subdomains.sh` 构建四个子站，另外检查每篇周刊的 front matter 有没有 `issue` 字段（漏填只会不显示徽章、不报错，所以单独查一遍）。这是「本地没事、Cloudflare 构建失败」的第一道拦截 |
-| 订阅格式 | `layouts/_default/rss.xml`。首页主源 `/index.xml` + 周刊源 `/weekly/index.xml`（在 `content/weekly/_index.md` 里用 `outputs` 单独开）；栏目默认不出 RSS，改 `hugo.toml` 的 `[outputs] section`。每个源最多 20 条全文，见 `[services.rss] limit` |
+| 订阅格式 | `layouts/_default/rss.xml`。首页主源 `/index.xml` + 周刊源 `/weekly/index.xml`（在 `content/weekly/_index.md` 里用 `outputs` 单独开）；栏目默认不出 RSS，改 `hugo.toml` 的 `[outputs] section`。每个源最多 20 条全文，见 `[services.rss] limit`。**每条 item 带 `<atom:updated>`**（2026-10-05 新增，值取 `.Lastmod`、RFC3339 格式）：文章页早有「更新于」，订阅端原来只能看到 `pubDate`，感知不到一篇被修订过；`channel` 上早就声明了 `xmlns:atom`，直接用就行 |
 | 阅读时长 / 字数 | `layouts/_default/single.html` 的 `.post-meta-main`，按 350 字/分钟算阅读时长 |
 | 文章页的「更新于」 | 同一个 `.post-meta-main`：`lastmod` 比 `date` 晚才显示（比完整时间戳，不是比日期）。`lastmod` 由 `publish.sh` 里的 `scripts/sync-lastmod.py` 自动刷，别手改——手动盖章用 `python3 scripts/sync-lastmod.py --force 某篇.md`，详见「文章页的『更新于』」 |
 | 文章页头部版式 | **日期 / 字数 / 阅读时长在左，分类和标签贴右**（`.post-meta` 用 `justify-content: space-between`，见 `assets/css/critical-post.css`）。这是刻意定的，不是对齐错了。窄屏放不下而换行时，标签会另起一行、从左边开始——那是 `space-between` 对「单独占一行的子项」的正常表现，不用改 |
 | 代码块（红绿灯 + 复制） | 结构在 `layouts/_default/_markup/render-codeblock.html`，样式全在 `assets/css/critical-post.css` 的 `.code-block` / `.chroma*`（外壳和红绿灯配色都在这一份里，随文章页首屏内联），复制逻辑在 `assets/js/ui.js` |
-| 面包屑 | `layouts/_default/single.html` 的 `.breadcrumb`（首页 › 分类 › 标题） |
+| 面包屑 | 视觉：`layouts/_default/single.html` 的 `.breadcrumb`（首页 › 分类 › 标题）。**结构化数据**在 `layouts/partials/head-meta.html` 的文章分支里 —— `BreadcrumbList`（2026-10-05 新增），层级与视觉面包屑逐字对齐（首页 → 第一个分类 → 标题），`position` 先攒 `$crumbs` 再统一编号 |
 | 阅读进度条 / 返回顶部 / Header 自动隐藏 | 逻辑都在 `assets/js/ui.js`，样式在 `assets/css/critical.css`（`.reading-progress`、`.back-top`、`.site-header.is-hidden` —— 都在首屏关键 CSS 里，因为滚动一开始就要用到，不能等异步包） |
 | 站内跳转预渲染 + 页面过渡 | 预渲染规则在 `layouts/_default/baseof.html` 的 `<script type="speculationrules">`（当前是 `prerender` + `eagerness: moderate`，嫌费流量就改成 `conservative`）；过渡样式在 `assets/css/core.css` 的「跨页面视图过渡」段（`.post-title` / `.page-title` / `.hero-line` 上的 `view-transition-name: page-title` 在 `critical.css`，因为标题在首屏）。**预渲染会真的执行页面脚本**，所以统计（`layouts/partials/analytics.html`）和评论（`layouts/partials/giscus.html`）都判断了 `document.prerendering`，以后新加的第三方脚本也要照做 |
 | 完字章 | `layouts/_default/single.html` 的 `.post-end`（印章红「完」字圆章） |
@@ -169,7 +171,7 @@ hugo server -D
 
 （哪个页型内联哪几个，见下面的组合表——**模块表不再承担「谁用」这一列**，因为收窄之后同一个模块会被好几个页型以不同组合挑走，写在模块表里只会越来越糊。）
 
-**两个异步模块**（`resources.Concat` 合并后异步加载）：`core.css`（全站共用，已剔除 `critical` 里已有的部分）＋ `post.css`（只放**文末家具**：`.donate*`、`.giscus*`、`.related-posts`、`.post-nav*`）。~~`.post-pill*`~~ 已于 2026-10-02 删除 —— 全站零引用，是按钮残骸（详见下面「动效词表」一节的清理记录）。
+**两个异步模块**（`resources.Concat` 合并后异步加载）：`core.css`（全站共用，已剔除 `critical` 里已有的部分）＋ `post.css`（只放**文末家具**：`.donate*`、`.giscus*`、`.related-posts`）。~~`.post-pill*`~~ 已于 2026-10-02 删除 —— 全站零引用，是按钮残骸（详见下面「动效词表」一节的清理记录）；~~`.post-nav*`~~ 已于 2026-10-05 随文末上下篇整条删除（那一支从未渲染，见「各部分怎么改」的「系列 / 连载」一行）。
 
 实测的加载组合与体积（2026-09-29 收窄后，读的是构建产物里真正内联的那段 `<style>`）：
 
@@ -515,7 +517,7 @@ Markdown 的 `*强调*` → `<em>`。**别让它斜着**：中文没有真正的
 
 - **按下态不发光**：`--ctrl-active-shadow` 是 `none`，深色下也一样。按压靠 `--ctrl-active-bg`（印泥淡痕底）和 `transform: scale(0.96)` 反馈，不要加阴影。
 - **按压语言全站只有一种：`scale(0.96)`**（2026-10-02 第二轮统一）。共享规则在 `critical.css`：`.tag-chip:active, .pager-btn:active, .nav-icon-btn:active { transform: scale(0.96) }`。翻页按钮原本另有一条 `.pager-btn:active:not(:disabled) { transform: translateY(1px) }`，特异性 `(0,3,0)` 高于共享那条的 `(0,2,0)`，所以**它一直赢** —— 结果是「胶囊和页头图标按下是缩，翻页是往下沉」两种语言，而共享列表里的 `scale(0.96)` 对 `.pager-btn` 是永不生效的死声明。第二轮已删掉 `translateY(1px)`，三个控件回落到同一条。
-- **区分「hover 位移」与「按下反馈」**：位移只给卡片与主按钮（`.post-nav-card` 的 `translateY(-2px)`、`.notfound-btn:hover` 的 `translateY(-1px)`），控件不做位移；按下反馈一律是 `scale`。两者不是一回事，别混着写。
+- **区分「hover 位移」与「按下反馈」**：位移只给卡片与主按钮（`.notfound-btn:hover` 的 `translateY(-1px)`；`.post-nav-card` 那处 `translateY(-2px)` 已随文末上下篇在 2026-10-05 删除），控件不做位移；按下反馈一律是 `scale`。两者不是一回事，别混着写。
 - **禁用态统一 `opacity: var(--ctrl-disabled-opacity)`（0.5）**，别再各写 0.35 / 0.55。取 0.5 是「浅到能看出禁用、又不至于读不出字」的折中（旧值 0.55）。原先举的例子是评论区那个「显示评论」按钮，**2026-10-04 该按钮已改成 `<details>` 胶囊、例子作废，但取值不变**；翻页箭头那边同时还有 `pointer-events: none` 兜底。`<a>` 模拟的禁用（翻页到头）用 `.is-disabled` 类，样式和 `:disabled` 一致。
 - **深色模式只重写阴影**：其余变量都引用 `--surface` / `--line` / `--accent` 这些原始取色，会自动跟着变，不用在 `[data-theme="dark"]` 里重复一遍。现在深色块里只剩 `--shadow-sm` / `--shadow-md` / `--ctrl-solid-shadow` / `--ctrl-solid-hover-shadow` 四条（`--ctrl-hover-shadow` 已随第二轮一并删掉）。
 - 图片灯箱（`.lightbox-btn`）是唯一的例外：它浮在纯黑遮罩上，纸色系按钮放上去会突兀，仍然单独写白色半透明 —— 新增这类"深底上的控件"时照此单独处理，别硬套 token。
@@ -525,20 +527,21 @@ Markdown 的 `*强调*` → `<em>`。**别让它斜着**：中文没有真正的
 
 ### 列表行与文章标题（2026-10-02 第三轮）
 
-**标题一律不截断。** 全站有三处渲染「文章标题」，改之前是**三种不同的行为**：
+**标题一律不截断。** 全站渲染「文章标题」的地方从三处收到两处、又补回一处（文末上下篇 2026-10-05 整条移除），改之前是**三种不同的行为**：
 
 | 位置 | 用的 partial | 改之前 | 现在 |
 |---|---|---|---|
 | 首页 / 文章列表 | `post-row.html` / `post-row-compact.html` | `-webkit-line-clamp: 2`（两行后带省略号） | 自由换行 |
 | 分类 / 标签 / 周刊 | `post-row-minimal.html` | `white-space: nowrap` + `text-overflow: ellipsis`（压成一行） | 自由换行 |
-| 文末上一 / 下一篇 | `single.html` 里的 `.post-nav-card` | `nowrap` + `ellipsis`（一行） | 自由换行 |
+| 书影音卡片 | `critical-page.css` 的 `.media-title` / `.media-creator` | `nowrap` + `ellipsis`（一行） | 自由换行（2026-10-04 补） |
 
 理由：**被截掉的那半句，正是读者判断「要不要点进去」的全部依据**，列表省下的那点行高不值这个价。
 三处都只删掉了截断声明、加了 `min-width: 0`（让标题在 flex / grid 里能正常收窄换行），**没有动字号和行高**。
 
 实测口径（复算用）：全站 122 篇里最长的标题约 **23.5 个全角字宽**，在 680px 正文列里只占 0.55 行
 —— 也就是说首页那个 2 行 clamp **从来没触发过**，它只是在「等着」截断下一篇长标题；
-而文末上下篇的卡片内宽只有约 292px（≈18 个全角字），**约 7% 的文章确实被砍过**。
+而**已经删掉的**文末上下篇卡片内宽只有约 292px（≈18 个全角字），**约 7% 的文章确实被砍过** ——
+这也是当初主张把它压成一行文字的论据之一，最后你干脆把整条导航删了（只留「相关文章」）。
 
 > 想收紧列表高度，请调 `.post-row` / `.minimal-row` / `.archive-item` 的纵向内边距（三处都是 `var(--space-3)`），**不要回头去调标题**。
 
@@ -610,7 +613,7 @@ Text Module Level 4 这批特性（`pretty` / `balance` / `hyphens` / `line-brea
 
 **`prefers-reduced-motion` 是「换一种做法」，不是「把时长归零」**：现在除了 `transition-duration: 0.01ms`，还加了 `animation: none !important`。只压时长的话，`hero-in` / `overlay-in` / `search-in` 三个 `@keyframes` 仍然会「跑」，只是瞬间跑完，元素照样「跳」到终态 —— 而这一跳正是敏感用户要避开的。关掉动画后三个元素自动落到基础样式（它们的终态本来就等于基础样式），所以不需要再补 `opacity: 1` / `transform: none`。
 
-**位移（`translateY`）只给卡片和主按钮**：悬停位移全站只剩 `.post-nav-card`（-2px）与 `.notfound-btn`（-1px）两处。图标按钮 / 胶囊 / 文字链接 / 打赏按钮一律靠颜色与底色回应。原先是 7 处。
+**位移（`translateY`）只给卡片和主按钮**：悬停位移全站只剩 `.notfound-btn`（-1px）一处（`.post-nav-card` 的 -2px 随文末上下篇在 2026-10-05 删除，见文件头注释）。图标按钮 / 胶囊 / 文字链接 / 打赏按钮一律靠颜色与底色回应。原先是 7 处。
 
 **顺带清掉的三样**（同一轮）：
 - `.post-pill` 全套 5 条规则 + `.post-pill svg`，以及 `critical.css` 里三份**共享选择器列表**中的名字（`position: relative` / `::after` 命中区 / `:active` 缩放 —— 只摘名字，规则留给其他控件用）。
@@ -672,11 +675,21 @@ Text Module Level 4 这批特性（`pretty` / `balance` / `hyphens` / `line-brea
 - **高亮所有命中**（旧版只标第一处），并且合并重叠区间，否则「关于我」里的「关于」和「我」会套出嵌套的 `<mark>`。
 - **正文命中时换摘要**：如果命中只发生在正文，摘要行改为显示命中位置附近的上下文片段，并标注「正文匹配」—— 否则用户看到一条结果，摘要里一个关键词都没有，会莫名其妙。
 
+**分类 / 标签筛选 + 最近搜索（2026-10-05 新增，A5）。** 面板底部两行筛选，空态显示快捷键提示与最近搜索：
+
+- **筛选**数据来自索引里已有的 `tags` / `categories`，`index.searchindex.json` **不用改**。分类全列（本机 13 个）；标签只列出现 ≥ `TAG_MIN`（3）篇的 28 个 —— 166 个标签横排约 13000px，全塞进去等于没有重点，长尾走行尾的「全部标签 ›」。那个 URL 从 `data-index` 反推站点根，**不写死 `/tags/`**（子路径部署也成立）。点一次筛选、再点一次取消；**选中后可以不带关键词**，直接按时间倒序浏览这一类（这是 A5 说的「按分类缩小范围」那条收益）。
+- **前缀符号 `●` / `#` 由 CSS `::before` 画**（`.search-chip[data-facet="categories"|"tags"]`），与文章页 `.post-cat-chip` / `.post-tag-chip` 是同一套语言，也同一份红的语义（见 DESIGN.md Roadmap P2）。不写进文本，读屏不会念出装饰符。
+- **最近搜索**存 `localStorage`，键 `hulatu:search:recent`，最多 5 条，忽略大小写去重。**这是全站唯一一处 localStorage** —— 主题仍刻意「跟随系统、刷新不记忆」；这里记的是用户的输入产物，不记住才是丢东西，两件事不冲突（见 DESIGN.md「搜索（面板）」）。
+- **写入时机是「提交」而不是每次击键**：Enter 打开结果、点开一条结果、关面板时输入框已有 ≥2 个字。否则「跑」「跑步」「跑步装」会变成三条记录。`sessionRecorded` 保证一次打开最多由「关面板」补记一次，不会和 Enter 重复。读写都包在 `try/catch` 里，隐私模式静默降级成「不记住」，不报错。
+- **快捷键提示**：空态里写「按 `/` 或 `⌘K` 随时打开搜索」，页头 `#search-btn` 的 `title` 是同一句（C1）。两处文案一起改。
+
 **要调什么，去哪调：**
 
 | 想改 | 改哪 |
 |---|---|
 | 权重 / 结果上限（`MAX_RESULTS` = 30）/ 兜底规则 | `assets/js/search.js` 顶部的 `W` 和 `MAX_RESULTS` |
+| 筛选里标签的门槛（`TAG_MIN` = 3）/ 排序 | 同上，`buildFacets()` / `rankFacet()` |
+| 最近搜索的条数与存储键（`RECENT_MAX` / `RECENT_KEY`） | 同上，文件顶部 |
 | 正文进索引的长度（`$bodyCap`，当前 500 字） | `layouts/index.searchindex.json` |
 | 索引收哪些字段 | 同上，那个 `dict` |
 
@@ -751,6 +764,34 @@ Text Module Level 4 这批特性（`pretty` / `balance` / `hyphens` / `line-brea
 `.archive-item-title` 补了 `min-width: 0`，和 `.post-row-title` / `.minimal-title` 一致：长标题要能在弹性列里正常收窄换行，而不是把日期挤出容器。
 
 > 顺带记一笔：日期搬到右边之后，**左侧那条「年 / 月 / 日」三级对齐的左轨就不存在了** —— `.archive-month` 标签还留在左边，但它不再和任何东西对齐，退化成纯粹的分组标题。这是本次改动的必然结果，不是漏改。右侧则新成了一条轨：年行的「N 篇」和每行的「日」都贴最右。
+
+**系列入口（2026-10-05 新增，同日二改成胶囊版）**
+
+背景：站里有两组天然连载（综述写作之- 5 篇、居家流水账- 4 篇）和一组主题合集（跑步 12 篇），front matter 里原本没有任何字段能表达「这几篇是一组」，文末上下篇又在同一天被整条移除 —— 归档页于是成了系列唯一的、稳定的出口。
+
+数据链路：`content` front matter 写 `series: "综述写作"` / `series: "居家流水账"`（本次给这 9 篇补上）→ `archive.html` 里 `range $posts` 收集 `.Params.series` → `uniq | sort` → `where $posts "Params.series" $name` 分组 → `.ByDate`（升序 = 连载顺序）。位置在 `.archive-total` 之后、年份分组之前。
+
+**当前三组的构成**（2026-10-05 定稿，`grep -rh '^series:' content/ | sort | uniq -c` 可复算）：
+
+| 系列 | 篇数 | 成员 |
+|---|---|---|
+| 居家流水账 | 4 | 第一天 / 第三天 / 第四天 / 第五天（缺「第二天」是内容事实：那天写在第十七期周刊里） |
+| 综述写作 | 5 | 确定主题 → 文献管理 → 投喂文献（上）→ 投喂文献（下）→ 作图工程 |
+| 跑步 | 12 | 7 篇主题文章（平价跑步装备 / 70 天后跑步 10 km / 当我谈晨跑时 / 没有运动手表的日子 / 跑步机与户外跑步 / 面向目标和背对目标 / 一个关于中长跑的呼吸技巧）+ 4 期有独立跑步小节的周刊（11 / 13 / 16 / 20）+ 《角落里的学生》（作者自己打了「跑步」标签） |
+
+「跑步」这条不是连载，是**主题合集**，所以序号只是「按日期的第几篇」而不是「第几 part」。收谁不收谁的口径是「**作者打了「跑步」标签或分类** ∪ **正文里有独立跑步小节**」；只是零星提到跑步的（复阳的这些天、骑了一个马拉松、谈职业运动员、骑行 / 健身那几篇）都没收。**一篇文章只能属于一个系列**（`series` 是字符串），所以周刊那 4 期进了跑步就不能再进「周刊」系列 —— 真要做周刊系列时得先想清楚这个重叠怎么处理。
+
+结构：`<section class="archive-series">` → `<h2 class="series-head">系列</h2>` → 每组一个 `.series-row`（左：`.series-label` 系列名 + `.series-label-count` 篇数；右：`.series-pills` 一排 `.series-pill`）。样式在 `assets/css/critical-info.css`（**内联**：归档页的首屏包就是 `critical + critical-info`）。
+
+几个要点：
+
+1. **第一版是一组一个 `<details open>` + 「序号 / 标题 / 日期」三列行**，用户看过之后要求「更小的胶囊设计」，于是改成现在的一行胶囊 —— 高度大约是原来的一半，形态更接近标签云。
+2. **胶囊走 `--ctrl-*` 描边四态**（和 `.tag-chip` 同一套：底 · 字 · 边，无影），hover / active 才出现印泥淡痕与红字。常驻的一排胶囊不许点红 —— 这是「印章红必须稀缺」的直接应用。
+3. **⚠️ `.tag-chip` 的样式在 `critical-page.css`，而归档页不内联那个模块**（首屏包 = `critical + critical-info`）。所以 `.series-pill` 是在 `critical-info.css` 里自己写的一份，**别把类名改成 `.tag-chip` 想着复用** —— 那会得到一个没有样式的胶囊。同理，改胶囊的样子要改这份，不是改标签云那份。
+4. **标题里的系列前缀要剥掉**：`strings.TrimPrefix` 依次试 `"{系列名}之-"`、`"{系列名}-"`，所以「综述写作之-确定主题」→「确定主题」、「居家流水账-第三天」→「第三天」。**新系列如果不用这个命名习惯，剥不掉也没关系**（原样显示，只是胶囊长一点）；完整标题始终留在 `title` 属性里。
+5. **序号走等宽 + `--muted`**（不是更浅的 `--line-strong`）：它是 11.5px 的小字，对比度得先过关，「等宽 + 比标题细一档」已经够把它压成刻度了。
+6. **新开一组连载 = 给那几篇加 `series` 字段**，不用改模板。`series` 不进 `hugo.toml` 的 `[taxonomies]`（没有 `series` 页、也不该有：它只需要这一个入口）。
+7. **`series` 不参与 `sync-lastmod.py` 的「实质改动」判断**（见「文章页的『更新于』」一节）：给老文章补字段不该让它们集体冒出更新章。
 
 ### 跑步数据
 
