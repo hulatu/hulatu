@@ -20,7 +20,9 @@
        只传 width、不传 height：保持 4:3 原比例，裁圆继续交给 CSS 的
        object-fit: cover，所以视觉和改之前逐像素一致（实测 fit=cover 让服务端
        裁成正方形反而更大，而且裁剪重心可能与 CSS 不完全一致）。
-       尺寸要和 assets/css/page.css 的 .about-avatar 保持一致，改那边记得回来改这里。
+       尺寸要和 assets/css/critical-info.css 的 .about-avatar 保持一致，改那边记得回来改这里。
+       （原先写的是 assets/css/page.css —— 那个文件 2026-09-28 拆成 critical-page.css
+       + critical-info.css 之后已经删除，别再去找它。）
        万一 Image Transformations 出问题，把 hugo.toml 的 params.avatarCDN 设成 false
        就退回发原图。 */ -}}
 {{- $avatar1x := $avatar -}}

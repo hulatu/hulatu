@@ -3,6 +3,14 @@
 {{- /* 每页期数跟着 hugo.toml 的 [pagination] pagerSize 走，模板不写死 */ -}}
 {{- $paginator := .Paginate $all -}}
 
+{{- /* 页面标题（2026-10-05 补）。这份模板是周刊专用的，此前**漏了 h1** ——
+     其他 5 个栏目页（归档 / 分类 / 标签 / 文章 / 书影音）都走 _default/list.html，
+     那里有这一行，所以只有 /weekly/ 和它的翻页页是无标题的页面
+     （全站 337 个产物 HTML 里 6 个缺 h1，其中 3 个来自这里）。
+     判据不是「看着少个标题」，是产物里 s.find('<h1') == -1 —— 屏幕阅读器进这一页
+     找不到主标题、无法按标题跳转，搜索引擎也拿不到栏目页的 H1。
+     hide_title 的判断和 list.html 保持一致，虽然全站目前没人写过这个字段。 */ -}}
+{{ if not .Params.hide_title }}<h1 class="page-title">{{ .Title }}</h1>{{ end }}
 <div class="weekly-simple">
   <a class="weekly-rss" href="{{ "weekly/index.xml" | relURL }}">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">

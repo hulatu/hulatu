@@ -793,6 +793,37 @@ Text Module Level 4 这批特性（`pretty` / `balance` / `hyphens` / `line-brea
 6. **新开一组连载 = 给那几篇加 `series` 字段**，不用改模板。`series` 不进 `hugo.toml` 的 `[taxonomies]`（没有 `series` 页、也不该有：它只需要这一个入口）。
 7. **`series` 不参与 `sync-lastmod.py` 的「实质改动」判断**（见「文章页的『更新于』」一节）：给老文章补字段不该让它们集体冒出更新章。
 
+### 404 页（2026-10-05 重做）
+
+改之前：整页只有一个 `<h2>最近更新</h2>`，那个大字「404」是 `<p>` 且挂了 `aria-hidden="true"` ——
+**页面没有一级标题**（屏幕阅读器进这一页找不到主标题、无法按标题跳转，搜索引擎也拿不到 H1）。
+内容也只有「回首页 / 搜索」两个按钮 + 三篇最近更新，对「想找某类内容」的人没有出口。
+
+现在的结构（`layouts/404.html`）：
+
+1. **上半是 `<h1>这一页不在账上</h1>`**，语义交给它；大字 404 保留但降级成纯水印（继续 `aria-hidden`）。
+2. **下半给两条互补的出路**：`.notfound-links`（归档 / 周刊 / 分类 / 标签 / 书影音 / 友链，六个栏目入口，
+   解决「我知道要找哪一类」）+ 「最近更新」三篇（解决「随便看看」）。
+3. **「随便看一篇」用 Hugo 的 `shuffle` 在构建时抽签**，所以每次发布换一篇。不做「每次刷新换一篇」：
+   那要把整个文章列表塞进页面，为一个 404 页多背几十 KB 不划算。
+
+几个要点：
+
+1. **大字 404 不是红的**，是 `color-mix(in srgb, var(--muted) 55%, var(--paper))` 的水印，字体走 `--font-meta`
+   （数字交给等宽，和列表里的日期同一档）。理由：这一页的红已经落在「回首页」那个实心主按钮上
+   （`--ctrl-solid-*`），一个装饰数字再抢一次红，同一页就有两处红。改中性后层级更清楚：
+   水印（最浅）→ 标题（墨）→ 正文（灰）→ 按钮（红）。
+2. **别把水印改成 `--line-strong`**：它和纸底的对比只有约 **1.4:1**，4.2rem 的大字会淡到几乎看不见。
+   55% 的 `--muted` 混纸底，浅色下约 `#9e9ea3`、深色下约 `#5d5d63`，两边都稳定落在 2.5–3:1。
+   走 `color-mix` + 变量而不是写死十六进制，深色主题才能跟着变。
+3. **`.notfound-links` 是两列账本，不是卡片**：语言照抄关于页的 `.about-link-list`
+   （无卡片、无投影、靠发丝线分行、hover 只变字色 + 右移），但排成两列 —— 六个入口排一列太高；
+   `≤600px` 收回一列。**刻意不给整行底色**：`DESIGN.md` 的 Don't 明写「不要在 hover 上挂底色块」。
+4. **区段标题复用 `.related-title`**（定义在 `critical.css`，404 页内联了这个模块），没有再起一个新类。
+5. **`.notfound-*` 全部住在 `critical-info.css`**（和 `.archive-*` / `.about-*` / `.friends-*` 同一份），
+   404 页的首屏包是 `critical + critical-info` —— 加新类时别写到 `critical-page.css` 去。
+   验收用 `python3 scripts/css-critical-coverage.py /tmp/site/404.html`，真缺口应为 0。
+
 ### 跑步数据
 
 跑步数据展示在独立的 `run.hulatu.com`。数据链路：Garmin 255 同步到 Garmin Connect → GitHub Actions 定时拉取或本机手动同步 → 合并写入 `data/runs.json`（唯一一份，子站靠挂载读取）和 `sites/profile/data/run_summary.json` → 提交推送 → Cloudflare Pages 构建对应子站。
@@ -885,7 +916,7 @@ curl -s "https://api.github.com/repos/hulatu/hulatu/commits/main/check-runs" \
 
 托管平台相关的两个文件都在 `static/`，部署时会原样发布：
 
-- `_headers`：缓存与安全响应头。**HTML、RSS、搜索索引、sitemap 一律 `max-age=0, must-revalidate`**（每次访问都发条件请求，没变回 304，变了立刻是新内容），**不要给这些加 `stale-while-revalidate`**：它会让 CDN 在回源刷新期间继续发旧页面（最长 24 小时），2026-09-28 那次「发了新文章、首页还是旧的」就是这么来的。这几条 HTML 规则其实和 Cloudflare Pages 的默认值相同（实测不写规则的 `/privacy/` 也是 `max-age=0, must-revalidate`），显式写一遍是为了不依赖平台的默认行为。静态资源长缓存：CSS/JS 1 年 immutable、图片 30 天（`/img/`、`/images/` 两条）、图标 7 天。规则按路径精确匹配，**新加文件类型或新目录时记得补一条**（`/images/` 就是漏了一整年）。**别给内容路径写资源规则**：曾经有一条 `/media/*`，本意是图片目录，结果把书影音内容页 `/media/` 一起套上了 30 天缓存（2026-09-28 线上实测确认，已删）——加规则前先确认这条路径没有被内容页占用。防嵌套那两条是 `X-Frame-Options: SAMEORIGIN` + `Content-Security-Policy: frame-ancestors 'self'`——**CSP 只写这一个指令**，其余留空才不会限制脚本/样式，不会影响 giscus。**HSTS**（`Strict-Transport-Security: max-age=31536000; includeSubDomains`）是 2026-09-28 加的：浏览器在一年内只肯用 HTTPS 访问本域和全部子域，从根上堵掉 SSL stripping 和「用户手打 http://」的中间人窗口。加之前实测过 `hulatu.com` / `www` / `profile` / `run` / `shot` / `share` / `img` 七个域名的 `http://` 全部 301 跳 https、图床 https 也能正常取图，所以 `includeSubDomains` 是安全的。**注意它是单向门**：浏览器一旦记住，max-age 到期前回不去 HTTP——想退出就把这条改成 `max-age=0`（已经记住的人要等它过期）。没加 `preload`：那需要另外去 hstspreload.org 提交、而且从预加载列表移除要等好几个月，收益只覆盖「第一次访问」那一瞬间，属于可选的后话。**三处都写了 HSTS**：主站 `static/_headers`、`sites/run/static/_headers`、`sites/shot/static/_headers`（后两处是为了读者第一次落地就在子站时也能立刻拿到）；顺带记一笔，`sites/profile` 和 `sites/share` **根本没有 `_headers` 文件**，连 `X-Content-Type-Options` 这类基础头都没有。注释要写在路径块外面，Cloudflare 只在整行以 `#` 开头时当注释。**这里的值只在 CDN 没有额外规则时才说了算**：Cloudflare 后台如果给 HTML 单独配了 Cache Rule 或 Browser Cache TTL，会覆盖它（判断方法：`curl -sSI https://hulatu.com/ | grep -i 'cache-control\|age\|cf-cache-status'`，`age` 很大而 `cf-cache-status: HIT` 就是被缓存住了；实测后台那条 Browser Cache TTL = 4 小时会把 `/images/avatar.webp` 这类静态资源的 max-age 改写成 14400）。**2026-09-28 逐路径核对线上响应头，发现首页这条规则没生效**：`/` 返回的是 `public, max-age=14400, must-revalidate` 且 `cf-cache-status: HIT`（`age` 一万多秒），而 `/page/2/`、`/archive/`、`/weekly/`、`/categories/`、`/tags/`、`/about/`、`/friends/`、文章页、`/index.xml`、`/sitemap.xml`、`/search-index.json` 全部是正确的 `max-age=0, must-revalidate`。同一份 `_headers`、同样的值，只有 `/` 被改写，说明是那条 `/` 规则没匹配上、首页退回了后台的 4 小时 Browser Cache TTL——**「发了新文章、首页还是旧的」的根因在这里，不在 `stale-while-revalidate`**（那个 2026-09-28 已经去掉了，但首页问题仍在）。排查顺序：① `Caching → Configuration → Browser Cache TTL` 改成 **Respect Existing Headers**；② 查 `Caching → Cache Rules` 和 `Rules → Page Rules` 有没有针对根路径的规则；③ 想确认是不是规则没命中，在 `_headers` 的 `/` 块里临时加一行 `X-Test-Root: 1`，发布后 `curl -sSI https://hulatu.com/ | grep -i x-test-root`——没出现就是没匹配。**不要**图省事加一条 `/*` 兜底：Cloudflare 多条规则命中时同名字段会**逗号拼接**，`/*` 会和 `/css/*` 撞成 `max-age=0, ..., max-age=31536000, immutable`。
+- `_headers`：缓存与安全响应头。**HTML、RSS、搜索索引、sitemap 一律 `max-age=0, must-revalidate`**（每次访问都发条件请求，没变回 304，变了立刻是新内容），**不要给这些加 `stale-while-revalidate`**：它会让 CDN 在回源刷新期间继续发旧页面（最长 24 小时），2026-09-28 那次「发了新文章、首页还是旧的」就是这么来的。这几条 HTML 规则其实和 Cloudflare Pages 的默认值相同（实测不写规则的 `/privacy/` 也是 `max-age=0, must-revalidate`），显式写一遍是为了不依赖平台的默认行为。静态资源长缓存：CSS/JS 1 年 immutable、图片 30 天（`/images/*` 一条）、图标 7 天。规则按路径精确匹配，**新加文件类型或新目录时记得补一条**（`/images/` 就是漏了一整年）。**别给内容路径写资源规则**：曾经有一条 `/media/*`，本意是图片目录，结果把书影音内容页 `/media/` 一起套上了 30 天缓存（2026-09-28 线上实测确认，已删）——加规则前先确认这条路径没有被内容页占用。防嵌套那两条是 `X-Frame-Options: SAMEORIGIN` + `Content-Security-Policy: frame-ancestors 'self'`——**CSP 只写这一个指令**，其余留空才不会限制脚本/样式，不会影响 giscus。**HSTS**（`Strict-Transport-Security: max-age=31536000; includeSubDomains`）是 2026-09-28 加的：浏览器在一年内只肯用 HTTPS 访问本域和全部子域，从根上堵掉 SSL stripping 和「用户手打 http://」的中间人窗口。加之前实测过 `hulatu.com` / `www` / `profile` / `run` / `shot` / `share` / `img` 七个域名的 `http://` 全部 301 跳 https、图床 https 也能正常取图，所以 `includeSubDomains` 是安全的。**注意它是单向门**：浏览器一旦记住，max-age 到期前回不去 HTTP——想退出就把这条改成 `max-age=0`（已经记住的人要等它过期）。没加 `preload`：那需要另外去 hstspreload.org 提交、而且从预加载列表移除要等好几个月，收益只覆盖「第一次访问」那一瞬间，属于可选的后话。**五处都写了 HSTS**：主站 `static/_headers` + 四个子站 `sites/{run,shot,share,profile}/static/_headers`（子站那几处是为了读者第一次落地就在子站时也能立刻拿到）。2026-10-05 逐份核对：四份子站 `_headers` **都在、都是 7 条**（6 条安全头 + `/style.css` 的「7 天 + must-revalidate」）。此前这段写的「**三处**都写了 HSTS（主站 / run / shot）」和「`sites/profile` 和 `sites/share` **根本没有 `_headers` 文件**，连 `X-Content-Type-Options` 这类基础头都没有」**都已作废**（那是 2026-09-28 之前的实况），别再照抄。另外要记住：`X-Content-Type-Options` 和 `Referrer-Policy` 是 **Cloudflare 自己注入**的，所以线上看着有、源站不一定写了 —— 核对时要逐个头对回 `_headers` 文件，别被线上响应骗了。注释要写在路径块外面，Cloudflare 只在整行以 `#` 开头时当注释。**这里的值只在 CDN 没有额外规则时才说了算**：Cloudflare 后台如果给 HTML 单独配了 Cache Rule 或 Browser Cache TTL，会覆盖它（判断方法：`curl -sSI https://hulatu.com/ | grep -i 'cache-control\|age\|cf-cache-status'`，`age` 很大而 `cf-cache-status: HIT` 就是被缓存住了；实测后台那条 Browser Cache TTL = 4 小时会把 `/images/avatar.webp` 这类静态资源的 max-age 改写成 14400）。**2026-09-28 逐路径核对线上响应头，发现首页这条规则没生效**：`/` 返回的是 `public, max-age=14400, must-revalidate` 且 `cf-cache-status: HIT`（`age` 一万多秒），而 `/page/2/`、`/archive/`、`/weekly/`、`/categories/`、`/tags/`、`/about/`、`/friends/`、文章页、`/index.xml`、`/sitemap.xml`、`/search-index.json` 全部是正确的 `max-age=0, must-revalidate`。同一份 `_headers`、同样的值，只有 `/` 被改写，说明是那条 `/` 规则没匹配上、首页退回了后台的 4 小时 Browser Cache TTL——**「发了新文章、首页还是旧的」的根因在这里，不在 `stale-while-revalidate`**（那个 2026-09-28 已经去掉了，但首页问题仍在）。排查顺序：① `Caching → Configuration → Browser Cache TTL` 改成 **Respect Existing Headers**；② 查 `Caching → Cache Rules` 和 `Rules → Page Rules` 有没有针对根路径的规则；③ 想确认是不是规则没命中，在 `_headers` 的 `/` 块里临时加一行 `X-Test-Root: 1`，发布后 `curl -sSI https://hulatu.com/ | grep -i x-test-root`——没出现就是没匹配。**不要**图省事加一条 `/*` 兜底：Cloudflare 多条规则命中时同名字段会**逗号拼接**，`/*` 会和 `/css/*` 撞成 `max-age=0, ..., max-age=31536000, immutable`。
 - `_redirects`：旧链接 301 跳转。当前 5 条：`/running/ → run.hulatu.com`，以及两篇「slug 末尾多个句点」的老文章各两种写法（带点 / 不带点，因为 Cloudflare 会先 308 补斜杠）。**以后改文章的 slug 或移动文章，想保留旧链接的话在这里补一条 301**，否则旧链接会 404。
 
 ## 四、性能与 SEO 维护清单

@@ -478,16 +478,42 @@
 }.about-section > p a:hover,
 .about-section > p a:focus-visible {
   color: var(--accent-ink);
-}.notfound-code {
-  font-family: var(--font-serif);
-  font-size: clamp(3.4rem, 10vw, 5.4rem);
+}/* ---------- 404 ----------（2026-10-05 重做，配套 layouts/404.html）
+   三处改动：
+   ① 大字 404 从「印章红 + 衬线」改成「中性灰 + 等宽」的水印。
+      理由：DESIGN.md 说红只给「可交互 / 当前状态 / 焦点 / 一个签名时刻」，
+      而这一页的红已经落在「回首页」那个实心主按钮上（--ctrl-solid-*）。
+      一个装饰数字再抢一次红，同一页就有两处红。改中性之后层级反而更清楚：
+      水印（最浅）→ 标题（墨）→ 正文（灰）→ 按钮（红），一眼一层。
+      走 --font-meta 是站内「数字交给等宽」的既有规矩，和列表里的日期同一档。
+   ② 新增 .notfound-title 承接 h1（此前整页从 <h2> 起头，那个 404 是
+      挂 aria-hidden 的 <p>，对辅助技术不存在）。
+   ③ 新增 .notfound-nav / .notfound-links：按栏目逛的六个入口。
+      语言照抄 .about-link-list（无卡片、无投影、靠发丝线分行、
+      hover 只变字色 + 右移），但排成两列 —— 六个入口排一列太高。
+      **刻意不给整行底色**：DESIGN.md 明写「悬停只把标题变红，不做整行
+      位移 + 底色块 —— 那是卡片的语言」。 */
+.notfound-code {
+  font-family: var(--font-meta);
+  font-size: clamp(3rem, 8vw, 4.2rem);
   line-height: 1;
-  color: var(--accent);
-  margin: 0 0 var(--space-4);
+  letter-spacing: var(--tracking-num);
+  /* 水印的深浅：不能用 --line-strong —— 它和纸底的对比只有约 1.4:1，
+     4.2rem 的大字会淡到几乎看不见。这里按 55% 的 --muted 混纸底，
+     浅色下约 #9e9ea3、深色下约 #5d5d63，两边都稳定落在「看得见但不抢戏」的
+     2.5–3:1。走 color-mix + 变量而不是写死十六进制，深色主题才能跟着变。 */
+  color: color-mix(in srgb, var(--muted) 55%, var(--paper));
+  margin: 0 0 var(--space-3);
+}.notfound-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: var(--tracking-title);
+  margin: 0 0 var(--space-3);
 }.notfound-text {
   color: var(--muted);
   margin: 0 auto var(--space-6);
-  max-width: 24em;
+  max-width: 26em;
 }.notfound-actions {
   display: flex;
   justify-content: center;
@@ -534,12 +560,39 @@
   border-color: var(--ctrl-solid-active-border);
   color: var(--ctrl-solid-active-text);
   box-shadow: var(--ctrl-solid-active-shadow);
+}.notfound-nav {
+  margin-top: var(--space-8);
+}.notfound-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+}.notfound-links a {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-1);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  transition: color var(--dur-fast) var(--ease), padding-left var(--dur-fast) var(--ease);
+}.notfound-links a:hover,
+.notfound-links a:focus-visible {
+  color: var(--accent);
+  padding-left: var(--space-3);
+}.notfound-link-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-title);
+}.notfound-link-note {
+  color: var(--muted);
+  font-size: var(--text-2xs);
+  line-height: 1.5;
 }.notfound-list {
-  margin-top: var(--space-6);
+  margin-top: var(--space-8);
 }.notfound {
   text-align: center;
   padding: var(--space-10) 0 var(--space-6);
-}@media (max-width: 600px) {.about-head-card {
+}@media (max-width: 600px) {.notfound-links { grid-template-columns: 1fr; }.about-head-card {
     grid-template-columns: 1fr;
     gap: var(--space-5);
     padding: var(--space-7) var(--space-5) var(--space-6);

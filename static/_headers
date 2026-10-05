@@ -86,10 +86,13 @@
 /js/*
   Cache-Control: public, max-age=31536000, immutable
 
-/img/*
-  Cache-Control: public, max-age=2592000
-
-# 这里曾经有一条 `/media/*`（当初以为是图片目录，跟着 /img/ 一起写了 30 天）。
+# 2026-10-05 删掉了一条 `/img/*`（原本也写 30 天）。站内只有 `static/images/`，
+# 没有 `static/img/`，那条规则匹配不到任何文件 —— 是当初按「图片目录」的模糊记忆
+# 写下来的死代码。**别为了「以后可能会用」把它加回来**：真建了 `static/img/`
+# 再加，那时才知道该不该长缓存。`MAINTENANCE.md` 里「图片 30 天（`/img/`、`/images/` 两条）」
+# 的说法也一并改成了只有 `/images/*` 一条。
+#
+# 这里曾经还有一条 `/media/*`（当初以为是图片目录，跟着 /img/ 一起写了 30 天）。
 # 2026-09-28 实测发现是误伤：站内根本没有 `/media/` 静态资源（static/ 下只有 images/），
 # 而 `content/media/` 生成的书影音页正好在 `/media/`——线上 `curl -sSI https://hulatu.com/media/`
 # 返回的是 `cache-control: public, max-age=2592000`，等于改书影音内容后老访客 30 天看不到。

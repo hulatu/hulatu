@@ -1,12 +1,64 @@
 {{ define "main" }}
+{{- /* 404 页两段结构（2026-10-05 重做）：
+     上半「这一页不在账上」—— 唯一的一级标题在这里。此前整页从 <h2> 起头：
+     那个大字 404 是 <p> 且挂了 aria-hidden="true"，对辅助技术等于不存在。
+     现在把 404 降级成纯水印（aria-hidden 保留），语义交给 <h1>。
+     下半给两条**互补**的出路，这是本次重做的主要目的：
+       · notfound-links：按栏目逛 —— 解决「我知道我要找哪一类」；
+       · 最近更新 3 篇：按时间看 —— 解决「随便看看」。
+     两者都不需要额外请求，链接全是站内静态地址。 */ -}}
+{{- $random := "" -}}
+{{- with (where site.RegularPages "Type" "in" (slice "posts" "weekly")) -}}
+  {{- $random = index (shuffle .) 0 -}}
+{{- end -}}
+
 <div class="notfound">
   <p class="notfound-code" aria-hidden="true">404</p>
-  <p class="notfound-text">这里什么也没有。可以回首页，或者搜一下想找的内容。</p>
+  <h1 class="notfound-title">这一页不在账上</h1>
+  <p class="notfound-text">地址可能打错了，或者这篇文章已经搬走。可以回首页，也可以直接搜。</p>
   <div class="notfound-actions">
     <a class="notfound-btn notfound-btn-primary" href="{{ "/" | relURL }}">回首页</a>
     <button type="button" class="notfound-btn" data-open-search data-index="{{ "search-index.json" | relURL }}">搜索文章</button>
+    {{- /* 「随便看一篇」在构建时抽签（Hugo 的 shuffle），所以每次发布换一篇。
+           不做「每次刷新换一篇」是刻意的：那需要把整个文章列表塞进页面，
+           为了一个 404 页多背几十 KB 不划算。 */ -}}
+    {{- with $random }}
+    <a class="notfound-btn" href="{{ .RelPermalink }}">随便看一篇</a>
+    {{- end }}
   </div>
 </div>
+
+<section class="notfound-nav">
+  {{- /* 复用 .related-title 作为区段标题：它已经是站内「页内区段小标题」的既有样式
+         （定义在 critical.css，404 页内联了这个模块），再起一个同名新类只是重复。 */ -}}
+  <h2 class="related-title">逛逛别处</h2>
+  <div class="notfound-links">
+    <a href="{{ "archive/" | relURL }}">
+      <span class="notfound-link-title">归档</span>
+      <span class="notfound-link-note">全部文章，按年月翻阅</span>
+    </a>
+    <a href="{{ "weekly/" | relURL }}">
+      <span class="notfound-link-title">周刊</span>
+      <span class="notfound-link-note">每周日更新的合集</span>
+    </a>
+    <a href="{{ "categories/" | relURL }}">
+      <span class="notfound-link-title">分类</span>
+      <span class="notfound-link-note">按主题浏览</span>
+    </a>
+    <a href="{{ "tags/" | relURL }}">
+      <span class="notfound-link-title">标签</span>
+      <span class="notfound-link-note">关键词索引</span>
+    </a>
+    <a href="{{ "media/" | relURL }}">
+      <span class="notfound-link-title">书影音</span>
+      <span class="notfound-link-note">读完看完的推荐</span>
+    </a>
+    <a href="{{ "friends/" | relURL }}">
+      <span class="notfound-link-title">友链</span>
+      <span class="notfound-link-note">我常读的博客</span>
+    </a>
+  </div>
+</section>
 
 <section class="notfound-list">
   <h2 class="related-title">最近更新</h2>

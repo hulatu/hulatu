@@ -40,15 +40,24 @@ colors:
   dark-on-accent: "#250d08"
 
 typography:
+  # 注意：下面这几条是 2026-10-05 从 assets/css/critical.css:222-237 **逐字抄回来**的完整回退链。
+  # 此前这里是缩写版（衬线漏了 "Noto Serif CJK SC" / "STSong" / "SimSun" / "Times New Roman"，
+  # 无衬线漏了 "Segoe UI" / "Hiragino Sans GB" / "Helvetica Neue" / Arial，等宽漏了后两个中文族），
+  # 而这份文档是给 AI 读的 token 源 —— 栈短了会让后来者写出另一条回退链。
+  # 衬线栈的**顺序有意义**：前三个都是思源 / Noto 系，本机都没装才会一路落到 Songti SC；
+  # 把 Songti SC 写到最前面，在装了思源的机器上就会抢走优先级。改 CSS 时记得回来同步。
   font-serif:
-    fontFamily: '"Source Han Serif SC", "Noto Serif SC", "Songti SC", Georgia, serif'
+    fontFamily: '"Source Han Serif SC", "Noto Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", Georgia, "Times New Roman", serif'
     use: 站点名 / 页标题 / 文章标题 / 卡片标题
   font-sans:
-    fontFamily: '-apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif'
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif'
     use: 正文 / 导航 / 按钮 / 说明
   font-meta:
-    fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", monospace'
+    fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", monospace'
     use: 日期 / 字数 / 期号等以数字为主的元信息（等宽 → 列表里日期成列不抖）
+  font-mono:
+    fontFamily: 'ui-monospace, "SF Mono", "SFMono-Regular", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace'
+    use: 代码块与行内代码。**和 font-meta 是两个 token，别合并** —— critical.css 的注释写明「两者的演进方向不同：--font-mono 将来可能换成要下载的编程字体，元信息不该跟着变重」
 
   # 字号尺度：16px 基准 × 1.2；正文单独一档 17px
   text-2xs: 0.72rem
@@ -239,6 +248,10 @@ components:
 2. **无衬线**（`{typography.font-sans}`）—— 正文、导航、按钮、说明。**无衬线负责"阅读与结构"**。
 3. **等宽**（`{typography.font-meta}`）—— 日期、字数、期号。**等宽负责"元信息"**，让数字成列。
 
+   > 代码块另有一个 token：`{typography.font-mono}`（2026-10-05 补登记，此前漏在文档外）。
+   > 它和 `font-meta` **刻意分开**：`--font-mono` 将来可能换成要下载的编程字体，
+   > 而元信息不该跟着变重 —— 理由写在 `critical.css` 的注释里。别把两者合并成一个。
+
 > 这三条分工是从 [Wired 的编辑系统](https://getdesign.md) 借来的：*serif for narrative, sans for structure, mono for taxonomy*。不要跨界 —— 标题不要用无衬线，正文不要用等宽。
 
 ### 层级
@@ -277,7 +290,13 @@ components:
 ### 响应式
 - **≤760px**：正文降一档（17→15px）、H2/H3 各降一档、页头收成 logo + 图标 + 汉堡下拉。
 - **≤600px**：页脚由横排转竖排居中。
-- 断点只设两个（760 / 600），不追设备型号。
+- 断点只有**三档**：**1152 / 760 / 600**，不追设备型号。1152 是「侧边目录放不放得下」的阈值
+  （2026-09-29 从 1280 降下来，见上一条），760 / 600 是移动端的两级微调。
+  注意 1152 那一档在 `critical-post.css` 里是**成对**的：一条 `min-width: 1152px`
+  + 文件末尾两条 `max-width: 1151.98px`（一条藏刻度栏、一条显示 `.post-toc-inline`）
+  + `single.html` 里的说明注释，**改一处必须四处同改**。
+  （原文写「只设两个（760 / 600）」，2026-10-05 修正 —— 它和本文档上一条、以及
+  `MAINTENANCE.md` 的「响应式断点速查」都对不上。）
 
 ## Elevation & Depth
 
@@ -389,6 +408,23 @@ components:
 - **节标题前那颗菱形改中性**（2026-10-04）。关于页 `.about-body` 有 6 个 section（我是谁 / 网站导览 / 订阅 / 平台 / 联系 / 支持），原先**每节标题前都点一颗印章红菱形 —— 一页 6 处红**，把「印章红必须稀缺」（设计目标第 3 条）摊成了底色。红的语义是「可交互 / 当前状态 / 焦点 / 一个签名时刻」，一个纯装饰的分节标记不在其列。
   现在 `.about-section h2::before` 的 `background` 从 `{colors.accent}` 改为 `{colors.line-strong}` —— 与 `.about-body` 的分节线（`.about-section + .about-section`）**同色**，两者在「线的语法」里同属「结构性分节」。**形保留、色去掉**：45° 旋转的方仍是「印章的方」，只是不再用红。
   改完之后这一页的红只剩三处有语义的地方：角色行前那个 5px 小点（2026-09-29 定下的「本页一处红」）、段落里的行内链接、可交互元素的 hover / active 态。
+
+### 404 页（2026-10-05 重做）
+- **两段结构：上半「这一页不在账上」，下半「去哪儿」。** 上半是唯一的一级标题（`<h1>`），
+  大字 404 降级成纯水印（继续 `aria-hidden`）；下半给两条**互补**的出路 ——
+  「逛逛别处」按栏目逛（解决「我知道要找哪一类」），「最近更新」按时间看（解决「随便看看」）。
+  此前整页从 `<h2>` 起头、没有任何 `<h1>`，是站内唯一一处这样的页面。
+- **大字 404 不是红的。** 它是 `color-mix(in srgb, {colors.muted} 55%, {colors.paper})` 的水印，
+  字体走 `{typography.font-meta}`（数字交给等宽，和列表里的日期同一档）。
+  理由：这一页的红已经落在「回首页」那个实心主按钮上（`--ctrl-solid-*`），
+  一个装饰数字再抢一次红，同一页就有两处红 —— 而 `{colors.accent}` 的规矩是「稀缺才有力量」。
+  改中性之后层级反而更清楚：**水印（最浅）→ 标题（墨）→ 正文（灰）→ 按钮（红）**。
+  别用 `{colors.line-strong}`：它和纸底的对比只有约 1.4:1，4.2rem 的大字会淡到看不见。
+- **「逛逛别处」是两列账本，不是卡片。** 语言照抄关于页的 `about-link-list`
+  （无卡片、无投影、靠发丝线分行、hover 只变字色 + 右移），但排成两列 —— 六个入口排一列太高；
+  ≤600px 收回一列。**刻意不给整行底色**：Don't 里明写「不要在 hover 上挂底色块」。
+- **「随便看一篇」是构建时抽签**（Hugo 的 `shuffle`），所以每次发布换一篇。
+  不做「每次刷新换一篇」：那要把整个文章列表塞进页面，为一个 404 页多背几十 KB 不划算。
 
 ## Do's and Don'ts
 
