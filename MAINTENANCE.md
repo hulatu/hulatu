@@ -345,6 +345,80 @@ PY
 
 目前用上 `--font-meta` 的选择器，按模块分：`critical.css` 的 `.post-row-date`；`critical-post.css` 的 `.post-meta`、`.issue-badge-num`；`critical-page.css` 的 `.minimal-date`；`critical-info.css` 的 `.archive-item-date`、`.archive-total strong`、`.archive-count`、`.archive-month`。**新增日期类元素时记得挂上，否则列表里会出现「同宽的日期里夹一个比例宽度日期」的违和感。**
 
+### 中英混排空距：CSS 原生，不再人工加空格（2026-10-06 新增）
+
+以前的做法是**在源码里手打空格**（盘古之白）。人工必然有漏：扫 `content/` 下 133 个 `.md`，
+加了 1540 处、漏了 213 处（「定好20分钟」「在观看B站视频」「16G内存」这种）。
+现在由 `critical.css` 的 `:root` 里一行补齐：
+
+```css
+:root { text-autospace: normal; }              /* = ideograph-alpha + ideograph-numeric */
+pre, code, kbd, samp { text-autospace: no-autospace; }   /* 等宽内容必须排除 */
+```
+
+四条硬规则：
+
+1. **必须显式声明。** 规范的初始值虽然是 `normal`，但**所有浏览器实现都改成了 `no-autospace`**
+   （性能考量）—— 不写这一行就永远不生效。（Baseline 2025：Chrome/Edge 140+、Safari 18.4+、Firefox 144+）
+2. **它是 `insert` 语义，只补不覆盖。** 只在没有空格的地方插，已有的 1540 处一个都不动
+   —— 所以**不要**去「清理」正文里的人工空格，那是白干。
+3. **`replace` 目前 0 浏览器支持**（`insert` 也只有 Firefox 认）。想「把已有空格统一成规范空距」
+   那条路是死的，写了两个关键字都白搭。
+4. **代码块必须排除**，否则等宽对齐会被推开。规则放 `critical.css`（所有页型都内联的第一份，
+   见 `layouts/partials/css-modules.html` 的 `$c`），不放 `critical-post.css` —— `<code>`
+   在文章页之外（隐私政策、关于页）也出现。
+
+**已知代价（不是 bug）**：`text-autospace` 与 `letter-spacing` 是**相加**关系（MDN 明写）。
+标题的 `--tracking-title` 对手打空格同样生效，所以两者在标题里**完全同宽**
+（实测 Songti SC 的 `U+0020` = 0.250em）；正文用 PingFang SC（`U+0020` = 0.333em），
+所以**正文里新补的空距会比原有的窄约 25%**（17px 下差约 1.4px）。
+要复算这两个宽度：fontTools 读 `hmtx` 里 `' '` 与 `'汉'` 的 advance 比值。
+
+### 标题孤行保护（2026-10-06 新增）
+
+`layouts/partials/orphan-safe.html`：把标题**末 2 字**包进 `<span class="nowrap">`。
+样式是 `critical.css` 里那三条 `.nowrap { white-space: nowrap }`。
+借鉴 Apple 官网的做法（少数派《Apple 官网排版细节鉴赏》「避免孤行」一节）。
+
+**调用点（6 处，加新的标题渲染位置时记得一起挂）：**
+
+| 文件 | 元素 |
+|---|---|
+| `layouts/_default/single.html` | `h1.post-title` |
+| `layouts/partials/post-row.html` | `.post-row-title` |
+| `layouts/partials/post-row-compact.html` | `.post-row-title`（首页 + 相关文章） |
+| `layouts/partials/post-row-minimal.html` | `.minimal-title`（周刊 / 分类 / 标签） |
+| `layouts/_default/archive.html` | `.archive-item-title` |
+| `layouts/partials/media-card.html` | `.media-title`（书影音卡片） |
+
+> 书影音卡片那处是**主动补的**，不在最初商定的「四个列表行」里 —— 因为这一页历来被漏
+> （DESIGN.md 记着 2026-10-04 也是「只按列表行去搜、漏了卡片页」）。实测它的
+> 「禅与摩托车维修艺术」在手机上会孤一个「术」，与列表行是同一个毛病。
+
+**为什么是末 2 字（这条别改）：** 保护末 N 字**只对「末行恰好 1 字」的标题生效** ——
+末行本来就有 2 字时（如「世界」）断点本来就在它们前面，包不包都一样。
+所以保 2 字是**最小干预**：实测 127 条标题里只动 **9 条**孤字标题，其余 118 条断行零变化。
+保 3 字会连「末行 2 字」的标题一起动，首行还要再短一个字；Apple 中文站用 4 字量级，
+但实测首行会被拉掉 3–4 个字，换行节奏明显变了。
+
+**代价（刻意接受，用户 2026-10-06 拍板「方案 A」）：** 那 9 条的首行会比自然换行短 1 个字
+（手机上约 28px）。这与 DESIGN.md「标题排到最右再自然换行」是**折中**，不是推翻 ——
+**定点修 9 条 ≠ `balance` 全局改每一条**。
+
+**实现坑（改这个 partial 时先看）：**
+
+- 必须用 `countrunes` 数长度。Hugo 的 `len` 对字符串返回的是**字节数**，中文一个字算 3。
+- 切末 2 字用 `replaceRE` 而不是 `substr`，且要在 **`htmlEscape` 之前**切。
+  否则标题里的 `&` 先变成 `&amp;`，`(..)$` 就会切到「;M」这种半个实体上、把标记弄坏。
+  Go 的正则 `.` 按 **rune** 匹配，正好绕开 `substr` 的字节/字符口径问题。
+- 验证方法：构建后在产物里抓 `<span class=nowrap>([^<]*)</span>`，**每个片段都应该是 2 个字符**
+  （含收尾标点则最多 3 个 rune）。出现空串或长串就是切分错了。
+
+**复算孤行的脚本口径：** 用真实 `Songti.ttc` 的 `hmtx` 量字宽（`advance / unitsPerEm * fontSize + letterSpacing`），
+再自己跑贪心断行 —— **溢出时要回退到「上一个合法断点」，不能硬塞**（否则算出来是 1 行，全是假阴性）。
+断点规则三条够用：汉字之间可断；收尾标点（`，。、；：？！）」』》〉】”’…—％`）前不可断、
+起首标点（`（「『《〈【“‘`）后不可断；拉丁字母/数字之间不可断。
+
 ### 中文强调用着重号，不用斜体（2026-10-02 新增）
 
 Markdown 的 `*强调*` → `<em>`。**别让它斜着**：中文没有真正的斜体字重，浏览器会拿正体做

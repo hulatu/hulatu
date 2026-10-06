@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apple 借鉴审计 · 中文排版与交互 — 胡拉图说</title>
+<style>
+/* ============================================================
+   Apple 借鉴审计页 —— 用站点自己的设计语言排版。
+   token 逐字抄自 assets/css/critical.css 的 :root（2026-10-06 现读）。
+   本页 **不** 开启 text-autospace：现状 mockup 必须保持真实，
+   只有在「改造后」的样例上显式声明。
+   ============================================================ */
+:root{
+  --paper:#f6f6f8; --surface:#fff; --surface-2:#ececf1;
+  --ink:#1d1d1f; --ink-soft:#3f3f45; --muted:#56565c;
+  --line:#e4e4e9; --line-strong:#d3d3da;
+  --accent:#c73e2f; --accent-ink:#a83226; --accent-soft:#fbeae7;
+  --font-serif:"Source Han Serif SC","Noto Serif SC","Noto Serif CJK SC","Songti SC","STSong","SimSun",Georgia,"Times New Roman",serif;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  --font-meta:ui-monospace,"SF Mono",Menlo,Consolas,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",monospace;
+  --tracking-title:.02em; --tracking-label:.06em; --tracking-num:.04em;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--font-sans); font-size:17px; line-height:1.8;
+  text-autospace:no-autospace;
+}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+
+/* ---------- 页头 ---------- */
+.page-head{padding:56px 0 28px;border-bottom:1px solid var(--line)}
+.kicker{
+  font-family:var(--font-meta); font-size:.86rem; letter-spacing:var(--tracking-label);
+  color:var(--accent); margin:0 0 12px;
+}
+.page-head h1{
+  font-family:var(--font-serif); font-weight:500; font-size:2.07rem;
+  line-height:1.4; letter-spacing:var(--tracking-title); margin:0 0 14px;
+}
+.page-head .lede{color:var(--ink-soft);margin:0 0 18px;max-width:680px}
+.sources{font-family:var(--font-meta);font-size:.8rem;color:var(--muted);margin:0;line-height:1.9}
+.sources a{color:var(--accent-ink);text-decoration:underline;text-underline-offset:2px}
+
+/* ---------- 通用块 ---------- */
+section{padding:40px 0;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+h2{
+  font-family:var(--font-serif); font-weight:500; font-size:1.44rem;
+  line-height:1.4; letter-spacing:var(--tracking-title); margin:0 0 18px;
+  padding-left:14px; position:relative;
+}
+h2::before{
+  content:""; position:absolute; left:0; top:.42em;
+  width:3px; height:.92em; background:var(--accent); border-radius:2px;
+}
+h3{
+  font-family:var(--font-serif); font-weight:700; font-size:1.0625rem;
+  line-height:1.5; margin:28px 0 10px;
+}
+p{margin:0 0 16px;max-width:680px}
+ul,ol{margin:0 0 16px;padding-left:22px;max-width:680px}
+li{margin-bottom:7px}
+strong{font-weight:700}
+code{
+  font-family:var(--font-mono,ui-monospace,"SF Mono",Menlo,monospace);
+  font-size:.88em; background:var(--surface-2); border:1px solid var(--line);
+  border-radius:5px; padding:.08em .38em;
+}
+a{color:var(--accent-ink)}
+
+/* ---------- 结论卡 ---------- */
+.verdict{
+  background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent);
+  border-radius:10px; padding:20px 22px; margin:0 0 8px; max-width:680px;
+}
+.verdict p:last-child{margin-bottom:0}
+
+/* ---------- 已实施横幅 ---------- */
+.impl{
+  background:#eef6f0; border:1px solid #cfe3d5; border-left:3px solid #2f7d4f;
+  border-radius:10px; padding:18px 20px; margin:24px 0 0; max-width:680px;
+}
+.impl h2{
+  font-family:var(--font-meta); font-size:.78rem; letter-spacing:var(--tracking-label);
+  color:#2f7d4f; margin:0 0 10px; padding:0;
+}
+.impl h2::before{content:none}
+.impl ul{margin:0 0 10px;padding-left:20px}
+.impl li{font-size:.92rem;line-height:1.65;margin-bottom:5px}
+.impl p{margin:0;font-size:.88rem;color:var(--ink-soft)}
+.impl code{background:#fff;border-color:#cfe3d5}
+
+/* ---------- 表格 ---------- */
+.tbl-wrap{overflow-x:auto;margin:0 0 20px}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.9rem}
+th,td{
+  text-align:left; padding:10px 12px; border-bottom:1px solid var(--line);
+  vertical-align:top; line-height:1.6;
+}
+thead th{
+  font-family:var(--font-meta); font-size:.78rem; letter-spacing:var(--tracking-label);
+  color:var(--muted); font-weight:400; border-bottom:1px solid var(--line-strong);
+}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{font-family:var(--font-meta);font-variant-numeric:tabular-nums;letter-spacing:var(--tracking-num);white-space:nowrap}
+
+/* 裁决徽章 */
+.badge{
+  display:inline-block; font-family:var(--font-meta); font-size:.72rem;
+  letter-spacing:var(--tracking-label); border-radius:999px;
+  padding:.16em .6em; white-space:nowrap; border:1px solid;
+}
+.b-yes{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent-ink)}
+.b-no{background:var(--surface-2);border-color:var(--line-strong);color:var(--muted)}
+.b-done{background:transparent;border-color:var(--line-strong);color:var(--ink-soft)}
+
+/* ---------- 事实卡 ---------- */
+.facts{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:1px; background:var(--line); border:1px solid var(--line);
+  border-radius:10px; overflow:hidden; margin:0 0 20px; max-width:680px;
+}
+.fact{background:var(--paper);padding:14px 16px}
+.fact dt{
+  font-family:var(--font-meta); font-size:.72rem; letter-spacing:var(--tracking-label);
+  color:var(--muted); margin:0 0 6px;
+}
+.fact dd{
+  margin:0; font-family:var(--font-meta); font-size:1.06rem; letter-spacing:var(--tracking-num);
+  font-variant-numeric:tabular-nums; color:var(--ink);
+}
+.fact dd small{display:block;font-family:var(--font-sans);font-size:.78rem;letter-spacing:0;color:var(--muted);margin-top:4px;line-height:1.5}
+
+/* ---------- mockup ---------- */
+.mock{
+  border:1px solid var(--line); border-radius:10px; background:var(--surface);
+  padding:18px 20px; margin:0 0 8px; overflow-x:auto;
+}
+.mock-label{
+  font-family:var(--font-meta); font-size:.74rem; letter-spacing:var(--tracking-label);
+  color:var(--muted); margin:0 0 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+}
+.tag{
+  font-family:var(--font-meta); font-size:.68rem; letter-spacing:var(--tracking-label);
+  border:1px solid var(--line-strong); border-radius:999px; padding:.1em .5em; color:var(--ink-soft);
+}
+.tag.now{border-color:var(--line-strong);color:var(--muted)}
+.tag.after{border-color:var(--accent-soft);background:var(--accent-soft);color:var(--accent-ink)}
+
+/* 标题 mockup：真实值 —— 桌面 38px/680px、手机 28px/350px、字距 .02em */
+.m-title{
+  font-family:var(--font-serif); font-weight:500; letter-spacing:var(--tracking-title);
+  line-height:1.45; color:var(--ink); margin:0 0 14px;
+  border:1px dashed var(--line-strong); padding:8px 10px; border-radius:6px;
+}
+.m-title.desk{font-size:38px;width:680px;max-width:none}
+.m-title.phone{font-size:28px;width:350px}
+.m-title:last-child{margin-bottom:0}
+/* 末字孤行高亮：只用 background，不影响断行 */
+.lone{background:rgba(199,62,47,.16);border-radius:2px}
+/* Apple 的 nowrap 保护 */
+.nw{white-space:nowrap}
+/* 模拟的自动空距：0.22em 行内空块（真实值由浏览器决定） */
+.as{display:inline-block;width:.22em}
+.demo-live{text-autospace:normal}
+.demo-off{text-autospace:no-autospace}
+.mock-note{font-size:.84rem;color:var(--muted);margin:0 0 20px;max-width:680px}
+
+/* ---------- 代码块 ---------- */
+pre{
+  background:var(--surface-2); border:1px solid var(--line); border-radius:10px;
+  padding:14px 16px; overflow-x:auto; margin:0 0 18px;
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:.84rem; line-height:1.7; color:var(--ink);
+}
+pre .c{color:var(--muted)}
+pre .k{color:var(--accent-ink)}
+
+/* ---------- 清单 ---------- */
+.todo{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0 0 18px;max-width:680px}
+.todo-head{
+  background:var(--surface-2); padding:9px 14px; font-family:var(--font-meta);
+  font-size:.76rem; letter-spacing:var(--tracking-label); color:var(--ink-soft);
+  border-bottom:1px solid var(--line);
+}
+.todo-item{display:flex;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line);background:var(--surface)}
+.todo-item:last-child{border-bottom:0}
+.todo-item .p{font-family:var(--font-meta);font-size:.76rem;letter-spacing:var(--tracking-label);color:var(--accent-ink);white-space:nowrap;padding-top:3px}
+.todo-item .body{font-size:.92rem;line-height:1.65}
+.todo-item .body b{font-family:var(--font-serif);font-weight:700;display:block;margin-bottom:3px;font-size:.98rem}
+.todo-item .body .file{font-family:var(--font-meta);font-size:.78rem;color:var(--muted);display:block;margin-top:5px}
+
+/* ---------- 问题卡 ---------- */
+.question{
+  background:var(--surface); border:1px solid var(--line-strong);
+  border-radius:10px; padding:22px; max-width:680px;
+}
+.question h3{margin-top:0}
+.opts{list-style:none;padding:0;margin:14px 0 0}
+.opts li{
+  border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:10px;
+  font-size:.92rem; line-height:1.65; background:var(--paper);
+}
+.opts li b{font-family:var(--font-meta);font-size:.8rem;letter-spacing:var(--tracking-label);color:var(--accent-ink)}
+.opts li:last-child{margin-bottom:0}
+
+footer{padding:32px 0 64px;color:var(--muted);font-size:.84rem}
+footer p{max-width:680px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="page-head">
+  <p class="kicker">设计评审 · 2026-10-06</p>
+  <h1>Apple 借鉴审计 —— 中文排版与交互</h1>
+  <p class="lede">
+    拿 Apple 官网与少数派《Apple 官网排版细节鉴赏》里列出的技法，逐条对照 hulatu.com。
+    结论不是「照着 Apple 改」，而是：<strong>哪些该搬、哪些搬不了、哪些你已经赢过它</strong>。
+  </p>
+  <p class="sources">
+    对照源：<a href="https://sspai.com/post/115399">《Apple 官网排版细节鉴赏》</a> ·
+    <a href="https://www.apple.com/">apple.com</a><br>
+    本页所有数字都由脚本从仓库现算（字体度量用 fontTools + 真实 Songti.ttc）；mockup 是手搓的真实渲染，<strong>不是截图</strong>。
+  </p>
+</header>
+
+<div class="impl">
+  <h2>已实施 · 2026-10-06</h2>
+  <ul>
+    <li><strong>P0-1 已做</strong> —— <code>critical.css</code> 的 <code>:root</code> 加了 <code>text-autospace: normal</code>，并给 <code>pre, code, kbd, samp</code> 加了 <code>no-autospace</code>。</li>
+    <li><strong>P0-2 已做（方案 A · 保末 2 字）</strong> —— 新建 <code>layouts/partials/orphan-safe.html</code>，在 <code>h1.post-title</code> 与列表行/归档/书影音卡片共 <strong>6 处</strong>调用；<code>critical.css</code> 加了 <code>.nowrap</code>。</li>
+    <li><strong>多做了一处（可以一行撤掉）</strong> —— 书影音卡片 <code>.media-title</code> 不在原商定的「四个列表行」里，但实测它的「禅与摩托车维修艺术」在手机上同样孤一个「术」，所以一并挂上了。孤字总数因此从 8 条变 <strong>9 条</strong>。</li>
+    <li><strong>P2 未做</strong> —— 多词术语防断、引用块标点悬挂都留着。</li>
+  </ul>
+  <p>
+    构建已验证：<code>hugo --gc --minify --cleanDestinationDir</code> → 329 页 / exit 0；
+    产物里 335/337 个页面带上了新规则（缺的 2 个是 Hugo 的分页跳转存根，本就不带 CSS）；
+    抓取全部 <code>&lt;span class=nowrap&gt;</code> 共 112 种片段，<strong>没有一个切分异常</strong>（都是 2 个字符）。
+    下面「执行清单」一节保留为改动前的原始建议，未回改。
+  </p>
+</div>
+
+<section>
+  <h2>一句话结论</h2>
+  <div class="verdict">
+    <p>
+      那篇文章列的 8 个技法里，<strong>5 个对本站不适用</strong>（而且原因都是可验证的，不是「感觉不适合」）；
+      真正值得搬的只有 <strong>2 条</strong>，但都是<strong>一次性改动、零回归</strong>的。
+    </p>
+    <p>
+      本站与 Apple 的差距<strong>不在视觉语言</strong> —— 纸 + 发丝线的克制，Apple 反而没有；
+      差距在<strong>中文排版的两处手艺</strong>：中英混排的自动空距，和标题的孤行保护。
+      这两件事，正是那篇文章花最多篇幅讲的。
+    </p>
+  </div>
+</section>
+
+<section>
+  <h2>逐条裁决</h2>
+  <p>先给结论表，后面只展开「值得搬」的两条与「不该搬」的证据。</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th style="width:30px">#</th><th>Apple 的技法</th><th>本站现状</th><th style="width:86px">裁决</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="num">1</td>
+          <td>定制 Web 字体 <code>SF Pro SC</code>：汉字调小、全角标点收窄到 0.5–0.6 倍</td>
+          <td>刻意不下载外部字体；衬线落到系统 <code>Songti SC</code></td>
+          <td><span class="badge b-no">搬不了</span></td>
+        </tr>
+        <tr>
+          <td class="num">1b</td>
+          <td>它的原生替代 <code>text-spacing-trim</code>（标点收紧）</td>
+          <td>未使用 —— 但<strong>两个主字体都没有 <code>halt</code>/<code>chws</code>，属性会被浏览器禁用</strong></td>
+          <td><span class="badge b-no">搬不了</span></td>
+        </tr>
+        <tr>
+          <td class="num">2</td>
+          <td><strong>避免孤行</strong>：末词包 <code>&lt;span class="nowrap"&gt;</code></td>
+          <td>无保护；实测 <strong>8 条标题</strong>末行只剩 1 个字</td>
+          <td><span class="badge b-yes">值得搬</span></td>
+        </tr>
+        <tr>
+          <td class="num">3</td>
+          <td>保护会被换行打断的词</td>
+          <td>拉丁词本来就不在词内断行；多词术语（<code>Cloudflare Pages</code>）无保护</td>
+          <td><span class="badge b-no">P2 再说</span></td>
+        </tr>
+        <tr>
+          <td class="num">4</td>
+          <td>响应式换行 <code>&lt;br class="small"&gt;</code></td>
+          <td>全站唯一固定标语「总得留下点什么吧」9 个字，1152 / 760 / 600 三档都不换行</td>
+          <td><span class="badge b-no">不适用</span></td>
+        </tr>
+        <tr>
+          <td class="num">5</td>
+          <td>英文产品名用 <code>&amp;nbsp;</code> 防断</td>
+          <td><code>content/</code> 里 <strong>0 处</strong> <code>&amp;nbsp;</code></td>
+          <td><span class="badge b-no">P2 再说</span></td>
+        </tr>
+        <tr>
+          <td class="num">6</td>
+          <td>居中标题的视觉校正（右移约 0.5em）</td>
+          <td>全站只有 <strong>1 个</strong>居中标题（首页卷首 <code>.hero-line</code>），且不带标点</td>
+          <td><span class="badge b-no">不适用</span></td>
+        </tr>
+        <tr>
+          <td class="num">7</td>
+          <td><strong>中英混排空距</strong>（盘古之白）</td>
+          <td>人工加空格 <strong>1540 处</strong>、漏了 <strong>213 处</strong></td>
+          <td><span class="badge b-yes">值得搬</span></td>
+        </tr>
+        <tr>
+          <td class="num">8</td>
+          <td>文案本地化（如「9 月 18 日」改写）</td>
+          <td>个人博客，无本地化需求</td>
+          <td><span class="badge b-no">不适用</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="mock-note">
+    「值得搬」2 条 · 「搬不了」2 条 · 「不适用」3 条 · 「P2」2 条。
+    另外 <code>text-wrap: balance</code> 这条你 2026-10-02 已经否掉了，理由（它让<strong>每一条</strong>多行标题的首行都变短）比 Apple 的做法更适合中文 —— 本次不改。
+  </p>
+</section>
+
+<section>
+  <h2>值得搬 ①　中英混排的自动空距</h2>
+  <p>
+    文章的第五节讲「盘古之白」。本站的做法是<strong>人工在源码里加空格</strong>，这与 Apple 一致（文章说 Apple 内部把加空格写进了文案规范）。
+    但人工做法有一个可量化的代价：
+  </p>
+  <dl class="facts">
+    <div class="fact"><dt>已加空格（正确）</dt><dd>1540<small>处 · CJK + 空格 + 拉丁/数字</small></dd></div>
+    <div class="fact"><dt>漏加（紧贴）</dt><dd>213<small>处 · 如「定好20分钟」「在观看B站视频」</small></dd></div>
+    <div class="fact"><dt>涉及正文文件</dt><dd>133<small>个 .md（已剔除代码块与行内代码）</small></dd></div>
+  </dl>
+  <p>
+    也就是说，<strong>同一篇文章里会同时出现「加了空格的」和「没加的」</strong>。这不是审美问题，是人工流程必然的漏。
+    2025 年 11 月起，CSS 给了原生解法，而且一行就够。
+  </p>
+
+  <h3>并排看：现状 vs 改造后</h3>
+  <div class="mock">
+    <p class="mock-label"><span class="tag now">现状</span> 红底 = 漏加空格的紧贴处</p>
+    <p class="demo-off" style="margin:0;font-size:17px">
+      定好<span class="lone">20</span>分钟的闹钟，午休不超过<span class="lone">30</span>分钟；在观看<span class="lone">B</span>站视频时，只有<span class="lone">16G</span>内存的 MacBook 也开始卡。
+    </p>
+  </div>
+  <div class="mock">
+    <p class="mock-label"><span class="tag after">改造后</span> 这一行<strong>真的</strong>开了 <code>text-autospace: normal</code></p>
+    <p class="demo-live" style="margin:0;font-size:17px">
+      定好20分钟的闹钟，午休不超过30分钟；在观看B站视频时，只有16G内存的 MacBook 也开始卡。
+    </p>
+  </div>
+  <div class="mock">
+    <p class="mock-label"><span class="tag">模拟版</span> 用 0.22em 行内空块画出，任何浏览器都能看到目标效果</p>
+    <p style="margin:0;font-size:17px">
+      定好<span class="as"></span>20<span class="as"></span>分钟的闹钟，午休不超过<span class="as"></span>30<span class="as"></span>分钟；在观看<span class="as"></span>B<span class="as"></span>站视频时，只有<span class="as"></span>16G<span class="as"></span>内存的 MacBook 也开始卡。
+    </p>
+  </div>
+  <p class="mock-note">
+    上面第二行是<strong>活的</strong>：你的浏览器支持 <code>text-autospace</code> 就会看到空距，不支持则与第一行相同 —— 所以补了第三行的模拟版。
+    三行都不是截图，是同一个 HTML 段落。
+  </p>
+
+  <h3>为什么它能一行搞定，以及三个必须知道的坑</h3>
+  <dl class="facts">
+    <div class="fact"><dt>必须显式声明</dt><dd>默认关闭<small>规范初始值是 <code>normal</code>，但所有浏览器实现都改成了 <code>no-autospace</code>（性能考量）—— 不写就永远不生效</small></dd></div>
+    <div class="fact"><dt>不会双倍空格</dt><dd>insert 语义<small>默认等价于 <code>insert</code>：只在<strong>没有</strong>空格处补，已手打的 1540 处不动</small></dd></div>
+    <div class="fact"><dt>与字距相加</dt><dd>additive<small>MDN 明写：<code>letter-spacing</code> 的量会<strong>叠加</strong>在自动空距之上</small></dd></div>
+  </dl>
+  <p><strong>坑 1 —— 补出来的空距比你手打的窄。</strong>我量了本站两个主字体的 <code>U+0020</code>：</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>字体</th><th>用在哪</th><th class="num">U+0020 宽度</th><th class="num">17px 下</th><th>与自动空距比</th></tr></thead>
+      <tbody>
+        <tr><td>Songti SC</td><td>标题（衬线）</td><td class="num">0.250 em</td><td class="num">4.25 px</td><td>标题里<strong>完全一致</strong>，无观感差</td></tr>
+        <tr><td>PingFang SC</td><td>正文（无衬线）</td><td class="num">0.333 em</td><td class="num">5.66 px</td><td>正文里自动空距<strong>更窄</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    浏览器插入的确切宽度由实现决定（规范与各家资料的口径在 1/8–1/4 em 之间不一致，落地后以实测为准）。
+    结论是：<strong>标题里可以放心开</strong>（Songti 的 0.25em 与手打空格同宽）；<strong>正文里会出现「新补的比原有的窄一点」</strong>，
+    一段话里两种空距相邻时理论上看得出来，实际上 17px 下差约 1.4px。
+  </p>
+  <p>
+    <strong>坑 2 —— <code>replace</code> 目前 0 支持。</strong>「把已有空格统一替换成规范空距」听起来正好治上面这个不一致，但
+    <code>insert</code> 只有 Firefox 支持、<code>replace</code> 截至 2025 年底<strong>没有任何浏览器支持</strong>。所以不要写它，写了两件事都白搭。
+  </p>
+  <p><strong>坑 3 —— 代码块必须排除。</strong>等宽对齐会被自动空距破坏：</p>
+<pre><span class="c">/* assets/css/critical.css 的 :root 里，紧挨着字体栈那段 */</span>
+:root {
+  <span class="k">text-autospace</span>: normal;   <span class="c">/* = ideograph-alpha + ideograph-numeric */</span>
+}
+<span class="c">/* 等宽内容一律关掉，否则代码块的中文注释会错位 */</span>
+pre, code, kbd, samp { <span class="k">text-autospace</span>: no-autospace; }</pre>
+  <p class="mock-note">
+    放 <code>critical.css</code> 而不是异步包：正文首屏就要用到，晚一拍会看到整页文字「抖一下」。
+    这条改动<strong>只增不减</strong>，回滚就是删两行。
+  </p>
+</section>
+
+<section>
+  <h2>值得搬 ②　标题的孤行保护</h2>
+  <p>
+    这是文章里最「Apple」的一条：<strong>把段落末尾那个词包进 <code>&lt;span class="nowrap"&gt;</code></strong>，
+    让它不被单独甩到下一行。文章举的例子是「碳排放。」被保护后，末行不会只剩「放。」。
+  </p>
+  <p>本站的情况我先量了一遍 —— 用真实的 Songti SC 字体度量 + 自己跑贪心断行，四档场景：</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>场景</th><th class="num">字号 / 容器</th><th class="num">会换行</th><th class="num">末行仅 1 字</th><th class="num">保末 2 字可救</th></tr></thead>
+      <tbody>
+        <tr><td>文章标题 <code>h1</code> · 桌面</td><td class="num">38px / 680px</td><td class="num">9 / 127</td><td class="num">1</td><td class="num">1</td></tr>
+        <tr><td>文章标题 <code>h1</code> · 手机</td><td class="num">28px / 350px</td><td class="num">36 / 127</td><td class="num"><strong>5</strong></td><td class="num">5</td></tr>
+        <tr><td>列表行标题 · 桌面</td><td class="num">16px / 680px</td><td class="num">0 / 127</td><td class="num">0</td><td class="num">0</td></tr>
+        <tr><td>列表行标题 · 手机</td><td class="num">16px / 350px</td><td class="num">3 / 127</td><td class="num">2</td><td class="num">2</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    合计 <strong>8 条标题</strong>末行只剩一个字。注意手机端才是重灾区：38px 的桌面只有 9 条标题换行，28px 的手机有 <strong>36 条</strong>。
+  </p>
+
+  <h3>并排看：手机端（350px 容器，28px 标题）</h3>
+  <div class="mock">
+    <p class="mock-label"><span class="tag now">现状</span> 末行只剩「法」</p>
+    <div class="m-title phone">一个有效控制午睡时间的方<span class="lone">法</span></div>
+  </div>
+  <div class="mock">
+    <p class="mock-label"><span class="tag after">改造后</span> 末 2 字包 <code>nowrap</code>，末行变成「方法」</p>
+    <div class="m-title phone">一个有效控制午睡时间的<span class="nw">方法</span></div>
+  </div>
+  <p class="mock-note">
+    这两块是<strong>活的</strong>：宽度 350px、字号 28px、字距 0.02em、字体栈与 <code>--font-serif</code> 一致，和手机上真实的断行条件相同。虚线框代表容器边缘。
+  </p>
+
+  <h3>并排看：桌面端（680px 容器，38px 标题）</h3>
+  <div class="mock">
+    <p class="mock-label"><span class="tag now">现状</span> 总宽 714px，只超出容器 34px → 末行孤一个「么」</p>
+    <div class="m-title desk">当我谈喜欢 or 讨厌的博客，我在谈些什<span class="lone">么</span></div>
+  </div>
+  <div class="mock">
+    <p class="mock-label"><span class="tag after">改造后</span> 末行变成「什么」</p>
+    <div class="m-title desk">当我谈喜欢 or 讨厌的博客，我在谈些<span class="nw">什么</span></div>
+  </div>
+
+  <h3>为什么是「末 2 字」，而不是 3 字或 4 字</h3>
+  <p>
+    关键在于<strong>保护末 N 字只对「末行恰好 1 字」的标题生效</strong>。若一条标题的末行本来就有 2 个字（如「世界」），
+    保护末 2 字并不会改变断点 —— 断点本来就在它们前面。所以：
+  </p>
+  <ul>
+    <li><strong>保末 2 字</strong>：只动那 8 条孤字标题，其余 <strong>119 条零变化</strong>。</li>
+    <li><strong>保末 3 字</strong>：会连「末行 2 字」的标题一起动（手机端另有 7 条），首行还要再短一个字。</li>
+    <li><strong>保末 4 字</strong>：Apple 中文站就是这个量级，但实测首行会被拉掉 3–4 个字（手机上 12 字 → 9 字），换行节奏明显变了。</li>
+  </ul>
+  <p>代价要说清楚：<strong>首行会比现在短 1 个字</strong>（手机上约 28px / 350px = 8%）。</p>
+
+  <h3>怎么实现</h3>
+  <p>Hugo 侧新建一个 partial，把标题的末 2 个字包起来，在渲染标题的地方调用：</p>
+<pre><span class="c">&lt;!-- layouts/partials/orphan-safe.html（新建） --&gt;</span>
+{{- $t := . -}}
+{{- $n := <span class="k">countrunes</span> $t -}}   <span class="c">&lt;!-- 必须用 countrunes：len 对字符串返回的是「字节数」 --&gt;</span>
+{{- if gt $n 2 -}}
+  {{- $head := <span class="k">substr</span> $t 0 (sub $n 2) -}}
+  {{- $tail := <span class="k">substr</span> $t (sub $n 2) -}}
+  {{- printf "%s&lt;span class=\"nowrap\"&gt;%s&lt;/span&gt;" (<span class="k">htmlEscape</span> $head) (<span class="k">htmlEscape</span> $tail) | <span class="k">safeHTML</span> -}}
+{{- else -}}
+  {{- $t -}}
+{{- end -}}</pre>
+  <p>
+    调用点：<code>layouts/_default/single.html</code> 的 <code>&lt;h1 class="post-title"&gt;</code>，
+    以及四个列表行 partial（<code>post-row.html</code> / <code>post-row-compact.html</code> / <code>post-row-minimal.html</code> / <code>archive.html</code>）—— 手机端列表行也有 2 条孤字。
+  </p>
+  <p class="mock-note">
+    两个必须注意的实现细节：① <code>len</code> 在 Hugo 里对字符串返回<strong>字节数</strong>，中文会算成 3 倍，一定要用 <code>countrunes</code>；
+    ② 拼 HTML 前要 <code>htmlEscape</code>，否则标题里的 <code>&amp;</code> 会破坏标记。
+  </p>
+</section>
+
+<section>
+  <h2>搬不了的两条，以及证据</h2>
+  <p>
+    Apple 那两个「变态细节」—— 汉字调小、全角标点收窄 —— <strong>都建立在同一件事上：Apple 自己发了一款字体</strong>
+    （<code>SF Pro SC</code>，非公开、只用于简体中文官网）。本站的设计系统明确「不下载外部字体」，所以这条路直接封死。
+  </p>
+  <p>
+    但文章没讲的是：CSS 层其实有个原生替代 <code>text-spacing-trim</code>（收紧 CJK 标点），
+    Chrome / Edge 123+ 已默认开启。听起来正好能补上这个缺口 —— <strong>可惜对本站无效</strong>。我查了两个主字体的 OpenType 表：
+  </p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>字体</th><th>用在哪</th><th>GSUB 表</th><th><code>halt</code></th><th><code>chws</code></th><th><code>palt</code></th></tr></thead>
+      <tbody>
+        <tr><td>Songti SC Regular</td><td>标题</td><td><strong>没有 GSUB 表</strong></td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Songti SC Bold</td><td>标题</td><td><strong>没有 GSUB 表</strong></td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>PingFang SC Regular</td><td>正文</td><td>25 个特性</td><td>无</td><td>无</td><td>无</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    MDN 在 <code>text-spacing-trim</code> 里写得很明确：<em>「字体必须带 <code>halt</code> 或 <code>chws</code> 特性；
+    两者都没有时，<code>text-spacing-trim</code> 会被禁用。」</em>
+    本站两个主字体<strong>恰好都没有</strong> —— 所以写上去是个静默无效的声明，比不写更糟（下次有人会以为它在起作用）。
+  </p>
+  <p class="mock-note">
+    顺带：Safari 的常见兜底写法 <code>font-feature-settings: "halt" 1</code> 同样无效 —— Songti SC 连 GSUB 表都没有，
+    请求一个不存在的特性就是空转。这条也一并否掉。
+  </p>
+  <p><strong>剩下三条「不适用」，理由都很短：</strong></p>
+  <ul>
+    <li><strong>响应式换行 <code>&lt;br class="small"&gt;</code></strong> —— Apple 用在「想升级，时机正正好。」这类固定标语上。本站唯一的固定标语是首页卷首「总得留下点什么吧」（9 字），三档断点下都不换行，没有需要控制的地方。</li>
+    <li><strong>居中标题的视觉校正</strong> —— 这条要成立，得先有「居中 + 末尾带标点」的标题。全站居中大标题只有首页卷首一个（<code>.site-hero</code> 是 <code>text-align: center</code>），内容是「总得留下点什么吧」，不带标点；<code>.page-title</code> 与 <code>.post-title</code> 都是左对齐。（关于页的 <code>.about-name</code> 也居中，但那是姓名不是标题，同样不带标点。）</li>
+    <li><strong>文案本地化</strong> —— Apple 改写「9 月 18 日」是为了规避风险，个人博客没有这个场景。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>你已经赢过 Apple 的地方</h2>
+  <p>这部分不是客套。诚实地列出来，是为了避免下次再花时间「向 Apple 靠拢」那些你已经做得更好的事：</p>
+  <ul>
+    <li><strong>零字体请求。</strong>Apple 简体中文官网首屏要下载 <code>SF Pro SC</code>（非公开、还得和 <code>SF Pro Display</code> 混排）。本站用系统栈，一个字体请求都没有 —— 这既是性能，也是 Bear Blog 血统带来的审美。代价就是上面那两条搬不了。</li>
+    <li><strong><code>&lt;html lang="zh-CN"&gt;</code> 早就写好了。</strong>这是 <code>text-autospace</code> 能生效的前提，也是浏览器走对 <code>locl</code> 与断行规则的前提 —— <code>baseof.html:3</code>。</li>
+    <li><strong>关键 CSS 内联，首屏 0 个阻塞请求。</strong>首屏用得到的规则全在 <code>critical.css</code> 里内联进 <code>&lt;head&gt;</code>，异步包只装滚动后才出现的东西。这套「首帧用不用得到」的归属判据，Apple 官网没走这条路。</li>
+    <li><strong>排版纪律是成文的。</strong><code>DESIGN.md</code> 480 行、<code>MAINTENANCE.md</code> 记着每条「故意这么设计」的理由。Apple 不会公开这个 —— 本站的每条规则都能被引用、被复算、被推翻。</li>
+    <li><strong>现代 CSS 已经吃得很透。</strong><code>view-transition-name</code>（跨页面标题过渡）、<code>:has()</code>（图片加载失败的虚线框）、<code>color-mix()</code>（水印色）、<code>clamp()</code> 都在用。这次要加的 <code>text-autospace</code> 是同一批东西。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>执行清单</h2>
+  <p>按优先级排。P0 只有两件，都是「一次性改完、零回归、随时可回滚」。</p>
+
+  <div class="todo">
+    <div class="todo-head">P0 — 收益最大，最该先动</div>
+    <div class="todo-item">
+      <span class="p">P0-1</span>
+      <span class="body">
+        <b>开启中英自动空距</b>
+        <code>:root</code> 加 <code>text-autospace: normal;</code>，同时给 <code>pre, code, kbd, samp</code> 加 <code>no-autospace</code>。补上 213 处漏打的空格；已有的 1540 处不受影响。
+        <span class="file">assets/css/critical.css（:root 段）</span>
+      </span>
+    </div>
+    <div class="todo-item">
+      <span class="p">P0-2</span>
+      <span class="body">
+        <b>标题孤行保护</b>
+        新建 <code>orphan-safe.html</code>，把标题末 2 字包进 <code>nowrap</code>；在 <code>h1.post-title</code> 与四个列表行 partial 调用。修掉 8 条孤字标题。
+        <span class="file">layouts/partials/orphan-safe.html（新建）+ single.html + 4 个列表行 partial</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="todo">
+    <div class="todo-head">P1 — 值得做，但要先看效果</div>
+    <div class="todo-item">
+      <span class="p">P1-1</span>
+      <span class="body">
+        <b>正文空距宽度目视复核</b>
+        落地 P0-1 后，找一篇中英混排最密的文章，确认「新补的窄空距」与「原有空格」相邻时不刺眼。刺眼则退回 P0-1 单独评估。
+        <span class="file">content/posts/ 任选一（建议《想消费-如何不买,也祛魅》）</span>
+      </span>
+    </div>
+    <div class="todo-item">
+      <span class="p">P1-2</span>
+      <span class="body">
+        <b>把两条新规则写进设计文档</b>
+        <code>DESIGN.md</code> 的 Typography 一节补「中英空距用 CSS 原生，不再依赖人工加空格」，并记下 Songti 0.250em / PingFang 0.333em 这组实测值。
+        <span class="file">DESIGN.md · MAINTENANCE.md</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="todo">
+    <div class="todo-head">P2 — 锦上添花，可做可不做</div>
+    <div class="todo-item">
+      <span class="p">P2-1</span>
+      <span class="body">
+        <b>多词术语防断</b>
+        <code>Cloudflare Pages</code> / <code>Hugo 0.167.0</code> 这类术语在窄屏会被从中间断开。需要内容约定（写 <code>&amp;nbsp;</code>）或加一个短代码。收益有限，因为它只影响窄屏的少数位置。
+        <span class="file">content/ 写作约定</span>
+      </span>
+    </div>
+    <div class="todo-item">
+      <span class="p">P2-2</span>
+      <span class="body">
+        <b>引用块标点悬挂</b>
+        <code>hanging-punctuation: first</code> 让段首引号挂进页边。只有 Safari 支持（且只认 <code>first</code>），属渐进增强 —— 失败时不影响阅读。
+        <span class="file">assets/css/critical-post.css（blockquote）</span>
+      </span>
+    </div>
+    <div class="todo-item">
+      <span class="p">P2-3</span>
+      <span class="body">
+        <b>把「搬不了」的两条记进 Known Gaps</b>
+        注明：全角标点收窄依赖带 <code>halt</code>/<code>chws</code> 的字体，本站两个主字体都没有，因此 <code>text-spacing-trim</code> 静默失效 —— 免得以后有人再试一遍。
+        <span class="file">DESIGN.md · Known Gaps</span>
+      </span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>要保留的（别在「现代化」的名义下改掉）</h2>
+  <ul>
+    <li><strong>不下载外部字体。</strong>这是本站能「零字体请求」的唯一原因，也是上面两条搬不了的根源。它是取舍，不是缺陷 —— 别为了对齐 Apple 去加载思源宋体。</li>
+    <li><strong>标题 <code>text-wrap: wrap</code>，不要 <code>balance</code>。</strong>你 2026-10-02 已经用真实数据否掉过它。孤行保护是<strong>定点修</strong>（只动 8 条），<code>balance</code> 是<strong>全局改</strong>（每条多行标题都变短）—— 两者不能混为一谈。</li>
+    <li><strong>纸 + 发丝线的层级。</strong>Apple 官网是满屏产品图 + 大圆角卡片 + 毛玻璃导航，那是「产品发布页」的语言。本站是账本，两者不该互相靠拢。</li>
+    <li><strong>单一印章红。</strong>Apple 用彩色产品图承担视觉，本站用一枚红章。这次的清单里没有任何一条要动红。</li>
+    <li><strong>人工加空格的既有内容不用回改。</strong><code>text-autospace</code> 是 <code>insert</code> 语义，只补不覆盖 —— 1540 处一个都不用动。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>需要你拍板的一个问题</h2>
+  <div class="question">
+    <h3>孤行保护会让首行比现在短一个字 —— 这与「标题排到最右再换行」有轻微张力</h3>
+    <p>
+      你 2026-10-02 定下的规矩是：<em>标题让它排到最右再自然换行，孤字是自然换行的偶发代价，不是缺陷</em>。
+      这条规矩我认同，而且它挡住了 <code>balance</code>。
+    </p>
+    <p>
+      但 Apple 的做法是第三种可能 —— <strong>既不用 <code>balance</code>，也不是放任</strong>：
+      只把末尾那 2 个字包起来。它只影响「末行恰好 1 字」的 8 条标题，其余 119 条一动不动；
+      代价是这 8 条的首行会短 1 个字（手机上约 28px）。这算不算破坏了你原来那条规矩？
+    </p>
+    <ul class="opts">
+      <li><b>方案 A（推荐）</b><br>保末 2 字。只修 8 条孤字标题，119 条零变化。首行短 1 字，但末行不再是孤零零的一个字。</li>
+      <li><b>方案 B</b><br>保末 3 字。更彻底（末行至少 3 字），但会连「末行 2 字」的标题一起动，首行短 2 字，影响面扩大到约 17 条。</li>
+      <li><b>方案 C</b><br>不动 CSS，沿用你原来的判断 —— 觉得哪条标题孤得难看，就改那条标题的文案。零风险，但要人记着。</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <p>
+    本页是<strong>评审</strong>，没有改任何代码。所有数字来自仓库现算：
+    标题断行用真实 <code>Songti.ttc</code> 的 <code>hmtx</code> 度量 + 贪心断行脚本；
+    中英空距统计扫描了 <code>content/</code> 下 133 个 <code>.md</code>（已剔除 front matter、代码块与行内代码）；
+    字体特性用 fontTools 读 <code>GSUB</code> 表。
+  </p>
+  <p>
+    确认方案后我再动手 —— 按你的习惯，可以只挑一个子集。
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

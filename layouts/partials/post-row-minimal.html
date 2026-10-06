@@ -2,7 +2,7 @@
        这个标记以前在 layouts/weekly/list.html 和 layouts/_default/taxonomy.html
        里各写了一份（其中一份还漏了 .minimal-meta 外壳），同样抽出来共用。 */ -}}
 <a class="minimal-row" href="{{ .Permalink }}">
-  <span class="minimal-title">{{ .Title }}</span>
+  <span class="minimal-title">{{ partial "orphan-safe.html" .Title }}</span>
   <span class="minimal-meta">
     <time class="minimal-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
   </span>

@@ -1,7 +1,10 @@
 <figure class="media-card">
   {{ with .Get "cover" }}<img class="media-cover" src="{{ . | relURL }}" alt="{{ $.Get "title" }}" loading="lazy" decoding="async">{{ end }}
   <figcaption class="media-body">
-    <p class="media-title">{{ .Get "title" }}</p>
+    {{- /* 2026-10-06：书影音标题也挂孤行保护。卡片列宽在手机上只有 135–170px，
+           实测「禅与摩托车维修艺术」会孤一个「术」—— 这一页历来是被漏掉的那一个
+           （DESIGN.md 记着 2026-10-04 也是「只按列表行去搜、漏了卡片页」）。 */ -}}
+    <p class="media-title">{{ partial "orphan-safe.html" (.Get "title") }}</p>
     {{ with .Get "creator" }}<p class="media-creator">{{ . }}</p>{{ end }}
   </figcaption>
 </figure>

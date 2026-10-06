@@ -1,7 +1,7 @@
 <a class="post-row" href="{{ .Permalink }}">
   <span class="post-row-main">
     <span class="post-row-title-line">
-      <span class="post-row-title">{{ .Title }}</span>
+      <span class="post-row-title">{{ partial "orphan-safe.html" .Title }}</span>
     </span>
     <span class="post-row-meta">
       <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>

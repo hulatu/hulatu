@@ -32,7 +32,8 @@
       <p class="issue-badge"><span class="issue-badge-label">周刊</span><span class="issue-badge-num">第 {{ . }} 期</span></p>
       {{- end -}}
     {{ end }}
-    <h1 class="post-title">{{ .Title }}</h1>
+    {{- /* 标题末 2 字包 nowrap，避免末行只剩一个字（见 partials/orphan-safe.html）。 */ -}}
+    <h1 class="post-title">{{ partial "orphan-safe.html" .Title }}</h1>
     {{- /* 文章才显示「发布于 / 更新于 / 字数 / 阅读时长」这行元信息。
            根目录那类普通页面（隐私政策等）也走这个模板，但它们不是文章，
            挂一行「发布于 2026-09-19 · 读 4 分钟」只会让人困惑。 */ -}}

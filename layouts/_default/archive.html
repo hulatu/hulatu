@@ -84,7 +84,7 @@
                      DOM 顺序也跟着换了，没有用 CSS order 去掰：视觉顺序和读屏顺序
                      保持一致，别让屏幕阅读器念出「20 标题」。
                      只渲染「日」：月份已经由上面的标签承担，这里再写一遍就是重复。 */ -}}
-              <span class="archive-item-title">{{ .Title }}</span>
+              <span class="archive-item-title">{{ partial "orphan-safe.html" .Title }}</span>
               <time class="archive-item-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "02" }}</time>
             </a>
           {{ end }}

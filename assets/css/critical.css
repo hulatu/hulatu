@@ -235,6 +235,28 @@
      --font-mono 将来可能换成要下载的编程字体，元信息不该跟着变重。 */
   --font-meta: ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", monospace;
+
+  /* ---------- 中英混排自动空距（2026-10-06）----------
+     本站一直的约定是「人工在源码里加空格」（盘古之白），但人工必然有漏：
+     扫 content/ 下 133 个 .md，加了 1540 处、漏了 213 处
+     （如「定好20分钟」「在观看B站视频」「16G内存」）。这里用 CSS 原生补齐。
+     只补不覆盖 —— 默认语义等价于 `insert`：只在**没有**空格的地方插，
+     已有的 1540 处一个都不动，所以不用回改任何文章。
+
+     ⚠️ 三条必须记住的事（都核实过，别重推）：
+     ① **必须显式声明**。规范的初始值虽然是 `normal`，但所有浏览器实现都改成了
+        `no-autospace`（性能考量）—— 不写这一行就永远不生效。
+        （Baseline 2025：Chrome/Edge 140+、Safari 18.4+、Firefox 144+）
+     ② **`replace` 目前 0 浏览器支持**（`insert` 也只有 Firefox 认）。想「把已有空格
+        统一成规范空距」那条路是死的，别写；写了两个关键字都白搭。
+     ③ 它与 `letter-spacing` 是**相加**关系（MDN 明写）。好在标题的
+        `--tracking-title` 对手打空格同样生效，所以两者在标题里**完全同宽**。
+        实测（fontTools 读 hmtx）：Songti SC 的 U+0020 = 0.250em（标题用，零观感差）；
+        PingFang SC = 0.333em（正文用，所以正文里**新补的会比原有的窄约 25%**，
+        17px 下差约 1.4px —— 这是已知代价，不是 bug）。
+
+     代码块要单独排除，见下面紧跟着的那条规则。 */
+  text-autospace: normal;
 }[data-theme="dark"] {
   color-scheme: dark;
 
@@ -286,6 +308,24 @@
   /* 深色下只有阴影要重写：其余四态变量都引用上面的取色，会自动跟着变。 */
   --ctrl-solid-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 26%, transparent);
   --ctrl-solid-hover-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 32%, transparent);
+}
+/* 等宽内容一律关掉自动空距：代码块里的中文注释会被它推开，破坏等宽对齐。
+   放 critical.css 而不是 critical-post.css —— critical.css 是所有页型都内联的第一份
+   （见 layouts/partials/css-modules.html 的 $c），而 <code> 在文章页之外
+   （隐私政策、关于页）也出现。text-autospace 是**继承**属性，所以必须显式改回。 */
+pre,
+code,
+kbd,
+samp {
+  text-autospace: no-autospace;
+}
+/* 孤行保护（2026-10-06）。由 layouts/partials/orphan-safe.html 把标题末 2 字包进这个
+   span —— 借鉴 Apple 官网的做法（少数派《Apple 官网排版细节鉴赏》「避免孤行」一节）。
+   保护末 2 字**只对「末行恰好 1 字」的标题生效**（末行本来就有 2 字时断点不变），
+   所以是零回归：实测 127 条标题里只动 9 条，其余 118 条断行完全不变。
+   放 critical.css：文章标题与首页列表行都在首屏第一帧。 */
+.nowrap {
+  white-space: nowrap;
 }* { box-sizing: border-box; }html {
   background-color: var(--paper);
   scroll-behavior: smooth;

@@ -2,6 +2,6 @@
        以前这段标记在 layouts/index.html 和 layouts/_default/single.html 里各抄了一份，
        改样式要改两处，所以抽到这里。用法：{{ partial "post-row-compact.html" . }} */ -}}
 <a class="post-row post-row-home" href="{{ .Permalink }}">
-  <span class="post-row-title">{{ .Title }}</span>
+  <span class="post-row-title">{{ partial "orphan-safe.html" .Title }}</span>
   <time class="post-row-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
 </a>
