@@ -16,6 +16,10 @@ HEAD 里没有的新文件也跳过：它们刚写出来，lastmod 和 date 本�
 会让这 9 篇的指纹全变，于是它们一起冒出「更新于 发布当天」—— 但读者视角里一个字都没改。
 字段本身在文件里照旧写进去，只是不参与「有没有实质改动」的判断。
 
+front matter 里的 YAML 注释同理（2026-10-07 加）：删掉 `# ===== 文章设置 =====` 这类
+archetype 占位行时，页面渲染结果一模一样，不该给这几篇盖「更新于」。判据只看第 0 列的 `#`，
+缩进的 `#` 可能是块标量（`|` / `>`）的正文，不能碰。
+
 为什么还要单独抹平空白：编辑器或清理脚本收拾行尾空格时，git 会把整批文件标成「已修改」，
 但内容一个字没变。只按字符串比较的话，这些文章的 lastmod 会被集体刷成发布时刻
 （2026-09-29 那次行尾空白清理一次就是 106 篇），文章页的「更新于」跟着集体往前跳，
@@ -123,6 +127,9 @@ def fingerprint_body(text: str) -> str:
     「只有一边有该字段」正是 series 的场景 —— 留下的空行会让指纹判出「有改动」，
     于是又要给老文章盖更新章。所以这里自己删整行，并把 front matter 里的纯空行一并压掉
     （front matter 里的空行本来就只是排版）。正文一个字都不碰。
+
+    另外也抹掉 front matter 里的 YAML 注释行（第 0 列以 # 开头）—— 注释不会出现在
+    任何页面上，清理 archetype 占位行不该算「改了文章」（2026-10-07 加）。
     """
     parts = _frontmatter.split(text)
     if not parts:
@@ -130,6 +137,11 @@ def fingerprint_body(text: str) -> str:
     front_matter, body = parts
     for key in IGNORED_FIELDS:
         front_matter = re.sub(rf"^{re.escape(key)}:[^\n]*\n?", "", front_matter, flags=re.M)
+    # front matter 里的 YAML 注释（整行以 # 开头）读者一个字都看不到，删它不算内容修订。
+    # 2026-10-07 新增：清掉 4 篇文章里 archetype 留下的「# ===== 文章设置 =====」占位行时，
+    # 这 4 篇本来会被盖上「更新于 发布当天」—— 但页面上什么都没变（和 series 是同一类）。
+    # 只认**第 0 列**的 #：缩进的 # 可能是块标量（`|` / `>`）里的正文，不能碰。
+    front_matter = re.sub(r"^#[^\n]*\n?", "", front_matter, flags=re.M)
     front_matter = re.sub(r"\n[ \t]*(?=\n)", "", front_matter)
     return front_matter + "\n" + body
 

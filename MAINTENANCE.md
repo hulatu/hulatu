@@ -909,7 +909,7 @@ Text Module Level 4 这批特性（`pretty` / `balance` / `hyphens` / `line-brea
 
 **三个文件**：内容 `content/stats.md`（只写 front matter + 一句导语，`layout: "stats"` 把它指到模板）、模板 `layouts/_default/stats.html`、样式在 `critical-info.css` 的「结算页」段。
 
-1. **纯构建期、零 JS。** 数据全部现读：`where site.RegularPages "Type" "in" (slice "posts" "weekly")`（正文与周刊一起算 —— 周刊 URL 虽在 `/posts/` 下，但 `.Section` 是 `weekly`，只判 URL 会漏掉 24 期）、`.WordCount` 汇总、`site.Taxonomies.categories` 出分类构成、`site.Data.runs.stats.totals` 出跑步。字数字径与文章页的「约 N 字」、归档页的「今年写了 N 字」完全一致。
+1. **纯构建期、零 JS。** 数据全部现读：`where site.RegularPages "Type" "in" (slice "posts" "weekly")`（正文与周刊一起算 —— 周刊 URL 虽在 `/posts/` 下，但 `.Section` 是 `weekly`，只判 URL 会漏掉 24 期）、`.WordCount` 汇总、`site.Taxonomies.categories` 出分类构成、`hugo.Data.runs.stats.totals` 出跑步。字数字径与文章页的「约 N 字」、归档页的「今年写了 N 字」完全一致。
 2. **写作格按「年-月」攒数走 `dict`**，不要每月跑一次 `where`：
    ```go-html-template
    {{- $grid := dict -}}
@@ -919,7 +919,7 @@ Text Module Level 4 这批特性（`pretty` / `balance` / `hyphens` / `line-brea
    {{- end -}}
    ```
    124 篇只遍历一遍。渲染时 `range seq 1 12` 逐月取，缺月的格子留空。
-3. **`data/runs.json` 缺席时整块跑步区不渲染**（`{{ with site.Data.runs }}` → `{{ with .stats }}` → `{{ with .totals }}` 层层收窄），构建不会因为缺数据炸掉。总账行里的「公里」也是同一个 `with $runs` 里才出。
+3. **`data/runs.json` 缺席时整块跑步区不渲染**（`{{ with hugo.Data.runs }}` → `{{ with .stats }}` → `{{ with .totals }}` 层层收窄），构建不会因为缺数据炸掉。总账行里的「公里」也是同一个 `with $runs` 里才出。（2026-10-07：`.Site.Data` 在 Hugo v0.156.0 起被废弃，构建会打 `WARN deprecated`，全站统一改用 `hugo.Data`。）
 4. **首屏包 = `critical + critical-info`**（和归档 / 404 同类，见 `css-modules.html` 的 `$base == "stats"` 分支）。所以 `.stats-*` / `.heat-*` / `.cat-*` **全部住在 `critical-info.css`** —— 加新类时别写到 `critical-page.css` 去。验收用 `python3 scripts/css-critical-coverage.py /tmp/site/stats/index.html`，真缺口应为 0。
 5. **写作格横向要能滚。** `.stats-heat` 用 `overflow-x: auto`（同 `.table-wrap` 的做法），`.heat-row` 设 `min-width: 26rem` —— 窄屏不把十二格压成读不出数字的细条。
 

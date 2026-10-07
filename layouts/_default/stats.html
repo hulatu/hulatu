@@ -27,7 +27,7 @@
 
 {{- /* runs.json 缺席时整块不渲染，而不是让构建炸掉 */ -}}
 {{- $runs := dict -}}
-{{- with site.Data.runs }}{{ with .stats }}{{ with .totals }}{{ $runs = . }}{{ end }}{{ end }}{{ end -}}
+{{- with hugo.Data.runs }}{{ with .stats }}{{ with .totals }}{{ $runs = . }}{{ end }}{{ end }}{{ end -}}
 
 <h1 class="page-title">{{ .Title }}</h1>
 {{- with .Content }}<div class="stats-intro">{{ . }}</div>{{ end }}

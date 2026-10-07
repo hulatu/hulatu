@@ -80,6 +80,13 @@
 /privacy/
   Cache-Control: public, max-age=0, must-revalidate
 
+# /stats/（结算页，2026-10-07 新增）也是「每次发布都可能变」的内容页 —— 字数、篇数、
+# 跑步里程每次同步都会动，理由和上面那组一样。这条是 2026-10-07 补的：加新栏目时漏了它。
+# 线上实测它靠平台默认值目前也是 max-age=0, must-revalidate（没错），但显式写一遍才不依赖
+# 平台默认 —— 和 /media/、/privacy/ 是同一条规矩。**以后新加根级内容目录，记得回来补一条。**
+/stats/
+  Cache-Control: public, max-age=0, must-revalidate
+
 /css/*
   Cache-Control: public, max-age=31536000, immutable
 
