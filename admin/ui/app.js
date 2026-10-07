@@ -38,6 +38,35 @@ const KIND_HINT = {
   pages: '独立页面（关于 / 归档 / Now 这类），直接挂在站点根目录',
 };
 
+/* 左栏导航的小图标。行内 SVG，不引外部资源 —— 首页是被 server.py 内联发出的，
+   多一个 <link> 就多一处「静态打开时 404」的风险（见 MAINTENANCE 的已知的坑）。 */
+const KIND_ICON = {
+  posts: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3.5h8L18.5 8.5v12h-13z"/><path d="M13.5 3.5v5h5"/><path d="M8.5 12.5h7M8.5 16h4.5"/></svg>',
+  weekly: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17"/><path d="M8 3.5v3M16 3.5v3"/><path d="M8 14h3"/></svg>',
+  pages: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2 3.6 7.6 12 12l8.4-4.4z"/><path d="M3.6 12 12 16.4 20.4 12"/><path d="M3.6 16.2 12 20.6l8.4-4.4"/></svg>',
+};
+
+/* Markdown 工具栏图标。原来这里混着 ❝ ☑ 🔗 🖼 这些字符 —— 其中好几个在
+   macOS 上会被系统按**彩色 emoji** 渲染，跟旁边的 B / H2 / </> 单色字形
+   完全不是一个风格，整条工具栏看起来像拼的。
+   统一换成同一套 1.7 描边 SVG（B / I / S / H2 / H3 / </> / • / 1. 这些
+   本来就是通用写法，保持文字不变）。 */
+const MDI = (() => {
+  const s = (d, extra = '') =>
+    `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" ` +
+    `stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}${extra}</svg>`;
+  return {
+    quote: s('<path d="M3.5 21.5c3 0 7-1 7-8V5.5c0-1.25-.756-2.017-2-2H4.5c-1.25 0-2 .75-2 1.972V11.5c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20.5c0 1 0 1 1 1z"/><path d="M15.5 21.5c3 0 7-1 7-8V5.5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11.5c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>'),
+    task: s('<rect x="3.7" y="3.7" width="16.6" height="16.6" rx="4"/><path d="M8.3 12.3l2.7 2.7 5-5.5"/>'),
+    link: s('<path d="M10.4 13.6a3.5 3.5 0 0 0 5 0l2.4-2.4a3.5 3.5 0 0 0-5-5l-1.1 1.1"/><path d="M13.6 10.4a3.5 3.5 0 0 0-5 0l-2.4 2.4a3.5 3.5 0 0 0 5 5l1.1-1.1"/>'),
+    image: s('<rect x="3.7" y="4.9" width="16.6" height="14.2" rx="3"/><circle cx="9" cy="10.1" r="1.5"/><path d="M4.8 17.5 9.7 13l3.2 2.9 2.9-2.4 3.5 3"/>'),
+    codeblock: s('<rect x="3.7" y="4.9" width="16.6" height="14.2" rx="3"/><path d="M10.5 9.8 8.1 12l2.4 2.2M13.5 9.8 15.9 12l-2.4 2.2"/>'),
+    table: s('<rect x="3.7" y="4.9" width="16.6" height="14.2" rx="2.6"/><path d="M3.7 9.6h16.6M3.7 14.4h16.6M9.7 4.9v14.2"/>'),
+    hr: s('<path d="M3.7 12h16.6" stroke-width="2"/>'),
+    anchor: s('<path d="M12 9.2v11"/><circle cx="12" cy="5.7" r="2.4"/><path d="M5.2 12.6c0 3.8 3 6.8 6.8 6.8s6.8-3 6.8-6.8"/><path d="M8.3 12.6H5.2M18.8 12.6h-3.1"/>'),
+  };
+})();
+
 /* ---------------------------------------------------------------- 工具 --- */
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -145,6 +174,7 @@ function renderRail() {
 
   $('#rail-nav').innerHTML = ['posts', 'weekly', 'pages'].map(k => `
     <button class="rail-item ${S.kind === k && S.view === 'list' ? 'is-on' : ''}" data-kind="${k}">
+      ${KIND_ICON[k]}
       <span>${KIND_LABEL[k]}</span>
       ${drafts[k] ? `<span class="drafts">${drafts[k]} 草稿</span>` : ''}
       <span class="n">${counts[k] || 0}</span>
@@ -257,8 +287,9 @@ function renderMain() {
     </div>` : ''}
 
     <div class="list-body">
-      ${list.length ? list.map(docRow).join('') : `
-        <div class="empty"><b>这里没有匹配的内容</b>换个关键词，或者点右上角「＋ 新建」。</div>`}
+      <div class="list-inner">
+        ${list.length ? list.map(docRow).join('') : emptyHtml()}
+      </div>
     </div>
   </div>`;
 
@@ -283,6 +314,23 @@ function renderMain() {
       if (act === 'trash') trashDoc(d);
     });
   });
+}
+
+/* 空态。分两种：这个分组一篇都没有，和被筛选条件筛空了 —— 提示语不一样，
+   不然「还没有内容」和「搜不到」长得一样，会让人以为文章丢了。 */
+function emptyHtml() {
+  const total = S.docs.filter(d => d.kind === S.kind).length;
+  const none = total === 0;
+  return `
+  <div class="empty">
+    <svg class="empty-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5.5 3.5h8L18.5 8.5v12h-13z"/><path d="M13.5 3.5v5h5"/><path d="M8.5 13h7M8.5 16.5h4"/>
+    </svg>
+    <b>${none ? `还没有${KIND_LABEL[S.kind]}` : '这里没有匹配的内容'}</b>
+    <p>${none ? '点右上角「＋ 新建」开始写第一篇。'
+              : '换个关键词，或者把左边的筛选条件清掉。'}</p>
+  </div>`;
 }
 
 function docRow(d) {
@@ -365,18 +413,18 @@ function renderEditor() {
           <span class="divider"></span>
           <button class="tool" data-md="h2" title="二级标题">H2</button>
           <button class="tool" data-md="h3" title="三级标题">H3</button>
-          <button class="tool" data-md="quote" title="引用">❝</button>
+          <button class="tool" data-md="quote" title="引用">${MDI.quote}</button>
           <button class="tool" data-md="ul" title="无序列表">•</button>
           <button class="tool" data-md="ol" title="有序列表">1.</button>
-          <button class="tool" data-md="task" title="待办">☑</button>
+          <button class="tool" data-md="task" title="待办">${MDI.task}</button>
           <span class="divider"></span>
-          <button class="tool" data-md="link" title="链接 ⌘L">🔗</button>
-          <button class="tool" data-md="image" title="插入图片">🖼</button>
-          <button class="tool" data-md="codeblock" title="代码块">{ }</button>
-          <button class="tool" data-md="table" title="表格">▦</button>
-          <button class="tool" data-md="hr" title="分隔线">—</button>
+          <button class="tool" data-md="link" title="链接 ⌘L">${MDI.link}</button>
+          <button class="tool" data-md="image" title="插入图片">${MDI.image}</button>
+          <button class="tool" data-md="codeblock" title="代码块">${MDI.codeblock}</button>
+          <button class="tool" data-md="table" title="表格">${MDI.table}</button>
+          <button class="tool" data-md="hr" title="分隔线">${MDI.hr}</button>
           <span class="divider"></span>
-          <button class="tool" data-md="anchor" title="给中文标题补 {#pinyin} 锚点">锚</button>
+          <button class="tool" data-md="anchor" title="给中文标题补 {#pinyin} 锚点">${MDI.anchor}</button>
           <span class="spacer"></span>
           <span class="stat" id="stat"></span>
         </div>
@@ -503,13 +551,13 @@ function settingsHtml() {
       <div class="hint">决定 URL 里的年月日</div>
     </div>
     <div class="field">
-      <label>状态</label>
-      <label class="switch" style="padding-top:7px">
+      <label>状态 <span class="badge ${f.draft ? 'badge-draft' : 'badge-live'}" id="draft-label">${f.draft ? '草稿' : '已发布'}</span></label>
+      <label class="switch" style="padding-top:5px">
         <input type="checkbox" id="f-draft" ${f.draft ? 'checked' : ''}>
         <span class="track"></span>
-        <span class="switch-label" id="draft-label">${f.draft ? '草稿' : '已发布'}</span>
+        <span class="switch-label">标记为草稿</span>
       </label>
-      <div class="hint">草稿不会出现在线上</div>
+      <div class="hint">打开＝草稿，不会出现在线上</div>
     </div>
   </div>
 
@@ -602,7 +650,12 @@ function bindSettings() {
 
   const draft = $('#f-draft');
   if (draft) draft.onchange = () => {
-    $('#draft-label').textContent = draft.checked ? '草稿' : '已发布';
+    // 状态徽章挪到了字段标签里（原来贴在开关右边，开关是「关」的样子、
+    // 旁边却写着「已发布」，读起来像「已发布 = 关」）。开关本身现在只表示
+    // 「标记为草稿」这一件事，语义不再打架。
+    const lbl = $('#draft-label');
+    lbl.textContent = draft.checked ? '草稿' : '已发布';
+    lbl.className = 'badge ' + (draft.checked ? 'badge-draft' : 'badge-live');
     const b = $('#status-badge');
     b.textContent = draft.checked ? '草稿' : '已发布';
     b.className = 'badge ' + (draft.checked ? 'badge-draft' : 'badge-live');
@@ -1359,13 +1412,17 @@ $('#btn-theme').onclick = () => {
     // 侧栏底部补一个「导航菜单」入口
     const foot = $('.rail-actions');
     const menuBtn = document.createElement('button');
-    menuBtn.className = 'btn btn-ghost';
+    // 不用 btn-ghost：窄屏堆叠时它是整宽的一行，透明底会看起来像一行游离的文字
+    menuBtn.className = 'btn';
     menuBtn.textContent = '导航菜单';
     menuBtn.style.gridColumn = '1 / -1';
     menuBtn.onclick = menuModal;
     foot.parentNode.insertBefore(menuBtn, foot);
   } catch (e) {
-    $('#main').innerHTML = `<div class="empty"><b>连不上后台服务</b>${esc(e.message)}<br><br>
-      确认 <code>admin/server.py</code> 还在跑（终端窗口别关）。</div>`;
+    $('#main').innerHTML = `<div class="empty">
+      <b>连不上后台服务</b>
+      <p>${esc(e.message)}</p>
+      <p>确认 <code>admin/server.py</code> 还在跑（终端窗口别关）。</p>
+    </div>`;
   }
 })();
