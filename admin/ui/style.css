@@ -492,6 +492,19 @@ select.sel {
   display: grid; place-items: center; padding: 24px;
   animation: fade .12s ease-out;
 }
+/* ⚠️ 这条不能删。
+
+   `hidden` 属性只是浏览器默认样式表里的 `[hidden] { display: none }`，
+   而**作者样式表里的 `display` 会盖掉它** —— 上面那句 `display: grid` 一写，
+   `hidden` 就彻底失效了。后果不是「弹窗偶尔露出来」这么轻：这层是全屏遮罩
+   （z-index 60 + 半透明底），它会**一直挂在页面上挡住所有点击**，而里面那个
+   空的 .modal-card 就是页面正中间一条横着的白色。
+
+   2026-10-07 用户报的「页面中间有个横着的白色、点不动」就是这个。
+   同一个坑这个博客以前在 `.resume` 上踩过一次（见 MAINTENANCE.md），
+   所以规则是：**任何用 hidden 属性控制显隐的元素，只要你在 CSS 里给它写了
+   display，就必须补一条 [hidden] 覆盖。** */
+.modal[hidden] { display: none; }
 @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
 @keyframes rise { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
 
