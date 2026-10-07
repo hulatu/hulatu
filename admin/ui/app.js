@@ -6,6 +6,11 @@
 
 'use strict';
 
+// 这个标记是给 index.html 底部的兜底提示用的：脚本只要加载成功就置位，
+// 于是「被当成静态文件打开、app.js 404」那种情况就能被识别出来，
+// 页面会显示一句「请通过后台服务打开」而不是一片空白。别删。
+window.__BLOG_ADMIN_BOOTED__ = true;
+
 /* ---------------------------------------------------------------- 状态 --- */
 
 const S = {
@@ -1331,15 +1336,16 @@ window.addEventListener('beforeunload', e => {
 
 /* 主题切换 ------------------------------------------------------------- */
 
-const themeBtn = $('#btn-theme');
-themeBtn.onclick = () => {
+// 主题要在任何渲染之前定下来，否则选了深色的人每次刷新都会先闪一下白
+const savedTheme = localStorage.getItem('blog-admin-theme');
+if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+
+$('#btn-theme').onclick = () => {
   const cur = document.documentElement.dataset.theme
     || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   document.documentElement.dataset.theme = cur === 'dark' ? 'light' : 'dark';
   localStorage.setItem('blog-admin-theme', document.documentElement.dataset.theme);
 };
-const savedTheme = localStorage.getItem('blog-admin-theme');
-if (savedTheme) document.documentElement.dataset.theme = savedTheme;
 
 /* ------------------------------------------------------------ 启动 --- */
 

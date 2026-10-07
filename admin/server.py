@@ -33,6 +33,7 @@ import sys
 import threading
 import time
 import urllib.parse
+import urllib.request
 import webbrowser
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -741,6 +742,63 @@ def add_menu_item(name: str, url: str, weight: int = 0) -> None:
 
 
 # ---------------------------------------------------------------------------
+# 首页：把 style.css / app.js 内联成一份自包含的 HTML
+# ---------------------------------------------------------------------------
+
+_INDEX_CSS_TAG = '<link rel="stylesheet" href="/ui/style.css">'
+_INDEX_JS_TAG = '<script src="/ui/app.js"></script>'
+
+
+def render_index() -> bytes:
+    """把 ui/ 下三个文件合成**一份自包含的 HTML** 再发出去。
+
+    为什么非要内联（2026-10-07 用户报「打开后是一片空白」之后改的）：
+    分成三个文件引用时，只要这份 HTML **不是**由本服务提供的 —— 被某个预览面板
+    当成静态文件打开、直接双击文件、被别的工具转发 —— `/ui/style.css` 和
+    `/ui/app.js` 就都取不到，页面只剩一片空白，看起来就是「坏了」。
+    内联之后，只要这份 HTML 能打开，界面就能渲染出来；连不上 API 时 app.js
+    自己会给出明确提示，而不是白屏。
+
+    源文件仍然是分开的三个，改完刷新页面就生效，没有构建步骤。
+    """
+    html = (UI_DIR / "index.html").read_text(encoding="utf-8")
+    css = (UI_DIR / "style.css").read_text(encoding="utf-8")
+    js = (UI_DIR / "app.js").read_text(encoding="utf-8")
+    if "</script" in js or "</style" in css:
+        # 出现了会提前闭合标签的字符串就没法安全内联 —— 退回分开引用
+        # （这种情况下页面必须由本服务提供，别硬来把页面搞坏）
+        return html.encode("utf-8")
+    html = html.replace(_INDEX_CSS_TAG, "<style>\n" + css + "\n</style>")
+    html = html.replace(_INDEX_JS_TAG, "<script>\n" + js + "\n</script>")
+    return html.encode("utf-8")
+
+
+def is_our_server(port: int) -> bool:
+    """这个端口上跑的是不是我们自己的后台。
+
+    用来区分「用户重复双击 / 上次没关干净」和「端口被别的程序占了」——
+    这两种情况都该给不同的反应，不能一律静默退出。
+    """
+    try:
+        with urllib.request.urlopen(f"http://{HOST}:{port}/api/health", timeout=2) as r:
+            return b'"ok"' in r.read(200)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def pick_port() -> tuple[int, str]:
+    """挑一个可用端口，返回 (端口, 说明)。端口 0 表示没戏了。"""
+    if not port_open(ADMIN_PORT):
+        return ADMIN_PORT, ""
+    if is_our_server(ADMIN_PORT):
+        return ADMIN_PORT, "already"
+    for p in range(ADMIN_PORT + 1, ADMIN_PORT + 21):
+        if not port_open(p):
+            return p, f"提醒：端口 {ADMIN_PORT} 被别的程序占用了，这次改用 {p}。"
+    return 0, f"从 {ADMIN_PORT} 往后找了 20 个端口都被占用，起不来。"
+
+
+# ---------------------------------------------------------------------------
 # 本地预览（hugo server 进程）
 # ---------------------------------------------------------------------------
 
@@ -949,7 +1007,7 @@ class Handler(BaseHTTPRequestHandler):
         self._body_cache = None
         try:
             if path == "/" or path == "/index.html":
-                return self._static("index.html", "text/html; charset=utf-8")
+                return self._send(200, render_index(), "text/html; charset=utf-8")
             if path.startswith("/ui/"):
                 return self._static(path[len("/ui/"):])
             if path == "/favicon.svg":
@@ -1085,11 +1143,28 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> int:
-    port = ADMIN_PORT
-    if port_open(port):
-        print(f"端口 {port} 已被占用——后台可能已经开着了。", file=sys.stderr)
-        print(f"直接打开：http://{HOST}:{port}/", file=sys.stderr)
+    port, note = pick_port()
+
+    if port == 0:
+        print(note, file=sys.stderr)
         return 1
+
+    if note == "already":
+        # 端口上是**我们自己的另一个实例**：不重复启动，直接把浏览器打开。
+        # （用户双击两次、或者上一次的终端窗口没关，都不该变成「双击没反应」，
+        #   更不该什么都不说就退出、让人对着一个空白页面猜。）
+        url = f"http://{HOST}:{port}/"
+        print("─" * 56)
+        print("  博客后台已经开着了")
+        print(f"  地址   {url}")
+        print("  这次不重复启动。想重启就先关掉原来那个终端窗口。")
+        print("─" * 56, flush=True)
+        if "--no-browser" not in sys.argv:
+            webbrowser.open(url)
+        return 0
+
+    if note:
+        print(note, flush=True)
 
     open_browser = "--no-browser" not in sys.argv
     httpd = ThreadingHTTPServer((HOST, port), Handler)

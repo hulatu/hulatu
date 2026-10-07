@@ -71,5 +71,46 @@
 <div class="modal" id="modal" hidden><div class="modal-card" id="modal-card"></div></div>
 
 <script src="/ui/app.js"></script>
+
+<!--
+  兜底提示（故意写成行内样式，因为它要能在 style.css 取不到时也看得清）。
+
+  这个文件正常应该由 admin/server.py 提供（那个服务会把 style.css 和 app.js
+  直接内联进这一份 HTML）。如果它是被**当成普通静态文件**打开的 —— 比如某些
+  预览面板、或者直接双击文件 —— /ui/app.js 会 404，页面就只剩一片空白，
+  看起来像「坏了」。这里检测一下，给一句能照做的提示，别让人对着白屏猜。
+
+  app.js 第一行会设 window.__BLOG_ADMIN_BOOTED__，所以这个判断是可靠的：
+  只要脚本加载成功，下面这段就什么都不会做。
+-->
+<div id="boot-guard" hidden style="
+  max-width: 640px; margin: 12vh auto; padding: 28px 30px;
+  font: 15px/1.75 -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+  color: #1d1d1f; background: #fff; border: 1px solid #e4e4e9;
+  border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.07);">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <span style="width:30px;height:30px;border-radius:8px;background:#c73e2f;color:#fff8f5;
+                 display:grid;place-items:center;font-weight:600;flex:none">胡</span>
+    <b style="font-size:17px">这个页面要通过后台服务打开</b>
+  </div>
+  <p style="margin:0 0 12px;color:#56565c">
+    你现在打开的是 <code>admin/ui/index.html</code> 这个文件本身。它的样式和脚本是分开的，
+    只有由后台服务提供时才会被内联进来，单独打开就会是一片空白。
+  </p>
+  <p style="margin:0 0 12px">正确做法是<strong>双击仓库根目录的「博客后台.command」</strong>，
+     或者在终端里跑：</p>
+  <pre style="margin:0 0 14px;padding:10px 12px;background:#f6f6f8;border:1px solid #e4e4e9;
+              border-radius:7px;font:13px/1.6 ui-monospace,Menlo,monospace;overflow:auto">cd ~/Blog &amp;&amp; ./admin/start.sh</pre>
+  <p style="margin:0;color:#56565c">然后浏览器会自动打开
+     <code>http://127.0.0.1:8787/</code>。</p>
+</div>
+
+<script>
+  setTimeout(function () {
+    if (!window.__BLOG_ADMIN_BOOTED__) {
+      document.getElementById('boot-guard').hidden = false;
+    }
+  }, 1500);
+</script>
 </body>
 </html>
