@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>博客后台 · 胡拉图说</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/ui/style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= 左侧栏 ================= -->
+  <aside class="rail">
+    <header class="rail-brand">
+      <span class="seal">胡</span>
+      <span class="rail-brand-text">
+        <b>胡拉图说</b>
+        <small>本地后台</small>
+      </span>
+      <button class="icon-btn rail-theme" id="btn-theme" title="切换深浅色" aria-label="切换深浅色">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+             stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+      </button>
+    </header>
+
+    <nav class="rail-nav" id="rail-nav" aria-label="内容分组"></nav>
+
+    <div class="rail-scroll">
+      <section class="rail-group">
+        <h3>状态</h3>
+        <div class="chips" id="status-chips">
+          <button class="chip is-on" data-status="all">全部</button>
+          <button class="chip" data-status="draft">草稿</button>
+          <button class="chip" data-status="published">已发布</button>
+        </div>
+      </section>
+
+      <section class="rail-group">
+        <h3>分类</h3>
+        <div class="chips" id="cat-chips"></div>
+      </section>
+
+      <section class="rail-group">
+        <h3>标签 <span class="rail-note" id="tag-note"></span></h3>
+        <div class="chips chips-dense" id="tag-chips"></div>
+      </section>
+    </div>
+
+    <footer class="rail-foot">
+      <div class="git-line" id="git-state">正在读取仓库状态…</div>
+      <div class="rail-actions">
+        <button class="btn" id="btn-preview">
+          <span class="dot" id="preview-dot"></span>本地预览
+        </button>
+        <button class="btn btn-primary" id="btn-publish">发布上线</button>
+      </div>
+    </footer>
+  </aside>
+
+  <!-- ================= 主区域 ================= -->
+  <main class="main" id="main"></main>
+
+</div>
+
+<div class="toasts" id="toasts"></div>
+<div class="modal" id="modal" hidden><div class="modal-card" id="modal-card"></div></div>
+
+<script src="/ui/app.js"></script>
+</body>
+</html>

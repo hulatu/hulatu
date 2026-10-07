@@ -52,9 +52,11 @@ blog/
 │   └── image_dims.json         # 正文远程图片的宽高缓存
 ├── static/                     # 原样发布的文件：_headers / _redirects / 图标 / 头像与分享卡（images/）/ 打赏收款码（images/donate/） / rss.xsl …
 ├── sites/                      # 四个子站（各自独立的 Hugo 站点）
+├── admin/                      # 本地图形界面后台（零依赖，双击 博客后台.command 启动）
 ├── archetypes/                 # hugo new 用的模板（posts / weekly）
 ├── publish.sh                  # 发布：刷新数据 → 提交 → 推 GitHub
-└── deploy.sh                   # 只在本地干净构建到 public/，不部署
+├── deploy.sh                   # 只在本地干净构建到 public/，不部署
+└── 博客后台.command             # 双击打开图形界面后台
 ```
 
 ## 本地运行
@@ -92,6 +94,12 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 ```
 
 按 `archetypes/posts.md` 里的清单填 front matter，写完把 `draft` 改成 `false` 即可发布。`date` 决定 URL（`/posts/年/月/日/slug/`），`slug` 决定 URL 的最后一段；`lastmod` 不用手改，`publish.sh` 会自动刷（文章页的「更新于」靠它）。
+
+### 4. 图形界面后台（不想敲命令时用）
+
+**双击仓库根目录的「博客后台.command」**，会自动起一个本地服务并打开浏览器（只监听 `127.0.0.1`，不联网、不上传任何东西）。在里面可以看列表、筛草稿、新建文章 / 周刊 / 页面、表单改 front matter、写正文、看真实预览、一键发布、改顶部导航。关掉那个终端窗口就停。
+
+等价命令：`./admin/start.sh`。它只用 Python 3 标准库，不需要装任何东西。细节和设计约束见 [MAINTENANCE.md](MAINTENANCE.md) 的「图形界面后台」一节。
 
 ## 常用自定义
 
