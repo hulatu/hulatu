@@ -1,6 +1,12 @@
 {
   "posts": [
     {
+      "title": "工科研究生用 Mac，也可以很完美",
+      "date": "2026-10-07",
+      "url": "https://hulatu.com/posts/2026/10/07/engineering-students-use-macbook/",
+      "summary": "关于 Mac 和 Windows 之争，貌似一直就没有休止过。好像每一边都有另一边「不可替代」的护城河，最后得出的结论，都会回到：「大家根据自己的需求和关注点，选择合适的产品」…"
+    },
+    {
       "title": "胡拉图的周刊-第二十四期",
       "date": "2026-10-04",
       "url": "https://hulatu.com/posts/2026/10/04/newsletter-24/",
@@ -23,12 +29,6 @@
       "date": "2026-09-28",
       "url": "https://hulatu.com/posts/2026/09/28/set-browser/",
       "summary": "浏览器推荐 { liu lan qi tui jian} 无论你目前正在使用哪一款浏览器，我都推荐大家不要只使用 1 个浏览器，因为不同浏览器的优缺点并不一样，利用不同浏览器的…"
-    },
-    {
-      "title": "胡拉图的周刊-第二十三期",
-      "date": "2026-09-27",
-      "url": "https://hulatu.com/posts/2026/09/27/newsletter-23/",
-      "summary": "先给点开这份周刊的朋友，送上一个大大的中秋祝福！希望大家中秋快乐，可以在假期里和家人、和朋友团个圆！ 安全 and 安全感 { an quan and an quan gan}…"
     }
   ]
 }
