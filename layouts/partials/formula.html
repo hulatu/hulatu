@@ -1,0 +1,16 @@
+{{- /* 公式块（2026-10-07，方案 A：纯样式块，零依赖）。
+
+     做什么：把「独占一段的 $$…$$」换成 <p class="formula">…</p>，
+     样式在 assets/css/critical-post.css 的 .post-content .formula。
+
+     为什么用正则而不是开 goldmark 的 passthrough 扩展：
+     passthrough 的 inline 分隔符默认含 `$`，而本站满篇人民币价格（「花了 $5」），
+     开错一个开关就会把正文里的钱吃掉。这里的模式 `<p>\$\$([^$]+)\$\$</p>`
+     要求整段**正好**是 $$…$$，且中间不含任何 `$` —— 误伤面为零。
+
+     两个调用点：layouts/_default/single.html（正文）与 layouts/_default/rss.xml
+     （content:encoded）。都从 .Content 进，所以对 RSS 也自动生效。
+
+     将来要换成 KaTeX：内容的写法不用改（还是 $$…$$ 独占一段），
+     把这个 partial 换成 KaTeX 的调用即可。 */ -}}
+{{- return (replaceRE `<p>\$\$([^$]+)\$\$</p>` `<p class="formula">$1</p>` .) -}}

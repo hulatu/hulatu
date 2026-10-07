@@ -8,6 +8,15 @@
     <p class="footer-links">
       <a href="https://profile.hulatu.com/" target="_blank" rel="noopener">花园</a>
       <a href="{{ "friends/" | relURL }}">友链</a>
+      {{- /* 2026-10-07：/tags/ 与 /media/ 原先只被 404 页和关于页的「网站导览」链到 ——
+             导航和页脚都没有入口，等于「只有走错路的人才找得到」。这两个是站内栏目，
+             放页脚（次要入口的位置）最合适，不动导航（顶上四项已经够了）。
+             /stats/ 同理：它是新增的结算页，没有别的地方链它。
+             加完之后页脚是 8 个链接，窄一点儿的窗口会折行 ——
+             critical.css 的 .footer-links 补了 flex-wrap: wrap，见那里的注释。 */ -}}
+      <a href="{{ "tags/" | relURL }}">标签</a>
+      <a href="{{ "media/" | relURL }}">书影音</a>
+      <a href="{{ "stats/" | relURL }}">统计</a>
       <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力">开往</a>
       <a href="{{ "privacy/" | relURL }}">隐私</a>
       {{ if site.Params.email }}

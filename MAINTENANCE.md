@@ -111,7 +111,7 @@ hugo server -D
 | 博客名、描述、作者 | `hugo.toml` 顶部 |
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚、头像、社交链接 | `layouts/partials/footer.html`、`hugo.toml` |
-| 页脚链接（花园 / 友链 / 开往 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license`。**开往（友链接力）放在页脚，不在导航栏**——导航栏只留搜索 / 深浅色 / RSS 三个图标按钮 |
+| 页脚链接（花园 / 友链 / 标签 / 书影音 / 结算 / 开往 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license`。**开往（友链接力）放在页脚，不在导航栏**——导航栏只留搜索 / 深浅色 / RSS 三个图标按钮。`.footer-links` 是**全站栏目索引的兜底出口**：`/tags/`、`/media/`、`/stats/` 三个索引页在导航栏里没有位置，全靠这里进站（2026-10-07 补上「标签 / 书影音 / 结算」三条 —— 此前 `/tags/` 与 `/media/` 只被 404 页和关于页链到、`/stats/` 更是零入链，都是「页面做出来了但站内没有入口」）。**加链接时记得 `.footer-links` 有 `flex-wrap: wrap`**（`critical.css`）：601–700px 视口 8 个链接一行放不下会换行，这是预期的、不是溢出 |
 | 标签页图标 / 页头 logo | `hugo.toml` 的 `[params.assets]`：`logo` 给页头那个大 logo（深色模式由 CSS 的 `filter` 反白，规则是 `critical.css` 的 `[data-theme="dark"] .site-logo` —— **2026-10-04 从 core.css 搬到首屏包**，因为 logo 是首帧元素，留在异步包里深色下会「先原色、后反白」闪一下），`favicon` 给标签页（`static/favicon.svg`，文件里内置了 `prefers-color-scheme` 深色反白）。**两个文件是故意分开的**：favicon 里的反白规则会和页头的 `filter` 叠加成反色，混用会出问题 |
 | 添加到主屏幕（PWA） | `static/site.webmanifest` + `static/icon-192.png` / `icon-512.png`。图标由 `logo.svg` 渲染而来，要重做就用：`magick -background none SVG:static/logo.svg -resize 512x512 -colors 64 -strip -define png:compression-level=9 static/icon-512.png`（`-colors 64` 能把 76KB 压到 30KB，肉眼无差） |
 | 分享卡片图 | `[params.assets] shareImage`。宽高由 `layouts/partials/head-meta.html` 用 `imageConfig` 现读，换图不用改模板；文章 front matter 里写了 `cover` 就用 cover，但远程图读不到尺寸，那两个 meta 就不输出 |
@@ -125,6 +125,7 @@ hugo server -D
 | 正文 / 页头宽度 | 只有 `--content-width`（`assets/css/critical.css` 顶部，当前 **680px**，照 sspai 文章页量的：它的 `.article__section__wrapper` 是 728px 含 24px 内边距）。`.container` 用它加两侧 `--gutter` 当 max-width（内边距留在外面），所以**页头（导航栏）、正文、列表页是同一个内容宽度**；`.post-content`、`.post-toc-inline`、`.friends-page`、`.about-page`、`.page-intro` 也都引用它。**四个子站同宽**：各自 `static/style.css` 的 `:root` 里也有一份 `--content-width: 680px`，靠 `main { width: min(var(--content-width), calc(100% - 32px)) }` 取（profile 是 `- 40px`）。改宽度要五处一起改，详见 `sites/README.md` |
 | 文章排版（字号 / 行高 / 段间距） | 数值照 sspai 文章页（`.wangEditor-txt`）：正文 **17px / 1.8**、段间距 **32px**、H2 **32px**（上间距 56px = 段距 + 24px）、H3 **24px**（上 48px）、H4 与正文同号、文章标题 **38px**；手机（≤760px）各降一档：15px / 24px / 24px / 20px / 28px（= sspai 的 `<768px` 那一套）。变量是 `--text-reading`、`--reading-leading`、`--block-gap`、`--h2-size`、`--h3-size`、`--post-title-size`，`--h2-gap-top` / `--h3-gap-top` 由 `--block-gap` 自动跟着缩。**这套是单开的**：别顺手改全站的 `--text-lg` / `--text-md`，否则归档年份、友链 / 关于页的小标题会跟着跳 |
 | 正文列表（`ul` / `ol`） | **两种都是小点，全站只有脚注还带序号**（2026-10-02 改）。`ul` 走浏览器默认的 `disc` 圆点，只是用 `.post-content ul li::marker { color: var(--accent) }` 把点染成印章红。`ol` 原来是一套「红圈数字」徽章（`list-style: none` + `li::before` 画 `counter(ol-item)` 的圆环 + `li` 上 28px 让位缩进），按用户要求「只要 markdown 小点」整套删掉，现在和 `ul` 一样是 `list-style: disc` + 红色 marker。**删那套徽章必须三处一起删**（`ol` 的 `list-style`、`li` 的 `padding-left` / `position`、`::before` 整块），漏一处就会剩半个徽章、或多缩进 28px。想看效果：全站只有 4 篇写了 `1.` 列表（`平价跑步装备-实用篇`、`《小狗钱钱》对我的影响`、`手机双持方案…`、`周刊-第十八期`），其余全是 `-` 列表、本来就一直是小点 |
+| 公式块（`$$…$$`） | **方案 A：纯样式块，零依赖**（2026-10-07）。`layouts/partials/formula.html` 把「独占一段的 `$$…$$`」换成 `<p class="formula">…</p>`，样式在 `assets/css/critical-post.css` 的 `.post-content .formula`（衬线 + 居中 + `--text-md`），**不引入 KaTeX / MathJax**。**为什么用正则而不是开 goldmark 的 passthrough 扩展**：passthrough 的 inline 分隔符默认含 `$`，而本站满篇人民币价格（「花了 $5」），开错一个开关就会把正文里的钱吃掉；这里的模式 `<p>\$\$([^$]+)\$\$</p>` 要求整段**正好**是 `$$…$$`、且中间不含任何 `$`，误伤面为零。**两个调用点**：`layouts/_default/single.html`（正文）与 `layouts/_default/rss.xml`（`content:encoded`），都从 `.Content` 进，所以 RSS 自动跟着生效。**将来要换 KaTeX**：文章写法不用改（还是 `$$…$$` 独占一段），把这个 partial 换成 KaTeX 调用即可。选择器写成 `.post-content .formula`（(0,2,0)）而不是 `.formula`（(0,1,0)），因为 `.post-content p` 是 (0,1,1)，比单类高 |
 | 脚注 | Goldmark 的 `footnote` 扩展（默认开着，`hugo.toml` 里没写就是开）。标记：正文里 `<sup id="fnref:N"><a class="footnote-ref">N</a></sup>`，文末 `<div class="footnotes"><hr><ol><li id="fn:N">…<a class="footnote-backref">↩︎</a></li></ol></div>`。**整块落在 `.post-content` 里面**，所以会继承正文的 `hr` 分节装饰（40% 宽 + 正中圆点）——「没写样式」不等于「没样式」。样式在 `assets/css/critical-post.css` 的「脚注」段，逐项压回附属信息的层级：`hr` 藏掉、改用容器的通栏细线；`ol` 换回紧凑的十进制序号；`li > p` 去掉 32px 段间距；整块降到 `--text-xs` 并降调成 `--muted`。作者自己在正文里手写的 `<hr>`（不在 `.footnotes` 内）不受影响，分节装饰该留还留着 |
 | 点目录 / 带 `#锚点` 进页面时标题停在哪儿 | **分两条路径，别混**。**① 点目录**（`assets/js/toc.js` 里 `init()` 的 `scrollToTarget()`，2026-10-02 加）：按方向算落点 —— **向下跳时不留顶栏那 76px，只留 5px 呼吸（`scrollToTarget()` 里的 `DOWN_GAP`，严格贴顶太挤）、标题几乎贴到页面最顶端**，因为顶栏是「向下滚就自动收起」的（`ui.js` 的 `updateHeader`），这时再留 76px 只会剩一片空白，看着像没对准；**向上跳时照旧留 `--anchor-offset`**，因为顶栏会随着向上滚动重新露出来，不留位就会被盖住。向下跳时还会顺手给顶栏加 `is-hidden`（人在页面顶部时 `ui.js` 要滚过 120px 才收起，等它不及）——**但判据是算出来的落点 `next` 是否真的更大，不是 `goingDown`**（2026-10-02 修）：`goingDown` 只看目标在不在下方，而向下跳的 `offset` 是 `DOWN_GAP`（5px），目标只比当前位置低 1~5px 时 `next` 反而比当前位置还小 —— 页面会往上滚一丁点，`ui.js` 的 `updateHeader` 立刻判成「向上滚」把 `is-hidden` 摘掉，顶栏先收起再弹回来、闪一下。现在只有 `next > window.scrollY` 才收。**点目录之后高亮会被「锁」住**（`lockHighlight()` / `unlockHighlight()`）：点击时先 `setActive(target)`，可紧接着第一帧 scroll 事件里 `sync()` 读到的还是旧的 `scrollY`，会算出「当前还在原来那一节」把高亮打回去，看上去就是高亮闪一下再走；现在锁到 `scrollend`（不支持的浏览器 700ms 兜底）才解封，解封时再按最终位置对一次。用户自己一动手（`wheel` / `touchstart` / `keydown`）立刻解封，免得高亮卡住。这条**故意不写进 CSS**：`scroll-margin-top` 是全站锚点共用的，脚注的 `#fn:` / `#fnref:` 回跳会跟着一起变。**② 其余锚点**（外部链接带 `#`、脚注回跳、`#main`）只由 `assets/css/critical.css` 的 `--anchor-offset`（顶栏 `--header-h` + `--space-3` = 76px）决定，挂在 **`main[id], main [id]`** 的 `scroll-margin-top` 上。**两个选择器缺一不可**（`main[id]` 是 2026-10-02 补的）：正文里 h2/h3 的 id 是 `main` 的后代，靠 `main [id]` 生效；但跳转链接的落点 `<main id="main">` **本身就是 `main`**，不是它的后代 —— 只写后代选择器它压根匹配不上，表现是点「跳到正文」后标题最上面约 24px 被 68px 的固定顶栏吃掉（`main.container` 的 `padding-top` 只有 40px，不够让位）。**别在 `html` 上再加 `scroll-padding-top`**——两个值会叠加，标题会被顶到离顶部将近 180px，看着就像没对准。带锚点进页面时 `assets/js/toc.js` 的 `initHashAnchor()` 会在图片 / 字体就位后重新对准一次；链接里是换成拼音之前的旧中文锚点（`#%e4%b9%a0%e6%83%af`）时，会自动退回按标题文字找 |
 | 关于页名片卡（红色只用一处） | `assets/css/critical-info.css` 的 `.about-head-card` 段。2026-09-29 改版：原先一张卡上出现了**四处红** —— 左边缘 3px 竖向渐变红柱（`::before`）、头像外圈 `--accent-soft` 粉红光晕、角色行前的小红点、分隔线中间的红菱形。用户反馈「不太美观，尤其是那个红色」，问题不是红本身，而是**同一张卡上红了四次**，而且那圈 `#fbeae7` 是「淡到发白的粉」，看着像印错了。现在红只留角色行前那个 5px 小点：左柱整根删掉、头像改细描边、分隔线只留一条短线。顺带把 5 个「等分拉伸」的胶囊改成按内容宽度居中，列间距 24 → 28px、两列垂直居中。**再动这张卡时守住「一处红」**。**2026-10-04 起 `.about-body` 里各节标题前的小菱形也改成了中性线色**（`--line-strong`，与分节线 `.about-section + .about-section` 同色）—— 原先 6 个 section = 6 颗红菱形，一页 6 处红，把「印章红必须稀缺」摊成了底色。所以这一页的红现在只剩三处有语义的地方：角色行前那个 5px 小点、段落里的行内链接、可交互元素的 hover / active 态 |
@@ -135,6 +136,7 @@ hugo server -D
 | 脚本怎么读 front matter | 统一走 `scripts/_frontmatter.py`（`split` / `fields` / `read` / `write` / `remove`）。它只做「按行找字段」，不做 YAML 解析——front matter 里有中文注释、对齐用的行尾空格，用 PyYAML 解析再 dump 回去会把注释和空行冲掉，diff 变成整块重写。以前 `fetch-profile-content.py` 和 `sync-lastmod.py` 各写一份正则，字段清单和换行处理都不一致：**`fetch-profile-content.py` 的字段清单漏了 `image`，导致 `_shot_item()` 永远返回 None、`selected_photos.json` 恒为空**（2026-09 修），加字段时记得两边都看。 |
 | 图片灯箱 | 结构在 `layouts/_default/_markup/render-image.html`：图片被 `<a class="article-image-link" href="原图">` 包着，JS 拦下点击打开灯箱，JS 不可用时退化成「点开原图」。样式在 `assets/css/critical-post.css` 的「文章插图」段，逻辑在 `assets/js/lightbox.js`（原图地址直接读链接的 `href`，不再用 `data-full`）。**2026-09-29 去掉了两处「鼠标悬浮才出现」的效果**：① 右上角那个「看大图」小胶囊（`.article-image-zoom`，span 已从模板删掉、CSS 也删了）——它原先靠 `:hover` / `:focus-within` 显隐；② 图片正下方那条 1px 强调色下划线——它其实是正文链接 `.post-content a` 的「从左划出」底纹（`background-size: 0 → 100%`），图片链接 `display:block` 整块包住图片，线就横在图片底下，所以在 `.article-image a` 上加了 `background-image: none; padding-bottom: 0` 压掉。图片现在只靠 `cursor: zoom-in` 和全局 `:focus-visible` 焦点环暗示可点，点击/回车照样开灯箱 |
 | 正文图片的淡入 / 加载失败兜底 | 加载逻辑在 `assets/js/ui.js` 的「图片渐进加载」段，三态样式在 `assets/css/critical-post.css` 的 `.js .article-image img`（默认 `opacity: 0`）、`.is-loaded`、`.is-failed`。**成败两个方向都要挂**（2026-10-02 修）：只挂 `load` 的话，图挂掉就等不到 `load`，这张图会连着 `alt` 文字一起停在 `opacity: 0` —— 读者只看到一个灰色空盒子，等于静默丢内容（JS 被禁用时反而正常，所以最容易漏掉）。还有一个更隐蔽的漏：**`img.complete` 为 `true` 只说明「浏览器已经有结论了」，失败同样算 complete**，所以老代码的 `complete && naturalWidth > 0` 会把失败的图塞进 `else` 分支去等一个永远不会来的 `load`。现在的判法是「已经 `complete` 的就当场按 `naturalWidth` 定生死，没 `complete` 的 `load` / `error` 都挂上」。失败态 `.is-failed` 只做两件事：还原不透明度让 `alt` 文字露出来，再补一圈虚线说明「这里本该有图、没加载出来」。**虚线用 `outline` 而不是 `border`**：不参与盒模型，失败的图不会比成功的图窄 2px |
+| 深色模式下的正文图片亮度 | `assets/css/critical-post.css` 的 `[data-theme="dark"] .article-image img { filter: brightness(0.88) }`（2026-10-07）。**要解决的是「深色底 + 一张白底截图」**——那是深色阅读里最刺眼的一种组合，白底截图在近黑页面上是一块发光板。降 12% 亮度只对深色生效，浅色不动。**只挂 `.article-image`，不挂 `.lightbox`**：灯箱要给读者原图，再压一层亮度就成了「看得更不清」。（`filter` 会给元素造出新的包含块，但这里挂的是 `.article-image img`、不是固定定位元素，不影响 `.post-rail` 的 `position: fixed`） |
 | 键盘可达性 / 焦点陷阱 | 两个弹层（搜索框、图片灯箱）共用 `assets/js/focus-trap.js` 提供的 `window.hulatuFocusTrap(容器, 初始焦点)`，关闭时记得调用它返回的 `release()` 并把焦点还给触发按钮。**这个文件必须在 `layouts/partials/scripts.html` 的打包顺序里排第一**，否则后面几个脚本运行时拿不到它。**跳转链接**（`.skip-link`，`baseof.html` 里紧跟 `<body>` 之后的第一个元素）聚焦时落在 `top: calc(var(--header-h) + 0.75rem)`（2026-10-02 改）：原来是 `0.75rem`，正好落在 0–68px 那条固定顶栏里 —— `z-index: 1000` 压得过顶栏的 `100`、所以没被盖住，但会糊住导航；而且顶栏哪天因为 `transform` / `filter` / `opacity` 造出新的层叠上下文，这块就会被真盖掉，让到下方最稳。它指向的 `#main` 靠 `main[id]` 拿 `scroll-margin-top`，见上面「点目录 / 带 `#锚点` 进页面时标题停在哪儿」 |
 | 评论 | 配置 `hugo.toml` 的 `[params.giscus]`；单篇关闭用 `comments: false`。DOM 在 `layouts/partials/giscus.html`，行为逻辑在 `assets/js/giscus.js`：滚到评论区前 400px **在后台把 giscus 预加载好，但整块收着不展开**；读者点了才展开——因为内容已经加载完，展开是瞬间的、不会先白一下。**折叠开关是一颗 `<details>/<summary>` 胶囊按钮**（`#giscus-toggle`，样式与关于页的 `.donate-btn` 同一套 `--ctrl-*` 描边四态 + `::after` 画的 V 形箭头，`is-open` 时箭头转 180°）：2026-10-04（Request K）改成现在这样、与打赏块统一；更早换过两版形态（先是全宽按钮行，再是 `h2` + 右侧圆形箭头）。**⚠️ 那个 `<details>` 恒带 `open` 属性，收起不靠它原生折叠** —— `assets/js/giscus.js` 里 `preventDefault` 掉 `summary` 的原生 toggle，改由状态机给 `.giscus-box` 切 `.is-open` 类、由 CSS 收起（原因见本行末尾「别改成 display:none」）。`aria-label` 由 JS 在「展开评论 / 收起评论」之间同步切换。整块包在 `layouts/_default/single.html` 的 `<section class="giscus-wrap">` 里（带发丝线描边的卡片；`@media print` 藏的就是它）。再点一次可收起，iframe 留在 DOM 里，再展开是瞬时的。状态机只有一个 `state` 变量（`idle → loading → ready → slow → open`，`opening` 表示「读者已经在等」），并镜像到 `.giscus-body` 的 `data-state`，调试时在开发者工具里直接看得见。等 iframe 用的是 **MutationObserver，不是定时轮询**；两个超时各管一段：点开后 12 秒没出来才提示重试，预加载 2 分钟没结果就静默作废。**这个脚本单独打包、只在带评论的文章页加载**（`giscus.html` 里的 `resources.Get`），不塞进全站 bundle。收起用的 `.giscus-body { max-height: 0; visibility: hidden }`，**别改成 `display: none`**，那样 iframe 没有布局尺寸，giscus 会把高度算成 0。加载 / 重试提示 `.giscus-loading` 必须留在 `.giscus-body` **外面**，否则 body 收着时它会被一起裁掉、看不见 |
 | 文章目录 | 同一份目录在页面里有两份副本：宽屏刻度栏（`id="TableOfContents"`）和正文开头那块（`TableOfContentsInline`，<1152px 显示），后者的 id 由 `single.html` 里的 `replaceRE` 改掉，避免重复 id。四段逻辑都在 `assets/js/toc.js`：`init()` 管滚动高亮（对页面里所有 `.post-toc-nav` 一起生效），`initPin()` 管宽屏图钉的「钉住」，`initInlineToc()` 负责手机上把正文开头那块默认收起，`initHashAnchor()` 管带 `#锚点` 进页面后的重新对准；`init()` 内部另有一个 `scrollToTarget()`，负责**点目录时的落点**（按方向决定留不留顶栏那 76px，详见上面「点目录 / 带 `#锚点` 进页面时标题停在哪儿」）；同一层还有一对 `lockHighlight()` / `unlockHighlight()`，负责点完目录后把高亮锁住，别让它在平滑滚动刚起步那几帧被 `sync()` 拿旧位置打回原处（不然会看到高亮闪一下再走，详见同一行）。新增目录副本时记得同步改 id，样式挂 `.post-toc-nav` 就能直接复用编号和高亮。**高亮是「祖先链」不是单点**（2026-10-02 改，做法取自 bearneo 的 `toc.html`）——详见下面「目录高亮为什么要亮一整条链」 |
@@ -152,6 +154,7 @@ hugo server -D
 | 代码块（红绿灯 + 复制） | 结构在 `layouts/_default/_markup/render-codeblock.html`，样式全在 `assets/css/critical-post.css` 的 `.code-block` / `.chroma*`（外壳和红绿灯配色都在这一份里，随文章页首屏内联），复制逻辑在 `assets/js/ui.js` |
 | 面包屑 | 视觉：`layouts/_default/single.html` 的 `.breadcrumb`（首页 › 分类 › 标题）。**结构化数据**在 `layouts/partials/head-meta.html` 的文章分支里 —— `BreadcrumbList`（2026-10-05 新增），层级与视觉面包屑逐字对齐（首页 → 第一个分类 → 标题），`position` 先攒 `$crumbs` 再统一编号 |
 | 阅读进度条 / 返回顶部 / Header 自动隐藏 | 逻辑都在 `assets/js/ui.js`，样式在 `assets/css/critical.css`（`.reading-progress`、`.back-top`、`.site-header.is-hidden` —— 都在首屏关键 CSS 里，因为滚动一开始就要用到，不能等异步包） |
+| 阅读位置记忆（「上次读到 62%」） | 2026-10-07 新增，长文第二次回来时在正文顶端给一条细提示。**逻辑**在 `assets/js/ui.js` 末尾的 `initResume()`，**结构**在 `layouts/_default/single.html`（`.resume`，只在 `$isArticle` 时渲染），**样式**在 `assets/css/critical-post.css` 末尾的 `.resume*` 段。键名 `hulatu:read:<文章路径>`。几个必须记住的点：① **阈值** `MIN = 8 / MAX = 92 / DONE = 95`（%）——低于 8% 不值得提示、高于 92% 视为读完了不再提示；② **只在 `window.scrollY < 100` 时才显示**，并在 `load` 时再判一次（有些浏览器 load 后才恢复滚动位置）；③ **`started` 闸门**——Speculation Rules 预渲染会**真的执行脚本**，不给闸门的话预渲染副本会往 localStorage 写 0、把真实进度覆盖掉；④ **滚动停 500ms 才 flush**（`saveTimer`），`pagehide` + `visibilitychange` 补刀；⑤ 读写都包在 `try/catch` 里（隐私模式静默降级）；⑥ 「继续」用 `scrollTo({ top: total * saved / 100 })`、「从头看」`removeItem` 并隐藏。**`.resume` 用了 `display: flex`，所以必须补 `.resume[hidden] { display: none }`**——显式的 `display` 会盖掉 `hidden` 属性自带的 `display: none`，不补就永远藏不住。键名同时写进了 `content/privacy.md` 的「本地偏好」一节 |
 | 站内跳转预渲染 + 页面过渡 | 预渲染规则在 `layouts/_default/baseof.html` 的 `<script type="speculationrules">`（当前是 `prerender` + `eagerness: moderate`，嫌费流量就改成 `conservative`）；过渡样式在 `assets/css/core.css` 的「跨页面视图过渡」段（`.post-title` / `.page-title` / `.hero-line` 上的 `view-transition-name: page-title` 在 `critical.css`，因为标题在首屏）。**预渲染会真的执行页面脚本**，所以统计（`layouts/partials/analytics.html`）和评论（`layouts/partials/giscus.html`）都判断了 `document.prerendering`，以后新加的第三方脚本也要照做 |
 | 完字章 | `layouts/_default/single.html` 的 `.post-end`（印章红「完」字圆章） |
 | 打印样式 | `assets/css/critical.css` 和 `assets/css/critical-post.css` 里的 `@media print`（打印/存 PDF 时隐藏导航、评论等，只留正文）。拆分时这 7 条选择器被按归属分到了两个模块，`critical.css` 那份随首屏内联、每页都有，所以打印首页也不会带出导航 |
@@ -165,28 +168,30 @@ hugo server -D
 | 模块 | 内容 |
 |---|---|
 | `critical.css` | **全站公共首屏**：`:root` 令牌（`--accent` / `--line-strong` / `--tick` 都靠它）、reset、滚动条、`main[id], main [id]` 锚点偏移、`.container`、`.site-header` / `.nav-*` / `.nav-icon-btn` / `.site-logo`（含深色 `filter` 反白，2026-10-04 从 `core.css` 搬来）/ `.site-brand`、**全局 `svg { stroke-width: 2 }`**、`.site-hero` / `.hero-line` + `@keyframes hero-in`、`.post-row*`、列表工具条与翻页、页脚、主题切换图标、`.back-top`、`.reading-progress`、`.skip-link`、`@media print` 的导航那几条 |
-| `critical-post.css` | **正文首屏**：面包屑、`.post-header` / `.post-title` / `.post-meta*`、`.post-content` 及标题/锚点/链接/列表/复选框、`.post-toc*` / `.post-rail`（含刻度栏）/ `.post-toc-inline*`、`.article-image*`、`.code-block*` / `.chroma*`、`.table-wrap`、`.issue-badge*`、`.post-end`、`.post-tag-chip` |
+| `critical-post.css` | **正文首屏**：面包屑、`.post-header` / `.post-title` / `.post-meta*`、`.post-content` 及标题/锚点/链接/列表/复选框、`.post-content .formula`（公式块，2026-10-07）、`.post-toc*` / `.post-rail`（含刻度栏）/ `.post-toc-inline*`、`.article-image*`（含深色降亮 0.88）、`.code-block*` / `.chroma*`、`.table-wrap`、`.issue-badge*`、`.post-end`、`.post-tag-chip`、`.resume*`（阅读位置提示，2026-10-07） |
 | `critical-page.css` | **列表 / 卡片型首屏**：`.tag-cloud` / `.tag-chip*`、`.minimal-*`、`.group-card`、`.weekly-*`、`.page-intro`、`.category-*`、`.media-*` |
-| `critical-info.css` | **单页型首屏**：`.archive-*`、`.about-*`、`.friends-*`、`.notfound*` |
+| `critical-info.css` | **单页型首屏**：`.archive-*`（含 `.series-*`）、`.about-*`、`.friends-*`、`.notfound*`、`.stats-*` / `.heat-*` / `.cat-*`（结算页，2026-10-07 新增） |
 
 （哪个页型内联哪几个，见下面的组合表——**模块表不再承担「谁用」这一列**，因为收窄之后同一个模块会被好几个页型以不同组合挑走，写在模块表里只会越来越糊。）
 
 **两个异步模块**（`resources.Concat` 合并后异步加载）：`core.css`（全站共用，已剔除 `critical` 里已有的部分）＋ `post.css`（只放**文末家具**：`.donate*`、`.giscus*`、`.related-posts`）。~~`.post-pill*`~~ 已于 2026-10-02 删除 —— 全站零引用，是按钮残骸（详见下面「动效词表」一节的清理记录）；~~`.post-nav*`~~ 已于 2026-10-05 随文末上下篇整条删除（那一支从未渲染，见「各部分怎么改」的「系列 / 连载」一行）。
 
-实测的加载组合与体积（2026-09-29 收窄后，读的是构建产物里真正内联的那段 `<style>`）：
+实测的加载组合与体积（**2026-10-07 重新实测**，读的是构建产物里真正内联的那段 `<style>`）：
 
 | 页面 | 内联模块 | 内联 原始 / gzip | 异步包 |
 |---|---|---|---|
-| 首页、`/page/N/`、`/posts/` 列表 | `critical` | 19.7KB / 4.7KB | `site-core` 5.7KB / 1.8KB |
-| 标签页（列表 + 详情）、分类页（列表 + 详情）、周刊列表 | `critical` + `critical-page` | 25.1KB / 5.5KB | `site-core` 5.7KB / 1.8KB |
-| 归档、404 | `critical` + `critical-info` | 30.8KB / 6.3KB | `site-core` 5.7KB / 1.8KB |
-| 关于 | `critical` + `critical-info` | 30.8KB / 6.3KB | `site-core-post`（页尾有打赏块 —— 它是**全站唯一**非文章却要 post 的页面，2026-10-02 起。**这个共享是故意的**：文章页也用同一个包，而「文章 → 关于」是最常见的跳转路径之一，共用一个包就是一次缓存命中；反过来把 `.donate-*` 挪进内联的 `critical-info`，会让关于页换成文章页没有的包，还给归档 / 404 / 友链三页各加内联字节） |
-| 友链 | `critical` + `critical-info` + `critical-page` | 36.1KB / 7.0KB | `site-core` 5.7KB / 1.8KB |
-| 隐私政策 | `critical` + `critical-post` | 37.8KB / 7.8KB | `site-core` 5.7KB / 1.8KB |
-| 文章页、周刊正文 | `critical` + `critical-post` | 37.8KB / 7.8KB | `site-core-post` 10.6KB / 2.6KB |
-| 书影音 | `critical` + `critical-page` + `critical-post` | 43.1KB / 8.5KB | `site-core` 5.7KB / 1.8KB |
+| 首页、`/page/N/`、`/posts/` 列表 | `critical` | 19.4KB / 4.7KB | `site-core` 8.2KB / 2.1KB |
+| 标签页（列表 + 详情）、分类页（列表 + 详情）、周刊列表 | `critical` + `critical-page` | 24.5KB / 5.5KB | `site-core` 8.2KB / 2.1KB |
+| 归档、404、**结算** | `critical` + `critical-info` | 34.2KB / 6.8KB | `site-core` 8.2KB / 2.1KB |
+| 关于 | `critical` + `critical-info` | 34.2KB / 6.8KB | `site-core-post`（页尾有打赏块 —— 它是**全站唯一**非文章却要 post 的页面，2026-10-02 起。**这个共享是故意的**：文章页也用同一个包，而「文章 → 关于」是最常见的跳转路径之一，共用一个包就是一次缓存命中；反过来把 `.donate-*` 挪进内联的 `critical-info`，会让关于页换成文章页没有的包，还给归档 / 404 / 结算 / 友链四页各加内联字节） |
+| 友链 | `critical` + `critical-info` + `critical-page` | 39.3KB / 7.5KB | `site-core` 8.2KB / 2.1KB |
+| 隐私政策 | `critical` + `critical-post` | 38.9KB / 8.0KB | `site-core` 8.2KB / 2.1KB |
+| 文章页、周刊正文 | `critical` + `critical-post` | 38.9KB / 8.0KB | `site-core-post` 11.3KB / 2.5KB |
+| 书影音 | `critical` + `critical-page` + `critical-post` | 44.0KB / 8.7KB | `site-core` 8.2KB / 2.1KB |
 
-> **兜底仍然是「全给」**（4 个内联 + `core` + `post`），但 2026-09-29 收窄之后**已经没有任何页型落在它上面**（最大内联从 54.3KB 降到 43.3KB，就是书影音页）。它现在是一条纯粹的安全网：以后新增的根级单页、或 Hugo 将来新加的 `.Kind` 落到这里时，最坏结果只是多内联几 KB，不会掉样式。
+> **这组数字是 2026-10-07 重新实测的**（此前表里是 2026-09-29 收窄当时的数，之后 `critical.css` / `critical-post.css` / `critical-info.css` / `core.css` 都动过，已经对不上）。复现方法：`hugo --gc --minify --destination /tmp/xxx` 后，用脚本从产物里抽第一个 `<style>` 块按字节量 + `gzip -9`；异步包直接量 `public/css/site-core*.min.*.css`。改任何 CSS 之后如果要在文档里报数，**重新量一遍再写**，别沿用。
+
+> **兜底仍然是「全给」**（4 个内联 + `core` + `post`），但 2026-09-29 收窄之后**已经没有任何页型落在它上面**（最大内联从 54.3KB 降到 44.0KB，就是书影音页）。它现在是一条纯粹的安全网：以后新增的根级单页、或 Hugo 将来新加的 `.Kind` 落到这里时，最坏结果只是多内联几 KB，不会掉样式。
 >
 > 收窄的收益（每页首屏字节，内联 + 异步一起算）：分类页 −5.3KB gzip、归档/404 −4.4KB、友链 −3.7KB、关于 −3.6KB、隐私 −2.9KB、书影音 −2.2KB。方法是「解析页面用到的 class/id，看这些 token 的规则落在哪个模块，做贪心集合覆盖取最小集」；把这套方法代回首页 / 文章页 / 标签页 / 周刊列表，算出来的结果与原来已经写好的分支完全一致——这本身就是对方法的一次交叉验证。
 >
@@ -897,6 +902,41 @@ Text Module Level 4 这批特性（`pretty` / `balance` / `hyphens` / `line-brea
 5. **`.notfound-*` 全部住在 `critical-info.css`**（和 `.archive-*` / `.about-*` / `.friends-*` 同一份），
    404 页的首屏包是 `critical + critical-info` —— 加新类时别写到 `critical-page.css` 去。
    验收用 `python3 scripts/css-critical-coverage.py /tmp/site/404.html`，真缺口应为 0。
+
+### 结算页 `/stats/`（2026-10-07 新增）
+
+一页把「写作 + 跑步」的累计数字摊开：124 篇 / 约 30 万字 / 11 个月的写作分布 / 8 个分类构成 + 660 公里跑量。归档页只回答「什么时候写的」，这一页回答「写了多少、写了些什么、跑了多远」——它是「纸账」这个身份的延伸：一本账本年末要把一段的进出拢到一页上算清楚。
+
+**三个文件**：内容 `content/stats.md`（只写 front matter + 一句导语，`layout: "stats"` 把它指到模板）、模板 `layouts/_default/stats.html`、样式在 `critical-info.css` 的「结算页」段。
+
+1. **纯构建期、零 JS。** 数据全部现读：`where site.RegularPages "Type" "in" (slice "posts" "weekly")`（正文与周刊一起算 —— 周刊 URL 虽在 `/posts/` 下，但 `.Section` 是 `weekly`，只判 URL 会漏掉 24 期）、`.WordCount` 汇总、`site.Taxonomies.categories` 出分类构成、`site.Data.runs.stats.totals` 出跑步。字数字径与文章页的「约 N 字」、归档页的「今年写了 N 字」完全一致。
+2. **写作格按「年-月」攒数走 `dict`**，不要每月跑一次 `where`：
+   ```go-html-template
+   {{- $grid := dict -}}
+   {{- range $posts -}}
+     {{- $k := .Date.Format "2006-1" -}}
+     {{- $grid = merge $grid (dict $k (add (index $grid $k | default 0) 1)) -}}
+   {{- end -}}
+   ```
+   124 篇只遍历一遍。渲染时 `range seq 1 12` 逐月取，缺月的格子留空。
+3. **`data/runs.json` 缺席时整块跑步区不渲染**（`{{ with site.Data.runs }}` → `{{ with .stats }}` → `{{ with .totals }}` 层层收窄），构建不会因为缺数据炸掉。总账行里的「公里」也是同一个 `with $runs` 里才出。
+4. **首屏包 = `critical + critical-info`**（和归档 / 404 同类，见 `css-modules.html` 的 `$base == "stats"` 分支）。所以 `.stats-*` / `.heat-*` / `.cat-*` **全部住在 `critical-info.css`** —— 加新类时别写到 `critical-page.css` 去。验收用 `python3 scripts/css-critical-coverage.py /tmp/site/stats/index.html`，真缺口应为 0。
+5. **写作格横向要能滚。** `.stats-heat` 用 `overflow-x: auto`（同 `.table-wrap` 的做法），`.heat-row` 设 `min-width: 26rem` —— 窄屏不把十二格压成读不出数字的细条。
+
+**写作格的「印泥红浓淡」（四档）**：这是本站第一次让印章红**铺开**做数据可视化。四档用 `color-mix` 从 `--accent` 往纸底里兑，而不是写死四个十六进制 —— 深色下 `--accent` 变 `#ef7b64`、`--paper` 变近黑，同一组百分比会自动跟着走，不必再维护一份深色覆盖：
+
+| 档 | 篇数 | 底 | 字 |
+|---|---|---|---|
+| `.h1` | 1–3 | `color-mix(in srgb, var(--accent) 18%, var(--paper))` | `--ink` |
+| `.h2` | 4–9 | `… 40% …` | `--ink` |
+| `.h3` | 10–19 | `… 62% …` | `--ink` |
+| `.h4` | ≥20 | `var(--accent)` | `--on-accent` |
+
+- **`.h3` 的字色刻意用 `--ink` 而不是 `--on-accent`**：实测 62% 那档浅色 **5.12:1** / 深色 **5.23:1**，过 AA；换成 `--on-accent` 只剩 **4.0:1**，11.5px 的小字不过线。**改这四档时先量对比度再改字色。**
+- 表格标题行的 `.heat-sum`、图例 `.stats-legend`、分类条 `.cat-bar` 都走中性灰阶 —— **一格一格的浓淡已经是红，周围再红就没有「深浅」可读了**。分类条的填充色是 `--line-strong`，不是 `--accent`。
+- 档位分界写在模板里（`ge $n 20 / 10 / 4 / 1`），改档位只动 `layouts/_default/stats.html`，CSS 只认 `.h1`–`.h4` 四个类名。
+
+**这一页为什么不算违反「印章红必须稀缺」**：红的语义是「可交互 / 当前状态 / 焦点 / 签名时刻」，而热力格是**把「写得多」这件事画出来** —— 它落进「一个签名时刻」里（这页就是给整本账盖一次章）。四档浓淡是**同一支红的深浅**，不是第二个颜色。详见 `DESIGN.md` 的「印章红可以铺开做数据可视化」一条。
 
 ### 跑步数据
 

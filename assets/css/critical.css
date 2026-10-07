@@ -1052,6 +1052,12 @@ svg { stroke-width: 2; }
   display: flex;
   align-items: center;
   justify-content: center;
+  /* 允许折行（2026-10-07）：页脚从 5 个链接加到 8 个（补了标签 / 书影音 / 结算），
+     而这一行是 grid 的 auto 列、又挂着 white-space: nowrap —— 不折行的话，
+     601–700px 这一段视口（容器内容宽约 541px，链接行约 561px）会直接顶出去。
+     ≤600px 那条 mobile 覆盖本来就设了 flex-wrap: wrap，这里只是把同一件事
+     提前到基础规则，宽屏渲染不变。 */
+  flex-wrap: wrap;
   gap: var(--space-2) var(--space-3);
   font-size: var(--text-xs);
   white-space: nowrap;

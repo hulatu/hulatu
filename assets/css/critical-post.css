@@ -201,7 +201,30 @@
     opacity: 1;
     transform: none;
   }
-}.post-content p { margin: 0 0 var(--block-gap); }.post-content a {
+}.post-content p { margin: 0 0 var(--block-gap); }
+/* ---------- 公式块（2026-10-07，方案 A：纯样式块）----------
+   「独占一段的 $$…$$」由 layouts/partials/formula.html 换成 <p class="formula">，
+   这里只负责把它排出来：居中 + 衬线 + 上下留白。
+
+   为什么不引 KaTeX：本站两个主字体（Songti SC / PingFang SC）都缺 halt / chws，
+   而「不下载外部字体」是设计决策 —— KaTeX 那条约 300KB 的字体链正好撞在上面。
+   现有内容只有两条「72 法则」的一行等式，居中衬线已经把它排得比裸文本好十倍；
+   将来真要写分式 / 矩阵，再换 KaTeX 也不迟 —— 内容的写法（$$…$$ 独占一段）
+   两条路完全一样，换的时候一个字都不用改。
+
+   选择器写成 .post-content .formula 而不是 .formula：上面那条 .post-content p
+   是 (0,1,1)，比 (0,1,0) 高，用单类选择器会被它的 margin 吃掉。
+   刻意不加框、不加底 —— 公式是正文的一部分，不是「另一种内容」，
+   和代码块（--surface-2 + 发丝线 + 12px 圆角）要拉开区别。 */
+.post-content .formula {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  line-height: 1.7;
+  letter-spacing: var(--tracking-title);
+  text-align: center;
+  color: var(--ink);
+  margin: var(--space-6) 0;
+}.post-content a {
   color: var(--accent);
   text-decoration: none;
   background-image: linear-gradient(currentColor, currentColor);
@@ -910,6 +933,15 @@
   height: auto;
   display: block;
 }
+/* 深色下把正文图压暗一档（2026-10-07）。
+   深色底 + 一张白底截图，是深色阅读里最刺眼的一种组合 —— 而这台机器上
+   全站搜不到任何针对深色的图片处理（filter 只在 .site-logo 上反白用过一次）。
+   0.88 是「看得出被压过、但不会觉得图是灰的」的量；再低就开始像曝光不足。
+   只挂 .article-image（正文插图），**不挂 .lightbox**：灯箱是「我要看清楚」的场合，
+   那里必须给原图。浅色不动。 */
+[data-theme="dark"] .article-image img {
+  filter: brightness(0.88);
+}
 /* 渐显只在 JS 可用时生效 —— 所以整条挂在 `.js` 前缀下（ui.js 就绪后给 <html> 挂 .js）。
    脚本被拦或加载失败时，正文图要照常显示；不加这个前缀的话图会永远停在 opacity: 0，
    读者看到一片空白 —— 而且因为「关掉 JS 反而正常」，这类 bug 极难发现。
@@ -1017,4 +1049,70 @@
   content: "";
   position: absolute;
   inset: -4px;
+}
+
+/* ---------- 阅读位置记忆的提示条（2026-10-07）----------
+   只在「这篇文章有记录、上次读到 8%–92%、且这次落在页首」时由 ui.js 的
+   initResume() 显出来（HTML 里默认 hidden）。JS 被拦或加载失败就永远不出现。
+
+   形态刻意做成一条「批注」而不是一张卡片：纸背底 + 圆角，无影 ——
+   它背后没有遮罩，所以不适用浮层那一套（不必也不能靠遮罩拉开对比）；
+   但它也不该像浮层那样抬起来，因为它是正文的一部分：
+   讲的是「你上次读到这儿」，不是「跳出来一个东西」。
+
+   两个按钮都走中性的描边四态，**刻意不给红**：印章红要稀缺，
+   而这条提示是每次回访都会出现的常驻元素，不属于「可交互 / 当前状态 /
+   焦点 / 签名时刻」四条语义里的任何一条。「继续」比「从头看」重一档，
+   但只靠字色和边线，不靠色相。 */
+.resume {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+/* 这条必须显式写：上面给了 display: flex，会把 hidden 属性自带的
+   display: none 盖掉 —— 漏了它，没有阅读记录时这条提示也会显示出来。 */
+.resume[hidden] { display: none; }
+.resume-text b {
+  font-family: var(--font-meta);
+  font-weight: 400;
+  letter-spacing: var(--tracking-num);
+  color: var(--ink);
+}
+.resume-acts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+.resume-btn {
+  padding: .25em .9em;
+  border: 1px solid var(--ctrl-border);
+  border-radius: var(--radius-pill);
+  background: var(--ctrl-bg);
+  color: var(--ctrl-text);
+  font-family: inherit;
+  font-size: var(--text-2xs);
+  cursor: pointer;
+  transition: var(--ctrl-transition);
+}
+.resume-btn:hover {
+  background: var(--ctrl-hover-bg);
+  color: var(--ctrl-hover-text);
+  border-color: var(--ctrl-hover-border);
+}
+.resume-btn:active {
+  background: var(--ctrl-active-bg);
+  color: var(--ctrl-active-text);
+  border-color: var(--ctrl-active-border);
+}
+.resume-btn-go {
+  color: var(--ink);
+  border-color: var(--line-strong);
 }

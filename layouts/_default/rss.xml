@@ -41,7 +41,10 @@
       {{ range .Params.categories }}<category>{{ . }}</category>{{ end }}
       {{ range .Params.tags }}<category>{{ . }}</category>{{ end }}
       <description>{{ .Summary | plainify | htmlUnescape }}</description>
-      <content:encoded>{{ .Content | htmlUnescape | transform.XMLEscape | safeHTML }}</content:encoded>
+      {{- /* 公式块与正文同源（partials/formula.html）：订阅端拿到的是已经换好的
+             <p class="formula">，不再是裸露的 $$…$$。RSS 里没有站点的 CSS，
+             所以那边只是一个普通段落 —— 总比看见两对美元符号强。 */ -}}
+      <content:encoded>{{ partial "formula.html" .Content | htmlUnescape | transform.XMLEscape | safeHTML }}</content:encoded>
     </item>
     {{ end }}
   </channel>

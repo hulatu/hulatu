@@ -79,6 +79,21 @@
     {{ end }}
   </header>
 
+  {{- /* 阅读位置记忆的提示条（2026-10-07）。
+         默认 hidden —— 只有 ui.js 的 initResume() 确认「这篇文章有记录、且上次读到
+         8%–92% 之间、而且这次是落在页首」时才把它显出来。JS 被拦或加载失败时
+         它永远不出现，正文完全不受影响（渐进增强）。
+         逻辑、阈值、键名全在 assets/js/ui.js 里，这里只放结构。 */ -}}
+  {{ if $isArticle }}
+  <div class="resume" id="resume" hidden>
+    <span class="resume-text">上次读到 <b id="resume-pct">0%</b></span>
+    <span class="resume-acts">
+      <button type="button" class="resume-btn resume-btn-go" id="resume-go">继续</button>
+      <button type="button" class="resume-btn" id="resume-restart">从头看</button>
+    </span>
+  </div>
+  {{ end }}
+
   {{ if $hasToc }}
   <div class="post-rail">
     {{- /* .post-rail 是铺满「顶栏以下」的定位容器（本身不吃点击），里面的 .post-toc-wrap
@@ -114,7 +129,10 @@
   {{ end }}
 
   <div class="post-content">
-    {{ .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table" "</table></div>" | safeHTML }}
+    {{- /* 公式块走 partials/formula.html（把独占一段的 $$…$$ 换成 <p class="formula">，
+           2026-10-07）。放在表格包裹之前、safeHTML 之前 —— 它处理的是 .Content 里的
+           HTML 字符串，和后面两条 replaceRE 互不干扰。 */ -}}
+    {{ partial "formula.html" .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table" "</table></div>" | safeHTML }}
   </div>
 
 </article>

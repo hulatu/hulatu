@@ -13,7 +13,8 @@
 - **搜索**：构建期生成 `search-index.json`，纯前端搜索（`/` 或 `⌘K` 打开）；面板底部可按分类 / 标签筛选，空态显示最近 5 次搜索
 - **深浅色**：默认跟随系统，右上角按钮可手动切换（刷新后回到跟随系统，不记忆）
 - **归档**：按年、月折叠分组，统计总篇数和今年写字数；顶部另有「系列」胶囊（`content` 里写 `series:` 即可加一组连载）
-- **分类 / 标签**：自动生成总览和文章列表页
+- **分类 / 标签**：自动生成总览和文章列表页（入口在页脚）
+- **结算页**：`/stats/` 把累计数字摊开 —— 篇数 / 字数 / 按月写作格（印泥红浓淡）/ 分类构成 / 跑步里程。纯构建期生成、零 JS（数据源：content 的日期与字数 + `site.Taxonomies.categories` + `data/runs.json`）
 - **订阅**：RSS 2.0 全文输出，主源 `/index.xml` + 周刊专线 `/weekly/index.xml`，每源最多 20 条，每条带 `atom:updated`（更新于）
 - **评论**：giscus（GitHub Discussions），按需加载
 - **站内预取**：浏览器原生 Speculation Rules，点链接前先把下一页渲染好
@@ -30,6 +31,7 @@ blog/
 │   ├── weekly/                 # 周刊（front matter 里额外开了 RSS）
 │   ├── about.md                # 「关于」页（版式走 layouts/_default/about.html）
 │   ├── archive.md              # 「归档」页
+│   ├── stats.md                # 「结算」页（版式走 layouts/_default/stats.html）
 │   ├── privacy.md              # 「隐私政策」（noindex）
 │   ├── friends/ media/         # 友链、书影音
 │   ├── categories/ tags/       # 分类、标签总览页
@@ -40,7 +42,7 @@ blog/
 │   │   ├── critical.css        #   ★内联：每个页面的首屏骨架；设计令牌都在这个文件顶部
 │   │   ├── critical-post.css   #   ★内联：文章页额外要的（文章头 / 元信息行 / 目录 / 正文排版）
 │   │   ├── critical-page.css   #   ★内联：列表型页面额外要的（列表骨架 / 标签云 / 分类 / 书影音）
-│   │   ├── critical-info.css   #   ★内联：一页一型的信息页额外要的（归档 / 关于 / 友链 / 404）
+│   │   ├── critical-info.css   #   ★内联：一页一型的信息页额外要的（归档 / 关于 / 友链 / 404 / 结算）
 │   │   ├── core.css            #   异步包：全站共用（页头交互、搜索、灯箱、提示条…）
 │   │   └── post.css            #   异步包：文末家具（评论 / 相关文章 / 打赏）—— 文章页 + 关于页（后者只为打赏）
 │   └── js/                     # theme / ui / toc / lightbox / search / giscus
@@ -103,7 +105,7 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 正文 / 页头宽度 | `assets/css/critical.css` 的 `--content-width`（当前 680px，五个站同宽） |
 | 头像 | 图片放 `static/images/`，路径填 `hugo.toml` 的 `params.avatar`；文件不在就退回「胡」字印章。页面渲染时会自动套 Cloudflare Image Transformations 按显示尺寸出图（开关 `params.avatarCDN`） |
 | 图标 | `static/logo.svg`、`static/favicon.svg`、`static/apple-touch-icon.png`、`icon-192/512.png` |
-| 目录显示断点 | `assets/css/critical-post.css` 里搜 `1280px`（右侧刻度栏）和 `1279.98px`（正文开头那块） |
+| 目录显示断点 | `assets/css/critical-post.css` 里搜 `1152px`（右侧刻度栏）和 `1151.98px`（正文开头那块）。这是**成对**的两个断点（另加 `single.html` 一处注释），改一处要四处同改，详见 MAINTENANCE.md |
 | 周刊期号徽章 | 周刊 front matter 的 `issue: 23`（不填不显示徽章） |
 | 打赏 | `hugo.toml` 的 `[params.donate]`（留空则整块不显示）。**只出现在关于页**，文章页没有（2026-10-02 起）。收款码是站内静态图 `static/images/donate/{wechat,alipay}.webp`，不是图床图；换图覆盖同名文件后要去 Cloudflare Purge 一次 `/images/donate/*`（那条路径有 30 天缓存） |
 | 评论 | `hugo.toml` 的 `[params.giscus]`；单篇用 `comments: false` 关掉 |

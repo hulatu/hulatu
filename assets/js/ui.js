@@ -176,4 +176,123 @@
       });
     });
   });
+
+  /* ---------- 阅读位置记忆（2026-10-07） ----------
+     这个站的正文是 17px / 行高 1.8，读着舒服，代价是文章长。真实场景：
+     从搜索或相关文章点进一篇长文，读一半去做别的事，回来得从头滚。
+     页头那条阅读进度条已经在量位置了，可惜它不记忆 —— 这里补上。
+
+     全站第二处 localStorage（第一处是 search.js 的最近搜索）。
+     DESIGN.md 里「深浅色刷新不记忆」约束的是**主题**，和「记住你读到哪儿」
+     不是一回事：前者是偏好，后者是读者的劳动成果，不记住才是丢东西。
+     content/privacy.md 里「本站自身不使用 LocalStorage」那句已同步改掉。 */
+  (function initResume() {
+    var box = document.getElementById("resume");
+    if (!box) return;                       /* 不是文章页 */
+    var pctEl = document.getElementById("resume-pct");
+    var goBtn = document.getElementById("resume-go");
+    var restartBtn = document.getElementById("resume-restart");
+    if (!pctEl || !goBtn || !restartBtn) return;
+
+    var KEY = "hulatu:read:" + location.pathname;
+
+    /* 阈值都是刻意选的：
+       · MIN 8%   —— 低于它多半只是「点进来又走了」，不值得提示；
+       · MAX 92%  —— 高于它等于读完了，不该再问「要不要继续」；
+       · DONE 95% —— 滚到这儿就把记录清掉，下次进来是干净的。 */
+    var MIN = 8, MAX = 92, DONE = 95;
+
+    var saveTimer = 0;
+    var lastPct = -1;
+    var started = false;                    /* 用户真的滚动过没有 */
+    var dismissed = false;
+
+    function ratio() {
+      var doc = document.documentElement;
+      var total = doc.scrollHeight - doc.clientHeight;
+      return total > 0 ? Math.min(1, Math.max(0, window.scrollY / total)) : 0;
+    }
+
+    function read() {
+      try {
+        return parseInt(window.localStorage.getItem(KEY) || "0", 10) || 0;
+      } catch (e) {
+        return 0;   /* 隐私模式下 localStorage 会抛，静默降级成「不记」 */
+      }
+    }
+
+    function write(pct) {
+      try {
+        if (pct >= DONE) window.localStorage.removeItem(KEY);
+        else window.localStorage.setItem(KEY, String(pct));
+      } catch (e) { /* 同上 */ }
+    }
+
+    function hide() {
+      box.hidden = true;
+      dismissed = true;
+    }
+
+    /* ---- 显示 ----
+       只在「这次从页首开始看」时提示：浏览器前进/后退会自己恢复滚动位置，
+       那种情况下人已经在那儿了，再弹一条「上次读到 62%」纯属打扰。 */
+    var saved = read();
+    if (saved >= MIN && saved <= MAX && window.scrollY < 100) {
+      pctEl.textContent = saved + "%";
+      box.hidden = false;
+      /* 兜一道：有些浏览器在 load 之后才恢复滚动位置，那时再判一次 */
+      window.addEventListener("load", function () {
+        if (!dismissed && window.scrollY > 100) hide();
+      });
+    }
+
+    goBtn.addEventListener("click", function () {
+      var doc = document.documentElement;
+      var total = doc.scrollHeight - doc.clientHeight;
+      window.scrollTo({
+        top: total * saved / 100,
+        behavior: reduceMotion.matches ? "auto" : "smooth"
+      });
+      hide();
+    });
+
+    restartBtn.addEventListener("click", function () {
+      try { window.localStorage.removeItem(KEY); } catch (e) { /* 同上 */ }
+      hide();
+    });
+
+    /* ---- 记录 ----
+       不每帧写 localStorage（同步 IO，在滚动里写会把帧切碎）。
+       滚动停 500ms 才落一次盘，另外在「页面被藏起来 / 被卸载」时补一刀，
+       覆盖「滚到一半直接关标签页」那种情况。
+
+       started 这个闸门是必需的：页面可能被 Speculation Rules 预渲染，
+       预渲染中的文档也会收到 visibilitychange —— 没有这道闸，一个从没被
+       滚动过的预渲染副本会往 localStorage 写一个 0，把真实进度盖掉。 */
+    function flush() {
+      if (!started) return;
+      var pct = Math.round(ratio() * 100);
+      if (pct === lastPct) return;
+      lastPct = pct;
+      write(pct);
+    }
+
+    function schedule() {
+      if (saveTimer) window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(flush, 500);
+    }
+
+    window.addEventListener("scroll", function () {
+      started = true;
+      /* 人一旦自己往下读，这条提示就没用了 —— 让它随滚动消失，
+         而不是一直挂在正文顶上占地方。 */
+      if (!dismissed && !box.hidden && window.scrollY > 200) hide();
+      schedule();
+    }, { passive: true });
+
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden") flush();
+    });
+  })();
 })();

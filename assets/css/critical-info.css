@@ -6,7 +6,9 @@
      · 归档页 —— .archive-*（时间线、年份分组、条目）
      · 关于页 —— .about-*（头像、名片、链接列表、分节）
      · 友链页 —— .friends-*
-   这三类页面整页就是自己的内容，首屏几乎等于全页；样式留在异步包里，
+     · 404 页 —— .notfound-*
+     · 结算页 —— .stats-* / .heat-* / .cat-*（2026-10-07 新增）
+   这几类页面整页就是自己的内容，首屏几乎等于全页；样式留在异步包里，
    等于整页先按浏览器默认样式排一遍再重绘，比文章页更明显。
 
    ⚠️ 这里放的是规则本身，page.css 里**不再重复**。
@@ -612,3 +614,177 @@
   }.about-link-note {
     flex-basis: 100%;
   }}
+
+/* ---------- 结算页（/stats/，2026-10-07 新增）----------
+   这一页是「纸账」这个身份的延伸。三条规矩照旧：层级用线和留白、其余全部中性、
+   印章红只出现在一个地方 —— 但这里它铺满了一格一格的写作格。
+
+   为什么红可以铺开：写作格里的红承担的是**量**（数据可视化），
+   和「可交互 / 当前状态 / 焦点 / 签名时刻」那四条语义不冲突。
+   浓淡全部用 color-mix 从 --accent / --paper 推出来，不写死四个色值 ——
+   深色下 --accent 变成 #ef7b64、--paper 变成近黑，同一组百分比会自动跟着走，
+   不必再维护一份深色覆盖。 */
+.stats-intro {
+  margin: 0 0 var(--space-8);
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  max-width: 40em;
+}
+.stats-intro p { margin: 0; }
+.stats-hero,
+.stats-run {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.stats-hero { margin: 0 0 var(--space-12); }
+.stats-hero > div,
+.stats-run > div {
+  padding: var(--space-4) var(--space-2) var(--space-5);
+  border-left: 1px solid var(--line);
+  text-align: center;
+}
+.stats-hero > div:first-child,
+.stats-run > div:first-child { border-left: 0; }
+.stats-n {
+  display: block;
+  font-family: var(--font-meta);
+  font-size: var(--text-xl);
+  letter-spacing: var(--tracking-num);
+  line-height: 1.2;
+  color: var(--ink);
+}
+.stats-l {
+  display: block;
+  margin-top: var(--space-1);
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--muted);
+}
+.stats-block { margin: 0 0 var(--space-12); }
+.stats-h {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  font-weight: 500;
+  letter-spacing: var(--tracking-title);
+}
+.stats-note {
+  margin: 0 0 var(--space-5);
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-num);
+  color: var(--muted);
+}
+/* 写作格：年份 | 十二个月 | 合计 —— 一行就是账本上的一行。
+   窄屏放不下十二格，整块横向滚动（同 .table-wrap 的做法），
+   而不是把格子压成读不出数字的细条。 */
+.stats-heat { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.heat-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 5px;
+  min-width: 26rem;
+}
+.heat-yr {
+  flex: 0 0 46px;
+  font-family: var(--font-meta);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.heat-cells {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 4px;
+  flex: 1;
+}
+.heat-sum {
+  flex: 0 0 40px;
+  text-align: right;
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  color: var(--muted);
+}
+.heat-c {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+}
+.heat-row-x { margin-bottom: 0; }
+.heat-row-x .heat-cells span {
+  text-align: center;
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  color: var(--muted);
+}
+/* 四档浓淡。文字色只在最浓那一档换成 --on-accent（「红底上的字」专用 token）——
+   中间两档的背景还浅，用 --ink 在浅 / 深两套主题下都过 4.5:1，这是量过的：
+   h3 浅色 5.12:1 / 深色 5.23:1；h4 浅色 5.07:1 / 深色 6.7:1。
+   别顺手把 h3 也改成 --on-accent —— 那样只剩 4.0:1，11.5px 的小字不过线。 */
+.heat-c.h1 { background: color-mix(in srgb, var(--accent) 18%, var(--paper)); }
+.heat-c.h2 { background: color-mix(in srgb, var(--accent) 40%, var(--paper)); }
+.heat-c.h3 { background: color-mix(in srgb, var(--accent) 62%, var(--paper)); }
+.heat-c.h4 { background: var(--accent); color: var(--on-accent); }
+.stats-legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  color: var(--muted);
+}
+.stats-legend .heat-c { width: 20px; height: 16px; border-radius: 4px; }
+/* 分类：横向条，走中性线色 —— 这一页的红已经全给写作格了 */
+.stats-cats { border-top: 1px solid var(--line); }
+.stats-cat {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  transition: color var(--dur-fast) var(--ease);
+}
+.stats-cat:hover { color: var(--accent); }
+.cat-nm { font-family: var(--font-serif); letter-spacing: var(--tracking-title); }
+.cat-bar {
+  display: block;
+  height: 9px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.cat-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--line-strong);
+}
+.cat-ct {
+  text-align: right;
+  font-family: var(--font-meta);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .stats-hero,
+  .stats-run { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats-hero > div:nth-child(3),
+  .stats-run > div:nth-child(3) { border-left: 0; }
+  .stats-hero > div:nth-child(n + 3),
+  .stats-run > div:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  .stats-cat { grid-template-columns: 76px minmax(0, 1fr) 40px; gap: var(--space-3); }
+}

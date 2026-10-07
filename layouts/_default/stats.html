@@ -1,0 +1,109 @@
+{{ define "main" }}
+{{- /* 结算页（2026-10-07 新增）。
+     这一页是「纸账」这个身份的延伸：一本账本年末要把一段的进出拢到一页上算清楚。
+     归档页只回答「什么时候写的」，这一页回答「写了多少、写了些什么、跑了多远」。
+
+     数据全部在构建期算好，零 JS：
+       · 篇数 / 字数 / 按月分布 —— content 的 date + .WordCount
+         （字数字径与文章页的「约 N 字」、归档页的「今年写了 N 字」完全一致）
+       · 分类构成 —— site.Taxonomies.categories
+       · 跑步 —— data/runs.json 的 stats.totals（Garmin 每天 22:00 自动同步）
+
+     样式在 assets/css/critical-info.css 的「结算页」一段；
+     页型路由在 layouts/partials/css-modules.html（stats → critical + critical-info）。 */ -}}
+
+{{- $posts := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
+{{- $totalCount := len $posts -}}
+{{- $totalChars := 0 -}}
+{{- range $posts }}{{ $totalChars = add $totalChars .WordCount }}{{ end -}}
+
+{{- /* 写作格的数据源：把每篇按「年-月」攒成一个 dict，逐月取。
+         用 dict 而不是对每个月跑一次 where —— 124 篇只遍历一遍。 */ -}}
+{{- $grid := dict -}}
+{{- range $posts -}}
+  {{- $k := .Date.Format "2006-1" -}}
+  {{- $grid = merge $grid (dict $k (add (index $grid $k | default 0) 1)) -}}
+{{- end -}}
+
+{{- /* runs.json 缺席时整块不渲染，而不是让构建炸掉 */ -}}
+{{- $runs := dict -}}
+{{- with site.Data.runs }}{{ with .stats }}{{ with .totals }}{{ $runs = . }}{{ end }}{{ end }}{{ end -}}
+
+<h1 class="page-title">{{ .Title }}</h1>
+{{- with .Content }}<div class="stats-intro">{{ . }}</div>{{ end }}
+
+<section class="stats-hero" aria-label="总账">
+  <div><span class="stats-n">{{ $totalCount }}</span><span class="stats-l">篇</span></div>
+  <div><span class="stats-n">{{ printf "%.1f" (div (float $totalChars) 10000) }}</span><span class="stats-l">万字</span></div>
+  <div><span class="stats-n">{{ len $grid }}</span><span class="stats-l">个月</span></div>
+  {{- with $runs }}
+  <div><span class="stats-n">{{ printf "%.0f" .distance_km }}</span><span class="stats-l">公里</span></div>
+  {{- end }}
+</section>
+
+<section class="stats-block" aria-label="写作格">
+  <h2 class="stats-h">写作格</h2>
+  <p class="stats-note">格里的数字是当月篇数，颜色是印泥浓淡</p>
+  <div class="stats-heat">
+    {{- range $posts.GroupByDate "2006" }}
+      {{- $year := .Key -}}
+      {{- $yearTotal := len .Pages -}}
+      <div class="heat-row">
+        <span class="heat-yr">{{ $year }}</span>
+        <span class="heat-cells">
+          {{- range seq 1 12 -}}
+            {{- $n := index $grid (printf "%s-%d" $year .) | default 0 -}}
+            {{- $lvl := 0 -}}
+            {{- if ge $n 20 }}{{ $lvl = 4 }}
+            {{- else if ge $n 10 }}{{ $lvl = 3 }}
+            {{- else if ge $n 4 }}{{ $lvl = 2 }}
+            {{- else if ge $n 1 }}{{ $lvl = 1 }}{{ end -}}
+            <span class="heat-c h{{ $lvl }}"{{ if $n }} title="{{ $year }} 年 {{ . }} 月 · {{ $n }} 篇"{{ end }}>{{ if $n }}{{ $n }}{{ end }}</span>
+          {{- end -}}
+        </span>
+        <span class="heat-sum">{{ $yearTotal }}</span>
+      </div>
+    {{- end }}
+    <div class="heat-row heat-row-x" aria-hidden="true">
+      <span class="heat-yr"></span>
+      <span class="heat-cells">{{ range seq 1 12 }}<span>{{ . }}</span>{{ end }}</span>
+      <span class="heat-sum"></span>
+    </div>
+  </div>
+  <p class="stats-legend">
+    <span>少</span>
+    <span class="heat-c h1"></span><span class="heat-c h2"></span><span class="heat-c h3"></span><span class="heat-c h4"></span>
+    <span>多</span>
+  </p>
+</section>
+
+{{- $cats := site.Taxonomies.categories -}}
+{{- $maxCat := 1 -}}
+{{- range $cats.ByCount }}{{ if gt .Count $maxCat }}{{ $maxCat = .Count }}{{ end }}{{ end }}
+<section class="stats-block" aria-label="分类">
+  <h2 class="stats-h">分类</h2>
+  <p class="stats-note">{{ len $cats }} 个分类 · 每篇恰好 1 个</p>
+  <div class="stats-cats">
+    {{- range $cats.ByCount }}
+    <a class="stats-cat" href="{{ .Page.RelPermalink }}">
+      <span class="cat-nm">{{ .Page.Title }}</span>
+      <span class="cat-bar"><span style="width: {{ div (mul .Count 100) $maxCat }}%"></span></span>
+      <span class="cat-ct">{{ .Count }}</span>
+    </a>
+    {{- end }}
+  </div>
+</section>
+
+{{- with $runs }}
+<section class="stats-block" aria-label="跑步">
+  <h2 class="stats-h">跑步</h2>
+  <p class="stats-note">来自 data/runs.json，Garmin 每天 22:00 自动同步</p>
+  <div class="stats-run">
+    <div><span class="stats-n">{{ .count }}</span><span class="stats-l">次</span></div>
+    <div><span class="stats-n">{{ .distance_km }}</span><span class="stats-l">公里</span></div>
+    <div><span class="stats-n">{{ printf "%.1f" (div (float .duration_s) 3600) }}</span><span class="stats-l">小时</span></div>
+    <div><span class="stats-n">{{ .pace }}</span><span class="stats-l">平均配速</span></div>
+  </div>
+</section>
+{{- end }}
+{{ end }}

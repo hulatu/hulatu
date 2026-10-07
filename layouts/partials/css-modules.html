@@ -39,6 +39,10 @@
     {{- $c = slice "critical" "critical-info" -}}{{- $m = slice "core" "post" -}}
   {{- else if eq $base "archive" -}}
     {{- $c = slice "critical" "critical-info" -}}{{- $m = slice "core" -}}
+  {{- else if eq $base "stats" -}}
+    {{- /* 结算页（2026-10-07）：和归档页同类 —— 一页一型的信息页，样式全在 critical-info，
+           不需要 critical-post（它没有 .post-content 正文，开头那段说明走 .stats-intro）。 */ -}}
+    {{- $c = slice "critical" "critical-info" -}}{{- $m = slice "core" -}}
   {{- end -}}
 {{- else if eq .Kind "section" -}}
   {{- if eq .Section "posts" -}}
