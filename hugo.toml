@@ -155,26 +155,22 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     name = "关于"
     url = "/about/"
     weight = 1
-  # 2026-10-08：这一位原先排的是「现在」(/now/)，同日又撤了 —— 那一页整个删掉，
-  # 因为「现在」和「片刻」都在讲「此刻的我」，两条挨着读是重复的，留「片刻」一条就够。
-  # 撤掉后把后面四项的 weight 整体前移一位（3/4/5/6 → 2/3/4/5），不留空号 ——
-  # 空号看着像「这里原来有东西被删了」，读代码的人要多想一秒。
-  [[menu.main]]
-    name = "片刻"
-    url = "/moments/"
-    weight = 2
+  # 2026-10-08：这一位先排过「现在」(/now/)，同日撤掉；「片刻」(/moments/) 补上，
+  # 同日晚些也整个撤掉了 —— 那一页连同短代码、样式、图片一起删干净。
+  # 撤掉后把后面几项的 weight 整体前移，不留空号 —— 空号看着像「这里原来有东西被删了」，
+  # 读代码的人要多想一秒。
   [[menu.main]]
     name = "归档"
     url = "/archive/"
-    weight = 3
+    weight = 2
   [[menu.main]]
     name = "周刊"
     url = "/weekly/"
-    weight = 4
+    weight = 3
   [[menu.main]]
     name = "分类"
     url = "/categories/"
-    weight = 5
+    weight = 4
 
 [taxonomies]
   category = "categories"

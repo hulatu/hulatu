@@ -79,28 +79,33 @@
     {{ end }}
   </header>
 
-  {{- /* 阅读位置记忆的提示条（2026-10-07）。
-         默认 hidden —— 只有 ui.js 的 initResume() 确认「这篇文章有记录、且上次读到
-         8%–92% 之间、而且这次是落在页首」时才把它显出来。JS 被拦或加载失败时
-         它永远不出现，正文完全不受影响（渐进增强）。
-         逻辑、阈值、键名全在 assets/js/ui.js 里，这里只放结构。 */ -}}
-  {{ if $isArticle }}
-  <div class="resume" id="resume" hidden>
-    <span class="resume-text">上次读到 <b id="resume-pct">0%</b></span>
-    <span class="resume-acts">
-      <button type="button" class="resume-btn resume-btn-go" id="resume-go">继续</button>
-      <button type="button" class="resume-btn" id="resume-restart">从头看</button>
-    </span>
-  </div>
-  {{ end }}
+  {{- /* 阅读位置记忆的提示条（`.resume`，「上次读到 62%」）2026-10-07 加、2026-10-08 撤（用户拍板）。
+         撤的理由：它只在「第二次访问同一篇长文、且落在页首」时出现，触发条件窄，
+         而实现是全站最重的一处（localStorage + 三态 + 预渲染闸门 + 三个按钮）。
+         出现率远低于实现成本 —— 文章页的「定位装置」本来就有六个，它是最不值得留的那个。
+         移除的落点（要加回来得四处一起补，别再只加一半）：
+           · 这里的结构块（`#resume` / `#resume-pct` / `#resume-go` / `#resume-restart`）
+           · assets/js/ui.js 末尾的 initResume() IIFE
+           · assets/css/critical-post.css 末尾的 `.resume*` 段
+           · content/privacy.md 与 content/colophon.md 里「阅读位置」那一条登记
+         连带后果：全站 localStorage 从两处回到一处（只剩搜索面板的最近搜索），
+         所以 privacy.md 那句「只用于两件事」也一并改成一件。 */ -}}
 
   {{ if $hasToc }}
   <div class="post-rail">
-    {{- /* .post-rail 是铺满「顶栏以下」的定位容器（本身不吃点击），里面的 .post-toc-wrap
-           纵排「图钉 + 目录本体」两行：整块居中靠外层 flex 做，图钉是 wrap 的第一行
-           （见 assets/css/post.css 里的 .post-toc-pin），钉在目录框左上角。 */ -}}
+    {{- /* .post-rail 是铺满「顶栏以下」的定位容器（本身 pointer-events: none、不吃点击），
+           整块目录靠它的 align-items: center 纵向居中。
+           里面 .post-toc-wrap 纵排「图钉 + 目录本体」两行（flex-direction: column，
+           gap: --space-1）；`width: 100%` 不能省 —— 它是 align-items: center 的
+           flex 子项，不撑满就会被居中成一团，目录里的长标题也就出不了省略号。 */ -}}
     <div class="post-toc-wrap">
-      {{- /* 图钉：钉住后目录保持展开，不用一直把鼠标停在上面（参考 sspai 文章页的目录） */ -}}
+      {{- /* 图钉：钉住后目录保持展开，不用一直把鼠标停在上面（参考 sspai 文章页的目录）。
+             四态与命中区见 critical-post.css 的 `.post-toc-pin`，逻辑在 toc.js 的 initPin()。
+             2026-10-08 晚恢复 —— 此前撤过一版，理由是「同一件事 :hover 已经做了」；
+             但读长文时鼠标要一直停在右栏才看得见目录，那是持续的手腕成本，比多一个
+             按钮更贵。**四处要一起存在**：这里的按钮、toc.js 的 initPin()、
+             critical-post.css 的 `.post-toc-pin` 全部规则、以及三处
+             `.post-rail.is-pinned …` 展开触发条件。 */ -}}
       <button type="button" class="post-toc-pin" id="toc-pin" aria-pressed="false" aria-label="钉住目录" title="钉住目录（保持展开）">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 17v5"></path>

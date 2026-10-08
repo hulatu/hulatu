@@ -47,6 +47,7 @@
 .archive-year-block {
   scroll-margin-top: var(--anchor-offset);
 }.archive-year {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
@@ -58,7 +59,15 @@
   cursor: pointer;
   user-select: none;
   transition: color var(--dur-fast) var(--ease);
-}.archive-year::-webkit-details-marker { display: none; }.archive-year:hover { color: var(--accent); }.archive-year-num {
+}.archive-year::-webkit-details-marker { display: none; }.archive-year:hover { color: var(--accent); }/* 触控命中区（2026-10-08）：整行 <summary> 桌面视觉 680×39、手机 680×37，都差一点到 44。
+   按手机那一档算（更小的一档才是约束）：37 + 7 = 44。桌面因此是 46，超一点点没关系。
+   用 ::before —— ::after 是那个会旋转的箭头。 */
+.archive-year::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--hit) - 37px) / -2) 0;
+}
+.archive-year-num {
   margin: 0;
   font-family: var(--font-serif);
   font-size: var(--text-lg);
@@ -195,6 +204,7 @@
   gap: var(--space-2);
   min-width: 0;
 }.series-pill {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
@@ -209,6 +219,17 @@
   box-shadow: var(--ctrl-shadow);
   text-decoration: none;
   transition: var(--ctrl-transition);
+}
+/* 触控命中区（2026-10-08）：胶囊视觉高 24.5px。**到不了 44** —— 它是一组会换行的胶囊，
+   行距 8px 决定了上限：行距 8 + 视觉高 24.5 = 32.5px，再往外扩就会和上下相邻行的
+   命中区重叠（重叠比小目标更糟：会点到隔壁）。所以取「刚好不重叠」的 4px。
+   左右同理：列间距 8px，各扩 4px 正好相接。
+   要真上 44 得把行距加到 19.5px，这一块会再长高约 35px —— 而它正是上一轮判定
+   「太高太乱」的地方。取 32.5px（WCAG 2.5.5 的 Spacing 例外：间距 ≥24px 即可）。 */
+.series-pill::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
 }.series-pill:hover {
   background: var(--ctrl-hover-bg);
   color: var(--ctrl-hover-text);
@@ -256,9 +277,11 @@
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-label);
   color: var(--muted);
+  /* 2px：补 letter-spacing 给「按年」末尾留出的那点空，属光学微调（刻度从 4px 起）。 */
   margin-right: 2px;
 }
 .year-chip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -273,6 +296,13 @@
   white-space: nowrap;
   transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
+/* 触控命中区（2026-10-08）：视觉 45.9×27.2。上下扩到 44；左右各 2px
+   （.year-nav 的列间距是 --space-1 = 4px，各 2px 刚好相接）。 */
+.year-chip::after {
+  content: "";
+  position: absolute;
+  inset: calc((var(--hit) - 27px) / -2) -2px;
+}
 .year-chip:hover {
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
@@ -286,8 +316,15 @@
 }.friends-exchange {
   margin: 0 0 var(--space-8);
 }.friends-exchange a {
+  position: relative;
   color: var(--accent);
   text-decoration: none;
+}
+/* 触控命中区（2026-10-08）：这一条独占一行（视觉 64×18），横竖都能自由扩到 44。 */
+.friends-exchange a::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--hit) - 18px) / -2) -8px;
 }.friends-exchange a:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -309,9 +346,18 @@
   margin: 0;
   padding: 0;
   list-style: none;
-}.friends-list a {
+}/* 触控命中区（2026-10-08）：友链视觉只有 18px 高，是全站最小的文字链接。
+   行距 36px（li 高 28 + 行间距 8）。**到不了 44** —— 上限就是行距，
+   再往外扩会和上下相邻行重叠（重叠比小目标更糟：会点到隔壁）。取 9px 各边 → 36px 刚好相接。
+   左右各 4px：列间距 --space-5 有 20px 富余，但没必要把整片空白都吃掉。 */
+.friends-list a {
+  position: relative;
   color: var(--ink);
   text-decoration: none;
+}.friends-list a::before {
+  content: "";
+  position: absolute;
+  inset: -9px -4px;
 }.friends-list a:hover {
   color: var(--accent);
 }.about-page {
@@ -326,7 +372,7 @@
   align-items: center;
   padding: var(--space-8) var(--space-7);
   border: 1px solid var(--line);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 /* 2026-09-29 改版。原先这张卡片上有四处红：左边缘一根 3px 竖向渐变红柱（::before）、
@@ -339,25 +385,29 @@
      · 分隔线里的红菱形删掉，只留一条安静的短线
    顺带：列间距 24 → 28px，两列改成垂直居中对齐，胶囊从「五等分拉伸」改成按内容宽度居中。
    注意别再把 position: relative 加回来 —— 它是给那根左柱定位用的，柱已删。 */
-.about-avatar {
-  display: block;
-  width: 148px;
-  height: 148px;
+/* 头像直径只在这一处定，圆和里面那个字母的字号都从它算。
+   原来 fallback 的 font-size 写死 3.2rem（51.2px），而手机端把圆缩到 124px 时
+   字号没跟着缩 —— 同一个字母在手机上占圆的 41%、桌面只占 35%，看着不像是同一套东西。
+   0.346 = 51.2 / 148，即保持桌面既有的字圆比；改直径时字号自动跟。 */
+.about-avatar,
+.about-avatar-fallback {
+  --avatar: 148px;
+  width: var(--avatar);
+  height: var(--avatar);
   border-radius: 50%;
+}.about-avatar {
+  display: block;
   object-fit: cover;
   border: 1px solid var(--line-strong);
 }.about-avatar-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 148px;
-  height: 148px;
-  border-radius: 50%;
   border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--on-accent);
   font-family: var(--font-serif);
-  font-size: 3.2rem;
+  font-size: calc(var(--avatar) * 0.346);
   font-weight: 700;
 }.about-head-main {
   min-width: 0;
@@ -431,7 +481,7 @@
 }.about-body {
   margin: 0 0 var(--space-6);
   border: 1px solid var(--line);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius);
   overflow: hidden;
 }.about-section {
   padding: var(--space-6) var(--space-7);
@@ -658,8 +708,7 @@
     text-align: center;
   }.about-avatar,
   .about-avatar-fallback {
-    width: 124px;
-    height: 124px;
+    --avatar: 124px;
   }.about-avatar {
     margin: 0 auto;
   }.about-head-main {
@@ -743,7 +792,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 0 0 5px;
+  /* 2026-10-08：原 5px。热力区里三处间距（这里 5px、.heat-cells 4px、.stats-legend 5px）
+     都是同一个视觉量却写了两个值，一并并到 --space-1（4px）。 */
+  margin: 0 0 var(--space-1);
   min-width: 26rem;
 }
 .heat-yr {
@@ -755,7 +806,7 @@
 .heat-cells {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 4px;
+  gap: var(--space-1);
   flex: 1;
 }
 .heat-sum {
@@ -771,7 +822,7 @@
   justify-content: center;
   height: 34px;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius-chip);
   background: transparent;
   color: var(--ink);
   font-family: var(--font-meta);
@@ -795,13 +846,13 @@
 .stats-legend {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-1);
   margin: var(--space-4) 0 0;
   font-family: var(--font-meta);
   font-size: var(--text-2xs);
   color: var(--muted);
 }
-.stats-legend .heat-c { width: 20px; height: 16px; border-radius: 4px; }
+.stats-legend .heat-c { width: 20px; height: 16px; border-radius: var(--radius-chip); }
 /* 分类：横向条，走中性线色 —— 这一页的红已经全给写作格了 */
 .stats-cats { border-top: 1px solid var(--line); }
 .stats-cat {
@@ -846,12 +897,12 @@
   .stats-cat { grid-template-columns: 76px minmax(0, 1fr) 40px; gap: var(--space-3); }
 }
 
-/* ---------- 信息页通用页头（/uses/ · /colophon/ · /moments/，2026-10-08 新增）----------
-   这三个页面都是「一页说清一件事」的静态信息页，共用同一套页头：
+/* ---------- 信息页通用页头（/uses/ · /colophon/，2026-10-08 新增）----------
+   这两个页面都是「一页说清一件事」的静态信息页，共用同一套页头：
    衬线大标题 + 等宽「最后更新」+ 一段引导语。
 
    **为什么不让它们复用 .about-head**：那个页头是给「人」的 —— 里面是头像 +
-   姓名 + 角色 + 关注方向胶囊，本质是一张名片。这三页没有名片，
+   姓名 + 角色 + 关注方向胶囊，本质是一张名片。这两页没有名片，
    硬套会留下一堆空槽。这里只抽真正共用的那部分。
 
    内容区则**直接复用关于页的 .about-body / .about-section / .about-link-list**，

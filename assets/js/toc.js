@@ -3,8 +3,8 @@
 
   /* 文章目录的逻辑都在这个文件里：
        init()       —— 滚动高亮当前章节；
-       initPin()    —— 宽屏刻度栏的「钉住」按钮（钉住后不用悬停也保持展开）；
        initInlineToc() —— 手机上把正文开头那块目录默认收起来；
+       initPin()    —— 宽屏刻度栏的「钉住」按钮（钉住后不用悬停也保持展开）；
        initHashAnchor() —— 带着 #锚点 进页面时把标题重新对准（见下面那段注释）。
      同一份目录在页面里有两份副本（宽屏刻度栏 + 正文开头那块），
      所以高亮对页面里所有 .post-toc-nav 一起生效；点哪一份都是这里接管、平滑滚动。 */
@@ -210,7 +210,10 @@
      参考 sspai 文章页的目录：平时只有一列小刻度，鼠标移上去才展开成标题；
      点图钉钉住后，展开状态就不用再靠悬停维持（.post-rail.is-pinned）。
      按钮在 .post-rail 里面，窄屏时整块 display:none，所以窄屏等于不执行。
-     状态不跨页面记：和主题切换一样，刷新回到默认的收起态。 */
+     状态不跨页面记：和主题切换一样，刷新回到默认的收起态。
+
+     2026-10-08 晚恢复（此前撤过一版）。恢复时记得**四处一起补**：single.html 的
+     按钮、这里、critical-post.css 的 `.post-toc-pin` 与三处 `.post-rail.is-pinned …`。 */
   function initPin() {
     var rail = document.querySelector(".post-rail");
     var btn = document.getElementById("toc-pin");
@@ -290,8 +293,8 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     init();
-    initPin();
     initInlineToc();
+    initPin();
     initHashAnchor();
   });
 })();

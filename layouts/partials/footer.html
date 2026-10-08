@@ -34,10 +34,15 @@
              页脚只留「找得到就行」的次要入口，而这一页属于「想了解这站怎么搭的」
              才会点的内容页，更适合待在关于页那张「这站有什么」的清单里
              （那里本来就有它）。
-             撤掉之后页脚是 8 条。⚠️ 想加回来：加回关于页的 site: 列表，别加在这儿。 */ -}}
-      {{ if site.Params.email }}
-      <a href="mailto:{{ site.Params.email }}">邮箱</a>
-      {{ end }}
+             ⚠️ 想加回来：加回关于页的 site: 列表，别加在这儿。 */ -}}
+      {{- /* 2026-10-08 第四次减：「邮箱」也从页脚撤掉（用户拍板）。
+             判据和上面几条一致 —— 页脚只放「站内索引 / 站外出口」，而它既不是
+             索引、也不是唯一的出口：关于页的「联系」一节已经有
+             mailto:hello@hulatu.com（见 content/about.md 的 site: 列表）。
+             全站每页最显眼的位置之一再放一条，密度上盖过了主导航（4 项）。
+             撤完页脚是 7 条：花园 / 友链 / 标签 / 书影音 / 统计 / 开往 / 隐私。
+             ⚠️ `site.Params.email` 这个配置**保留** —— layouts/friends/list.html
+             的「交换友链」还在用它拼 mailto:，别顺手把 hugo.toml 里那行删了。 */ -}}
     </p>
 
     <a class="footer-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>

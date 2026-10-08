@@ -10,9 +10,15 @@
   {{- if $noindex }}
   <meta name="robots" content="noindex, follow">
   {{- end }}
+  {{- /* 「长文页」= 文章 + 周刊。这个判断在下面用到两处：评论（giscus）与
+         阅读进度条 / 返回顶部。全站只有这两类页面是真需要它们的 ——
+         其余页面（首页、分页、分类、标签、归档、关于、装备、制作说明、隐私、
+         书影音、结算、友链、404…）大多一屏到底，挂上去只会得到一条停在 0%
+         或瞬间满格的进度条，和一个页面本来就不需要滚动的返回顶部按钮。 */ -}}
+  {{- $longForm := and .IsPage (in (slice "posts" "weekly") .Type) -}}
   {{- $giscusPage := false -}}
   {{- if site.Params.giscus.repo -}}
-    {{- if and .IsPage (in (slice "posts" "weekly") .Type) (ne .Params.comments false) -}}
+    {{- if and $longForm (ne .Params.comments false) -}}
       {{- $giscusPage = true -}}
     {{- end -}}
   {{- end -}}
@@ -106,7 +112,15 @@
   </script>
 </head>
 <body>
+  {{- /* 2026-10-08 收窄：这两个装置此前是 343/345 页无条件渲染，其中 218 页用不上
+         （首页、列表、分类、标签、归档、关于、隐私、404…）。现在只挂在长文页上。
+         依据：DESIGN.md 的 P2-7 只约束了进度条的**粗细**（常驻元素压到 2px），
+         从没说过要挂在每一页。
+         不需要给 ui.js 加分支 —— 那边对这两个元素本来就有 null 判断
+         （if (readingProgress) / if (backTop)），页面没有它们时静默跳过。 */ -}}
+  {{ if $longForm }}
   <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
+  {{ end }}
   <a class="skip-link" href="#main">跳到主内容</a>
   {{ partial "header.html" . }}
 
@@ -115,9 +129,11 @@
   </main>
   {{ partial "footer.html" . }}
 
+  {{ if $longForm }}
   <button type="button" class="back-top" id="back-top" aria-label="返回顶部" title="返回顶部">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
   </button>
+  {{ end }}
 
   {{ partial "scripts.html" . }}
 </body>

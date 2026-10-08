@@ -8,7 +8,7 @@
 
 - **导航栏**：关于 / 归档 / 周刊 / 分类；右侧是搜索、深浅色切换、RSS 三个图标按钮
 - **首页**：按时间倒序每页 10 篇（`hugo.toml` 的 `[pagination] pagerSize`），底部箭头翻页
-- **文章页**：目录（宽屏右侧刻度栏，可钉住；窄屏排在正文开头）、相关文章、评论、「更新于」（文末的「上一篇 / 下一篇」2026-10-05 已删除，只留相关文章）
+- **文章页**：目录（宽屏右侧刻度栏，悬停展开；窄屏排在正文开头）、相关文章、评论、「更新于」（文末的「上一篇 / 下一篇」2026-10-05 已删除，只留相关文章；阅读进度条与返回顶部 2026-10-08 起只挂长文页）
 - **周更栏目**：周刊独立成栏（`/weekly/`），正文走 `/posts/年/月/日/slug/`，另有单独的 RSS
 - **搜索**：构建期生成 `search-index.json`，纯前端搜索（`/` 或 `⌘K` 打开）；面板底部可按分类 / 标签筛选，空态显示最近 5 次搜索
 - **深浅色**：默认跟随系统，右上角按钮可手动切换（刷新后回到跟随系统，不记忆）
@@ -37,7 +37,7 @@ blog/
 │   ├── friends/ media/         # 友链、书影音
 │   ├── categories/ tags/       # 分类、标签总览页
 │   └── posts/_index.md         # 「文章」栏目页（noindex，站内没有入口）
-├── layouts/                    # 模板：_default / partials / shortcodes
+├── layouts/                    # 模板：_default / partials（`shortcodes/` 2026-10-08 已空、整个目录移除）
 ├── assets/
 │   ├── css/                    # 样式按「首屏 / 异步」两组拆，内联部分再按页型分档（见 layouts/partials/css-modules.html）
 │   │   ├── critical.css        #   ★内联：每个页面的首屏骨架；设计令牌都在这个文件顶部
@@ -114,7 +114,6 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 博客名 / 描述 / 作者 / 邮箱 | `hugo.toml` 顶部与 `[params]` |
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚链接 | `layouts/partials/footer.html` |
-| 片刻（`/moments/`） | 内容全在 `content/moments.md`：一条片刻 = 一次 `{{< moment time="2026-10-08 13:41" place="郑州" photos="2026-10/a.jpg" >}}`；照片放 `assets/images/moments/`（构建时自动缩成 WebP 多档）。见 [MAINTENANCE.md](MAINTENANCE.md) 的「片刻页」 |
 | 每页几篇 | `hugo.toml` 的 `[pagination] pagerSize`（模板里的 `.Paginate` 故意不传第二个参数） |
 | 颜色 / 字体 / 间距 | `assets/css/critical.css` 顶部的 CSS 变量（`--font-meta` 元信息等宽字体也在那）；**五个站要一起改**，见 [sites/README.md](sites/README.md) 的颜色约定 |
 | 正文 / 页头宽度 | `assets/css/critical.css` 的 `--content-width`（当前 680px，五个站同宽） |

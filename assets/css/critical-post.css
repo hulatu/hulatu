@@ -25,6 +25,16 @@
   transition: color var(--dur-fast) var(--ease);
 }.breadcrumb a:hover {
   color: var(--accent);
+}
+/* 触控命中区（2026-10-08）：面包屑项视觉 27.5×24.1。上下扩到 44；左右各 4px
+   （间距 --space-2 = 8px，各 4px 刚好相接）。 */
+.breadcrumb a {
+  position: relative;
+}
+.breadcrumb a::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--hit) - 24px) / -2) -4px;
 }.breadcrumb-sep {
   color: var(--line-strong);
   user-select: none;
@@ -159,6 +169,7 @@
   font-weight: 700;
   margin: var(--block-gap) 0;
 }.heading-anchor {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -183,6 +194,20 @@
 .post-content h4:focus-within .heading-anchor {
   opacity: 1;
   transform: translateX(0);
+}
+/* 触控命中区（2026-10-08）：标题旁那个 # 视觉只有 12.7×12.7（0.68em 字 × 1.1em 盒）。
+   它左边紧贴标题文字，往左扩会把「选中标题文字」变成「跳锚点」，所以**只向右和上下扩** ——
+   inset 的第四个值（left）保持 0。右边是行尾空白，扩多少都不碍事。
+   结果：宽 12.7+32 = 44.7、高 12.7+32 = 44.7。
+
+   ⚠️ 这段注释**一度插进了上面那条 hover / focus-within 选择器列表的中间**，于是它的
+   声明块被这条 `::after` 顶掉了 —— 表现是 h2 / h3 悬停时 # 再也不显形（只有
+   h4:focus-within 还活着），而花括号仍然配平、构建不报错。**给扩展器写注释时，
+   别插在选择器列表里面**：CSS 允许注释出现在那里，语法上没错，所以只能靠肉眼看出来。 */
+.heading-anchor::after {
+  content: "";
+  position: absolute;
+  inset: -16px -32px -16px 0;
 }.heading-anchor:hover {
   color: var(--accent);
   background: var(--accent-soft);
@@ -343,13 +368,13 @@
   color: var(--muted);
   transition: color var(--dur-fast) var(--ease);
 }.post-toc-inline-head::-webkit-details-marker { display: none; }
-/* 触控命中区（2026-09-30 补）：这行 <summary> 实测只有 20.1px 高，而它是手机上
-   「展开目录」的唯一入口。撑到 32px —— 用 ::before 是因为 ::after 已经被那个
-   会旋转的箭头占用了。 */
+/* 触控命中区（2026-09-30 补、2026-10-08 提到 44px）：这行 <summary> 视觉只有 21px 高，
+   而它是手机上「展开目录」的唯一入口。用 ::before 是因为 ::after 已经被那个
+   会旋转的箭头占用了。扩 11.5px 仍在 .post-toc-inline 的 16px 内边距之内。 */
 .post-toc-inline-head::before {
   content: "";
   position: absolute;
-  inset: -6px;
+  inset: calc((var(--hit) - 21px) / -2);
 }.post-toc-inline-head::after {
   content: "";
   margin-left: auto;
@@ -498,14 +523,17 @@
     /* 滚动交给里面的 .post-toc：图钉要浮在刻度栏上方，这里不能裁切 */
     overflow: visible;
   }.post-toc-wrap {
+    /* 「图钉 + 目录本体」的纵排容器（图钉 2026-10-08 晚恢复）。
+       图钉用 visibility: hidden 而不是 display: none 隐藏，所以它**始终占着 24px + 4px**，
+       目录的位置不会随图钉显隐上下跳。
+       width: 100% 不能省 —— .post-rail 是 align-items: center 的 flex 容器，
+       子项不撑满就会被居中成一团，目录里的长标题也就出不了省略号了。 */
     width: 100%;
-    /* 纵向排两件东西：上面的图钉、下面的目录本体。
-       图钉用 visibility: hidden 藏着（不是 display: none），占位一直留着，
-       所以鼠标扫进来把它点亮时，目录不会跟着上下跳。 */
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
-    /* 这一层本身不吃点击，但里面的图钉和目录要能点、能悬停 */
+    /* 这一层本身不吃点击（.post-rail 是 pointer-events: none），
+       但里面的图钉和目录要能点、能悬停 */
     pointer-events: auto;
   }.post-toc {
     /* 上下各留 44px 呼吸（和 sspai 面板的上下内边距一致） */
@@ -552,8 +580,10 @@
     line-height: 12px;
     padding: 0 0 0 var(--toc-indent);
     border-left: 0;
-    /* sspai 目录文字是 15px */
-    font-size: 0.9375rem;
+    /* 原来是写死的 0.9375rem（15px，注释说「sspai 目录文字是 15px」）。
+       15px 不在本站的阶梯上，就近并到 --text-sm（16px）—— 它是站里「基础 UI」那一档，
+       页头导航、手机菜单都用它。差 1px，换掉一个游离值。 */
+    font-size: var(--text-sm);
     color: transparent;
     overflow: hidden;
     white-space: nowrap;
@@ -568,25 +598,29 @@
     width: 2px;
     /* 高度取上面按层级设好的 --tick（一级 6px、逐级 5/4/3px） */
     height: var(--tick);
-    border-radius: 6px;
+    border-radius: var(--radius-chip);
     background: var(--line-strong);
     transition: height var(--dur-base) var(--ease), background var(--dur-base) var(--ease);
-  }.post-rail .post-toc-nav a.is-active::before { background: var(--accent); }.post-rail .post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 1; }.post-rail:hover .post-toc-nav a,
+  }.post-rail .post-toc-nav a.is-active::before { background: var(--accent); }.post-rail .post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 1;   }.post-rail:hover .post-toc-nav a,
   .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a,
   .post-rail.is-pinned .post-toc-nav a {
-    /* 展开的三个触发条件：鼠标停在 rail 上 / 键盘焦点落在**目录项**上 / 被钉住。
+    /* 展开的三个触发条件：鼠标停在 rail 上 / 键盘焦点落在**目录项**上 / 被图钉钉住。
        中间那条原来是 `.post-rail:focus-within`（2026-10-02 改），它有个坑：
-       图钉按钮 `#toc-pin` 也在 `.post-rail` 里面，而浏览器点按钮会给它焦点 ——
+       图钉按钮 `#toc-pin` 原先也在 `.post-rail` 里面，而浏览器点按钮会给它焦点 ——
        于是「点一下图钉」就让 rail 命中了 :focus-within，焦点赖在图钉上不走，
        目录被永久钉在展开态：再点一次想取消钉住也收不回来（鼠标移开都没用），
        用户看到的就是「点第二次取消不了全部显示」。
-       现在只看 `.post-toc-nav` **内部**有没有焦点，图钉被排除在外。
+       现在只看 `.post-toc-nav` **内部**有没有焦点 —— 图钉被排除在外，但这条判据本身
+       仍然成立（rail 里以后若再放进别的可聚焦元素，同样会被排除在外），
+       别再改回 :focus-within。
        用 :focus-visible 而不是 :focus：鼠标点目录项不靠焦点展开（悬停已经展开了），
        只有 Tab 进来的键盘用户才需要这一条。
-       注意：图钉自己的「被聚焦时保持可见」仍由下面的 `.post-rail:focus-within .post-toc-pin`
+       图钉自己的「被聚焦时保持可见」由下面的 `.post-rail:focus-within .post-toc-pin`
        负责，那条不要动。 */
-    height: 33px;
-    line-height: 33px;
+    /* 展开态的行高 = 命中区（2026-10-08 由 33px 提到 --hit）。折叠态那 12px 是一把
+       尺子、不是一组目标：指针一进 rail 就展开，真正的点击发生在展开之后。 */
+    height: var(--hit);
+    line-height: var(--hit);
     color: var(--muted);
   }.post-rail:hover .post-toc-nav a::before,
   .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a::before,
@@ -598,7 +632,23 @@
   .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a.is-active,
   .post-rail.is-pinned .post-toc-nav a.is-active {
     color: var(--accent);
-  }.post-rail .post-toc-nav a:hover { color: var(--ink); }.post-toc-pin {
+  }.post-rail .post-toc-nav a:hover { color: var(--ink); }
+  /* ---------- 目录图钉（`.post-toc-pin`）----------
+     参考 sspai 文章页的目录：平时只有一列小刻度，鼠标移上去才展开成标题；
+     点图钉钉住之后，展开状态不用再靠悬停维持（`.post-rail.is-pinned`）。
+     四态：常藏（透明 + visibility: hidden，但**仍占 24px 的位**）、rail 悬停或图钉自己
+     拿到键盘焦点时显形、被钉住时常显并转成印章红。
+
+     为什么用 visibility: hidden 而不是 display: none：前者保留占位，目录的位置不会
+     随图钉显隐上下跳（否则整块目录会跳 28px）；而且 visibility: hidden **不参与命中
+     测试**，所以收起态的图钉不会误吃点击。
+
+     2026-10-08 晚恢复。此前撤过一版，理由是「同一件事 :hover 已经做了，多一个需要学习
+     的按钮换来的只是少悬停一次」—— 但实际用起来，读长文时鼠标要一直停在右栏才看得见
+     目录，是持续的手腕成本。**四处必须同时存在**：single.html 的按钮、toc.js 的
+     initPin()、这里、以及上面三条 `.post-rail.is-pinned …` 展开触发条件。 */
+  .post-toc-pin {
+    position: relative;
     align-self: flex-start;
     display: flex;
     align-items: center;
@@ -614,7 +664,17 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity var(--dur-base) var(--ease), color var(--dur-fast) var(--ease), visibility 0s var(--dur-base);
-  }.post-rail:hover .post-toc-pin,
+  }
+  /* 触控命中区（2026-10-08）：图钉视觉只有 24×24。上面和左右都有空地，唯独
+     **下面 4px 就是目录本体** —— 再往下压，就会把「点第一项目录」变成「点图钉」。
+     所以只吃到 gap 为止：上 16 + 24 + 下 4 = 44 高；左右各 10 + 24 = 44 宽
+     （左右扩的是「正文 ↔ 目录」那条 24–128px 的空隙，不吃任何东西）。 */
+  .post-toc-pin::before {
+    content: "";
+    position: absolute;
+    inset: -16px -10px -4px -10px;
+  }
+  .post-rail:hover .post-toc-pin,
   .post-rail:focus-within .post-toc-pin,
   .post-toc-pin:focus-visible {
     opacity: 1;
@@ -832,8 +892,9 @@
   font-size: var(--text-2xs);
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-label);
 }.code-block-copy {
+  position: relative;
   margin-left: auto;
   border: 1px solid var(--ctrl-ghost-border);
   background: var(--ctrl-ghost-bg);
@@ -844,7 +905,15 @@
   padding: 0.2em 0.55em;
   border-radius: var(--radius-sm);
   transition: var(--ctrl-transition);
-}.code-block-copy:hover {
+}/* 触控命中区（2026-10-08）：代码块右上角的「复制」视觉只有 37.7×22.6。
+   上下各扩 11px 会超出 .code-block-head 的高度，靠 .code-block 的 overflow 兜着 ——
+   实测展开后仍是完整的 44（见 DESIGN.md 那节的复算）。 */
+.code-block-copy::after {
+  content: "";
+  position: absolute;
+  inset: calc((var(--hit) - 22px) / -2) calc((var(--hit) - 36px) / -2);
+}
+.code-block-copy:hover {
   background: var(--ctrl-ghost-hover-bg);
   color: var(--ctrl-ghost-hover-text);
   border-color: var(--ctrl-ghost-hover-border);
@@ -1039,80 +1108,28 @@
   color: var(--accent);
 }
 
-/* 触控命中区（2026-09-30 补）：分类 / 标签胶囊实测只有 21.2px 高，低于 WCAG 2.5.8
-   要求的 24px —— 而它们本身还是链接。这里沿用 critical.css 里那套「::after 撑开
-   命中区、视觉尺寸不变」的手法，补到 29.2px。
-   inset 取 -4px 是因为胶囊之间的间距正好是 8px：左右各 4px 刚好相接、不重叠。
+/* 触控命中区（2026-09-30 补、2026-10-08 提到 44px）：分类 / 标签胶囊实测只有 21.2px 高，
+   而它们本身还是链接。沿用 critical.css 里那套「::after 撑开命中区、视觉尺寸不变」的手法。
+   左右仍各 4px：胶囊之间的间距正好是 8px，各 4px 刚好相接、不重叠；上下扩到 44。
    用 ::after 而不是 ::before，因为 ::before 已经被 ● / # 两个前置符号占用了。 */
 .post-cat-chip::after,
 .post-tag-chip::after {
   content: "";
   position: absolute;
-  inset: -4px;
+  inset: calc((var(--hit) - 21px) / -2) -4px;
 }
 
-/* ---------- 阅读位置记忆的提示条（2026-10-07）----------
-   只在「这篇文章有记录、上次读到 8%–92%、且这次落在页首」时由 ui.js 的
-   initResume() 显出来（HTML 里默认 hidden）。JS 被拦或加载失败就永远不出现。
+/* ---------- 阅读位置记忆的提示条（`.resume`）----------
+   2026-10-07 加、2026-10-08 撤（用户拍板）。这里原先是一整段 `.resume*`：
+   纸背底的提示条 + 「继续 / 从头看」两个中性描边按钮 + `.resume[hidden]` 覆盖。
 
-   形态刻意做成一条「批注」而不是一张卡片：纸背底 + 圆角，无影 ——
-   它背后没有遮罩，所以不适用浮层那一套（不必也不能靠遮罩拉开对比）；
-   但它也不该像浮层那样抬起来，因为它是正文的一部分：
-   讲的是「你上次读到这儿」，不是「跳出来一个东西」。
+   撤掉的理由：它只在「第二次访问同一篇长文、且这次落在页首」时出现 ——
+   触发条件窄，而实现是全站最重的一处（localStorage + 三态 + 预渲染闸门）。
+   文章页的「定位装置」本来就有六个，它是最不值得留的那个。
 
-   两个按钮都走中性的描边四态，**刻意不给红**：印章红要稀缺，
-   而这条提示是每次回访都会出现的常驻元素，不属于「可交互 / 当前状态 /
-   焦点 / 签名时刻」四条语义里的任何一条。「继续」比「从头看」重一档，
-   但只靠字色和边线，不靠色相。 */
-.resume {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-3);
-  margin: 0 0 var(--space-6);
-  padding: var(--space-3) var(--space-4);
-  background: var(--surface-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
-  color: var(--muted);
-}
-/* 这条必须显式写：上面给了 display: flex，会把 hidden 属性自带的
-   display: none 盖掉 —— 漏了它，没有阅读记录时这条提示也会显示出来。 */
-.resume[hidden] { display: none; }
-.resume-text b {
-  font-family: var(--font-meta);
-  font-weight: 400;
-  letter-spacing: var(--tracking-num);
-  color: var(--ink);
-}
-.resume-acts {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-left: auto;
-}
-.resume-btn {
-  padding: .25em .9em;
-  border: 1px solid var(--ctrl-border);
-  border-radius: var(--radius-pill);
-  background: var(--ctrl-bg);
-  color: var(--ctrl-text);
-  font-family: inherit;
-  font-size: var(--text-2xs);
-  cursor: pointer;
-  transition: var(--ctrl-transition);
-}
-.resume-btn:hover {
-  background: var(--ctrl-hover-bg);
-  color: var(--ctrl-hover-text);
-  border-color: var(--ctrl-hover-border);
-}
-.resume-btn:active {
-  background: var(--ctrl-active-bg);
-  color: var(--ctrl-active-text);
-  border-color: var(--ctrl-active-border);
-}
-.resume-btn-go {
-  color: var(--ink);
-  border-color: var(--line-strong);
-}
+   要加回来得四处一起补：single.html 的结构、ui.js 的逻辑、这里、以及
+   content/privacy.md 与 content/colophon.md 两处「阅读位置」登记。
+
+   注意：这段里那条 `.resume[hidden] { display: none }` 的教训仍然有效，
+   已登记在 MAINTENANCE.md 的「用 hidden 属性控显隐的元素」一条 ——
+   **作者样式表里的 display 会盖掉 hidden 属性自带的 display: none**。 */

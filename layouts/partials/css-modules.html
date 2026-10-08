@@ -5,7 +5,7 @@
      组合是拿构建产物实测出来的——解析每页 HTML 收集 class/id，再做贪心集合覆盖。
      默认「全给」，没被精确命中的页型都落回这里（最坏只是多内联几 KB，不会掉样式）。
 
-     七个模块：critical / critical-post / critical-page / critical-info / critical-moments（内联）
+     六个模块：critical / critical-post / critical-page / critical-info（内联）
               + core / post（异步）。
 
      两个刻意没为省字节做的事：
@@ -50,13 +50,6 @@
   {{- else if eq $base "colophon" -}}
     {{- /* 制作说明页（2026-10-08）：和 uses 页同构。 */ -}}
     {{- $c = slice "critical" "critical-info" "critical-post" -}}{{- $m = slice "core" -}}
-  {{- else if eq $base "moments" -}}
-    {{- /* 片刻页（2026-10-08）：页头借 critical-info 的 .info-*，
-           时间轴与九宫格全在 critical-moments 里。
-           **不加载 critical-post** —— 这一页没有 .post-content 正文，
-           而九宫格复用了 .article-image 的类名去搭 lightbox.js 的选择器，
-           真把 critical-post 加进来，它的插图样式会和九宫格打架。 */ -}}
-    {{- $c = slice "critical" "critical-info" "critical-moments" -}}{{- $m = slice "core" -}}
   {{- end -}}
 {{- else if eq .Kind "section" -}}
   {{- if eq .Section "posts" -}}

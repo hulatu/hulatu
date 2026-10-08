@@ -122,7 +122,7 @@
 .giscus-wrap {
   margin-top: var(--space-12);
   border: 1px solid var(--line);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 /* .giscus-box 是 <details>，恒带 open（见 layouts/partials/giscus.html 注释）：
@@ -130,6 +130,7 @@
 .giscus-box summary { list-style: none; }
 .giscus-box summary::-webkit-details-marker { display: none; }
 .giscus-toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -144,6 +145,13 @@
   cursor: pointer;
   box-shadow: var(--ctrl-shadow);
   transition: var(--ctrl-transition);
+}
+/* 触控命中区（2026-10-08）：视觉 89×42.6，离 44 只差 1.4px。
+   用 ::before —— ::after 已经被下面那个 V 形箭头占用了。 */
+.giscus-toggle::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--hit) - 42px) / -2);
 }
 .giscus-toggle:hover {
   background: var(--ctrl-hover-bg);
