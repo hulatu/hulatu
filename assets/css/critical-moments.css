@@ -1,0 +1,201 @@
+/* ---------- 片刻页（/moments/，2026-10-08 新增）----------
+
+   这一页的形态是「朋友圈」，但语言必须还是本站的「纸账 + 印章」。两边的取舍：
+
+   **借朋友圈的**：一条倒序时间轴、按天分组、文字 + 九宫格照片、等宽的小时刻。
+   **不借朋友圈的**：气泡、每条的圆形头像、蓝色链接、大圆角、白卡片。
+   单作者博客里，每条都挂一次自己的头像只是把同一个人重复印 N 遍；而「气泡」
+   是聊天界面的语法，这里没有第二个说话的人。真正要留的是**结构**，不是皮。
+
+   于是「纸账」给出一套对应物：日期分隔线 = 发丝线 + 等宽日期；时刻 = 左轨的
+   等宽小字（和归档页的日期轨同一套语言）；正文直接坐在纸上；照片九宫格只靠
+   4px 间隙和 10px 圆角分格，不套白卡、不投影。
+
+   ⚠️ 两个「以后别踩」的点：
+   1. 这一页**刻意不加载 critical-post.css** —— 所以 `.article-image` 在这里
+      没有任何样式。九宫格复用它的类名，只是为了搭上 lightbox.js 的选择器
+      （它按 `.article-image` 收集图片、并把全页图片串成一个可左右翻的序列）。
+      哪天有人把 critical-post 加进这一页，`.article-image` 的 margin / 居中
+      就会和下面的 `.moment-photo` 打架。
+   2. 深色下照片压 12% 亮度这条规则**照抄了一份**（见文件末尾）：
+      原规则在 critical-post.css 的 `[data-theme="dark"] .article-image img`，
+      而这一页不加载那个文件，不抄就会在深色下留一块发光的白板。 */
+
+/* ---------- 日期分隔线 ---------- */
+.moment-date {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-10) 0 var(--space-2);
+  /* 它是 <h2>，得把浏览器默认的粗体和字号按掉 —— 这一页的层级靠线，不靠字重。 */
+  font-family: var(--font-meta);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: var(--tracking-num);
+  color: var(--muted);
+}
+.moment-date::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--line);
+}
+/* 页头 / 引导语下面第一条不再顶一段大留白 */
+.moments > :first-child { margin-top: 0; }
+
+/* ---------- 一条片刻：左轨时刻 + 右侧正文 ---------- */
+.moment {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-5) 0;
+  /* baseline 对齐：时刻（11.5px）和正文首行（17px）字号不同，靠基线咬合最省事，
+     也不用写「补 6px 上内边距」那种一改字号就失效的魔法数。 */
+  align-items: baseline;
+}
+.moment-clock {
+  margin: 0;
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  line-height: 1.6;
+  letter-spacing: var(--tracking-num);
+  color: var(--muted);
+  text-align: right;
+  /* 时刻本身可以点开单条（id 锚点），但它不是链接 —— 朋友圈的时刻也不是。
+     深链靠地址栏粘贴 #m-202610081341 即可，页面上不挂一个常驻的锚点图标。 */
+  font-variant-numeric: tabular-nums;
+}
+/* 同一天里相邻两条之间：只在正文那一列拉一条发丝线，左轨留空 ——
+   和列表页「行与行用线分、日期轨不划线」是同一套语言。 */
+.moment + .moment { padding-top: 0; }
+.moment + .moment .moment-main {
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-5);
+}
+
+/* ---------- 正文 ---------- */
+.moment-text {
+  font-size: var(--text-reading);
+  line-height: var(--reading-leading);
+  color: var(--ink);
+}
+.moment-text > :first-child { margin-top: 0; }
+.moment-text > :last-child { margin-bottom: 0; }
+.moment-text p { margin: 0 0 var(--space-4); }
+.moment-text ul,
+.moment-text ol { margin: 0 0 var(--space-4); padding-left: 1.4em; }
+.moment-text li { margin: 0 0 var(--space-1); }
+.moment-text strong { font-weight: 700; }
+.moment-text code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.08em 0.65em;
+}
+.moment-text blockquote {
+  margin: 0 0 var(--space-4);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--line-strong);
+  color: var(--ink-soft);
+}
+/* 行内链接：和全站正文链接同一套（印章红字 + 1px 下划线），
+   但**没有**抄 .post-content a 那条「下划线从左划出」的渐变 ——
+   为一条片刻里的链接再维护一份画线技术不值得，理由同关于页散文里那条链接。 */
+.moment-text a {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.moment-text a:hover { color: var(--accent); }
+
+/* ---------- 九宫格照片 ---------- */
+.moment-photos {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  max-width: 480px;
+  /* 默认三列：3 / 5 / 6 / 7 / 8 / 9 张都排成三列（和朋友圈一致） */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+/* 1 张：不裁切、按原比例，宽度收在 320px —— 单张铺满 680px 会大得不像「随手拍的」 */
+.moment-photos[data-count="1"] { grid-template-columns: minmax(0, 320px); }
+/* 2 / 4 张：两列（朋友圈同样如此，四张排成 2×2 而不是 3+1） */
+.moment-photos[data-count="2"],
+.moment-photos[data-count="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 420px;
+}
+.moment-photo { margin: 0; }
+.moment-photo .article-image-link { display: block; }
+.moment-photo img {
+  display: block;
+  width: 100%;
+  /* 正方形裁切 + object-fit: cover —— 九宫格要对齐成格子，长宽比就得统一。
+     裁掉的只是构图边缘，点开灯箱看的是完整原图。
+     ⚠️ 这里**刻意不写 height: 100%**：网格行高是 auto（由内容决定），
+     百分比高度在不定高容器里会退化成 auto，和 aspect-ratio 打架 ——
+     width: 100% + aspect-ratio: 1 已经给出确定的正方形，够了。 */
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+/* 单张例外：不裁切，回到全站正文插图那套圆角 */
+.moment-photos[data-count="1"] .moment-photo img {
+  aspect-ratio: auto;
+  height: auto;
+  border-radius: var(--radius-row);
+}
+/* 图片文件缺失时的可见提示（构建日志里另有一条 warnf）。
+   走虚线 —— 全站唯一的虚线语义就是「这里坏了」，见 DESIGN.md 的「线的语法」。 */
+.moment-photo-missing {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  color: var(--muted);
+}
+
+/* ---------- 地点 / 心情 ---------- */
+.moment-tags {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  line-height: 1.6;
+  letter-spacing: var(--tracking-num);
+  color: var(--muted);
+}
+.moment-sep { margin: 0 0.5em; color: var(--line-strong); }
+
+/* ---------- 深色：照片压一档亮度 ----------
+   照抄 critical-post.css 里正文插图那条（这一页不加载那个文件）。
+   深色底 + 一张白底照片是深色阅读里最刺眼的组合；灯箱仍给原图。 */
+[data-theme="dark"] .moment-photo img { filter: brightness(0.88); }
+
+/* ---------- 窄屏：时刻从「左轨」改成「正文上方一行」 ----------
+   680px 容器里留 52px 的左轨在手机上会把正文挤到没法读，所以 ≤760px 直接
+   单列堆叠：时刻一行小字在上，正文在下 —— 也回到了朋友圈本来的样子。 */
+@media (max-width: 760px) {
+  .moment {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .moment-clock {
+    text-align: left;
+    margin-bottom: var(--space-2);
+  }
+  /* 分界线跟着搬：内容列不再单独划线，改回整条（因为已经没有左轨要留空） */
+  .moment + .moment { border-top: 1px solid var(--line); padding-top: var(--space-5); }
+  .moment + .moment .moment-main { border-top: 0; padding-top: 0; }
+  .moment-date { margin-top: var(--space-8); }
+  .moment-photos { max-width: 100%; }
+  .moment-photos[data-count="2"],
+  .moment-photos[data-count="4"] { max-width: 100%; }
+}

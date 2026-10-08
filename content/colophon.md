@@ -4,7 +4,7 @@ description: "hulatu.com 是怎么做出来的：用什么搭的、为什么这�
 date: 2026-10-08T00:00:00+08:00
 draft: false
 layout: "colophon"
-# 只写年月 —— 和 /now/ 的 now.updated 一个写法，页头显示「最后更新」。
+# 只写年月 —— 页头显示「最后更新」。
 updated: "2026-10"
 ---
 

@@ -1,0 +1,44 @@
+{{ define "main" }}
+{{- /* 「片刻」页（/moments/，2026-10-08 新增）。
+
+      形态是「朋友圈」，语言是本站的「纸账 + 印章」：**不抄气泡和头像** ——
+      单作者博客里，每条都挂一次自己的头像只是重复；朋友圈真正要留的是
+      「一条时间轴 + 按天分组 + 文字配图」，这三样用账本的方式表达就是：
+      等宽的日期分隔线 + 左轨的等宽时刻 + 正文直接坐在纸上 + 九宫格照片。
+
+      内容全在 `content/moments.md` 的正文里，一条片刻一次 `{{< moment >}}`。
+      分组、时刻、图片都交给 layouts/shortcodes/moment.html；这一页只负责
+      页头 + 计数 + 把正文原样放进去 —— 不做二次排版。
+
+      **顺序有个坑**：`$count` 来自短代码在 Store 里记的数，而短代码是在
+      `.Content` 被求值时执行的。所以必须先 `{{ $feed := .Content }}`，
+      再读 Store，反过来读到的永远是 0。
+
+      刻意不做的事：
+      · 不做分页。它是一条时间轴，从头翻到尾就是它该有的样子；真按天写满几年，
+        再考虑按年折叠（照归档页的做法），现在不预支。
+      · 不进 RSS、不加评论。这一页是「记录」，不是「帖子」——评论区留在文章页。
+      · 不给每张照片写说明文字。九宫格是「当时看到的样子」，配文交给正文。 */ -}}
+
+{{- $feed := .Content -}}
+{{- $count := (.Store.Get "moment-count") | default 0 -}}
+
+<div class="info-page">
+  <header class="info-head">
+    <h1 class="info-title">{{ .Title }}</h1>
+    {{- if $count }}
+    <p class="info-when">共 <strong>{{ $count }}</strong> 条{{ with .Params.updated }} · 最后更新 <time datetime="{{ . }}">{{ . }}</time>{{ end }}</p>
+    {{- end }}
+  </header>
+
+  {{- with .Params.lede }}
+  <p class="info-lede">{{ . }}</p>
+  {{- end }}
+
+  {{- if $count }}
+  <div class="moments">{{ $feed }}</div>
+  {{- else }}
+  <p class="empty-tip">还没有片刻。在 <code>content/moments.md</code> 里写一条 <code>{{ "{{< moment time=\"2026-10-08 13:41\" >}}" }}</code> 就会出现。</p>
+  {{- end }}
+</div>
+{{ end }}

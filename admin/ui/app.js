@@ -1329,7 +1329,7 @@ function menuModal() {
   const row = (it, i) => `
     <div class="menu-row" style="display:grid;grid-template-columns:1fr 1.4fr 64px 28px;gap:6px;margin-bottom:6px">
       <input class="input" name="name" value="${esc(it.name || '')}" placeholder="名字">
-      <input class="input mono" name="url" value="${esc(it.url || '')}" placeholder="/now/">
+      <input class="input mono" name="url" value="${esc(it.url || '')}" placeholder="/about/">
       <input class="input mono" name="weight" type="number" value="${esc(it.weight || '')}" placeholder="排序">
       <button class="icon-btn" data-del-row aria-label="删除这一条">×</button>
     </div>`;

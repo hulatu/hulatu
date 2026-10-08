@@ -114,6 +114,7 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 博客名 / 描述 / 作者 / 邮箱 | `hugo.toml` 顶部与 `[params]` |
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚链接 | `layouts/partials/footer.html` |
+| 片刻（`/moments/`） | 内容全在 `content/moments.md`：一条片刻 = 一次 `{{< moment time="2026-10-08 13:41" place="郑州" photos="2026-10/a.jpg" >}}`；照片放 `assets/images/moments/`（构建时自动缩成 WebP 多档）。见 [MAINTENANCE.md](MAINTENANCE.md) 的「片刻页」 |
 | 每页几篇 | `hugo.toml` 的 `[pagination] pagerSize`（模板里的 `.Paginate` 故意不传第二个参数） |
 | 颜色 / 字体 / 间距 | `assets/css/critical.css` 顶部的 CSS 变量（`--font-meta` 元信息等宽字体也在那）；**五个站要一起改**，见 [sites/README.md](sites/README.md) 的颜色约定 |
 | 正文 / 页头宽度 | `assets/css/critical.css` 的 `--content-width`（当前 680px，五个站同宽） |

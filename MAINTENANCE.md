@@ -129,6 +129,8 @@ python3 scripts/sync-lastmod.py --force content/posts/某篇.md
 
 > 曾经还有 `tip` / `note` / `warning` / `fold` 四个提示框短代码，配套一份 `assets/css/shortcodes.css` 和 baseof 里「这一页用到才加载」的判断。2026-09 清掉了：内容里一次都没用过。要提示框直接用 Markdown 引用块；真要用短代码，`git log --diff-filter=D --name-only -- layouts/shortcodes` 能把文件捞回来。
 
+> `moment`（2026-10-08 新增）只服务 `/moments/` 这一页，用法见下面「片刻页」一节 —— 它不出现在文章正文里。
+
 ### 备份
 
 ```bash
@@ -168,7 +170,7 @@ hugo server -D
 | 博客名、描述、作者 | `hugo.toml` 顶部 |
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚、头像、社交链接 | `layouts/partials/footer.html`、`hugo.toml` |
-| 页脚链接（花园 / 现在 / 友链 / 标签 / 书影音 / 统计 / 开往 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license`。**开往（友链接力）放在页脚，不在导航栏**——导航栏只留搜索 / 深浅色 / RSS 三个图标按钮。`.footer-links` 是**全站栏目索引的兜底出口**：`/tags/`、`/media/`、`/stats/` 三个索引页在导航栏里没有位置，全靠这里进站（2026-10-07 补上「标签 / 书影音 / 统计」三条 —— 此前 `/tags/` 与 `/media/` 只被 404 页和关于页链到、`/stats/` 更是零入链，都是「页面做出来了但站内没有入口」）。**加链接时记得 `.footer-links` 有 `flex-wrap: wrap`**（`critical.css`）：窄视口一行放不下会换行，这是预期的、不是溢出。<br>**2026-10-08 的取舍（两次都往「减」的方向）**：先是「装备」`/uses/`、再是「制作」`/colophon/`，两条都从页脚撤掉，**只留关于页 `site:` 列表里的入口**。判据是：页脚只放「找得到就行」的次要入口，而这两页属于「想了解这站 / 我这人」才会点的**内容页**，待在关于页那张「这站有什么」的清单里更合适（和「制作说明」挨着）。撤完页脚是 9 条。**以后再想加页面入口，先问「它是索引还是内容」——内容页进关于页，索引页才进页脚。** |
+| 页脚链接（花园 / 友链 / 标签 / 书影音 / 统计 / 开往 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license`。**开往（友链接力）放在页脚，不在导航栏**——导航栏只留搜索 / 深浅色 / RSS 三个图标按钮。`.footer-links` 是**全站栏目索引的兜底出口**：`/tags/`、`/media/`、`/stats/` 三个索引页在导航栏里没有位置，全靠这里进站（2026-10-07 补上「标签 / 书影音 / 统计」三条 —— 此前 `/tags/` 与 `/media/` 只被 404 页和关于页链到、`/stats/` 更是零入链，都是「页面做出来了但站内没有入口」）。**加链接时记得 `.footer-links` 有 `flex-wrap: wrap`**（`critical.css`）：窄视口一行放不下会换行，这是预期的、不是溢出。<br>**2026-10-08 的取舍（两次都往「减」的方向）**：先是「装备」`/uses/`、再是「制作」`/colophon/`，两条都从页脚撤掉，**只留关于页 `site:` 列表里的入口**。判据是：页脚只放「找得到就行」的次要入口，而这两页属于「想了解这站 / 我这人」才会点的**内容页**，待在关于页那张「这站有什么」的清单里更合适（和「制作说明」挨着）。撤完页脚是 9 条。**2026-10-08 第三次减**：「现在」`/now/` 也从页脚撤掉（同日它刚进了主导航 `[[menu.main]]`）—— 它和「关于」同属「关于我这个人」的页面，导航里两条已经挨着，页脚再放一条等于同一目的地开两个口；页脚只留「站内索引 / 站外出口」。撤完页脚是 8 条。**同日稍晚**：「现在」这一页整个撤掉了 —— 它和「片刻」都在讲「此刻的我」，两条挨着读重复，于是连主导航（`[[menu.main]]`）带 `content/now.md`、`layouts/_default/now.html` 一起删；导航从 6 项回到 5 项（weight 2/3/4/5，不留空号）。**以后再想加页面入口，先问「它是索引还是内容」——内容页进关于页，索引页才进页脚，主导航里的页面不重复放页脚。** |
 | 标签页图标 / 页头 logo | `hugo.toml` 的 `[params.assets]`：`logo` 给页头那个大 logo（深色模式由 CSS 的 `filter` 反白，规则是 `critical.css` 的 `[data-theme="dark"] .site-logo` —— **2026-10-04 从 core.css 搬到首屏包**，因为 logo 是首帧元素，留在异步包里深色下会「先原色、后反白」闪一下），`favicon` 给标签页（`static/favicon.svg`，文件里内置了 `prefers-color-scheme` 深色反白）。**两个文件是故意分开的**：favicon 里的反白规则会和页头的 `filter` 叠加成反色，混用会出问题 |
 | 添加到主屏幕（PWA） | `static/site.webmanifest` + `static/icon-192.png` / `icon-512.png`。图标由 `logo.svg` 渲染而来，要重做就用：`magick -background none SVG:static/logo.svg -resize 512x512 -colors 64 -strip -define png:compression-level=9 static/icon-512.png`（`-colors 64` 能把 76KB 压到 30KB，肉眼无差） |
 | 分享卡片图 | `[params.assets] shareImage`。宽高由 `layouts/partials/head-meta.html` 用 `imageConfig` 现读，换图不用改模板；文章 front matter 里写了 `cover` 就用 cover，但远程图读不到尺寸，那两个 meta 就不输出 |
@@ -217,18 +219,19 @@ hugo server -D
 | ~~文末「赞一下」/「引用本文」~~ | **2026-10-08 新增、同日移除**（用户拍板）。原先的落点：结构 `layouts/partials/post-kudos.html`（赞）与 `layouts/partials/post-cite.html`（引用），逻辑 `assets/js/ui.js` 的 `initKudos()` 与 `[data-cite-copy]` 块，样式 `assets/css/critical-post.css` 末尾的 `.post-kudos` / `.kudos-*` 与 `.post-cite` / `.cite-*` 两段，外加 `critical.css` 打印规则里的两条选择器、`content/privacy.md` 的 localStorage 登记。**四处要加一起加、要删一起删**，别只补一半。赞的计数曾走 GoatCounter 自定义事件 `kudos-<slug>`（`/counter/kudos-<slug>.json` 读回），现在不用管了 |
 | 打印样式 | `assets/css/critical.css` 和 `assets/css/critical-post.css` 里的 `@media print`（打印/存 PDF 时隐藏导航、评论等，只留正文）。拆分时这 7 条选择器被按归属分到了两个模块，`critical.css` 那份随首屏内联、每页都有，所以打印首页也不会带出导航 |
 
-### CSS 怎么加载（6 个模块：4 内联 + 2 异步）
+### CSS 怎么加载（7 个模块：5 内联 + 2 异步）
 
-样式按「首屏 / 页型」拆成 6 个模块。**每个页面只内联自己首屏用得到的那几个**，其余走异步包，目标是把关键路径压到最小。
+样式按「首屏 / 页型」拆成 7 个模块。**每个页面只内联自己首屏用得到的那几个**，其余走异步包，目标是把关键路径压到最小。
 
-**四个内联模块**（都内联在 `<head>` 的 `<style>` 里，零往返、不闪）：
+**五个内联模块**（都内联在 `<head>` 的 `<style>` 里，零往返、不闪）：
 
 | 模块 | 内容 |
 |---|---|
 | `critical.css` | **全站公共首屏**：`:root` 令牌（`--accent` / `--line-strong` / `--tick` 都靠它）、reset、滚动条、`main[id], main [id]` 锚点偏移、`.container`、`.site-header` / `.nav-*` / `.nav-icon-btn` / `.site-logo`（含深色 `filter` 反白，2026-10-04 从 `core.css` 搬来）/ `.site-brand`、**全局 `svg { stroke-width: 2 }`**、`.site-hero` / `.hero-line` + `@keyframes hero-in`、`.post-row*`、列表工具条与翻页、页脚、主题切换图标、`.back-top`、`.reading-progress`、`.skip-link`、`@media print` 的导航那几条 |
 | `critical-post.css` | **正文首屏**：面包屑、`.post-header` / `.post-title` / `.post-meta*`、`.post-content` 及标题/锚点/链接/列表/复选框、`.post-content .formula`（公式块，2026-10-07）、`.post-toc*` / `.post-rail`（含刻度栏）/ `.post-toc-inline*`、`.article-image*`（含深色降亮 0.88）、`.code-block*` / `.chroma*`、`.table-wrap`、`.issue-badge*`、`.post-end`、`.post-tag-chip`、`.resume*`（阅读位置提示，2026-10-07） |
 | `critical-page.css` | **列表 / 卡片型首屏**：`.tag-cloud` / `.tag-chip*`、`.minimal-*`、`.group-card`、`.weekly-*`、`.page-intro`、`.category-*`、`.media-*` |
-| `critical-info.css` | **单页型首屏**：`.archive-*`（含 `.series-*`）、`.about-*`、`.friends-*`、`.notfound*`、`.stats-*` / `.heat-*` / `.cat-*`（结算页，2026-10-07 新增） |
+| `critical-info.css` | **单页型首屏**：`.archive-*`（含 `.series-*`）、`.about-*`、`.friends-*`、`.notfound*`、`.stats-*` / `.heat-*` / `.cat-*`（结算页，2026-10-07 新增）、`.info-*`（信息页通用页头，2026-10-08 新增 —— 装备 / 制作说明 / 片刻三页共用） |
+| `critical-moments.css` | **片刻页首屏**（2026-10-08 新增）：`.moment-*` / `.moments` / `.moment-photos` / `.moment-date`。**只有 `/moments/` 一页用它**，所以单独成模块，不塞进 `critical-info` —— 塞进去会让归档 / 404 / 结算 / 装备 / 制作说明五页各白背一份九宫格样式 |
 
 （哪个页型内联哪几个，见下面的组合表——**模块表不再承担「谁用」这一列**，因为收窄之后同一个模块会被好几个页型以不同组合挑走，写在模块表里只会越来越糊。）
 
@@ -246,13 +249,14 @@ hugo server -D
 | 隐私政策 | `critical` + `critical-post` | 39.0KB / 8.0KB | `site-core` 8.2KB / 2.1KB |
 | 文章页、周刊正文 | `critical` + `critical-post` | 39.0KB / 8.0KB | `site-core-post` 11.3KB / 2.5KB |
 | **书影音** | `critical` + `critical-page` | 26.1KB / 5.7KB | `site-core` 8.2KB / 2.1KB |
-| **现在、制作说明** | `critical` + `critical-info` + `critical-post` | **55.4KB / 10.2KB** | `site-core` 8.2KB / 2.1KB |
+| **制作说明** | `critical` + `critical-info` + `critical-post` | **55.4KB / 10.2KB** | `site-core` 8.2KB / 2.1KB |
+| **片刻** | `critical` + `critical-info` + `critical-moments` | 39.1KB / 7.4KB | `site-core` 8.2KB / 2.1KB |
 
 > **这组数字是 2026-10-08 重新实测的**（此前表里是 2026-10-07 的数，之后 `critical.css` / `critical-post.css` / `critical-info.css` / `critical-page.css` 都动过 —— 加了归档页按年索引、书影音分组，撤了首页「正在」板块，同日又新增再移除文末「赞一下」/「引用本文」，已经对不上）。复现方法：`hugo --gc --minify --destination /tmp/xxx` 后，用脚本从产物里抽 `<style>` 块按字节量 + `gzip -9`；异步包直接量 `public/css/site-core*.min.*.css`。改任何 CSS 之后如果要在文档里报数，**重新量一遍再写**，别沿用。
 
-> **兜底仍然是「全给」**（4 个内联 + `core` + `post`），但 2026-09-29 收窄之后**已经没有任何页型落在它上面**。它现在是一条纯粹的安全网：以后新增的根级单页、或 Hugo 将来新加的 `.Kind` 落到这里时，最坏结果只是多内联几 KB，不会掉样式。
+> **兜底仍然是「全给」**（5 个内联 + `core` + `post`），但 2026-09-29 收窄之后**已经没有任何页型落在它上面**。它现在是一条纯粹的安全网：以后新增的根级单页、或 Hugo 将来新加的 `.Kind` 落到这里时，最坏结果只是多内联几 KB，不会掉样式。
 >
-> **⚠️ 当前内联最重的是「现在」和「制作说明」两页（55.4KB / 10.2KB gzip），不是书影音。** 它们同时要 `critical-info` 的 `.info-*` 页头**和** `critical-post` 的 `.post-content` 阅读版式 —— 两个模块都是「整份」内联，而这两页实际各只用其中一小段（页头三行 + 正文排版）。上一版文档里「最大内联…就是书影音页」的说法已经作废两次了（书影音 2026-10-08 改成数据驱动后降到 26.1KB，而 now / colophon 是同日新增的）。真要优化，方向是把 `.post-content` 的阅读版式抽成一个独立小模块给这两页用，**但那是一次跨页型的重构，先记在这里别顺手做**。
+> **⚠️ 当前内联最重的是「制作说明」一页（55.4KB / 10.2KB gzip），不是书影音。** 它同时要 `critical-info` 的 `.info-*` 页头**和** `critical-post` 的 `.post-content` 阅读版式 —— 两个模块都是「整份」内联，而这一页实际只用其中一小段（页头三行 + 正文排版）。上一版文档里「最大内联…就是书影音页」的说法已经作废两次了（书影音 2026-10-08 改成数据驱动后降到 26.1KB，而 now / colophon 是同日新增的；同日稍晚 now 页整个删了，这一档只剩 colophon 一页）。真要优化，方向是把 `.post-content` 的阅读版式抽成一个独立小模块给它用，**但那是一次跨页型的重构，先记在这里别顺手做**。
 >
 > 收窄的收益（每页首屏字节，内联 + 异步一起算）：分类页 −5.3KB gzip、归档/404 −4.4KB、友链 −3.7KB、关于 −3.6KB、隐私 −2.9KB、书影音 −2.2KB。方法是「解析页面用到的 class/id，看这些 token 的规则落在哪个模块，做贪心集合覆盖取最小集」；把这套方法代回首页 / 文章页 / 标签页 / 周刊列表，算出来的结果与原来已经写好的分支完全一致——这本身就是对方法的一次交叉验证。
 >
@@ -1066,6 +1070,38 @@ cd ~/Blog && env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy \
 不做筛选器、不做分页。它是「记录」，从头翻到尾就是它该有的样子；真要找某一部，浏览器自带的查找（⌘F）比任何自制筛选器都快。也不显示「想看 / 在看」—— 那是待办，不是记录。
 
 卡片上的短评**截到 3 行**（`.media-comment` 的 `-webkit-line-clamp`）：卡片列宽在手机上只有 135–170px，一条长评能占 8 行，在 grid 的默认 stretch 下会把整行卡片一起撑高。这不违背「不截断标题」那条 —— 那条针对的是标题（截了没法认出是哪一篇），短评截断后语气还在，整卡又可点。想看全就把那两行删掉。
+
+### 片刻页 `/moments/`（2026-10-08 新增）
+
+「朋友圈」形态：倒序时间轴、按天分组、文字 + 九宫格照片。入口在**主导航**（排在「现在」后面，weight 3）。
+
+**内容全在 `content/moments.md` 一个文件里**，一条片刻 = 一次 `moment` 短代码：
+
+```markdown
+{{< moment time="2026-10-08 13:41" place="郑州" mood="晴" photos="2026-10/a.jpg|2026-10/b.jpg" >}}
+正文，照常写 Markdown。
+{{< /moment >}}
+```
+
+| 参数 | 必填 | 说明 |
+|---|---|---|
+| `time` | ✅ | 「日期 时间」。**日期用来分组** —— 同一天的条目会自动归到同一条日期分隔线下面，所以按时间倒序往下写，别打乱顺序 |
+| `place` / `mood` | | 条目底部那行等宽小字 |
+| `photos` | | 图片文件名，`\|` 或 `,` 分隔，相对 `assets/images/moments/` |
+
+**照片放 `assets/images/moments/`（不是 `static/`）**：构建时由 Hugo 缩成三档 WebP（400 / 800 / 1600 的 `Fit`，只缩不放），九宫格用 400w + 800w 的 `srcset`，灯箱给 1600w。原图直接扔进去就行，不用自己压 —— 这是全站唯一一处「丢原图进来就自动处理」的地方，因为照片是最容易一口气进来几十 MB 的东西。
+
+排法由张数决定（`critical-moments.css` 的 `[data-count]`）：1 张原比例不裁切、2 / 4 张两列、其余三列；格子里方形裁切（`object-fit: cover`），点开灯箱看的是完整原图。
+
+**三个坑（改短代码前必看）**：
+
+1. **短代码在 HTML 注释里照样会被解析。** 想在注释里写示例，必须用 Hugo 的转义形式（`{{</* ... */>}}`），否则构建直接报 `shortcode "moment" must be closed`。
+2. **`.Inner` 不会自动走 Markdown。** `{{< >}}`（尖括号）形式的短代码，内层内容是**原样字符串** —— 实测 `**粗体**` 和 `- 列表` 会原样吐到页面上。所以 `moment.html` 显式调 `.Page.RenderString`。代价是它**不走 render hooks**：正文里写 `![]()` 不会挂灯箱，配图必须走 `photos`。
+3. **`range` 里拿不到 `.Page`。** 遍历 photos 时 `.` 变成图片路径字符串，要提前 `{{ $page := .Page }}` 再在循环里用 `$page`，否则报 `can't evaluate field Page in type string`。
+
+**这一页刻意不加载 `critical-post.css`**：它没有 `.post-content` 正文，而九宫格是复用 `.article-image` 的类名去搭 `lightbox.js` 的选择器（灯箱按 `.article-image` 收集图片，并把全页图片串成一个可左右翻的序列）。真把 critical-post 加进这一页，它的插图 margin / 居中会和九宫格打架。因此「深色下照片压 12% 亮度」那条规则**在 `critical-moments.css` 里照抄了一份**。
+
+**刻意不做**：不分页（它是一条时间轴，从头翻到尾就是它该有的样子）、不进 RSS、不加评论、**不写相对时间**（页面是构建期生成的，「今天」第二天就开始撒谎 —— 日期一律写绝对值）。也不给每条挂一次头像：单作者博客里那只是把同一个人重复印 N 遍，朋友圈真正要留的是「时间轴 + 按天分组 + 文字配图」这套结构。
 
 ### `up` 到底做了什么（以及它为什么不负责部署）
 
