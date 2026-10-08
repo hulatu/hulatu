@@ -47,6 +47,33 @@
 </section>
 {{ end }}
 
+{{- /* 「按年」年份索引（2026-10-08 从首页搬过来，用户要求）。
+       位置就在这儿：**「系列」下面、「文章列表」上面**。
+
+       它原本挂在首页工具条上（layouts/index.html），href 是 `/archive/#2026`
+       这种跨页锚点。用户看过之后要求搬到归档页内部 —— 年份索引本来就属于
+       有年份分组的那一页，读者在页内跳，比从首页绕一圈更顺。
+
+       搬过来顺带做了两处简化：
+       · href 从跨页锚点变成同页锚点（`#2026` 而不是 `/archive/#2026`）。
+       · 去掉了首页那版的 `first 6` 上限。那个上限的理由是「再多年份一排就铺满」
+         —— 但那是**首页工具条只有一行**的约束；这里是独立一行、.year-nav 又是
+         flex-wrap，年份多了自己会折行，没有必要截断，也就没必要留一个魔数。
+
+       年份直接用 $yearGroups（下面文章列表用的同一棵树），
+       这样索引里的年份和页面上真实渲染出来的年份块**必然一一对应** ——
+       各自算一遍迟早会出现「索引里有 2027、列表里没有」这种对不上的情况。
+       只有一年时不渲染（没有可跳的）。 */ -}}
+{{- $yearGroups := $posts.GroupByDate "2006" -}}
+{{ if gt (len $yearGroups) 1 }}
+<nav class="year-nav" aria-label="按年份浏览">
+  <span class="year-nav-label">按年</span>
+  {{- range $yearGroups }}
+  <a class="year-chip" href="#{{ .Key }}">{{ .Key }}</a>
+  {{- end }}
+</nav>
+{{ end }}
+
 {{- /* 2026-10-02 改造。原来这里是「时间轴 + 年 + 月 + 条目」四层，每层都想有存在感，
        同一件事被说了三遍：篇数说两遍（年、月），月份说两遍（分组标题、每条日期），
        折叠控件也给两遍（年一个箭头、月一个箭头）。加上左侧 2px 竖线、月份之间的 1px
@@ -58,11 +85,19 @@
        详见 MAINTENANCE.md「归档页」。 */ -}}
 <section class="archive-list">
 {{- /* GroupByDate 直接给出「年 → 月 → 文章」的树，而且默认就是新的在前，
-       不用像以前那样对每一层再遍历一遍全量文章做筛选。 */ -}}
-{{ range $posts.GroupByDate "2006" }}
+       不用像以前那样对每一层再遍历一遍全量文章做筛选。
+       这里复用上面算好的 $yearGroups，不再调一次 —— 保证「按年」索引里的年份
+       和实际渲染出来的年份块是同一份数据。 */ -}}
+{{ range $yearGroups }}
   {{- $yearKey := .Key -}}
   {{- $months := .Pages.GroupByDate "1" -}}
-  <details class="archive-year-block" open>
+  {{- /* id 是给本页顶部「按年」索引用的（`#2026`）。直接用年份当 id，
+         不套 "year-" 前缀 —— 地址栏里短、看得出来是年。
+         （2026-10-08 之前这个 id 是给**首页**工具条上的「按年」胶囊用的，
+         那个胶囊当天搬到了本页，id 的用途跟着变了，写法不变。）
+         年份块默认就是 open 的，所以跳过来直接能看见内容，不用再点开。
+         落点的偏移由 CSS 的 scroll-margin-top 处理（见 critical-info.css）。 */ -}}
+  <details class="archive-year-block" id="{{ $yearKey }}" open>
     <summary class="archive-year">
       <h2 class="archive-year-num">{{ $yearKey }}</h2>
       <span class="archive-count">{{ len .Pages }} 篇</span>

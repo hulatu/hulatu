@@ -1,0 +1,35 @@
+{{ define "main" }}
+{{- /* 「装备」页（/uses/，2026-10-08 新增）。
+
+      这一页刻意**不发明新组件** —— 内容区整个复用关于页那套
+      `.about-body` / `.about-section` / `.about-link-list`（样式在 critical-info.css）。
+      理由：关于页已经把「一页纸上的若干节清单」这个形态定下来了（发丝线分节、
+      衬线节标题、行悬停只变字色 + 右移），装备页要的是同一个形态，
+      再造一套只会让读者在两个页面之间重新学一遍。
+
+      条目全部来自 front matter 的 uses 列表；列表为空时整块不渲染。
+      没有 url 的条目由 about-link-list 渲染成不可点的文字（它本来就有这个分支）。 */ -}}
+{{- $uses := .Params.uses | default slice -}}
+<div class="info-page">
+  <header class="info-head">
+    <h1 class="info-title">{{ .Title }}</h1>
+    {{- with .Params.updated }}
+    <p class="info-when">最后更新 <time datetime="{{ . }}">{{ . }}</time></p>
+    {{- end }}
+  </header>
+
+  <div class="info-lede">{{ .Content }}</div>
+
+  {{- if $uses }}
+  <div class="about-body">
+    {{- range $uses }}
+    <section class="about-section">
+      <h2>{{ .title }}</h2>
+      {{- with .desc }}<p class="about-section-desc">{{ . }}</p>{{ end }}
+      {{ partial "about-link-list" (dict "items" .items) }}
+    </section>
+    {{- end }}
+  </div>
+  {{- end }}
+</div>
+{{ end }}

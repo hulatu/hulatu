@@ -1,0 +1,58 @@
+{{ define "main" }}
+{{- /* 书影音页（2026-10-08 改成数据驱动）。
+
+      数据来自 `data/media.json` —— 由 `scripts/sync-douban.py` 从豆瓣的公开收藏页
+      抓下来。以前这一页是一串手写的 `{{< media >}}` shortcode，每次加一部电影都要
+      手动找封面、抄导演、贴链接；现在只维护豆瓣那边的收藏，跑一次脚本就行。
+
+      为什么不做成「构建期实时抓」：Hugo 构建要能离线、要快，而且豆瓣有限流
+      习惯 —— 每次构建都去敲一遍不现实。落盘成 JSON 还带来两个好处：
+      数据进 git（改了什么一目了然）、模板可以离线构建。
+      形状照的是站里已有的先例：scripts/sync-garmin.py → data/runs.json。
+
+      顺序：按类型分成 书籍 / 影视 / 音乐 三组（标题就是「书影音」，顺序照标题走），
+      组内按**看过/读过/听过的日期倒序** —— 脚本里已经排好了，这里只做筛选，
+      不再排一遍（模板里排的话，两处排序逻辑迟早会不一致）。
+
+      刻意不做的事：
+      · 不做筛选器 / 分页。这一页是「记录」，从头翻到尾就是它该有的样子；
+        真要找某一部，浏览器自带的查找（⌘F）比任何自制筛选器都快。
+      · 不显示「想看 / 在看」。那是待办，不是记录。
+      · 三组各自的条数从数据里现算，不写死在文案里 —— 收藏是会变的。 */ -}}
+
+{{ if not .Params.hide_title }}<h1 class="page-title">{{ .Title }}</h1>{{ end }}
+{{ if .Content }}<div class="page-intro">{{ .Content }}</div>{{ end }}
+
+{{ with hugo.Data.media }}
+  {{- $items := .items -}}
+  {{- $kinds := slice
+        (dict "key" "book"  "label" "书籍")
+        (dict "key" "movie" "label" "影视")
+        (dict "key" "music" "label" "音乐") -}}
+
+  <p class="media-stat">
+    共 <strong>{{ len $items }}</strong> 条{{ range $kinds }}{{ $n := len (where $items "kind" .key) }}{{ if $n }} · {{ .label }} <strong>{{ $n }}</strong>{{ end }}{{ end }}
+    {{- /* 「数据来自豆瓣」只在**真的**同步过之后才显示。
+           判据是 uid 非空：sync-douban.py 每次都会写它，而手写的种子数据里是空的。
+           不加这个判断的话，种子状态下会对着读者撒谎说「数据来自豆瓣」——
+           那 9 条其实是手写维护的。 */ -}}
+    {{- if and .uid .updated }}<span class="media-stat-src">数据来自豆瓣，{{ (time.AsTime .updated).Format "2006-01-02" }} 同步</span>{{ end }}
+  </p>
+
+  {{ range $kinds }}
+    {{- $label := .label -}}
+    {{- $group := where $items "kind" .key -}}
+    {{ with $group }}
+    <section class="media-section">
+      <h2 class="media-section-title">{{ $label }}</h2>
+      <div class="media-grid">
+        {{ range . }}{{ partial "media-card.html" . }}{{ end }}
+      </div>
+    </section>
+    {{ end }}
+  {{ end }}
+
+{{ else }}
+  <p class="empty-tip">还没有数据。跑一次 <code>scripts/sync-douban.py</code> 就会长出来。</p>
+{{ end }}
+{{ end }}

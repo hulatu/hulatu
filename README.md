@@ -12,8 +12,9 @@
 - **周更栏目**：周刊独立成栏（`/weekly/`），正文走 `/posts/年/月/日/slug/`，另有单独的 RSS
 - **搜索**：构建期生成 `search-index.json`，纯前端搜索（`/` 或 `⌘K` 打开）；面板底部可按分类 / 标签筛选，空态显示最近 5 次搜索
 - **深浅色**：默认跟随系统，右上角按钮可手动切换（刷新后回到跟随系统，不记忆）
-- **归档**：按年、月折叠分组，统计总篇数和今年写字数；顶部另有「系列」胶囊（`content` 里写 `series:` 即可加一组连载）
+- **归档**：按年、月折叠分组，统计总篇数和今年写字数；顶部另有「系列」胶囊（`content` 里写 `series:` 即可加一组连载）和「按年」年份索引（页内跳转）
 - **分类 / 标签**：自动生成总览和文章列表页（入口在页脚）
+- **书影音**：`/media/` 读 `data/media.json`，数据由 `scripts/sync-douban.py` 从豆瓣公开收藏页同步（书籍 / 影视 / 音乐三组，封面下载到 `static/images/media/`）。**不要在 `content/media/_index.md` 里手写卡片**，下次同步会覆盖 —— 要加条目去豆瓣标记，然后跑脚本
 - **结算页**：`/stats/` 把累计数字摊开 —— 篇数 / 字数 / 按月写作格（印泥红浓淡）/ 分类构成 / 跑步里程。纯构建期生成、零 JS（数据源：content 的日期与字数 + `site.Taxonomies.categories` + `data/runs.json`）
 - **订阅**：RSS 2.0 全文输出，主源 `/index.xml` + 周刊专线 `/weekly/index.xml`，每源最多 20 条，每条带 `atom:updated`（更新于）
 - **评论**：giscus（GitHub Discussions），按需加载
@@ -46,11 +47,12 @@ blog/
 │   │   ├── core.css            #   异步包：全站共用（页头交互、搜索、灯箱、提示条…）
 │   │   └── post.css            #   异步包：文末家具（评论 / 相关文章 / 打赏）—— 文章页 + 关于页（后者只为打赏）
 │   └── js/                     # theme / ui / toc / lightbox / search / giscus
-├── scripts/                    # 发布前脚本、Garmin 同步、子站构建
+├── scripts/                    # 发布前脚本、Garmin / 豆瓣同步、子站构建
 ├── data/
 │   ├── runs.json               # 跑步数据（唯一一份，run 子站挂载读取）
+│   ├── media.json              # 书影音数据（scripts/sync-douban.py 从豆瓣同步）
 │   └── image_dims.json         # 正文远程图片的宽高缓存
-├── static/                     # 原样发布的文件：_headers / _redirects / 图标 / 头像与分享卡（images/）/ 打赏收款码（images/donate/） / rss.xsl …
+├── static/                     # 原样发布的文件：_headers / _redirects / 图标 / 头像与分享卡（images/）/ 打赏收款码（images/donate/） / 豆瓣封面（images/media/） / rss.xsl …
 ├── sites/                      # 四个子站（各自独立的 Hugo 站点）
 ├── admin/                      # 本地图形界面后台（零依赖，双击 博客后台.command 启动）
 ├── archetypes/                 # hugo new 用的模板（posts / weekly）

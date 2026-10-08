@@ -1,0 +1,26 @@
+{{ define "main" }}
+{{- /* 「制作说明」页（2026-10-08 新增）。
+
+      和 /now/ 同构：页头走 critical-info 的 .info-*，正文是手写 Markdown、
+      走 critical-post 的 .post-content 阅读版式。CSS 路由见
+      layouts/partials/css-modules.html 的 colophon 分支。
+
+      为什么这一页值得有：书有版权页，讲这本册子用什么纸、什么字、印了多少；
+      网站没有末页，但「这个站是怎么做出来的」是一个读者真的会问的问题 ——
+      尤其是同行。把它写成一页，比散在关于页的一句话里好找。
+
+      刻意不做的事（和 /now/ 一致）：
+      · 不显示「发布于 / 字数 / 阅读时长」—— 它是常改的说明，不是一篇可以收藏的文章；
+      · 不加评论区、不加相关文章 —— 它不是一个「帖子」；
+      · 不进 RSS（page 类型本来就不进，见 hugo.toml 的 [outputs]）。 */ -}}
+<div class="info-page">
+  <header class="info-head">
+    <h1 class="info-title">{{ .Title }}</h1>
+    {{- with .Params.updated }}
+    <p class="info-when">最后更新 <time datetime="{{ . }}">{{ . }}</time></p>
+    {{- end }}
+  </header>
+
+  <div class="post-content">{{ .Content }}</div>
+</div>
+{{ end }}

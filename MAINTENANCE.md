@@ -116,10 +116,14 @@ python3 scripts/sync-lastmod.py --force content/posts/某篇.md
 
 | 短代码 | 用途 | 用法 |
 |---|---|---|
-| `media` | 单条书影音（书 / 影视 / 音乐通用） | `{{< media cover="封面图" title="标题" creator="作者" >}}` |
+| `media` | 单条书影音（书 / 影视 / 音乐通用） | `{{< media cover="封面图" title="标题" creator="作者" comment="短评" >}}` |
 | `media-grid` | 把若干 `media` 包成网格 | `{{< media-grid >}}…{{< /media-grid >}}` |
 
-两个短代码都只是转调 `layouts/partials/media-card.html`（单条）和包一层 `.media-grid` 的 div（网格），排版细节在 `assets/css/critical-page.css` 的「书影音」段。用法直接抄 `content/media/_index.md` 的现成例子。
+两个短代码都只是转调 `layouts/partials/media-card.html`（单条）和包一层 `.media-grid` 的 div（网格），排版细节在 `assets/css/critical-page.css` 的「书影音」段。
+
+> **2026-10-08：书影音页 `/media/` 不再用这两个短代码了。** 那一页改成数据驱动（读 `data/media.json`，见下面「书影音数据」一节），模板是 `layouts/media/list.html`。短代码**保留** —— 想在某一篇文章或某一页里手插一张卡片时仍然用它。
+>
+> 同一次改造把 `media-card.html` 的入参从「shortcode 上下文」换成了 **dict**：数据驱动和 shortcode 两条路要共用同一个渲染器，否则就是两份卡片实现各自漂移。字段名没变（`cover` / `title` / `creator` / `year` / `rating` / `link`，新增 `comment`），所以老的写法照旧能用。想加字段就往 dict 里加，两个调用方各自传。
 
 > 曾经还有 `book` / `books` 两个短代码，和 `media` / `media-grid` 逐字相同（只是名字更贴「书」），2026-09 删掉了：留着就是两份要同步维护的同样内容，`content/media/_index.md` 也改成了 `media` / `media-grid`。
 
@@ -164,7 +168,7 @@ hugo server -D
 | 博客名、描述、作者 | `hugo.toml` 顶部 |
 | 导航菜单 | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序） |
 | 页脚、头像、社交链接 | `layouts/partials/footer.html`、`hugo.toml` |
-| 页脚链接（花园 / 友链 / 标签 / 书影音 / 结算 / 开往 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license`。**开往（友链接力）放在页脚，不在导航栏**——导航栏只留搜索 / 深浅色 / RSS 三个图标按钮。`.footer-links` 是**全站栏目索引的兜底出口**：`/tags/`、`/media/`、`/stats/` 三个索引页在导航栏里没有位置，全靠这里进站（2026-10-07 补上「标签 / 书影音 / 结算」三条 —— 此前 `/tags/` 与 `/media/` 只被 404 页和关于页链到、`/stats/` 更是零入链，都是「页面做出来了但站内没有入口」）。**加链接时记得 `.footer-links` 有 `flex-wrap: wrap`**（`critical.css`）：601–700px 视口 8 个链接一行放不下会换行，这是预期的、不是溢出 |
+| 页脚链接（花园 / 现在 / 友链 / 标签 / 书影音 / 统计 / 开往 / 隐私 / 邮箱 / CC 协议） | `layouts/partials/footer.html` 的 `.footer-links` 和 `.footer-license`。**开往（友链接力）放在页脚，不在导航栏**——导航栏只留搜索 / 深浅色 / RSS 三个图标按钮。`.footer-links` 是**全站栏目索引的兜底出口**：`/tags/`、`/media/`、`/stats/` 三个索引页在导航栏里没有位置，全靠这里进站（2026-10-07 补上「标签 / 书影音 / 统计」三条 —— 此前 `/tags/` 与 `/media/` 只被 404 页和关于页链到、`/stats/` 更是零入链，都是「页面做出来了但站内没有入口」）。**加链接时记得 `.footer-links` 有 `flex-wrap: wrap`**（`critical.css`）：窄视口一行放不下会换行，这是预期的、不是溢出。<br>**2026-10-08 的取舍（两次都往「减」的方向）**：先是「装备」`/uses/`、再是「制作」`/colophon/`，两条都从页脚撤掉，**只留关于页 `site:` 列表里的入口**。判据是：页脚只放「找得到就行」的次要入口，而这两页属于「想了解这站 / 我这人」才会点的**内容页**，待在关于页那张「这站有什么」的清单里更合适（和「制作说明」挨着）。撤完页脚是 9 条。**以后再想加页面入口，先问「它是索引还是内容」——内容页进关于页，索引页才进页脚。** |
 | 标签页图标 / 页头 logo | `hugo.toml` 的 `[params.assets]`：`logo` 给页头那个大 logo（深色模式由 CSS 的 `filter` 反白，规则是 `critical.css` 的 `[data-theme="dark"] .site-logo` —— **2026-10-04 从 core.css 搬到首屏包**，因为 logo 是首帧元素，留在异步包里深色下会「先原色、后反白」闪一下），`favicon` 给标签页（`static/favicon.svg`，文件里内置了 `prefers-color-scheme` 深色反白）。**两个文件是故意分开的**：favicon 里的反白规则会和页头的 `filter` 叠加成反色，混用会出问题 |
 | 添加到主屏幕（PWA） | `static/site.webmanifest` + `static/icon-192.png` / `icon-512.png`。图标由 `logo.svg` 渲染而来，要重做就用：`magick -background none SVG:static/logo.svg -resize 512x512 -colors 64 -strip -define png:compression-level=9 static/icon-512.png`（`-colors 64` 能把 76KB 压到 30KB，肉眼无差） |
 | 分享卡片图 | `[params.assets] shareImage`。宽高由 `layouts/partials/head-meta.html` 用 `imageConfig` 现读，换图不用改模板；文章 front matter 里写了 `cover` 就用 cover，但远程图读不到尺寸，那两个 meta 就不输出 |
@@ -210,6 +214,7 @@ hugo server -D
 | 阅读位置记忆（「上次读到 62%」） | 2026-10-07 新增，长文第二次回来时在正文顶端给一条细提示。**逻辑**在 `assets/js/ui.js` 末尾的 `initResume()`，**结构**在 `layouts/_default/single.html`（`.resume`，只在 `$isArticle` 时渲染），**样式**在 `assets/css/critical-post.css` 末尾的 `.resume*` 段。键名 `hulatu:read:<文章路径>`。几个必须记住的点：① **阈值** `MIN = 8 / MAX = 92 / DONE = 95`（%）——低于 8% 不值得提示、高于 92% 视为读完了不再提示；② **只在 `window.scrollY < 100` 时才显示**，并在 `load` 时再判一次（有些浏览器 load 后才恢复滚动位置）；③ **`started` 闸门**——Speculation Rules 预渲染会**真的执行脚本**，不给闸门的话预渲染副本会往 localStorage 写 0、把真实进度覆盖掉；④ **滚动停 500ms 才 flush**（`saveTimer`），`pagehide` + `visibilitychange` 补刀；⑤ 读写都包在 `try/catch` 里（隐私模式静默降级）；⑥ 「继续」用 `scrollTo({ top: total * saved / 100 })`、「从头看」`removeItem` 并隐藏。**`.resume` 用了 `display: flex`，所以必须补 `.resume[hidden] { display: none }`**——显式的 `display` 会盖掉 `hidden` 属性自带的 `display: none`，不补就永远藏不住。键名同时写进了 `content/privacy.md` 的「本地偏好」一节 |
 | 站内跳转预渲染 + 页面过渡 | 预渲染规则在 `layouts/_default/baseof.html` 的 `<script type="speculationrules">`（当前是 `prerender` + `eagerness: moderate`，嫌费流量就改成 `conservative`）；过渡样式在 `assets/css/core.css` 的「跨页面视图过渡」段（`.post-title` / `.page-title` / `.hero-line` 上的 `view-transition-name: page-title` 在 `critical.css`，因为标题在首屏）。**预渲染会真的执行页面脚本**，所以统计（`layouts/partials/analytics.html`）和评论（`layouts/partials/giscus.html`）都判断了 `document.prerendering`，以后新加的第三方脚本也要照做 |
 | 完字章 | `layouts/_default/single.html` 的 `.post-end`（印章红「完」字圆章） |
+| ~~文末「赞一下」/「引用本文」~~ | **2026-10-08 新增、同日移除**（用户拍板）。原先的落点：结构 `layouts/partials/post-kudos.html`（赞）与 `layouts/partials/post-cite.html`（引用），逻辑 `assets/js/ui.js` 的 `initKudos()` 与 `[data-cite-copy]` 块，样式 `assets/css/critical-post.css` 末尾的 `.post-kudos` / `.kudos-*` 与 `.post-cite` / `.cite-*` 两段，外加 `critical.css` 打印规则里的两条选择器、`content/privacy.md` 的 localStorage 登记。**四处要加一起加、要删一起删**，别只补一半。赞的计数曾走 GoatCounter 自定义事件 `kudos-<slug>`（`/counter/kudos-<slug>.json` 读回），现在不用管了 |
 | 打印样式 | `assets/css/critical.css` 和 `assets/css/critical-post.css` 里的 `@media print`（打印/存 PDF 时隐藏导航、评论等，只留正文）。拆分时这 7 条选择器被按归属分到了两个模块，`critical.css` 那份随首屏内联、每页都有，所以打印首页也不会带出导航 |
 
 ### CSS 怎么加载（6 个模块：4 内联 + 2 异步）
@@ -229,26 +234,31 @@ hugo server -D
 
 **两个异步模块**（`resources.Concat` 合并后异步加载）：`core.css`（全站共用，已剔除 `critical` 里已有的部分）＋ `post.css`（只放**文末家具**：`.donate*`、`.giscus*`、`.related-posts`）。~~`.post-pill*`~~ 已于 2026-10-02 删除 —— 全站零引用，是按钮残骸（详见下面「动效词表」一节的清理记录）；~~`.post-nav*`~~ 已于 2026-10-05 随文末上下篇整条删除（那一支从未渲染，见「各部分怎么改」的「系列 / 连载」一行）。
 
-实测的加载组合与体积（**2026-10-07 重新实测**，读的是构建产物里真正内联的那段 `<style>`）：
+实测的加载组合与体积（**2026-10-08 重新实测**，读的是构建产物里真正内联的那段 `<style>`）：
 
 | 页面 | 内联模块 | 内联 原始 / gzip | 异步包 |
 |---|---|---|---|
-| 首页、`/page/N/`、`/posts/` 列表 | `critical` | 19.4KB / 4.7KB | `site-core` 8.2KB / 2.1KB |
-| 标签页（列表 + 详情）、分类页（列表 + 详情）、周刊列表 | `critical` + `critical-page` | 24.5KB / 5.5KB | `site-core` 8.2KB / 2.1KB |
-| 归档、404、**结算** | `critical` + `critical-info` | 34.2KB / 6.8KB | `site-core` 8.2KB / 2.1KB |
-| 关于 | `critical` + `critical-info` | 34.2KB / 6.8KB | `site-core-post`（页尾有打赏块 —— 它是**全站唯一**非文章却要 post 的页面，2026-10-02 起。**这个共享是故意的**：文章页也用同一个包，而「文章 → 关于」是最常见的跳转路径之一，共用一个包就是一次缓存命中；反过来把 `.donate-*` 挪进内联的 `critical-info`，会让关于页换成文章页没有的包，还给归档 / 404 / 结算 / 友链四页各加内联字节） |
-| 友链 | `critical` + `critical-info` + `critical-page` | 39.3KB / 7.5KB | `site-core` 8.2KB / 2.1KB |
-| 隐私政策 | `critical` + `critical-post` | 38.9KB / 8.0KB | `site-core` 8.2KB / 2.1KB |
-| 文章页、周刊正文 | `critical` + `critical-post` | 38.9KB / 8.0KB | `site-core-post` 11.3KB / 2.5KB |
-| 书影音 | `critical` + `critical-page` + `critical-post` | 44.0KB / 8.7KB | `site-core` 8.2KB / 2.1KB |
+| 首页、`/page/N/`、`/posts/` 列表 | `critical` | 19.5KB / 4.8KB | `site-core` 8.2KB / 2.1KB |
+| 标签页（列表 + 详情）、分类页（列表 + 详情）、周刊列表 | `critical` + `critical-page` | 26.1KB / 5.7KB | `site-core` 8.2KB / 2.1KB |
+| 归档、404、**结算**、**装备** | `critical` + `critical-info` | 36.0KB / 7.0KB | `site-core` 8.2KB / 2.1KB |
+| 关于 | `critical` + `critical-info` | 36.0KB / 7.0KB | `site-core-post`（页尾有打赏块 —— 它是**全站唯一**非文章却要 post 的页面，2026-10-02 起。**这个共享是故意的**：文章页也用同一个包，而「文章 → 关于」是最常见的跳转路径之一，共用一个包就是一次缓存命中；反过来把 `.donate-*` 挪进内联的 `critical-info`，会让关于页换成文章页没有的包，还给归档 / 404 / 结算 / 友链四页各加内联字节） |
+| 友链 | `critical` + `critical-info` + `critical-page` | 42.5KB / 7.9KB | `site-core` 8.2KB / 2.1KB |
+| 隐私政策 | `critical` + `critical-post` | 39.0KB / 8.0KB | `site-core` 8.2KB / 2.1KB |
+| 文章页、周刊正文 | `critical` + `critical-post` | 39.0KB / 8.0KB | `site-core-post` 11.3KB / 2.5KB |
+| **书影音** | `critical` + `critical-page` | 26.1KB / 5.7KB | `site-core` 8.2KB / 2.1KB |
+| **现在、制作说明** | `critical` + `critical-info` + `critical-post` | **55.4KB / 10.2KB** | `site-core` 8.2KB / 2.1KB |
 
-> **这组数字是 2026-10-07 重新实测的**（此前表里是 2026-09-29 收窄当时的数，之后 `critical.css` / `critical-post.css` / `critical-info.css` / `core.css` 都动过，已经对不上）。复现方法：`hugo --gc --minify --destination /tmp/xxx` 后，用脚本从产物里抽第一个 `<style>` 块按字节量 + `gzip -9`；异步包直接量 `public/css/site-core*.min.*.css`。改任何 CSS 之后如果要在文档里报数，**重新量一遍再写**，别沿用。
+> **这组数字是 2026-10-08 重新实测的**（此前表里是 2026-10-07 的数，之后 `critical.css` / `critical-post.css` / `critical-info.css` / `critical-page.css` 都动过 —— 加了归档页按年索引、书影音分组，撤了首页「正在」板块，同日又新增再移除文末「赞一下」/「引用本文」，已经对不上）。复现方法：`hugo --gc --minify --destination /tmp/xxx` 后，用脚本从产物里抽 `<style>` 块按字节量 + `gzip -9`；异步包直接量 `public/css/site-core*.min.*.css`。改任何 CSS 之后如果要在文档里报数，**重新量一遍再写**，别沿用。
 
-> **兜底仍然是「全给」**（4 个内联 + `core` + `post`），但 2026-09-29 收窄之后**已经没有任何页型落在它上面**（最大内联从 54.3KB 降到 44.0KB，就是书影音页）。它现在是一条纯粹的安全网：以后新增的根级单页、或 Hugo 将来新加的 `.Kind` 落到这里时，最坏结果只是多内联几 KB，不会掉样式。
+> **兜底仍然是「全给」**（4 个内联 + `core` + `post`），但 2026-09-29 收窄之后**已经没有任何页型落在它上面**。它现在是一条纯粹的安全网：以后新增的根级单页、或 Hugo 将来新加的 `.Kind` 落到这里时，最坏结果只是多内联几 KB，不会掉样式。
+>
+> **⚠️ 当前内联最重的是「现在」和「制作说明」两页（55.4KB / 10.2KB gzip），不是书影音。** 它们同时要 `critical-info` 的 `.info-*` 页头**和** `critical-post` 的 `.post-content` 阅读版式 —— 两个模块都是「整份」内联，而这两页实际各只用其中一小段（页头三行 + 正文排版）。上一版文档里「最大内联…就是书影音页」的说法已经作废两次了（书影音 2026-10-08 改成数据驱动后降到 26.1KB，而 now / colophon 是同日新增的）。真要优化，方向是把 `.post-content` 的阅读版式抽成一个独立小模块给这两页用，**但那是一次跨页型的重构，先记在这里别顺手做**。
 >
 > 收窄的收益（每页首屏字节，内联 + 异步一起算）：分类页 −5.3KB gzip、归档/404 −4.4KB、友链 −3.7KB、关于 −3.6KB、隐私 −2.9KB、书影音 −2.2KB。方法是「解析页面用到的 class/id，看这些 token 的规则落在哪个模块，做贪心集合覆盖取最小集」；把这套方法代回首页 / 文章页 / 标签页 / 周刊列表，算出来的结果与原来已经写好的分支完全一致——这本身就是对方法的一次交叉验证。
 >
-> 两个**算过总账、刻意没做**的微优化：书影音页只需要 `critical-post` 里的 `.heading-anchor` 一条，友链页只需要 `critical-page` 里的 `.page-intro` 一条。把这两条挪进公共 `critical` 能让这两页各降一个模块，但会让 300+ 个页面每页多背 150–300B——单页的收益不值得全站付账。
+> 一个**算过总账、刻意没做**的微优化：友链页只需要 `critical-page` 里的 `.page-intro` 一条。把它挪进公共 `critical` 能让这一页降一个模块，但会让 300+ 个页面每页多背 150–300B——单页的收益不值得全站付账。
+> （原先这里还并列着「书影音页只需要 `critical-post` 里的 `.heading-anchor` 一条」—— 2026-10-08 书影音改成数据驱动后，分组标题由模板直接输出、不走 render-heading，那一页已经不需要 `critical-post` 了，这条随之作废。）
+
 >
 > 2026-09-28 之前还有第 5 个模块 `home.css`（首页 hero、列表工具条、分页）。它整个都属于「首屏可见」，留在异步包里会让首屏先画错再重绘一次（标题先是浏览器默认的黑色粗体 h1、页脚先竖排、翻页按钮先是裸的 ‹ ›），所以整体并回了 `critical.css` 并删除。
 
@@ -811,7 +821,7 @@ Text Module Level 4 这批特性（`pretty` / `balance` / `hyphens` / `line-brea
 
 - **筛选**数据来自索引里已有的 `tags` / `categories`，`index.searchindex.json` **不用改**。分类全列（本机 13 个）；标签只列出现 ≥ `TAG_MIN`（3）篇的 28 个 —— 166 个标签横排约 13000px，全塞进去等于没有重点，长尾走行尾的「全部标签 ›」。那个 URL 从 `data-index` 反推站点根，**不写死 `/tags/`**（子路径部署也成立）。点一次筛选、再点一次取消；**选中后可以不带关键词**，直接按时间倒序浏览这一类（这是 A5 说的「按分类缩小范围」那条收益）。
 - **前缀符号 `●` / `#` 由 CSS `::before` 画**（`.search-chip[data-facet="categories"|"tags"]`），与文章页 `.post-cat-chip` / `.post-tag-chip` 是同一套语言，也同一份红的语义（见 DESIGN.md Roadmap P2）。不写进文本，读屏不会念出装饰符。
-- **最近搜索**存 `localStorage`，键 `hulatu:search:recent`，最多 5 条，忽略大小写去重。**这是全站唯一一处 localStorage** —— 主题仍刻意「跟随系统、刷新不记忆」；这里记的是用户的输入产物，不记住才是丢东西，两件事不冲突（见 DESIGN.md「搜索（面板）」）。
+- **最近搜索**存 `localStorage`，键 `hulatu:search:recent`，最多 5 条，忽略大小写去重。它是全站两处 localStorage 的第一处（另一处：阅读位置 `hulatu:read:<文章路径>`，**两处都要在 `content/privacy.md` 里同步登记**；原先还有第三处「赞过没有」`hulatu:kudos:<文章路径>`，随文末「赞一下」2026-10-08 同日移除）—— 主题仍刻意「跟随系统、刷新不记忆」；这里记的是用户的输入产物，不记住才是丢东西，两件事不冲突（见 DESIGN.md「搜索（面板）」）。
 - **写入时机是「提交」而不是每次击键**：Enter 打开结果、点开一条结果、关面板时输入框已有 ≥2 个字。否则「跑」「跑步」「跑步装」会变成三条记录。`sessionRecorded` 保证一次打开最多由「关面板」补记一次，不会和 Enter 重复。读写都包在 `try/catch` 里，隐私模式静默降级成「不记住」，不报错。
 - **快捷键提示**：空态里写「按 `/` 或 `⌘K` 随时打开搜索」，页头 `#search-btn` 的 `title` 是同一句（C1）。两处文案一起改。
 
@@ -1004,6 +1014,58 @@ python3 scripts/sync-garmin.py
 ```bash
 up   # 在任意目录输入 up 即可（函数定义在 ~/.config/zsh/.zshrc）
 ```
+
+### 书影音数据（2026-10-08 新增）
+
+书影音页 `/media/` 的条目**不是手写的**，来自豆瓣。链路：
+在豆瓣标记「看过 / 读过 / 听过」 → 本机跑 `scripts/sync-douban.py` → 写入 `data/media.json` 和封面 `static/images/media/<kind>-<id>.webp` → `layouts/media/list.html` 读 `data/media.json` 渲染 → 提交推送。
+
+> 模板里读的是 **`hugo.Data.media`**，**不是 `site.Data.media`** —— 后者从 Hugo v0.156.0 起废弃，构建会打 `WARN deprecated`（全站约定见「结算页」一节的第 3 条）。这页 2026-10-08 刚加时写成了 `site.Data.media`，同日修掉。**新加读 `data/` 的模板一律用 `hugo.Data.<文件名>`。**
+
+```bash
+cd ~/Blog && env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy \
+  -u ALL_PROXY -u all_proxy \
+  /Users/hulatu/.workbuddy-ai/binaries/python/envs/default/bin/python \
+  scripts/sync-douban.py
+```
+
+**豆瓣 ID 存在 `hugo.toml` 的 `params.doubanId`**（2026-10-08 填为 `230092146`，
+来自个人主页 `https://www.douban.com/people/230092146/`），脚本自己读，**平时不用带 `--uid`**。
+只在临时试别的账号时才用 `--uid <id>` 覆盖。
+
+**必须摘掉代理环境变量**（沙箱里设了 `HTTP_PROXY/HTTPS_PROXY`，那个代理不放行 douban.com）。漏掉它的症状是一堆莫名其妙的超时，不是 403。
+
+**首次同步实况（2026-10-08）**：23 部影视 + 6 本书 + 0 音乐 = **29 条**，封面 29 张共 **1.15 MB**。
+自检全绿：`缺 creator 0 / 缺 year 0 / 无评分 21 / 有短评 9`（21 条无评分是正常的 ——
+豆瓣上没打分就没这个字段）。整轮耗时约 1 分钟（29 条 × 1.2 秒限速 + 29 张封面）。
+
+> 这一页原本有 9 条**手写的占位数据**（`"status": "seed"`，封面还在图床 `img.hulatu.com`），
+> 首次真同步会整份覆盖。已核对：那 9 条里只有 4 部电影真在收藏里
+> （阿甘正传 / 美丽人生 / 这个杀手不太冷 / 楚门的世界），另外 5 条
+> （纳瓦尔宝典、禅与摩托车维修艺术、一只特立独行的猪、疯狂的赛车、疯狂的石头）是编的。
+> 备份留在 `/tmp/media-seed-backup.json`（重启会没），要找回旧值看 git 历史。
+
+常用开关：`--limit N`（每类最多抓 N 条，调试用）、`--kinds movie,book`、`--no-covers`、`--force-covers`、`--delay`（默认 1.2 秒）。
+
+**为什么落盘而不是构建期实时抓**：Hugo 构建要能离线、要快；豆瓣有限流习惯，每次构建都去敲一遍不现实。落盘成 JSON 还顺带得到两个好处 —— 数据进 git（改了什么一目了然）、模板可以离线构建。形状照的是站里已有的先例 `scripts/sync-garmin.py → data/runs.json`。
+
+**增量行为**：已存在的封面会跳过下载（按文件名 `<kind>-<id>.webp` 判断），所以日常同步只抓新条目。想强制重下加 `--force-covers`。
+
+#### 豆瓣这条路踩过的坑（改脚本前先看这里）
+
+1. **豆瓣没有可用的官方 API。** Frodo（`frodo.douban.com/api/v2/...`）要 apikey，流传的几个 key 实测全部 `invalid_apikey`。读书 / 电影的开放 API 2019 年就下线了。**所以是网页抓取，不是调接口。**
+2. **`Referer` 头是硬要求，尤其是 `book.douban.com`。** 不带 Referer 直接 403（nginx 的裸 403 页），带上任何 `douban.com` 的 Referer 就 200。**注意不是「要带查询参数」** —— 曾经误判成那样，因为那次的测试命令恰好也带了 Referer，白白绕了一圈。movie / music 不带 Referer 也能出，但统一带上更稳。
+3. **封面有防盗链，必须自己下载。** 同一张 `img3.doubanio.com` 的图：无 Referer → **418**，`hulatu.com` 的 Referer → **403**，只有豆瓣自家 Referer → 200。所以**不能外链，也不能靠 `referrerpolicy="no-referrer"` 绕**。脚本带 Referer 下载后转 400px 宽的 webp（q82，单张约 25KB）存站内。
+4. **封面换档位取大图。** collect 页给的是 270px 的小图，卡片在 2x 屏要 400px。换档位实测：`/view/photo/s_ratio_poster/` → `/view/photo/m_ratio_poster/`（270×378 → 540×756）、`/view/subject/s/` → `/view/subject/m/`（270 → 332/408）。**只换到 m 档不换 l**：l 是 1080px、单张 445KB，200 张就是 ~90MB 流量，而我们最后反正要缩到 400。换档位偶尔 404（老图没生成），脚本会退回原地址。
+5. **限流。** 探测阶段连着打了十几次请求之后，`book.douban.com` 一度连续 403，隔一会儿又好了。脚本默认每次请求间隔 1.2 秒，并对 403 / 5xx 做指数退避重试。**别把 `--delay` 调到 1 秒以下。**
+6. **影视的「导演」只能从 intro 里猜。** 收藏页的 `.intro` 是 `上映日期 / 演员… / 国家 / [官网] / 导演… / 片长 / 类型 / 编剧 / 语言` 一串，演员个数不定，没有下标可依。做法是先找第一个「裸国家字段」（靠脚本里的 `COUNTRIES` 集合），再往后跳过国家和 URL，第一个剩下的就是导演。**遇到 `COUNTRIES` 里没有的国家会退回 `None`** —— 卡片少一行而已不会出错，脚本结尾会报「缺 creator N」，那个数明显偏高就说明该补国家了。书籍和音乐没这个问题（`.pub` / `.intro` 的第一段就是作者 / 表演者）。
+7. **两个站的 DOM 不一样**：影视和音乐是 `div.item.comment-item`（标题在 `li.title > a > em`，年份在 `li.intro`），读书是 `li.subject-item`（标题在 `h2 > a[title]`，作者在 `.pub`，短评在 `p.comment`）。解析器分开写，别想着合并。
+
+#### 这一页刻意不做的事
+
+不做筛选器、不做分页。它是「记录」，从头翻到尾就是它该有的样子；真要找某一部，浏览器自带的查找（⌘F）比任何自制筛选器都快。也不显示「想看 / 在看」—— 那是待办，不是记录。
+
+卡片上的短评**截到 3 行**（`.media-comment` 的 `-webkit-line-clamp`）：卡片列宽在手机上只有 135–170px，一条长评能占 8 行，在 grid 的默认 stretch 下会把整行卡片一起撑高。这不违背「不截断标题」那条 —— 那条针对的是标题（截了没法认出是哪一篇），短评截断后语气还在，整卡又可点。想看全就把那两行删掉。
 
 ### `up` 到底做了什么（以及它为什么不负责部署）
 

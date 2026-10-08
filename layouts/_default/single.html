@@ -140,6 +140,11 @@
 <div class="post-end" aria-hidden="true"><span>完</span></div>
 
 {{ if $isArticle }}
+  {{- /* 「赞一下」/「引用本文」2026-10-08 新增，同日移除（用户拍板）。
+         移除的落点：partials/post-kudos.html、partials/post-cite.html、
+         critical-post.css 末尾两段、ui.js 的 initKudos() 与 [data-cite-copy] 块。
+         要加回来得四处一起补，别再只加一半。 */ -}}
+
   {{- if $relatedPosts -}}
   <section class="related-posts">
     <h2 class="related-title">相关文章</h2>

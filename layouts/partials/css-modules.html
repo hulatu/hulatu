@@ -43,6 +43,18 @@
     {{- /* 结算页（2026-10-07）：和归档页同类 —— 一页一型的信息页，样式全在 critical-info，
            不需要 critical-post（它没有 .post-content 正文，开头那段说明走 .stats-intro）。 */ -}}
     {{- $c = slice "critical" "critical-info" -}}{{- $m = slice "core" -}}
+  {{- else if eq $base "uses" -}}
+    {{- /* 装备页（2026-10-08）：和关于页同类 —— 内容区直接复用 .about-body /
+           .about-section / .about-link-list，全在 critical-info 里，不需要 critical-post。 */ -}}
+    {{- $c = slice "critical" "critical-info" -}}{{- $m = slice "core" -}}
+  {{- else if eq $base "now" -}}
+    {{- /* 「现在」页（2026-10-08）：页头走 critical-info 的 .info-*，
+           正文是手写 Markdown、走 critical-post 的 .post-content 阅读版式。
+           两个都要 —— 它同时是「信息页」和「一页正文」。 */ -}}
+    {{- $c = slice "critical" "critical-info" "critical-post" -}}{{- $m = slice "core" -}}
+  {{- else if eq $base "colophon" -}}
+    {{- /* 制作说明页（2026-10-08）：和 now 页同构。 */ -}}
+    {{- $c = slice "critical" "critical-info" "critical-post" -}}{{- $m = slice "core" -}}
   {{- end -}}
 {{- else if eq .Kind "section" -}}
   {{- if eq .Section "posts" -}}
@@ -50,7 +62,13 @@
   {{- else if eq .Section "weekly" -}}
     {{- $c = slice "critical" "critical-page" -}}{{- $m = slice "core" -}}
   {{- else if eq .Section "media" -}}
-    {{- $c = slice "critical" "critical-page" "critical-post" -}}{{- $m = slice "core" -}}
+    {{- /* 书影音页（2026-10-08 改成数据驱动）。
+           原来这里要 critical-post，只为 Markdown 正文里 `## 书籍 / ## 影视` 那两个
+           标题的 .heading-anchor（见上面「两个刻意没为省字节做的事」那条）。
+           现在分组标题由 layouts/media/list.html 直接输出 <h2>、不走 render-heading，
+           正文只剩两行手写简介，.page-intro 在 critical-page 里 —— 所以 critical-post
+           整个不需要了，从内联列表里摘掉。 */ -}}
+    {{- $c = slice "critical" "critical-page" -}}{{- $m = slice "core" -}}
   {{- else if eq .Section "friends" -}}
     {{- $c = slice "critical" "critical-info" "critical-page" -}}{{- $m = slice "core" -}}
   {{- end -}}

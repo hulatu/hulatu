@@ -915,6 +915,17 @@ svg { stroke-width: 2; }
      0.04s 是入场延迟（不是时长），不参与词表。 */
   animation: hero-in var(--dur-slow) cubic-bezier(0.2, 0.7, 0.2, 1) 0.04s both;
 }
+/* ---------- 首页「正在」板块：2026-10-08 加过一版，同日撤掉 ----------
+   那一块（.hero-now / .hero-now-list / .hero-now-item / .hero-now-label /
+   .hero-now-value / .hero-now-more 以及它的 600px 断点）本来是「账本一行」的形态，
+   夹在卷首语和文章列表之间，右侧一枚描边胶囊指向 /now/。
+
+   用户的要求是 /now/ 当一个正常页面走导航，首页只列文章 —— 于是模板那块撤了，
+   样式也一并删掉。**不保留死样式**：critical.css 是内联进 <head> 的，
+   用不到的规则是每个页面都要付的字节。
+
+   要恢复的话：模板从 git 历史取回，样式按上面那句话重写一遍即可 ——
+   它是「一行备注」不是「一张卡」，别做成卡片（会和下面的文章列表抢注意力）。 */
 /* @keyframes 必须和内联的 animation 待在一起（2026-09-28）。
    原先它留在 core.css，于是首屏这句 animation 解析不到关键帧 —— 按规范整条声明被丢弃，
    标题**一次画对**（反而是好事）；等 core.css 到达、关键帧可用，动画才从头开始跑，
@@ -952,8 +963,29 @@ svg { stroke-width: 2; }
   width: auto;
   margin: 0;
 }.list-toolbar .home-archive-link {
+  /* 2026-10-08：这条一度改成子选择器 `.list-toolbar > .home-archive-link`，
+     因为当时「按年」胶囊进来，它和这个链接被包进了一层 .toolbar-actions。
+     当天「按年」搬到归档页，包装层跟着删了，链接重新直接挂在工具条上，
+     所以这条也改回原来的后代选择器写法。 */
   margin-left: auto;
-}.list-pager {
+}
+/* 「按年」年份索引（.year-nav / .year-nav-label / .year-chip）
+   2026-10-08 从首页搬到了归档页 —— 样式也跟着从 critical.css 挪到 critical-info.css，
+   因为现在只有归档页用它，而 critical.css 是**每个页面**都内联的（含 120 篇文章页），
+   留在那儿就是全站白付一份字节。 */
+/* 窄屏兜底：翻页和「查看归档」横着放不下时折成两行。
+   （2026-10-08 之前这里是「翻页 / 按年 / 查看归档」三样，按年搬走后只剩两样，
+   但这条留着 —— 页数多的时候翻页控件本身就能把一行撑满。） */
+@media (max-width: 600px) {
+  .list-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .list-toolbar .home-archive-link {
+    margin-left: 0;
+  }
+}
+.list-pager {
   display: flex;
   align-items: center;
   gap: var(--space-2);

@@ -1,10 +1,56 @@
+{{- /* 书影音卡片。
+
+      参数是一个 dict，两种调用方各拼各的：
+        · layouts/shortcodes/media.html —— 手写 Markdown 里的 `{{< media ... >}}`
+        · layouts/media/list.html       —— data/media.json（豆瓣同步）的每一条
+
+      字段（**只有 title 是必需的**，其余不传就不渲染那一行）：
+        cover    封面图地址（站内 /images/media/… 或图床）
+        title    书名 / 片名
+        creator  作者 / 导演 / 表演者
+        year     出版或上映年份
+        rating   推荐程度，1–5 的数字，可以带小数
+        link     豆瓣等条目页 —— 有它的时候**整张卡可点**
+        comment  我的短评（豆瓣同步来的）。可选，见下面 .media-comment 的说明。
+
+      2026-10-08 从「接收 shortcode 上下文」改成「接收 dict」：
+      书影音页改成数据驱动之后，卡片要能被两种来源共用 —— 否则就有两份渲染器，
+      改一处忘一处。字段名和原来 shortcode 的参数名保持一致，手写的老内容不用改。
+
+      rating 渲染成「一颗星 + 数字」而不是五颗星：卡片在手机上只有 135–170px 宽，
+      五颗星会把标题挤成两行，而读者真正要的信息只是「推荐到什么程度」。 */ -}}
+{{- $title := .title -}}
+{{- $cover := .cover -}}
+{{- $creator := .creator -}}
+{{- $year := .year -}}
+{{- $rating := .rating -}}
+{{- $link := .link -}}
+{{- $comment := .comment -}}
 <figure class="media-card">
-  {{ with .Get "cover" }}<img class="media-cover" src="{{ . | relURL }}" alt="{{ $.Get "title" }}" loading="lazy" decoding="async">{{ end }}
+  {{- /* 整卡可点：一个绝对定位的空 <a> 铺满卡片（样式见 .media-link）。
+         刻意**不把 <figure> 换成 <a>** —— figure 的 UA 边距重置、±1.2° 的贴纸旋转、
+         :nth-child(even) 的交替角度全挂在 .media-card 上，换标签会连带影响一片。
+         空链接必须给 aria-label，否则屏幕阅读器读出来是个无名链接。 */ -}}
+  {{- with $link -}}
+  <a class="media-link" href="{{ . }}" target="_blank" rel="noopener" aria-label="{{ $title }}（在新窗口打开）"></a>
+  {{- end -}}
+  {{- with $cover -}}
+  <img class="media-cover" src="{{ . | relURL }}" alt="{{ $title }}" loading="lazy" decoding="async">
+  {{- end -}}
   <figcaption class="media-body">
     {{- /* 2026-10-06：书影音标题也挂孤行保护。卡片列宽在手机上只有 135–170px，
            实测「禅与摩托车维修艺术」会孤一个「术」—— 这一页历来是被漏掉的那一个
            （DESIGN.md 记着 2026-10-04 也是「只按列表行去搜、漏了卡片页」）。 */ -}}
-    <p class="media-title">{{ partial "orphan-safe.html" (.Get "title") }}</p>
-    {{ with .Get "creator" }}<p class="media-creator">{{ . }}</p>{{ end }}
+    <p class="media-title">{{ partial "orphan-safe.html" $title }}</p>
+    {{- with $creator }}<p class="media-creator">{{ . }}</p>{{- end }}
+    {{- if or $year $rating -}}
+    <p class="media-meta">
+      {{- with $year }}<span class="media-year">{{ . }}</span>{{- end -}}
+      {{- with $rating -}}
+      <span class="media-rating"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.4-5.8-3-5.8 3 1.1-6.4L2.6 9.4l6.5-.9z"/></svg>{{ . }}</span>
+      {{- end -}}
+    </p>
+    {{- end -}}
+    {{- with $comment }}<p class="media-comment">{{ . }}</p>{{- end }}
   </figcaption>
 </figure>

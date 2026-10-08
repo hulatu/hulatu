@@ -322,7 +322,55 @@
   /* 同上：作者名也放开换行，不再截断。 */
   min-width: 0;
   overflow-wrap: break-word;
-}@media (max-width: 600px) {.media-grid {
+}
+/* ---------- 书影音卡片的元信息行（2026-10-08 新增）----------
+   年份 + 评分，两者都可选（模板里判断，都没有时整行不渲染）。
+   走等宽字体 —— 和列表里的日期同一档，让年份在一排卡片里成列不抖。 */
+.media-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  line-height: 1.4;
+  color: var(--muted);
+  letter-spacing: var(--tracking-num);
+}
+.media-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--ink-soft);
+}
+/* 星形图标用印章红，数字走中性 —— 这是这一页唯一的红。
+   （卡片 hover 时边框变红是「可交互」语义，属于既有设计。）
+   图标只有 10px，面积小到不会破坏「红必须稀缺」那条原则。 */
+.media-rating svg {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  fill: var(--accent);
+}
+/* 整卡可点：一个铺满卡片的空链接（模板里只在有 link 时才输出）。
+   用 :has() 让「可点」的样式挂在 .media-card 上，而不是给 figure 加类 ——
+   这样 ±1.2° 的贴纸旋转、:nth-child(even) 的交替角度、hover 回正全都不用改。
+   浏览器不支持 :has() 时只是光标不变成手型，链接仍在 tab 序里，不会失能。 */
+.media-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+.media-link:focus-visible {
+  outline: 2px solid var(--accent);
+  /* 负偏移：把焦点环画在卡片内侧。卡片自己是 overflow: hidden，
+     正偏移的环会被裁掉一半。 */
+  outline-offset: -2px;
+}
+.media-card:has(.media-link) { cursor: pointer; }
+@media (max-width: 600px) {.media-grid {
     grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
     /* 2026-10-02（第三轮）：14px → var(--space-4)（16px）。
        14 不在刻度上；更要紧的是方向 —— 桌面是 var(--space-6)=24px，手机反而收到 14px（58%），
@@ -331,3 +379,69 @@
        按 390px 宽算，16px 与 14px 的列宽只差 1px（167px vs 168px），代价为零。 */
     gap: var(--space-4);
   }.media-card { transform: rotate(-0.7deg); }.media-card:nth-child(even) { transform: rotate(0.8deg); }}
+/* ---------- 书影音页：数据驱动后的分组与统计（2026-10-08） ----------
+   这一页从「手写 shortcode 列表」改成「读 data/media.json」之后，多出三层结构：
+   统计行 → 分组标题（书籍 / 影视 / 音乐）→ 卡片网格。
+
+   · .media-section 负责组与组之间的留白，.media-grid 自己的下边距收掉
+     （它原来那条 `margin: var(--space-5) 0 var(--space-11)` 是「一个网格独自
+     撑满整页」时的写法，现在上面还压着标题、下面还跟着下一组，会double）。
+   · 分组标题走衬线、--text-md，下面一条发丝线 —— 和 .archive-year 同一套语言：
+     层级靠线不靠影。刻意**不用**等宽小字（那是 .series-head / .archive-month 的档位，
+     那些是「区块内的小标签」，而这三个是页面的主要分节）。 */
+.media-section {
+  margin: 0 0 var(--space-11);
+}.media-section:last-child {
+  margin-bottom: 0;
+}.media-section .media-grid {
+  margin: var(--space-5) 0 0;
+}.media-section-title {
+  margin: 0;
+  padding: 0 0 var(--space-2);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: var(--tracking-title);
+  color: var(--ink);
+}
+/* 统计行：「共 218 条 · 影视 218 · 书籍 115 · 音乐 24」+ 右侧的同步说明。
+   数字走等宽（一列数字不抖），右侧那半句是「来源说明」不是数据，压到 --muted。
+   窄屏时 margin-left:auto 失效、整句折到下一行 —— 和 .list-toolbar 一个路子。
+   下边距给到 --space-8：它是「页级」的一条注记，下面紧跟的就是第一个分组标题，
+   贴太近会让人以为「书籍」是统计行的一部分（第一版就是这个毛病，实测调过）。 */
+.media-stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  margin: var(--space-4) 0 var(--space-8);
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  line-height: 1.6;
+  letter-spacing: var(--tracking-num);
+  color: var(--muted);
+}.media-stat strong {
+  color: var(--ink);
+  font-weight: 500;
+}.media-stat-src {
+  margin-left: auto;
+  color: var(--muted);
+}
+/* 卡片上的短评（豆瓣同步来的）。
+   **截到 3 行**：卡片列宽在手机上只有 135–170px，一条 100 字的短评能占 8 行，
+   在 grid 的默认 stretch 下会把**整行**卡片一起撑高 —— 一条长评毁掉一排的节奏。
+   ⚠️ 这不违背 DESIGN.md「不要截断标题」那条：那条针对的是**标题**（截了就没法
+   认出是哪一篇），而短评截断后语气还在，整张卡又是可点的，点进去就是原文。
+   真想看全：删掉 -webkit-line-clamp 即可，代价是行高被最长的那条撑开。 */
+.media-comment {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--text-2xs);
+  line-height: 1.55;
+  color: var(--ink-soft);
+}

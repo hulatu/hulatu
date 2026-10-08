@@ -11,17 +11,39 @@
 {{- end -}}
 {{- $isArticle := and .IsPage (in (slice "posts" "weekly") .Type) -}}
 {{- $defaultShare := site.Params.assets.shareImage | default "/images/share.webp" -}}
-{{- /* cover 是「给某一篇单独指定分享图」的入口，目前没有文章在用（全站 front matter 里
-       没有 cover 字段），属于预留能力：要用的时候在文章 front matter 写
-       cover: /images/xxx.webp 或远程地址即可。 */ -}}
-{{- $shareImage := .Params.cover | default $defaultShare -}}
+{{- /* 分享图的三个来源，优先级从高到低：
+
+     ① 文章 front matter 的 `cover` —— 手动指定，永远最大。
+     ② scripts/gen-og.js 自动生成的卡（static/images/og/<slug>.png）。
+        它按 slug 命名，所以这里也用 .Slug 拼 —— **两边必须用同一个键**，
+        改一边记得改另一边（脚本那侧取的是 `hugo list all` 的 slug 列）。
+        文件不存在就自动跳过，绝不会吐出一个 404 的 og:image。
+     ③ 全站默认图 share.webp。
+
+     ②是 2026-10-08 补上的：在此之前 `cover` 这个字段留了很久却**一篇文章都没用**，
+     结果是 125 篇文章分享到微信、微博、群里，全都是同一张图。
+     自动卡是 1200×630 的「纸底 + 衬线标题 + 印章红」，风格照搬 DESIGN.md。 */ -}}
+{{- $shareImage := .Params.cover | default "" -}}
+{{- $shareRel := "" -}}
+{{- if not $shareImage -}}
+  {{- with .Slug -}}
+    {{- $cand := printf "images/og/%s.png" . -}}
+    {{- if fileExists (printf "static/%s" $cand) -}}
+      {{- $shareRel = $cand -}}
+      {{- $shareImage = printf "/%s" $cand -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $shareImage -}}
+  {{- $shareImage = $defaultShare -}}
+  {{- $shareRel = strings.TrimPrefix "/" $defaultShare -}}
+{{- end -}}
 {{- $shareImageAbs := $shareImage | absURL -}}
-{{- /* 分享图的宽高：只有用站内默认图时读得到（front matter 的 cover 是远程地址）。
+{{- /* 分享图的宽高：只有站内图读得到（cover 可能是远程地址，那是另一回事）。
        带上宽高，Facebook / 微信这类平台能更快更稳地渲染大卡片。 */ -}}
 {{- $shareW := 0 -}}
 {{- $shareH := 0 -}}
-{{- if not .Params.cover -}}
-  {{- $shareRel := strings.TrimPrefix "/" $defaultShare -}}
+{{- if $shareRel -}}
   {{- if fileExists (printf "static/%s" $shareRel) -}}
     {{- with imageConfig (printf "static/%s" $shareRel) -}}
       {{- $shareW = .Width -}}

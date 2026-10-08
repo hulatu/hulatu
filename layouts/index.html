@@ -8,6 +8,20 @@
   <h1 class="hero-line">总得留下点什么吧</h1>
 </header>
 
+{{- /* 「正在」板块 2026-10-08 加过一版，同日按用户要求撤掉。
+
+      撤掉的理由：那一块本质是「把 /now/ 的前三条摘要复制到首页」，读者在首页
+      读到的是**二手**的现在。用户的选择是让 /now/ 当一个正常的页面存在、
+      由主导航直达（见 hugo.toml 的 [menu]），首页就干净地只做一件事：列文章。
+
+      当时的实现留在 git 历史里（提交信息含「首页正在板块」），
+      配套的 .hero-now* 样式也一并从 critical.css 删了 —— 它内联在 <head>，
+      留着不用就是每个页面白付一份字节。想恢复：模板从 git 取回，
+      样式照 DESIGN.md 重写（那块是「账本一行」的形态，不是卡片）。
+
+      content/now.md 的 front matter `now:` 块现在只服务 /now/ 页自己的
+      「最后更新」，首页不再读它。 */ -}}
+
 <section id="post-list" class="post-list">
   {{ range $paginator.Pages }}
     {{ partial "post-row-compact.html" . }}
@@ -18,6 +32,18 @@
 
 <div class="list-toolbar">
   {{ partial "pager.html" $paginator }}
+
+  {{- /* 「按年」快捷导航 2026-10-08 加过一版，同日搬到归档页（用户要求）。
+
+         它本来挂在这里，跳的是 `/archive/#2026` 这类**跨页锚点**。用户看过之后
+         的判断是：年份索引属于归档页 —— 那里本来就有年份分组，把索引放在
+         「系列」下面、「文章列表」上面，读者在归档页内部跳转，比从首页跳过去更顺。
+
+         搬走之后这一条只剩「查看归档」一个元素，所以原来包着它的 .toolbar-actions
+         也一并删了（一个只装一个孩子的 flex 容器没有意义），
+         .home-archive-link 重新成为 .list-toolbar 的直接子元素，
+         CSS 也回到原来那条 `.list-toolbar .home-archive-link { margin-left: auto }`。
+         新位置见 layouts/_default/archive.html。 */ -}}
   <a class="home-archive-link" href="{{ "archive/" | relURL }}">查看归档</a>
 </div>
 

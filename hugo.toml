@@ -60,6 +60,11 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
   since = "2025"
   email = "hello@hulatu.com"
   avatar = "/images/avatar.webp"
+  # 豆瓣 ID —— 书影音页 /media/ 的数据来源（scripts/sync-douban.py 读这里，
+  # 所以平时跑同步不用带 --uid）。填个人主页 URL 里 /people/<这一段>/ 。
+  # 留空则脚本必须显式传 --uid。
+  # 2026-10-08 填上：https://www.douban.com/people/230092146/
+  doubanId = "230092146"
   # 头像是否走 Cloudflare Image Transformations 缩放（layouts/_default/about.html）。
   # 开：模板给头像套 /cdn-cgi/image/width=…，按实际显示尺寸（148px / 2x 296px）取图，
   #     实测从 14KB 降到 3.6–8.4KB；顺带避开 Polish 把 .webp 兜底重编码成 21KB JPEG 的问题。
@@ -145,22 +150,31 @@ copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
     noClasses = false     
 
 [menu]
+  # 导航顺序由 weight 决定，和下面的书写顺序无关（Hugo 按 weight 排）。
+  # 2026-10-08：「现在」(/now/) 进导航，排在「关于」之后 —— 两条都是「关于我这个人」
+  # 的页面，挨着读最顺：关于说我是谁，现在说我在干什么。
+  # 为它把后面三项的 weight 整体后移一位（2/3/4 → 3/4/5），不是插空号 ——
+  # 空号看着像「这里原来有东西被删了」，读代码的人要多想一秒。
   [[menu.main]]
     name = "关于"
     url = "/about/"
     weight = 1
   [[menu.main]]
-    name = "归档"
-    url = "/archive/"
+    name = "现在"
+    url = "/now/"
     weight = 2
   [[menu.main]]
-    name = "分类"
-    url = "/categories/"
-    weight = 4
+    name = "归档"
+    url = "/archive/"
+    weight = 3
   [[menu.main]]
     name = "周刊"
     url = "/weekly/"
-    weight = 3
+    weight = 4
+  [[menu.main]]
+    name = "分类"
+    url = "/categories/"
+    weight = 5
 
 [taxonomies]
   category = "categories"

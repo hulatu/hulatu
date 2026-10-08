@@ -3,34 +3,13 @@ title: "书影音"
 description: "读过的书、看过的影像、循环播放的歌。"
 ---
 
-只记读完看完的，和真心推荐的。短评求短，感受求真。
+只记读完看完的。短评求短，感受求真。
 
-## 书籍 {#shu-ji}
+<!--
+  这一页是**数据驱动**的（2026-10-08 起）：
+  条目来自 data/media.json，由 scripts/sync-douban.py 从豆瓣的公开收藏页同步。
+  想加一部电影 / 一本书，去豆瓣标记「看过 / 读过」，然后跑一次脚本 ——
+  不要在这里手写卡片（手写的内容下次同步会被覆盖掉）。
 
-{{< media-grid >}}
-
-{{< media cover="https://img.hulatu.com/post/IgAOvR.webp" title="纳瓦尔宝典" creator="[美] 埃里克·乔根森">}}
-
-{{< media cover="https://img.hulatu.com/post/PQ7Y6V.webp" title="禅与摩托车维修艺术" creator="罗伯特·M·波西格">}}
-
-{{< media cover="https://img.hulatu.com/post/Yumr4L.webp" title="一只特立独行的猪" creator="王小波">}}
-
-{{< /media-grid >}}
-
-## 影视 {#ying-shi}
-
-{{< media-grid >}}
-
-{{< media cover="https://img.hulatu.com/post/xvpeDY.webp" title="疯狂的赛车" creator="宁浩">}}
-
-{{< media cover="https://img.hulatu.com/post/47WDwq.webp" title="疯狂的石头" creator="宁浩">}}
-
-{{< media cover="https://img.hulatu.com/post/Me6i86.webp" title="阿甘正传" creator="罗伯特·泽米吉斯 Robert Zemeckis">}}
-
-{{< media cover="https://img.hulatu.com/post/hPN3CN.webp" title="美丽人生" creator="罗伯托·贝尼尼">}}
-
-{{< media cover="https://img.hulatu.com/post/tdHWfN.webp" title="这个杀手不太冷" creator="吕克·贝松">}}
-
-{{< media cover="https://img.hulatu.com/post/aMpbKf.webp" title="楚门的世界" creator="彼得·威尔">}}
-
-{{< /media-grid >}}
+  上面这两行简介是手写的，会一直保留。想改就改这里。
+-->

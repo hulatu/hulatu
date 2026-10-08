@@ -40,6 +40,12 @@
   font-variant-numeric: tabular-nums;
 }.archive-year-block + .archive-year-block {
   margin-top: var(--space-10);
+}
+/* 首页的「按年」胶囊会跳到 /archive/#2026 这种锚点。不加这一条的话，
+   年份标题会被吸顶的页头压住 —— 和正文标题用同一个 --anchor-offset，
+   全站的落点规矩保持一致。 */
+.archive-year-block {
+  scroll-margin-top: var(--anchor-offset);
 }.archive-year {
   display: flex;
   align-items: baseline;
@@ -220,6 +226,57 @@
   font-variant-numeric: tabular-nums;
 }.series-pill:hover .series-pill-num {
   color: var(--ctrl-hover-text);
+}
+/* ---------- 归档页「按年」年份索引（2026-10-08 从首页搬过来，用户要求） ----------
+   它原先挂在首页工具条上，跳的是 `/archive/#2026` 这种**跨页锚点**。
+   用户的判断是：年份索引本来就该长在归档页 —— 那里已有年份分组，
+   放进去之后 href 变成同页锚点 `#2026`，读者在页内跳转，比从首页绕一圈更顺。
+
+   位置：**「系列」下面、「文章列表」上面**（见 layouts/_default/archive.html）。
+   所以下边距跟 .archive-series 取同一个 --space-10 —— 两块的留白节奏一致，
+   读起来是同一层的两个区块，而不是「系列的一部分」。
+
+   形态和首页那版**完全一致**（用户要求「用首页那个设计」）：
+   等宽小字标签 + 一排更小一号的等宽年份胶囊。刻意**不复用** .home-archive-link
+   那套胶囊尺寸：年份是一组同类项，不是一排独立按钮 —— 小一号、更紧、
+   数字走等宽成列，挨在一起才像一条年份索引。
+
+   只有一年时不渲染（没有可跳的），逻辑在模板里。
+   ⚠️ 这里的 var() 全部来自 critical.css（每个页面都内联），所以首帧就有效；
+   别把这些令牌挪到异步包 core.css 去，那样内联规则会先失效一帧。 */
+.year-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-10);
+}
+.year-nav-label {
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--muted);
+  margin-right: 2px;
+}
+.year-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.22em 0.62em;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-num);
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.year-chip:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: var(--accent-soft);
 }
 .friends-page {
   max-width: var(--content-width);
@@ -787,4 +844,58 @@
   .stats-hero > div:nth-child(n + 3),
   .stats-run > div:nth-child(n + 3) { border-top: 1px solid var(--line); }
   .stats-cat { grid-template-columns: 76px minmax(0, 1fr) 40px; gap: var(--space-3); }
+}
+
+/* ---------- 信息页通用页头（/now/ · /uses/ · /colophon/，2026-10-08 新增）----------
+   这三个页面都是「一页说清一件事」的静态信息页，共用同一套页头：
+   衬线大标题 + 等宽「最后更新」+ 一段引导语。
+
+   **为什么不让它们复用 .about-head**：那个页头是给「人」的 —— 里面是头像 +
+   姓名 + 角色 + 关注方向胶囊，本质是一张名片。这三页没有名片，
+   硬套会留下一堆空槽。这里只抽真正共用的那部分。
+
+   内容区则**直接复用关于页的 .about-body / .about-section / .about-link-list**，
+   不再造第二套清单样式（理由见 layouts/_default/uses.html 的注释）。
+   所以这个文件里新增的规则只有下面这几条页头 —— 没有一条是「新组件」。 */
+.info-page {
+  max-width: var(--content-width);
+  margin: 0 auto;
+}
+.info-head {
+  padding: 0 0 var(--space-6);
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--line);
+}
+.info-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: var(--tracking-title);
+  color: var(--ink);
+  margin: 0 0 var(--space-3);
+  /* 和 .hero-line / .page-title / .about-name 同一组：这几个标题都短，
+     balance 只是保险，不会出现「多行标题第一行停在半途」那个代价。 */
+  text-wrap: balance;
+}
+.info-when {
+  font-family: var(--font-meta);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  letter-spacing: var(--tracking-num);
+  color: var(--muted);
+  margin: 0;
+}
+.info-lede {
+  margin: 0 0 var(--space-8);
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  line-height: 1.85;
+}
+.info-lede > p { margin: 0 0 var(--space-3); }
+.info-lede > p:last-child { margin-bottom: 0; }
+@media (max-width: 600px) {
+  .info-title { font-size: var(--text-xl); }
+  .info-head { padding-bottom: var(--space-5); margin-bottom: var(--space-6); }
+  .info-lede { margin-bottom: var(--space-6); }
 }
