@@ -520,26 +520,35 @@
     align-items: center;
     pointer-events: none;
     margin: 0;
-    /* 滚动交给里面的 .post-toc：图钉要浮在刻度栏上方，这里不能裁切 */
+    /* 裁切交给里面的 .post-toc —— 收起态那 44px 的滚动窗口是它自己的事，
+       这一层要 overflow: visible，否则窗口外那圈会在悬停长开时被切掉。 */
     overflow: visible;
-  }.post-toc-wrap {
-    /* 「图钉 + 目录本体」的纵排容器（图钉 2026-10-08 晚恢复）。
-       图钉用 visibility: hidden 而不是 display: none 隐藏，所以它**始终占着 24px + 4px**，
-       目录的位置不会随图钉显隐上下跳。
-       width: 100% 不能省 —— .post-rail 是 align-items: center 的 flex 容器，
-       子项不撑满就会被居中成一团，目录里的长标题也就出不了省略号了。 */
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    /* 这一层本身不吃点击（.post-rail 是 pointer-events: none），
-       但里面的图钉和目录要能点、能悬停 */
-    pointer-events: auto;
   }.post-toc {
-    /* 上下各留 44px 呼吸（和 sspai 面板的上下内边距一致） */
+    /* 收起态 = 一个只有一行高的滚动窗口（2026-10-09，用户要求）。
+       它只露出「当前标题」那一行，随滚动把整份目录推上推下 —— 位移由 JS 写进
+       --toc-shift（见 toc.js 的 placeRailWindow），这里只负责窗口的高度与裁切。
+       窗口高和行高都用 --hit，所以露出来的正好是一整行、不多不少，
+       而且整块目录在 rail 里始终只占这一行，文章页右栏的高度不再随标题数量变。
+
+       width: 100% 不能省 —— .post-rail 是 align-items: center 的 flex 容器，
+       子项不撑满就会被居中成一团，目录里的长标题也就出不了省略号了。
+       pointer-events: auto：.post-rail 整层是 none（不吃点击、不挡正文），
+       这一层要把点击和悬停收回来。 */
+    width: 100%;
+    max-height: var(--hit);
+    overflow: hidden;
+    pointer-events: auto;
+    transition: max-height var(--dur-base) var(--ease);
+  }
+  /* 悬停 / 键盘 Tab 进目录项 → 窗口长开成整份目录。
+     ⚠️ 这里必须显式写回 overflow-y: auto：收起态的 overflow: hidden 会把超出的行
+     裁掉且不能滚，长目录（最长 32 项 = 1408px）展开后就翻不到底了。
+     max-height 用 100dvh 那一档 —— 100vh 在移动端是「地址栏收起时」的高度，
+     比实际可视区高，内容会被压到屏幕外；不支持的浏览器退回上面那条 100vh。
+     88px = 上下各 44px 呼吸（和 sspai 面板的上下内边距一致）。 */
+  .post-rail:hover .post-toc,
+  .post-rail:has(.post-toc-nav a:focus-visible) .post-toc {
     max-height: calc(100vh - var(--header-h) - 88px);
-    /* 2026-09-30：100vh 在移动端是「地址栏收起时」的高度，比实际可视区高，
-       内容会被压到屏幕外。补一条 dvh（动态视口高度），不支持的浏览器仍用上面那条。 */
     max-height: calc(100dvh - var(--header-h) - 88px);
     overflow-y: auto;
   }.post-rail .post-toc-nav li { margin: 0; }.post-rail .post-toc-nav li > ul { padding-left: 0; }.post-rail .post-toc-nav ul ul a { padding-left: calc(var(--toc-indent) + var(--space-4)); }.post-rail .post-toc-nav ul ul ul a { padding-left: calc(var(--toc-indent) + var(--space-8)); }
@@ -561,7 +570,38 @@
   .post-rail .post-toc-nav a { --tick: 6px; --toc-indent: calc(6px + var(--space-3)); }
   .post-rail .post-toc-nav ul ul a { --tick: 5px; }
   .post-rail .post-toc-nav ul ul ul a { --tick: 4px; }
-  .post-rail .post-toc-nav ul ul ul ul a { --tick: 3px; }.post-rail .post-toc-nav a {
+  .post-rail .post-toc-nav ul ul ul ul a { --tick: 3px; }
+  /* ---------- 滚动窗口的位移（2026-10-09，用户要求）----------
+     收起时整份目录被推上推下，让**当前标题**正好落在 `.post-toc` 那个一行高的窗口里 ——
+     读到哪里，目录里就翻到哪一行，像日历翻页。
+     值由 JS 写进 --toc-shift（见 toc.js 的 placeRailWindow）：
+     rel = 当前项相对目录顶端的偏移，shift = -rel。
+
+     ⚠️ 走变量、不是 inline 的 `transform` —— 悬停那条 `transform: none` 才盖得住它。
+     同特异性下靠「后出现」取胜；inline 样式则任何选择器都盖不住，
+     那样悬停时就回不到「从头铺开」了。
+     位移量恒等于「第几行 × --hit」（行高固定），所以窗口里对齐是逐像素准的。 */
+  .post-rail .post-toc-nav {
+    transform: translateY(var(--toc-shift, 0px));
+    transition: transform var(--dur-base) var(--ease);
+  }
+  /* 悬停 / 键盘 Tab 进目录项 → 整份目录归位（从第一项开始铺开）。
+     和上面 .post-toc 的长开同时发生：一个展开、一个回卷，合起来就是「翻开」。
+     收起态里被 JS 挪过的 scrollTop 也由 toc.js 归零（否则窗口会落在列表中间）。
+
+     ⚠️ 第二条判据是 `.post-rail:has(.post-toc-nav a:focus-visible)`，
+     **不是 `.post-rail:focus-within`**（2026-10-02 踩过）：前者只看目录**内部**有没有
+     键盘焦点，后者会被 rail 里任何一个可聚焦元素点亮 —— 当年图钉按钮就住在这儿，
+     点一下按钮焦点赖着不走，目录被永久钉在展开态，再点也收不回来。
+     现在 rail 里没有别的可聚焦元素了，但这条判据本身仍然成立（以后若再放进什么，
+     同样会被排除在外），**别再改回 :focus-within**。
+     用 :focus-visible 而不是 :focus：鼠标点目录项不靠焦点展开（悬停已经展开了），
+     只有 Tab 进来的键盘用户才需要这一条。 */
+  .post-rail:hover .post-toc-nav,
+  .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav {
+    transform: none;
+  }
+  .post-rail .post-toc-nav a {
     /* 选择器里原本还并列着一个 `.post-rail .post-toc-nav a.is-active`，2026-10-02 删掉了。
        它是个坑：`.is-active` 把特异性抬到 (0,3,1)，压过了上面按层级给的缩进
        `.post-rail .post-toc-nav ul ul ul a`（0,2,4）—— 于是**任何一级被点亮时，
@@ -576,19 +616,26 @@
        被点亮的 ## 和 ### 一起掉到 18px、彼此对齐，才变得刺眼。） */
     position: relative;
     display: block;
-    height: 12px;
-    line-height: 12px;
+    /* 行高恒等于 --hit（2026-10-09：由「收起 12px / 展开 44px」改成恒定）。
+       收起态不再是「一把 12px 的小刻度」—— 它现在是**一整行正文**（当前标题），
+       所以行高必须和窗口高（`.post-toc` 的 max-height: var(--hit)）一致，
+       露出来的才正好是一行、不多不少。 */
+    height: var(--hit);
+    line-height: var(--hit);
     padding: 0 0 0 var(--toc-indent);
     border-left: 0;
     /* 原来是写死的 0.9375rem（15px，注释说「sspai 目录文字是 15px」）。
        15px 不在本站的阶梯上，就近并到 --text-sm（16px）—— 它是站里「基础 UI」那一档，
        页头导航、手机菜单都用它。差 1px，换掉一个游离值。 */
     font-size: var(--text-sm);
-    color: transparent;
+    /* 文字**始终可见**（2026-10-09 由 color: transparent 改过来）。
+       旧的收起态只留刻度、字是透明的；现在收起态显示的就是当前标题本身。 */
+    color: var(--muted);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    transition: height var(--dur-base) var(--ease), line-height var(--dur-base) var(--ease), color var(--dur-base) var(--ease);
+    /* 行高不再变，所以过渡只剩颜色（原来那条 height / line-height 的过渡一起删了）。 */
+    transition: color var(--dur-fast) var(--ease);
   }.post-rail .post-toc-nav a::before {
     content: "";
     position: absolute;
@@ -596,95 +643,33 @@
     top: 50%;
     transform: translateY(-50%);
     width: 2px;
-    /* 高度取上面按层级设好的 --tick（一级 6px、逐级 5/4/3px） */
-    height: var(--tick);
+    /* 高度 = 上面按层级设好的 --tick（一级 6px、逐级 5/4/3px）× 3.5。
+       3.5 是倒推出来的：一级 6×3.5 = 21px，和「展开态」改造前的固定值一模一样，
+       所以刻度的观感没变；只是现在收起 / 展开**都用它** ——
+       收起态只看得到当前那一根，展开才排成一条完整的刻度尺。 */
+    height: calc(var(--tick) * 3.5);
     border-radius: var(--radius-chip);
     background: var(--line-strong);
-    transition: height var(--dur-base) var(--ease), background var(--dur-base) var(--ease);
-  }.post-rail .post-toc-nav a.is-active::before { background: var(--accent); }.post-rail .post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 1;   }.post-rail:hover .post-toc-nav a,
-  .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a,
-  .post-rail.is-pinned .post-toc-nav a {
-    /* 展开的三个触发条件：鼠标停在 rail 上 / 键盘焦点落在**目录项**上 / 被图钉钉住。
-       中间那条原来是 `.post-rail:focus-within`（2026-10-02 改），它有个坑：
-       图钉按钮 `#toc-pin` 原先也在 `.post-rail` 里面，而浏览器点按钮会给它焦点 ——
-       于是「点一下图钉」就让 rail 命中了 :focus-within，焦点赖在图钉上不走，
-       目录被永久钉在展开态：再点一次想取消钉住也收不回来（鼠标移开都没用），
-       用户看到的就是「点第二次取消不了全部显示」。
-       现在只看 `.post-toc-nav` **内部**有没有焦点 —— 图钉被排除在外，但这条判据本身
-       仍然成立（rail 里以后若再放进别的可聚焦元素，同样会被排除在外），
-       别再改回 :focus-within。
-       用 :focus-visible 而不是 :focus：鼠标点目录项不靠焦点展开（悬停已经展开了），
-       只有 Tab 进来的键盘用户才需要这一条。
-       图钉自己的「被聚焦时保持可见」由下面的 `.post-rail:focus-within .post-toc-pin`
-       负责，那条不要动。 */
-    /* 展开态的行高 = 命中区（2026-10-08 由 33px 提到 --hit）。折叠态那 12px 是一把
-       尺子、不是一组目标：指针一进 rail 就展开，真正的点击发生在展开之后。 */
-    height: var(--hit);
-    line-height: var(--hit);
-    color: var(--muted);
-  }.post-rail:hover .post-toc-nav a::before,
-  .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a::before,
-  .post-rail.is-pinned .post-toc-nav a::before {
-    /* 3.5 这个系数是倒推出来的：一级 6×3.5 = 21px，和改造前的固定值一模一样，
-       所以展开时的观感不变；二三四级跟着各自的 --tick 等比放大。 */
-    height: calc(var(--tick) * 3.5);
-  }.post-rail:hover .post-toc-nav a.is-active,
-  .post-rail:has(.post-toc-nav a:focus-visible) .post-toc-nav a.is-active,
-  .post-rail.is-pinned .post-toc-nav a.is-active {
-    color: var(--accent);
-  }.post-rail .post-toc-nav a:hover { color: var(--ink); }
-  /* ---------- 目录图钉（`.post-toc-pin`）----------
-     参考 sspai 文章页的目录：平时只有一列小刻度，鼠标移上去才展开成标题；
-     点图钉钉住之后，展开状态不用再靠悬停维持（`.post-rail.is-pinned`）。
-     四态：常藏（透明 + visibility: hidden，但**仍占 24px 的位**）、rail 悬停或图钉自己
-     拿到键盘焦点时显形、被钉住时常显并转成印章红。
-
-     为什么用 visibility: hidden 而不是 display: none：前者保留占位，目录的位置不会
-     随图钉显隐上下跳（否则整块目录会跳 28px）；而且 visibility: hidden **不参与命中
-     测试**，所以收起态的图钉不会误吃点击。
-
-     2026-10-08 晚恢复。此前撤过一版，理由是「同一件事 :hover 已经做了，多一个需要学习
-     的按钮换来的只是少悬停一次」—— 但实际用起来，读长文时鼠标要一直停在右栏才看得见
-     目录，是持续的手腕成本。**四处必须同时存在**：single.html 的按钮、toc.js 的
-     initPin()、这里、以及上面三条 `.post-rail.is-pinned …` 展开触发条件。 */
-  .post-toc-pin {
-    position: relative;
-    align-self: flex-start;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--dur-base) var(--ease), color var(--dur-fast) var(--ease), visibility 0s var(--dur-base);
-  }
-  /* 触控命中区（2026-10-08）：图钉视觉只有 24×24。上面和左右都有空地，唯独
-     **下面 4px 就是目录本体** —— 再往下压，就会把「点第一项目录」变成「点图钉」。
-     所以只吃到 gap 为止：上 16 + 24 + 下 4 = 44 高；左右各 10 + 24 = 44 宽
-     （左右扩的是「正文 ↔ 目录」那条 24–128px 的空隙，不吃任何东西）。 */
-  .post-toc-pin::before {
-    content: "";
-    position: absolute;
-    inset: -16px -10px -4px -10px;
-  }
-  .post-rail:hover .post-toc-pin,
-  .post-rail:focus-within .post-toc-pin,
-  .post-toc-pin:focus-visible {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity var(--dur-base) var(--ease), color var(--dur-fast) var(--ease), visibility 0s 0s;
-  }.post-toc-pin:hover { color: var(--ink); }.post-rail.is-pinned .post-toc-pin {
-    opacity: 1;
-    visibility: visible;
-    color: var(--accent);
-  }}/* 下面这两条必须和上面那条 min-width: 1152px 成对改：1152px 是「侧边刻度栏」和
+    transition: background var(--dur-base) var(--ease);
+  }.post-rail .post-toc-nav a.is-active::before { background: var(--accent); }.post-rail .post-toc-nav:has(a.is-active) a:not(.is-active) { opacity: 1;   }
+  /* 当前项**始终**是印章红 —— 收起态窗口里只有这一行，它的颜色就是「你在哪」。
+     ⚠️ 顺序要紧：这条与上面 `a:hover` 都是 (0,3,1)，打平后靠「后出现」取胜，
+     所以必须排在它后面。反过来写的话，鼠标一碰这一行它就变 --ink，
+     「你在哪」的标记当场消失 —— 而收起态里唯一可见的行就是它。
+     （2026-10-09 之前红是「悬停时才出现」的第三条触发条件，要三份选择器并列；
+     现在恒定，一份就够。） */
+  .post-rail .post-toc-nav a:hover { color: var(--ink); }
+  .post-rail .post-toc-nav a.is-active { color: var(--accent); }
+  /* ---------- 目录图钉（`.post-toc-pin`）2026-10-09 撤掉 ----------
+     它 2026-10-08 加、同日晚恢复过一版，2026-10-09 最终删除。它解决的是
+     「悬停才展开的目录想让它常驻」，而收起态现在**本身就常驻显示当前标题**
+     （上面那条滚动窗口），要展开也只需把指针移上来 ——
+     那个「多做一次动作换一直保持一个姿势」的权衡不再成立。
+     连带删掉的：`.post-toc-wrap` 那层纵排容器（图钉在时它负责给图钉留 24px 的位），
+     以及三处 `.post-rail.is-pinned …` 展开触发条件。
+     要加回来得四处一起补：single.html 的按钮、toc.js 的 initPin()、这里、
+     以及那三处展开触发条件（外加 `.post-toc-wrap`）。 */
+}/* 下面这两条必须和上面那条 min-width: 1152px 成对改：1152px 是「侧边刻度栏」和
    「正文开头那块」的分界。只改一边的话，两种目录会同时出现（或同时消失）。 */
 @media (max-width: 1151.98px) {.post-rail { display: none; }}@media (max-width: 1151.98px) {.post-toc-inline { display: block; }}@media print {.post-content a {
     color: #000;

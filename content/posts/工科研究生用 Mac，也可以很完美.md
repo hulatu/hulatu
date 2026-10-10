@@ -7,7 +7,6 @@ summary: "为了最想要的那个理想物品，总得付出点什么。"
 description: "我是一名超级喜欢 Mac 的工科研究生，结合我自己读研的经验，告诉大家如何好好使用 Mac，完成自己读研过程中的数据分析处理、绘图要求等等，其实我们工科生，也能用 Mac。"
 categories: ["工具"]
 tags: ["Mac", "AI", "科研", "编程"]
-series: ""
 comments: true
 draft: false
 ---

@@ -147,15 +147,23 @@
   min-width: 0;
   transition: color var(--dur-fast) var(--ease);
 }.archive-item:hover .archive-item-title { color: var(--accent); }
-/* ---------- 归档页「系列」入口（2026-10-05 新增，同日二改成胶囊版） ----------
-   两组天然连载（综述写作之- / 居家流水账-）在归档页的出口。数据见 archive.html
-   的 `series` 分组，字段是 content front matter 的 `series:`。
+/* ---------- 归档页「系列」入口（2026-10-05 新增，同日二改成胶囊版，2026-10-09 三改成折叠） ----------
+   三组天然连载（跑步 12 篇 / 综述写作之- 5 篇 / 居家流水账- 4 篇）在归档页的出口。
+   数据见 archive.html 的 `series` 分组，字段是 content front matter 的 `series:`。
+   ⚠️ 2026-10-10 起文章页也有了文末「系列」带（见 post.css 的 .post-series）——
+   这一页是「全站有哪些系列」的总览，那一处是「本篇在组里的坐标」，别把两处并掉。
 
-   形态：一组一行，左边「系列名 + N 篇」，右边一排小胶囊（等宽序号 + 短标题），
-   flex-wrap 自动折行。**第一版是一组一个 <details> + 标题/日期行**，用户反馈「要更小的
-   胶囊设计」改成现在这样 —— 它更像标签云，占的高度只有原来的一半。
+   形态（2026-10-09）：**一条系列 = 一个 <details>，默认收起**。收起时整块只剩
+   「系列名 …… N 篇 ▸」三行，点开才铺出那排胶囊（等宽序号 + 短标题，flex-wrap 折行）。
+   为什么默认收起：这页顶部下面就是全部年份的全部文章，而跑步那组 12 篇一铺就是三行 ——
+   三组全铺开，读者还没看到文章列表就得先划过一片标签。
 
-   胶囊走全站既有的控件描边四态（`--ctrl-*`，和 `.tag-chip` 同一套：底 · 字 · 边，无影），
+   这一改让它的语言和下面 `.archive-year` 那批折叠行**合并成一套**：都是
+   <details> + 一行 summary + 一个 6px 方框转 45°/135° 的箭头。
+   （2026-10-05 的第一版也是 <details>，但那时里面是「标题 / 日期行」；
+   第二版为了压高度改成平铺胶囊，第三版靠折叠把高度找回来，胶囊设计保留。）
+
+   胶囊仍走全站既有的控件描边四态（`--ctrl-*`，和 `.tag-chip` 同一套：底 · 字 · 边，无影），
    hover / active 才出现印泥淡痕与红字 ——「红必须稀缺」这条照旧。序号走等宽、颜色用
    `--muted`（不是更浅的 `--line-strong`）：它是 11.5px 的小字，对比度得先过关，
    而「等宽 + 比标题细一档」已经足以把它压成刻度。
@@ -173,25 +181,45 @@
   line-height: 1.4;
   letter-spacing: var(--tracking-label);
   color: var(--muted);
-}.series-row {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  padding: var(--space-2) 0;
 }.series-row + .series-row {
-  /* 组与组之间一条发丝线：两行胶囊挨着时，光靠间距分不出这是两组。 */
+  /* 组与组之间一条发丝线：两行挨着时，光靠间距分不出这是两条系列。
+     和 .archive-year 那条一样，横线承担层级，不加底色。
+     ⚠️ 这里没有 .series-row 自己的规则 —— <details> 就是那行 summary，
+     它下面的胶囊块由 .series-pills 负责。 */
   border-top: 1px solid var(--line);
 }.series-label {
-  flex: none;
-  display: inline-flex;
-  align-items: baseline;
+  /* summary 撑满整行（display: flex 的 <summary> 会铺开），所以**整行都是命中区** ——
+     min-height 给足 --hit 就够了，不需要再补 ::before 扩展器。
+     因为没有间隙，相邻两条的命中区正好相接、不重叠（都 ≥44px，不是「小目标」）。 */
+  position: relative;
+  display: flex;
+  align-items: center;
   gap: var(--space-2);
+  min-height: var(--hit);
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
   font-family: var(--font-serif);
   font-size: var(--text-sm);
   letter-spacing: var(--tracking-title);
   color: var(--ink);
-}.series-label-count {
+  transition: color var(--dur-fast) var(--ease);
+}.series-label::-webkit-details-marker { display: none; }.series-label:hover { color: var(--accent); }
+/* 箭头和 .archive-year 那个逐像素一致（6px 方框转 45°，展开转 135°）——
+   同一页上两处 <details> 的箭头不该长得不一样。 */
+.series-label::after {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  transform: rotate(45deg);
+  transition: transform var(--dur-base) var(--ease);
+}.series-row[open] .series-label::after { transform: rotate(135deg); }.series-label-count {
+  /* 篇数推到最右（同 .archive-count 的做法）：summary 是 flex，margin-left: auto 就够。
+     放在最右而不是紧贴系列名 —— 三行的「N 篇」对齐成一条竖列，扫一眼就知道哪组大。 */
+  margin-left: auto;
   font-family: var(--font-meta);
   font-size: var(--text-2xs);
   color: var(--muted);
@@ -203,6 +231,10 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   min-width: 0;
+  /* 展开后那排胶囊：上面留一点（和 summary 分开），下面收到 --space-2。
+     下边距不留大值 —— 收起 / 展开之间下面还接着「按年」索引，
+     这里多留一档，收起时就会白出一块。 */
+  padding: var(--space-1) 0 var(--space-2);
 }.series-pill {
   position: relative;
   display: inline-flex;
@@ -895,58 +927,4 @@
   .stats-hero > div:nth-child(n + 3),
   .stats-run > div:nth-child(n + 3) { border-top: 1px solid var(--line); }
   .stats-cat { grid-template-columns: 76px minmax(0, 1fr) 40px; gap: var(--space-3); }
-}
-
-/* ---------- 信息页通用页头（/uses/ · /colophon/，2026-10-08 新增）----------
-   这两个页面都是「一页说清一件事」的静态信息页，共用同一套页头：
-   衬线大标题 + 等宽「最后更新」+ 一段引导语。
-
-   **为什么不让它们复用 .about-head**：那个页头是给「人」的 —— 里面是头像 +
-   姓名 + 角色 + 关注方向胶囊，本质是一张名片。这两页没有名片，
-   硬套会留下一堆空槽。这里只抽真正共用的那部分。
-
-   内容区则**直接复用关于页的 .about-body / .about-section / .about-link-list**，
-   不再造第二套清单样式（理由见 layouts/_default/uses.html 的注释）。
-   所以这个文件里新增的规则只有下面这几条页头 —— 没有一条是「新组件」。 */
-.info-page {
-  max-width: var(--content-width);
-  margin: 0 auto;
-}
-.info-head {
-  padding: 0 0 var(--space-6);
-  margin-bottom: var(--space-8);
-  border-bottom: 1px solid var(--line);
-}
-.info-title {
-  font-family: var(--font-serif);
-  font-size: var(--text-2xl);
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: var(--tracking-title);
-  color: var(--ink);
-  margin: 0 0 var(--space-3);
-  /* 和 .hero-line / .page-title / .about-name 同一组：这几个标题都短，
-     balance 只是保险，不会出现「多行标题第一行停在半途」那个代价。 */
-  text-wrap: balance;
-}
-.info-when {
-  font-family: var(--font-meta);
-  font-size: var(--text-xs);
-  line-height: 1.6;
-  letter-spacing: var(--tracking-num);
-  color: var(--muted);
-  margin: 0;
-}
-.info-lede {
-  margin: 0 0 var(--space-8);
-  color: var(--ink-soft);
-  font-size: var(--text-sm);
-  line-height: 1.85;
-}
-.info-lede > p { margin: 0 0 var(--space-3); }
-.info-lede > p:last-child { margin-bottom: 0; }
-@media (max-width: 600px) {
-  .info-title { font-size: var(--text-xl); }
-  .info-head { padding-bottom: var(--space-5); margin-bottom: var(--space-6); }
-  .info-lede { margin-bottom: var(--space-6); }
 }

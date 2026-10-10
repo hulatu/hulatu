@@ -27,11 +27,11 @@ for arg in "$@"; do
 
   （无参数）        只预览，不删任何东西
   --yes, -y         真正执行
-  --purge-reviews   5 个根目录评审页直接扔废纸篓（默认是归档到 docs/reviews/ 留档）
+  --purge-reviews   根目录的评审页直接扔废纸篓（默认是归档到 docs/reviews/ 留档）
   --purge-build     连 public/ 主站构建产物也清掉（下次 deploy.sh 会重建）
 HELP
       exit 0 ;;
-    *) echo "未知参数：$arg（用 --help 看用法）" >&2; exit 2 ;;
+    *) echo "未知参数：${arg}（用 --help 看用法）" >&2; exit 2 ;;
   esac
 done
 
@@ -53,7 +53,11 @@ fi
 if [ "$DRY" = 1 ]; then
   echo "==> 预览模式（不会删除任何东西）。确认后加 --yes 执行。"
 else
-  echo "==> 执行模式：删除走废纸篓（$TRASH_BIN）"
+  # ⚠️ 变量名必须加花括号：后面紧跟全角「）」，bash 会把那个多字节字符
+  # 当成变量名的一部分（`$TRASH_BIN）` → 变量 `TRASH_BIN）`），配合 set -u
+  # 直接报 unbound variable —— 这个 bug 只在 --yes（第一次真正执行）时才暴露，
+  # 预览模式走的是上面那个分支，永远碰不到。
+  echo "==> 执行模式：删除走废纸篓（${TRASH_BIN}）"
 fi
 echo
 
@@ -137,18 +141,34 @@ done_section
 # 这些是历次改造前生成的独立 HTML 评审页，全站没有任何地方引用它们。
 # 关键风险：.gitignore 没盖住它们，而 publish.sh 用的是 `git add .`
 # —— 下次跑 up 就会被提交并推上公开仓库。
-section "6. 根目录评审页（5 个，无任何引用，会被 git add . 一起推上去）"
-REVIEWS="design-review.html archive-review.html bearneo-borrow-review.html
-perf-interaction-review.html search-improvement.html"
+#
+# 2026-10-09 改成**按文件名扫**（glob `*-review.html`）。原先这里写死了 5 个名字
+# （design-review / archive-review / bearneo-borrow-review / perf-interaction-review /
+# search-improvement），那批早就不在了，于是脚本一直报「都不在了」——
+# 而真正躺在根目录的那 3 个（archive-series-review / minimal-review / noise-review）
+# 它一个都不认识，其中 2 个甚至**已经被提交进仓库了**。
+# 以后新生成评审页不用回来改脚本，只要文件名以 -review.html 结尾。
+section "6. 根目录评审 / 报告页（全站无引用，但 publish.sh 的 git add . 会把它们推上公开仓库）"
 REVIEW_EXIST=""
-for f in $REVIEWS; do
-  [ -e "$f" ] || continue
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
   REVIEW_EXIST="$REVIEW_EXIST $f"
   printf '  %-34s %s\n' "$f" "$(size_of "$f")"
-done
+done < <(find . -maxdepth 1 -name '*-review.html' -print 2>/dev/null | sed 's|^\./||' | sort)
 
 if [ -z "$REVIEW_EXIST" ]; then
-  echo "  （都不在了）"
+  echo "  （没有）"
+else
+  # 已被 git 跟踪的，光移走文件不够 —— 仓库里那份还在，得 git rm --cached。
+  TRACKED=$(git ls-files -- $REVIEW_EXIST 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$TRACKED" != "0" ]; then
+    echo "  ⚠️  其中 $TRACKED 个**已被 git 跟踪**（已经在公开仓库里了）："
+    echo "     移走文件后还要跑 git rm --cached <文件> 才会从仓库里消失。"
+  fi
+fi
+
+if [ -z "$REVIEW_EXIST" ]; then
+  :
 elif [ "$PURGE_REVIEWS" = 1 ]; then
   echo "  → --purge-reviews：直接扔废纸篓"
   for f in $REVIEW_EXIST; do BATCH+=("$f"); done

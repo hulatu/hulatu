@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>把内容搬进上游 Bear Neo，会是什么样子 · hulatu.com</title>
+<style>
+  :root{
+    --paper:#f6f6f8; --surface:#ffffff; --surface-2:#ececf1;
+    --ink:#1d1d1f; --ink-soft:#3f3f45; --muted:#56565c;
+    --line:#e4e4e9; --line-strong:#d3d3da;
+    --accent:#c73e2f; --accent-ink:#a83226; --accent-soft:#fbeae7; --on-accent:#fff8f5;
+    --good:#2f7d4f; --good-soft:#e8f3ec;
+    --radius:12px; --radius-sm:10px; --radius-pill:999px;
+    --serif:"Source Han Serif SC","Noto Serif SC","Noto Serif CJK SC","Songti SC","STSong","SimSun",Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","SFMono-Regular","Cascadia Code",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:16px; line-height:1.75; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:860px; margin:0 auto; padding:56px 24px 96px}
+  .kicker{font-family:var(--mono); font-size:12px; letter-spacing:.08em;
+    color:var(--muted); text-transform:uppercase; margin:0 0 14px;}
+  h1{font-family:var(--serif); font-weight:700; font-size:38px; line-height:1.28; margin:0 0 18px; letter-spacing:-.01em;}
+  .lede{font-size:17px; line-height:1.8; color:var(--ink-soft); margin:0 0 28px}
+  h2{font-family:var(--serif); font-weight:700; font-size:24px; line-height:1.4;
+    margin:64px 0 8px; padding-top:26px; border-top:1px solid var(--line);}
+  h2 .num{font-family:var(--mono); font-size:12px; color:var(--accent);
+    display:block; letter-spacing:.1em; margin-bottom:6px; font-weight:400;}
+  h3{font-family:var(--serif); font-weight:700; font-size:17px; margin:28px 0 6px}
+  p{margin:0 0 14px}
+  code{font-family:var(--mono); font-size:.86em; background:var(--surface-2);
+    padding:.1em .38em; border-radius:5px; color:var(--ink);}
+  pre{font-family:var(--mono); font-size:12.5px; line-height:1.7;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; overflow-x:auto; margin:0 0 18px; color:var(--ink-soft);}
+  pre b{color:var(--accent-ink); font-weight:400}
+  table{width:100%; border-collapse:collapse; margin:0 0 18px; font-size:14px}
+  th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--muted); font-weight:400; text-transform:uppercase}
+  td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+  .ok{color:var(--good)}
+  .bad{color:var(--accent-ink); font-weight:700}
+  .dim{color:var(--muted)}
+
+  .banner{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent);
+    border-radius:var(--radius); padding:16px 18px; margin:0 0 8px;}
+  .banner p{margin:0 0 8px}
+  .banner p:last-child{margin:0}
+  .banner .t{font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--accent-ink); text-transform:uppercase; display:block; margin-bottom:6px}
+
+  .finding{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px; margin:0 0 14px;}
+  .finding .hd{display:flex; gap:10px; align-items:baseline; margin:0 0 10px; flex-wrap:wrap}
+  .finding .p{font-family:var(--mono); font-size:11px; letter-spacing:.06em;
+    background:var(--accent-soft); color:var(--accent-ink); border-radius:var(--radius-pill); padding:2px 9px; white-space:nowrap;}
+  .finding h3{margin:0; font-size:16.5px}
+  .finding p{margin:0 0 10px}
+  .finding p:last-child{margin:0}
+  .finding .fix{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft);
+    border-top:1px solid var(--line); margin-top:12px; padding-top:10px;}
+
+  /* 截图 */
+  .shots{display:grid; grid-template-columns:1fr; gap:18px; margin:0 0 22px}
+  .shot{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+  .shot img{display:block; width:100%; height:auto; border-bottom:1px solid var(--line)}
+  .shot .cap{padding:11px 14px; font-size:13px; color:var(--ink-soft)}
+  .shot .cap b{font-family:var(--serif); font-weight:700; color:var(--ink)}
+  .shot .cap .tag{font-family:var(--mono); font-size:11px; color:var(--muted); display:block; margin-top:3px}
+  .pair{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:0 0 22px}
+  @media (max-width:720px){ .pair{grid-template-columns:1fr} }
+  .pair .shot img{max-height:520px; object-fit:cover; object-position:top}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:0 0 22px}
+  @media (max-width:720px){ .cols{grid-template-columns:1fr} }
+  .shot.phone img{max-height:600px; object-fit:cover; object-position:top}
+
+  ul.tight{padding-left:20px; margin:0 0 16px}
+  ul.tight li{margin:0 0 6px}
+  .verdict{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px 22px; margin:0 0 18px}
+  .verdict h3{margin:0 0 10px}
+  .verdict ul{margin:0 0 12px; padding-left:20px}
+  .verdict li{margin:0 0 7px}
+  .pill{font-family:var(--mono); font-size:11px; border-radius:var(--radius-pill); padding:2px 9px;
+    background:var(--good-soft); color:var(--good); white-space:nowrap}
+  .pill.warn{background:var(--accent-soft); color:var(--accent-ink)}
+  footer{margin-top:64px; padding-top:22px; border-top:1px solid var(--line);
+    font-size:13px; color:var(--muted);}
+  footer p{margin:0 0 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">hulatu.com → hugo-bearneo · 迁移试运行 · 2026-10-09</p>
+<h1>把内容搬进上游 Bear Neo，会是什么样子</h1>
+
+<p class="lede">
+我没有只做推演 —— 在 <code>~/bearneo-trial/</code> 真的建了一个站：上游主题原样克隆（<code>git clone</code> 下来的 28 个文件，一行没改），
+你的内容搬进去，构建、起服务、用真浏览器截图。<strong>下面每一张图都是这个站真渲染出来的</strong>，不是示意图。
+</p>
+
+<div class="banner">
+  <span class="t">一句话结论</span>
+  <p><strong>内容能迁，主题也好看，但「直接使用这个主题」这句话在你这站上不成立。</strong>
+  原样搬过去，你的 <span class="bad">24 篇周刊、关于页、隐私页会同时丢掉标题和日期</span>，
+  <span class="bad">关于页是一整片空白</span>，文章列表<span class="bad">每一行都折成两行</span>，
+  还会多出 <span class="bad">198 个 RSS feed</span>（现在只有 3 个）。</p>
+  <p>要让内容真正跑对，得动 <strong>3 处配置 + 7 个模板覆盖 + 重写 1 篇关于页</strong>（共 10 个文件，上游主题那 28 个文件一个字节都没改）。
+  我全做了，也全截图了 —— 修完之后它其实很好看，而且比现在的站轻一半以上。</p>
+  <p class="dim">本页不改你的站点代码。<code>~/bearneo-trial/</code> 是一个独立目录，随时可以删。</p>
+</div>
+
+<h2><span class="num">01</span>先看数字</h2>
+
+<p>同一个内容、同一台机器、同一个 Hugo（v0.167.0 extended），两个站各构建一次：</p>
+
+<table>
+  <thead><tr><th>指标</th><th>现在的站（自建主题）</th><th>上游 Bear Neo</th><th></th></tr></thead>
+  <tbody>
+    <tr><td>构建页面数</td><td class="n">334</td><td class="n">329</td><td class="dim">少 5 页</td></tr>
+    <tr><td>分页页</td><td class="n">12</td><td class="n">0</td><td class="dim">上游不做分页，全量单页列出</td></tr>
+    <tr><td>构建耗时</td><td class="n">321 ms</td><td class="n">284 ms</td><td class="dim">同级</td></tr>
+    <tr><td>构建警告</td><td class="n ok">0</td><td class="n">0<span class="dim">（改完 10 个文件后）</span></td><td class="dim">原样是 3 条</td></tr>
+    <tr><td>HTML 产物</td><td class="n">343</td><td class="n">325</td><td class="dim">—</td></tr>
+    <tr><td>RSS feed</td><td class="n ok">3</td><td class="n bad">198</td><td class="dim">原样；收敛后 3</td></tr>
+  </tbody>
+</table>
+
+<h3>页面下载体积（gzip 后，含内联与外链 CSS/JS）</h3>
+
+<table>
+  <thead><tr><th>页面</th><th>现在</th><th>Bear Neo</th><th>倍数</th></tr></thead>
+  <tbody>
+    <tr><td>首页</td><td class="n">18.7 KB</td><td class="n ok">4.2 KB</td><td class="n">4.4×</td></tr>
+    <tr><td>关于</td><td class="n">22.8 KB</td><td class="n ok">5.5 KB</td><td class="n">4.1×</td></tr>
+    <tr><td>文章页</td><td class="n">32.5 KB</td><td class="n ok">11.6 KB</td><td class="n">2.8×</td></tr>
+  </tbody>
+</table>
+
+<p>
+差距主要来自两件事：现在的站每页内联一份 39 KB 的 <code>critical-post.css</code>（gzip 8 KB，含 Chroma 高亮），
+外加 <code>site-core-post.min.css</code> 和 <code>bundle.min.js</code>；而 Bear Neo 的<strong>全部样式只有 6.8 KB（gzip 2 KB）</strong>，
+直接内联，<strong>一个外部 CSS、一个外部 JS 都没有</strong>。切到第二页时现在的站靠缓存追回来一些，
+但 Bear Neo 仍然快一倍左右（4.2 / 5.5 / 11.6 KB vs 8.6 / 12.2 / 20.8 KB）。
+</p>
+
+<h2><span class="num">02</span>什么迁进去了，什么没进去</h2>
+
+<table>
+  <thead><tr><th>内容</th><th>现在的位置</th><th>结果</th></tr></thead>
+  <tbody>
+    <tr><td>文章 101 篇</td><td class="dim">content/posts/</td><td class="ok">✓ 全进（<code>content/blog/</code>）</td></tr>
+    <tr><td>周刊 24 期</td><td class="dim">content/weekly/</td><td class="ok">✓ 全进</td></tr>
+    <tr><td>网站图标</td><td class="dim">static/favicon.svg</td><td class="ok">✓ 主题直接支持，改一个参数就行</td></tr>
+    <tr><td>分享卡图</td><td class="dim">static/images/share.webp</td><td class="ok">✓ 同样直接支持</td></tr>
+    <tr><td>图片资源</td><td class="dim">static/images/ 5.7 MB</td><td class="ok">✓ 全进（含 og/、media/、donate/）</td></tr>
+    <tr><td>标签 185 个 / 分类 9 个</td><td class="dim">content/tags, categories</td><td class="ok">✓ 页面都在</td></tr>
+    <tr><td>文章 URL 结构</td><td class="dim">/posts/YYYY/MM/DD/slug/</td><td class="ok">✓ 用 <code>[permalinks]</code> 原样保住，外链不断</td></tr>
+    <tr><td><strong>头像</strong></td><td class="dim">关于页里，148px</td><td class="bad">△ 上游没有「头像」这个概念</td></tr>
+    <tr><td><strong>关于</strong></td><td class="dim">about.md + 109 行自定义布局</td><td class="bad">△ 版式没有对应物，只能重写成一篇普通文章</td></tr>
+    <tr><td>归档 /archive/</td><td class="dim">archive.md + 自定义布局</td><td class="bad">✗ 没迁（上游没有这个概念）</td></tr>
+    <tr><td>结算 /stats/</td><td class="dim">stats.md + 自定义布局</td><td class="bad">✗ 没迁</td></tr>
+    <tr><td>书影音 /media/</td><td class="dim">media/ + 豆瓣数据</td><td class="bad">✗ 没迁</td></tr>
+    <tr><td>友链 /friends/</td><td class="dim">friends/</td><td class="bad">✗ 没迁</td></tr>
+  </tbody>
+</table>
+
+<p class="dim">
+最后四项不是「搬不动」，而是<strong>上游主题里根本不存在对应的页面类型</strong> —— 它们全靠你自己写的布局撑着。
+要它们回来，等于在 Bear Neo 上再写一遍。
+</p>
+
+<h2><span class="num">03</span>原样渲染，四个硬伤</h2>
+
+<p>先把主题一行不改、内容直接丢进去，构建是<strong>成功</strong>的（0 error），页面也长得出来。坏在下面四处。</p>
+
+<div class="finding">
+  <div class="hd"><span class="p">硬伤 1</span><h3>周刊 / 关于 / 隐私，全部没有标题、没有日期</h3></div>
+  <p>
+    上游 <code>layouts/_default/single.html</code> 第 2 行是 <code>{{ if eq .Type "blog" }}</code> ——
+    标题和日期被<strong>写死给了名为 <code>blog</code> 的栏目</strong>。你的文章在 <code>content/blog/</code> 里所以没事，
+    但 24 篇周刊、关于页、隐私页都落在别的栏目，于是它们渲染出来是<strong>一上来就是正文</strong>，读者不知道自己在看什么、哪天写的。
+  </p>
+  <p class="dim">这不是配置问题，是主题把栏目名当成契约写进了模板。</p>
+  <div class="fix">修法：覆盖 <code>single.html</code>，把那层条件去掉（改 1 处，其余 127 行原样）</div>
+</div>
+
+<div class="pair">
+  <div class="shot">
+    <img src="bearneo-migration-assets/RAW-weeklypost-1280.png" alt="原样渲染的周刊文章页，没有标题和日期">
+    <div class="cap"><b>原样：周刊文章页</b><span class="tag">直接以「快乐时刻」开头 —— 标题和日期都不见了</span></div>
+  </div>
+  <div class="shot">
+    <img src="bearneo-migration-assets/weekly-1280.png" alt="修好后的周刊文章页，标题和日期都在">
+    <div class="cap"><b>修好之后：同一篇</b><span class="tag">标题「胡拉图的周刊-第二期」+ 日期 2025-12-28 回来了</span></div>
+  </div>
+</div>
+
+<div class="finding">
+  <div class="hd"><span class="p">硬伤 2</span><h3>关于页是一整片空白</h3></div>
+  <p>
+    你的 <code>about.md</code> 正文是<strong>空的</strong> —— 全部内容都在 front matter 里（<code>about.role</code>、<code>about.intro</code>、
+    <code>about.site</code>、<code>about.platforms</code>…），由你那 109 行的 <code>layouts/_default/about.html</code> 读出来渲染。
+    上游没有这个布局，于是它退化成「渲染一个空正文」，页面上除了页头和页脚<strong>什么都没有</strong>。
+  </p>
+  <div class="fix">修法：把 front matter 的内容改写成 markdown 正文 —— 版式会退化成一篇普通文章</div>
+</div>
+
+<div class="pair">
+  <div class="shot">
+    <img src="bearneo-migration-assets/RAW-about-1280.png" alt="原样渲染的关于页，完全空白">
+    <div class="cap"><b>原样：关于页</b><span class="tag">整页只有页头和页脚，正文一个字都没有</span></div>
+  </div>
+  <div class="shot">
+    <img src="bearneo-migration-assets/about-1280.png" alt="重写成 markdown 后的关于页">
+    <div class="cap"><b>重写成 markdown 后</b><span class="tag">内容回来了，但名片式的版式没有了</span></div>
+  </div>
+</div>
+
+<div class="finding">
+  <div class="hd"><span class="p">硬伤 3</span><h3>文章列表每一行都折成两行</h3></div>
+  <p>
+    上游的日期列是 <code>ul.blog-posts li span.grouped { flex: 0 0 80px }</code> —— 80px 是按它自己的默认日期格式
+    <code>"02 Jan."</code>（7 个字符）定的。你为了中文站把 <code>dateFormat</code> 换成 ISO 的 <code>2006-01-02</code>（10 个字符），
+    80px 装不下，于是 <strong>101 行列表每一行的日期都断成「2026-10-」/「07」</strong>，整个列表高度翻倍。
+  </p>
+  <div class="fix">修法：CSS 里把那一列改成按内容定宽 + <code>white-space: nowrap</code>（6 行 CSS，不依赖具体日期格式）</div>
+</div>
+
+<div class="pair">
+  <div class="shot">
+    <img src="bearneo-migration-assets/list-1280-BEFORE.png" alt="日期折行的文章列表">
+    <div class="cap"><b>原样：文章列表</b><span class="tag">每行日期断成两截，行高翻倍</span></div>
+  </div>
+  <div class="shot">
+    <img src="bearneo-migration-assets/list-1280.png" alt="修好后的文章列表">
+    <div class="cap"><b>修好之后</b><span class="tag">同一屏能看到两倍的条目</span></div>
+  </div>
+</div>
+
+<div class="finding">
+  <div class="hd"><span class="p">硬伤 4</span><h3>凭空多出 194 个 RSS feed</h3></div>
+  <p>
+    上游的 exampleSite 是直接把分类法<strong>关掉</strong>的（<code>disableKinds = ["taxonomy"]</code>），所以它从没暴露这个问题：
+    一旦开着分类法，Hugo 会给<strong>每一个词条</strong>发一份 RSS。你有 185 个标签 + 9 个分类 →
+    产物里多了 <strong>194 个 .xml</strong>（总计 198 个 feed，而现在只有 3 个）。这不是报错，是静悄悄多出来的重复内容。
+  </p>
+  <div class="fix">修法：<code>[outputs]</code> 里把 section / taxonomy / term 都收成 <code>["HTML"]</code>（5 行配置）</div>
+</div>
+
+<p>另外还有 3 条构建警告，都不致命但得处理：</p>
+<pre>WARN deprecated: project config key <b>languageCode</b> was deprecated in Hugo v0.158.0 … Use <b>locale</b> instead.
+WARN deprecated: <b>.Site.LanguageCode</b> was deprecated in Hugo v0.158.0 … Use .Site.Language.Locale instead.
+WARN <b>Raw HTML omitted</b> while rendering "…/综述写作之-投喂文献（下）.md"   ← 你嵌的腾讯视频 iframe 被丢掉了</pre>
+<p class="dim">
+最后一条值得单独说：那两篇「投喂文献」里嵌的腾讯视频 <code>&lt;iframe&gt;</code> 会被 Goldmark 默认丢掉，
+页面上的视频<strong>直接消失</strong>，只在构建日志里留一行 WARN。得开 <code>markup.goldmark.renderer.unsafe</code> 才留得住。
+</p>
+
+<h2><span class="num">04</span>最小修复：一共 10 个文件</h2>
+
+<p>全部放在<strong>站点层</strong>（<code>~/bearneo-trial/layouts/</code>），上游主题那 28 个文件一个字节都没改 —— 这是 Hugo 官方的覆盖机制，将来主题升级不会冲突。</p>
+
+<table>
+  <thead><tr><th>#</th><th>文件</th><th>改了什么</th><th>规模</th></tr></thead>
+  <tbody>
+    <tr><td class="n">1</td><td><code>hugo.toml</code></td><td><code>languageCode</code> → <code>locale</code></td><td class="dim">1 行</td></tr>
+    <tr><td class="n">2</td><td><code>hugo.toml</code></td><td>开 <code>markup.goldmark.renderer.unsafe</code>（保住视频）</td><td class="dim">2 行</td></tr>
+    <tr><td class="n">3</td><td><code>hugo.toml</code></td><td>加 <code>[outputs]</code>，收掉 194 个多余 feed</td><td class="dim">5 行</td></tr>
+    <tr><td class="n">4</td><td><code>partials/header.html</code></td><td>站头加头像（上游只有纯文字 <code>&lt;h1&gt;</code>）</td><td class="dim">7 行</td></tr>
+    <tr><td class="n">5</td><td><code>partials/custom_head.html</code></td><td>头像 CSS + 日期列宽修复</td><td class="dim">48 行</td></tr>
+    <tr><td class="n">6</td><td><code>_default/single.html</code></td><td>去掉 <code>.Type == "blog"</code> 耦合</td><td class="dim">128 行里改 1 处</td></tr>
+    <tr><td class="n">7</td><td><code>_default/list.html</code></td><td>5 处英文界面文案中文化</td><td class="dim">104 行里改 5 处</td></tr>
+    <tr><td class="n">8</td><td><code>_default/baseof.html</code></td><td><code>.Site.LanguageCode</code> → <code>.Language.Locale</code></td><td class="dim">47 行里改 1 处</td></tr>
+    <tr><td class="n">9</td><td><code>_default/rss.xml</code></td><td>同上（RSS 里的 <code>&lt;language&gt;</code>）</td><td class="dim">1 行</td></tr>
+    <tr><td class="n">10</td><td><code>index.html</code> + <code>content/about.md</code></td><td>修首页重复标题；关于页重写成 markdown</td><td class="dim">4 行 + 全文</td></tr>
+  </tbody>
+</table>
+
+<p class="dim">
+上表第 1～3、8、9 项本质是同一件事：<strong>上游主题写于 Hugo 0.158 之前</strong>，
+用的 <code>languageCode</code> / <code>.Site.LanguageCode</code> 已经被弃用。现在只是警告，
+但<strong>将来 Hugo 移除它的时候，这个主题会直接构建失败</strong> —— 而它还没跟进。这是选上游主题要认下的风险。
+</p>
+
+<p>
+第 7 项值得单说：上游把界面文案<strong>硬编码成英文</strong>，主题没有走 i18n，所以
+<code>There are 101 pieces.</code> / <code>Search...</code> / <code>Filtering for "AI"</code> / <code>Remove filter</code>
+这几句只能整份覆盖模板才能改。改完是「共 101 篇。」「筛选：AI」「取消筛选」。
+</p>
+
+<h2><span class="num">05</span>修完之后，它长这样</h2>
+
+<h3>桌面（1280px）</h3>
+
+<div class="shots">
+  <div class="shot">
+    <img src="bearneo-migration-assets/home-1280.png" alt="Bear Neo 首页">
+    <div class="cap"><b>首页</b><span class="tag">上游的首页是一张「门牌」：站名 + 一句话，就没了。文章列表在 /blog/</span></div>
+  </div>
+</div>
+
+<p class="dim">
+这是迁移里最需要你拍板的一处<strong>结构差异</strong>：你现在打开 hulatu.com 就是文章列表；
+Bear Neo 的首页只有一句话，文章要点一下 <code>Blog</code> 才看得到。要么接受多一次点击，要么覆盖首页模板把列表搬回来。
+</p>
+
+<div class="shots">
+  <div class="shot">
+    <img src="bearneo-migration-assets/list-1280.png" alt="Bear Neo 文章列表">
+    <div class="cap"><b>文章列表 /blog/</b><span class="tag">按年分组、日期 + 标题两列、顶部一个标题过滤框、底部一墙标签</span></div>
+  </div>
+</div>
+
+<div class="shots">
+  <div class="shot">
+    <img src="bearneo-migration-assets/post-1280.png" alt="Bear Neo 文章页">
+    <div class="cap"><b>文章页</b><span class="tag">右侧固定目录（悬停才显形，上游的默认设计）；正文宽度 720px，字号 16px，行高 1.6</span></div>
+  </div>
+</div>
+
+<div class="shots">
+  <div class="shot">
+    <img src="bearneo-migration-assets/weekly-1280.png" alt="Bear Neo 周刊列表">
+    <div class="cap"><b>周刊列表 /weekly/</b><span class="tag">和文章列表同一套模板，24 期按年分组</span></div>
+  </div>
+</div>
+
+<div class="shots">
+  <div class="shot">
+    <img src="bearneo-migration-assets/about-1280.png" alt="Bear Neo 关于页">
+    <div class="cap"><b>关于页</b><span class="tag">内容全在，但名片式版式没了 —— 变成一篇普通的 markdown 文章</span></div>
+  </div>
+</div>
+
+<h3>手机（390px）</h3>
+
+<div class="cols">
+  <div class="shot phone">
+    <img src="bearneo-migration-assets/list-390.png" alt="手机上的文章列表">
+    <div class="cap"><b>文章列表</b><span class="tag">窄屏下日期列仍然不折行</span></div>
+  </div>
+  <div class="shot phone">
+    <img src="bearneo-migration-assets/post-390.png" alt="手机上的文章页">
+    <div class="cap"><b>文章页</b><span class="tag">目录在 800px 以下整块隐藏（上游设计如此）</span></div>
+  </div>
+</div>
+
+<p class="dim">
+截图说明：页面里的插图显示成破图，是<strong>截图环境的限制</strong> —— 无头浏览器进程访问不到外网的 <code>img.hulatu.com</code>
+（命令行里 curl 同一张图是 HTTP 200 / 67 KB）。这不是迁移问题，你本地打开是正常的。
+</p>
+
+<h2><span class="num">06</span>代价：会失去什么</h2>
+
+<p>这一节比上一节重要。上面那些是「修一修就好」，下面是<strong>修起来要重新写一遍</strong>的东西。</p>
+
+<table>
+  <thead><tr><th>能力</th><th>现在</th><th>Bear Neo</th><th>要回来的成本</th></tr></thead>
+  <tbody>
+    <tr><td>站内搜索</td><td>全文索引 + 快捷键 + 最近搜索</td><td class="bad">只有列表页的标题过滤</td><td>高 —— 得自带 <code>search-index.json</code> + 面板</td></tr>
+    <tr><td>归档页</td><td>/archive/ 按年月折叠</td><td class="bad">没有</td><td>中 —— 要写布局</td></tr>
+    <tr><td>结算页</td><td>/stats/ 篇数字数里程</td><td class="bad">没有</td><td>中</td></tr>
+    <tr><td>书影音</td><td>/media/ 豆瓣同步</td><td class="bad">没有</td><td>高</td></tr>
+    <tr><td>友链</td><td>/friends/</td><td class="bad">没有</td><td>中</td></tr>
+    <tr><td>系列</td><td>22 篇带 <code>series</code></td><td class="bad">没有</td><td>中</td></tr>
+    <tr><td>评论</td><td>giscus（100 篇开了）</td><td class="bad">没有</td><td>中</td></tr>
+    <tr><td>深浅色手动切换</td><td>页头按钮</td><td class="bad">只有跟随系统</td><td>中</td></tr>
+    <tr><td>阅读进度条 + 回顶</td><td>125 个页面有</td><td class="bad">没有</td><td>低</td></tr>
+    <tr><td>打赏块</td><td>关于页</td><td class="bad">没有</td><td>低</td></tr>
+    <tr><td>44px 触控命中区</td><td>全站实测达标</td><td class="bad">未做</td><td>中 —— 要重做一遍实测</td></tr>
+    <tr><td>孤行保护 / <code>text-autospace</code></td><td>有</td><td class="bad">没有</td><td>低</td></tr>
+    <tr><td>每篇文章的 OG 图</td><td>101 张自动生成</td><td class="bad">只有一张 share.webp</td><td>中</td></tr>
+    <tr><td>深色令牌系统</td><td>完整（L* 分级）</td><td class="bad">10 个变量</td><td>—</td></tr>
+    <tr><td>CSS 长缓存策略</td><td>外链 + 内容哈希</td><td class="bad">每页内联，不可缓存</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<p class="dim">
+顺带一提：<code>content/blog/_index.md</code> 里的 <code>noindex: true</code> 在上游也是失效的 —— 主题不认这个参数，
+所以那个「Hugo 自动生成、和归档高度重叠」的栏目页会重新变成可索引。
+</p>
+
+<h2><span class="num">07</span>换来什么</h2>
+
+<div class="verdict">
+  <h3>真实收益（都是量出来的）</h3>
+  <ul>
+    <li><span class="pill">4.4×</span> 首页 gzip 从 18.7 KB 降到 4.2 KB</li>
+    <li><span class="pill">2.8×</span> 文章页 gzip 从 32.5 KB 降到 11.6 KB</li>
+    <li><span class="pill">0</span> 外部 CSS、外部 JS —— 没有第三方请求，没有 CDN 依赖</li>
+    <li><span class="pill">6.8 KB</span> 全站样式表的全部体积（gzip 2 KB），一张 A4 纸的十分之一</li>
+    <li><span class="pill">28</span> 主题只有 28 个文件，你能通读一遍</li>
+    <li><span class="pill">上游</span> 主题在持续维护，你不再需要自己扛 CSS 演进</li>
+  </ul>
+  <p class="dim">
+    还有一个不那么显性的收益：你现在这套 <code>critical.css</code> / <code>critical-post.css</code> / <code>core.css</code>
+    四层拆分，是为了在「先出首屏、再异步补全」和「维护成本」之间找平衡。Bear Neo 用一个 6.8 KB 的
+    <code>&lt;style&gt;</code> 把这个问题<strong>消掉</strong>了 —— 不是解决了，是问题不存在了。
+  </p>
+</div>
+
+<h2><span class="num">08</span>我的判断</h2>
+
+<div class="verdict">
+  <h3>如果你要的是「省心」</h3>
+  <p>
+    值得换。你会得到一个 28 文件、能通读、上游在维护、页面轻 3～4 倍的站。
+    代价是上面那张表里的 15 项能力 —— 但其中真正天天用的是<strong>搜索、归档、评论</strong>三样，
+    其余大多是「有很好，没有也行」。
+  </p>
+  <h3>如果你要的是「这就是我的站」</h3>
+  <p>
+    不太值得。你现在的站已经不是「Bear Neo + 配置」了 —— 它是<strong>一套围绕你内容长出来的东西</strong>：
+    关于页的名片版式、结算页、书影音、系列的折叠、101 张 OG 图、44px 的命中区实测、孤行保护。
+    搬过去之后要恢复这些，等于在 Bear Neo 上把你的站<strong>重写一遍</strong>，而且每一样都要重新跟上游的极简假设打架。
+  </p>
+  <h3>第三条路</h3>
+  <p>
+    你上一轮定的是「做成更强大的主题 BearPro」，这一轮说「算了，直接用这个主题」。
+    从这次试运行看，这两句话其实是同一个问题的两端：
+    <strong>你真正舍不得的不是主题，是那 15 项能力。</strong>
+  </p>
+  <ul>
+    <li><strong>想清楚了要极简</strong> → 换 Bear Neo，接受丢掉那 15 项，一周之后你会习惯。</li>
+    <li><strong>舍不得那 15 项</strong> → 留在现在的站，但可以借 Bear Neo 的三个具体做法：<br>
+      ① 把每页内联的 39 KB critical CSS 压下来（这是你现在最大的单点开销）；<br>
+      ② 借它的「一条规则只做一件事」的样式组织方式；<br>
+      ③ 借它的 <code>custom_head.html</code> / <code>custom_body.html</code> 两个覆盖钩子的思路。</li>
+  </ul>
+</div>
+
+<footer>
+  <p><strong>怎么自己看一遍</strong></p>
+  <pre>cd ~/bearneo-trial
+/opt/homebrew/bin/hugo server -D          # 本地预览，浏览器打开 http://localhost:1313
+/opt/homebrew/bin/hugo --gc --minify --cleanDestinationDir --destination /tmp/check
+                                          # 干净构建，应该 0 警告</pre>
+  <p class="dim">
+    <code>~/bearneo-trial/</code> 是完全独立的目录：主题在 <code>themes/hugo-bearneo/</code>（上游原样），
+    所有修补在 <code>layouts/</code>（站点层覆盖），内容在 <code>content/</code>。删掉整个目录不会影响 <code>~/Blog</code>。
+    对照版在 <code>/tmp/bearneo-trial-raw/</code>（主题原样、配置未改），截图在 <code>~/Blog/bearneo-migration-assets/</code>。
+  </p>
+  <p class="dim">本页不改你的站点代码。采纳之后可以连同 <code>bearneo-migration-assets/</code> 一起删。</p>
+</footer>
+
+</div>
+</body>
+</html>

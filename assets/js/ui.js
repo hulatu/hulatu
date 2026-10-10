@@ -187,9 +187,10 @@
      连带后果（都已同步处理）：
        · 全站 localStorage 从两处回到一处，只剩 search.js 的最近搜索 ——
          search.js 那句「这是全站唯一一处 localStorage」重新成立。
-       · content/privacy.md 与 content/colophon.md 里「阅读位置」那条登记已删。
+       · content/privacy.md 与 content/colophon.md 里「阅读位置」那条登记已删
+         （colophon.md 这一页 2026-10-09 整个删掉了，所以现在只剩 privacy.md 一处）。
        · single.html 的 `.resume` 结构块、critical-post.css 的 `.resume*` 段一并删除。
 
      要加回来得四处一起补：single.html 的结构、这里、critical-post.css 的样式，
-     以及 privacy.md / colophon.md 两处登记。 */
+     以及 privacy.md 那处登记。 */
 })();

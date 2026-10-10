@@ -2,18 +2,63 @@
   "use strict";
 
   /* 文章目录的逻辑都在这个文件里：
-       init()       —— 滚动高亮当前章节；
+       init()       —— 滚动高亮当前章节 + 把宽屏刻度栏的滚动窗口推到当前标题；
        initInlineToc() —— 手机上把正文开头那块目录默认收起来；
-       initPin()    —— 宽屏刻度栏的「钉住」按钮（钉住后不用悬停也保持展开）；
        initHashAnchor() —— 带着 #锚点 进页面时把标题重新对准（见下面那段注释）。
      同一份目录在页面里有两份副本（宽屏刻度栏 + 正文开头那块），
-     所以高亮对页面里所有 .post-toc-nav 一起生效；点哪一份都是这里接管、平滑滚动。 */
+     所以高亮对页面里所有 .post-toc-nav 一起生效；点哪一份都是这里接管、平滑滚动。
+     （原先还有第四个 initPin()，管宽屏刻度栏的「钉住」按钮 ——
+     2026-10-09 随图钉 #toc-pin 一起删，理由见 single.html 里那段注释。） */
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   /* 目录高亮的状态：当前命中的锚点 id，以及它那条「祖先链」上的所有 <a>。
      记着链是为了滚动时只做差集增删，不每帧全量清 class —— 见 setActive()。 */
   var activeId = null;
   var activeChain = [];
+
+  /* ---------- 宽屏刻度栏的「滚动窗口」（2026-10-09）----------
+     收起态的 .post-toc 只有一行高（CSS 里 max-height: var(--hit)），露出来的应该是
+     **当前标题** —— 读到哪里，目录里就翻到哪一行，像日历翻页。
+     做法是给 .post-toc-nav 一个 translateY，把当前那一行顶进窗口。位移量写进
+     CSS 变量 --toc-shift，由样式表消费：
+       .post-rail .post-toc-nav { transform: translateY(var(--toc-shift, 0px)) }
+     悬停时那条 `transform: none` 负责归零 —— 就是「翻开目录」的那一下。
+
+     ⚠️ 写变量而不是直接写 style.transform：inline 样式任何选择器都盖不住，
+     那样悬停就回不到「从头铺开」了。同特异性下 CSS 靠「后出现」取胜，变量方案可行。
+
+     ⚠️ 两个 rect 相减**不需要**去管 transform 和 scrollTop：目录和它里面的行同时被
+     同一个 transform 平移、也被同一个 scrollTop 卷动，相减之后两者都抵消掉，
+     剩下的就是这一行在目录里的固有偏移（= 第几行 × 行高，行高固定，所以是逐像素准的）。 */
+  var railNav = null;
+  var railScroller = null;
+  var railActive = null;
+  var railLinks = [];
+
+  function railEl() {
+    return railNav ? railNav.closest(".post-rail") : null;
+  }
+
+  function placeRailWindow() {
+    if (!railNav || !railActive) return;
+    var rail = railEl();
+    /* 悬停时不碰 scrollTop —— 窗口已经长开，用户可能正把目录往下滚。
+       收起态才归零：窗口是从列表顶端量的，scrollTop 不为 0 会让窗口落在列表中间。 */
+    if (railScroller && !(rail && rail.matches(":hover"))) railScroller.scrollTop = 0;
+    var rel = railActive.getBoundingClientRect().top - railNav.getBoundingClientRect().top;
+    railNav.style.setProperty("--toc-shift", (-rel).toFixed(1) + "px");
+  }
+
+  /* 把窗口对准当前锚点。两份目录副本里只有刻度栏那份需要 —— 正文开头那块
+     （.post-toc-inline-nav）是完整铺开的，不做窗口。 */
+  function aimRailWindow(id) {
+    if (!railNav) return;
+    railActive = null;
+    for (var i = 0; i < railLinks.length; i++) {
+      if (hashOf(railLinks[i]) === id) { railActive = railLinks[i]; break; }
+    }
+    placeRailWindow();
+  }
 
   function scrollBehavior() {
     return reduceMotion.matches ? "auto" : "smooth";
@@ -70,6 +115,9 @@
     });
 
     activeChain = chain;
+
+    /* 刻度栏那份副本还要把滚动窗口推到这一行（正文开头那块不做窗口，见 aimRailWindow）。 */
+    aimRailWindow(id);
   }
 
   function init() {
@@ -87,6 +135,24 @@
       .map(function (link) { return document.getElementById(hashOf(link)); })
       .filter(Boolean);
     if (!targets.length) return;
+
+    /* 刻度栏那份副本（滚动窗口用，见文件顶部那段）。
+       窄屏时 .post-rail 是 display: none，量出来的 rect 全是 0、算出的位移也是 0，
+       不会出错，所以这里不额外判断可见性。 */
+    railNav = document.querySelector(".post-rail .post-toc-nav");
+    if (railNav) {
+      railScroller = railNav.closest(".post-toc");
+      railLinks = Array.prototype.slice.call(railNav.querySelectorAll('a[href^="#"]'));
+      var rail = railEl();
+      if (rail) {
+        /* 鼠标一离开就把窗口重新对一次：悬停期间用户可能把目录滚过，
+           收起后窗口会落在列表中间。 */
+        rail.addEventListener("mouseleave", function () {
+          if (railScroller) railScroller.scrollTop = 0;
+          placeRailWindow();
+        });
+      }
+    }
 
     /* ---------- 点目录之后把高亮「锁」住 ----------
        不锁的话会看到高亮闪一下（2026-10-02 修）：点击时我们先 setActive(target)，
@@ -207,25 +273,13 @@
   }
 
   /* ---------- 宽屏刻度栏的「钉住」----------
-     参考 sspai 文章页的目录：平时只有一列小刻度，鼠标移上去才展开成标题；
-     点图钉钉住后，展开状态就不用再靠悬停维持（.post-rail.is-pinned）。
-     按钮在 .post-rail 里面，窄屏时整块 display:none，所以窄屏等于不执行。
-     状态不跨页面记：和主题切换一样，刷新回到默认的收起态。
-
-     2026-10-08 晚恢复（此前撤过一版）。恢复时记得**四处一起补**：single.html 的
-     按钮、这里、critical-post.css 的 `.post-toc-pin` 与三处 `.post-rail.is-pinned …`。 */
-  function initPin() {
-    var rail = document.querySelector(".post-rail");
-    var btn = document.getElementById("toc-pin");
-    if (!rail || !btn) return;
-
-    btn.addEventListener("click", function () {
-      var pinned = rail.classList.toggle("is-pinned");
-      btn.setAttribute("aria-pressed", pinned ? "true" : "false");
-      btn.setAttribute("aria-label", pinned ? "取消钉住目录" : "钉住目录");
-      btn.setAttribute("title", pinned ? "取消钉住目录" : "钉住目录（保持展开）");
-    });
-  }
+     2026-10-09 删掉。原先这里有个 initPin()，给 .post-rail 切 .is-pinned，
+     让目录不用靠悬停维持展开。
+     撤的理由：图钉解决的是「悬停才展开的目录想让它常驻」，而收起态现在**本身就常驻
+     显示当前标题**（滚动窗口，见上面 placeRailWindow），要展开也只需把指针移上来 ——
+     「多做一次动作换一直保持一个姿势」那个权衡不再成立。
+     要加回来得四处一起补：single.html 的按钮、这里、critical-post.css 的
+     `.post-toc-pin` 全部规则与三处 `.post-rail.is-pinned …` 展开触发条件。 */
 
   /* ---------- 带着 #锚点 进页面时的定位 ----------
      点目录、点标题上的 #，都由 CSS 的 scroll-margin-top（--anchor-offset）决定落点。
@@ -294,7 +348,6 @@
   document.addEventListener("DOMContentLoaded", function () {
     init();
     initInlineToc();
-    initPin();
     initHashAnchor();
   });
 })();

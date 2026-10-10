@@ -2,6 +2,106 @@
   margin-top: var(--space-8);
   padding-top: 0;
 }
+/* ---------- 文末「系列」带（2026-10-10 新增，用户拍板方案 A）----------
+   结构见 single.html 里那段注释。这里只记三条实现上的取舍：
+
+   ① **在 post.css（异步包），不在 critical-post.css。** 判据和 .related-posts 一样：
+      它在首屏第一帧用不到。而它只出现在 ~21 个页面（3 组系列），
+      塞进内联的 critical-post 等于让 125 个文章页每页都背它。
+
+   ② **层级靠线，不加底色、不加影。** 与 .archive-series / .related-title 同一套语言：
+      一条 1px --line 分节，行与行之间再来一条。不用卡片、不用阴影 ——
+      这是 DESIGN.md 的立场（「让纸和线赢」）。
+
+   ③ **红色只落在「第 N / M 篇」上。** 它是这一段唯一的位置指示，也是唯一需要
+      被一眼找到的东西；上/下篇两行是普通的站内链接，hover 才转红。
+      两处红 = 稀缺性没了，所以别顺手把序号也染红。 */
+.post-series {
+  margin: 0 0 var(--space-10);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+}
+.post-series-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  /* 「系列 ·」这个标签走等宽小字（和 .series-head / .archive-month 同一档），
+     不挂衬线 —— 它是本区块的标签，不是标题。 */
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--muted);
+}
+.post-series-name {
+  /* 系列名才是这一行里要读的东西，所以给它衬线 + 正文档，把它从标签里抬出来。 */
+  font-family: var(--font-serif);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-title);
+  color: var(--ink);
+}
+.post-series-count {
+  /* 位置指示推到最右（同 .series-label-count 的做法：summary 是 flex，
+     margin-left: auto 就够）。等宽 + tabular-nums，数字不跳。 */
+  margin-left: auto;
+  font-family: var(--font-meta);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-num);
+  color: var(--accent);
+}
+.post-series-links {
+  display: flex;
+  flex-direction: column;
+}
+.post-series-link {
+  /* min-height: var(--hit) —— 整行都是命中区（同 .series-label 的理由：
+     行本身是 flex 整行，给足 --hit 就达标，不需要再补伪元素扩展器）。 */
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--hit);
+  padding: var(--space-1) 0;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease);
+}
+.post-series-link + .post-series-link {
+  border-top: 1px solid var(--line);
+}
+.post-series-dir,
+.post-series-ord {
+  flex: none;
+  font-family: var(--font-meta);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  color: var(--muted);
+  transition: color var(--dur-fast) var(--ease);
+}
+.post-series-ord {
+  /* 序号走等宽并右对齐成一条竖列，两行的序号才对得齐（同 .series-pill-num）。 */
+  min-width: 1.5em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-num);
+}
+.post-series-title {
+  /* min-width: 0 不能省：长标题要能在弹性列里收窄出省略号，而不是把整行撑破。
+     和 .post-row-title / .archive-item-title 一致。 */
+  min-width: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.post-series-link:hover {
+  color: var(--accent);
+}
+.post-series-link:hover .post-series-dir,
+.post-series-link:hover .post-series-ord {
+  color: var(--accent);
+}
 /* 2026-10-02：删掉 .post-pill 一整套（.post-pill / :hover / :active / :disabled 与
    a.post-pill 共 5 条规则）。全站 grep layouts/ + content/ + assets/js/ 零引用 ——
    它是某个版本留下的按钮残骸，没有任何标记会挂上这个类名。

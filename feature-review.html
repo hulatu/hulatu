@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能 / 设计 / 交互提案审计 · 胡拉图说</title>
+<style>
+/* ===========================================================================
+   本页的 token 逐行抄自 assets/css/critical.css 的 :root（2026-10-10 现读）。
+   评审页本身就该用被评审对象的语言排版 —— 它是一份论据。
+   浅色单版（与仓库里既有的 design-audit.html / archive-review.html 一致）。
+   =========================================================================== */
+:root{
+  --paper:#f6f6f8; --surface:#ffffff; --surface-2:#ececf1;
+  --ink:#1d1d1f; --ink-soft:#3f3f45; --muted:#56565c;
+  --line:#e4e4e9; --line-strong:#d3d3da;
+  --accent:#c73e2f; --accent-ink:#a83226; --accent-soft:#fbeae7; --on-accent:#fff8f5;
+  --radius:12px; --radius-sm:10px; --radius-chip:4px; --radius-pill:999px;
+  --font-serif:"Source Han Serif SC","Noto Serif SC","Noto Serif CJK SC","Songti SC","STSong","SimSun",Georgia,"Times New Roman",serif;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  --font-mono:ui-monospace,"SF Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --ok:#2f7a4f; --ok-bg:#eaf5ee; --ok-line:#cfe6d8;
+  --warn:#8a5a12; --warn-bg:#fdf4e6; --warn-line:#f0dfc0;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--font-sans); font-size:16px; line-height:1.75;
+  text-autospace:normal;
+}
+code,pre,kbd,samp{text-autospace:no-autospace}
+.wrap{max-width:880px; margin:0 auto; padding:56px 28px 96px}
+a{color:var(--accent-ink); text-decoration:none; border-bottom:1px solid var(--accent-soft)}
+a:hover{color:var(--accent); border-bottom-color:var(--accent)}
+code{font-family:var(--font-mono); font-size:.86em; background:var(--surface-2);
+  padding:.12em .38em; border-radius:var(--radius-chip); color:var(--ink-soft)}
+
+/* ---------- 页头 ---------- */
+.kicker{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 12px}
+h1{font-family:var(--font-serif); font-size:2.1rem; line-height:1.35; font-weight:600;
+  letter-spacing:.01em; margin:0 0 16px}
+.lead{font-size:1.0625rem; color:var(--ink-soft); margin:0 0 28px; max-width:62ch}
+.factbar{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 8px}
+.fact{font-family:var(--font-mono); font-size:.72rem; color:var(--muted);
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-pill);
+  padding:.3em .8em; font-variant-numeric:tabular-nums}
+.fact b{color:var(--ink); font-weight:600}
+
+/* ---------- 横幅 ---------- */
+.banner{border:1px solid var(--ok-line); background:var(--ok-bg); border-radius:var(--radius);
+  padding:18px 22px; margin:32px 0 8px}
+.banner h2{font-family:var(--font-serif); font-size:1rem; margin:0 0 8px; color:var(--ok)}
+.banner p{margin:0 0 8px; font-size:.9rem; color:var(--ink-soft)}
+.banner p:last-child{margin-bottom:0}
+.banner ul{margin:8px 0 0; padding-left:1.2em; font-size:.9rem; color:var(--ink-soft)}
+.banner li{margin:.2em 0}
+
+/* ---------- 章节 ---------- */
+section{margin:0 0 56px}
+h2.sec{font-family:var(--font-serif); font-size:1.44rem; font-weight:600;
+  margin:0 0 6px; padding-bottom:14px; border-bottom:1px solid var(--line)}
+h2.sec .num{font-family:var(--font-mono); font-size:.8rem; color:var(--accent);
+  margin-right:.7em; font-variant-numeric:tabular-nums}
+.sec-note{font-size:.86rem; color:var(--muted); margin:12px 0 24px}
+h3{font-family:var(--font-serif); font-size:1.0625rem; font-weight:600; margin:32px 0 10px}
+h4{font-family:var(--font-sans); font-size:.9rem; font-weight:600; margin:20px 0 8px}
+p{margin:0 0 14px}
+
+/* ---------- 徽章 ---------- */
+.badge{display:inline-block; font-family:var(--font-mono); font-size:.68rem;
+  font-weight:600; letter-spacing:.04em; padding:.22em .62em; border-radius:var(--radius-chip);
+  vertical-align:.12em; margin-right:.5em}
+.b-p0{background:var(--accent); color:var(--on-accent)}
+.b-p1{background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn-line)}
+.b-p2{background:var(--surface-2); color:var(--muted); border:1px solid var(--line-strong)}
+
+/* ---------- 卡片 ---------- */
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:24px 26px; margin:0 0 20px}
+.card > h3{margin-top:0}
+.card .where{font-family:var(--font-mono); font-size:.74rem; color:var(--muted);
+  margin:0 0 14px; word-break:break-all}
+
+/* ---------- 表格 ---------- */
+table{width:100%; border-collapse:collapse; margin:16px 0 22px; font-size:.86rem}
+th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.04em; color:var(--muted);
+  font-weight:600; border-bottom:1px solid var(--line-strong)}
+td.mono,th.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:0}
+td.y{color:var(--ok); font-weight:600}
+td.n{color:var(--accent); font-weight:600}
+
+/* ---------- 家底清单 ---------- */
+.have{list-style:none; padding:0; margin:0; display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:2px 20px; font-size:.86rem}
+.have li{padding:5px 0; border-bottom:1px solid var(--line); color:var(--ink-soft)}
+.have li::before{content:"✓"; color:var(--ok); font-family:var(--font-mono);
+  font-size:.8em; margin-right:.55em; font-weight:600}
+
+/* ---------- mockup ---------- */
+.mock-note{font-size:.8rem; color:var(--muted); margin:0 0 16px}
+.mock-note b{color:var(--accent-ink)}
+.mocks{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+@media (max-width:720px){.mocks{grid-template-columns:1fr}}
+.mock{border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--paper); overflow:hidden}
+.mock-h{font-family:var(--font-mono); font-size:.7rem; letter-spacing:.06em;
+  padding:8px 14px; border-bottom:1px solid var(--line); color:var(--muted);
+  background:var(--surface)}
+.mock-h.now{color:var(--muted)}
+.mock-h.next{color:var(--accent-ink)}
+.mock-b{padding:20px 18px; min-height:270px}
+.mock-cap{font-size:.78rem; color:var(--muted); margin:10px 0 0; line-height:1.6}
+
+/* mockup 内部 —— 复刻站点真值 */
+.mk-crumb{display:flex; gap:6px; font-size:.69rem; color:var(--muted); margin-bottom:14px; flex-wrap:wrap}
+.mk-crumb i{font-style:normal; color:var(--line-strong)}
+.mk-title{font-family:var(--font-serif); font-size:1.18rem; line-height:1.45;
+  font-weight:600; color:var(--ink); margin:0 0 10px}
+.mk-meta{font-family:var(--font-mono); font-size:.66rem; color:var(--muted); margin:0 0 16px}
+.mk-line{height:7px; border-radius:2px; background:var(--surface-2); margin:0 0 8px}
+.mk-line.s{width:62%}
+.mk-line.m{width:84%}
+/* 文末印章：46px / 2px 实线 --accent / 圆 / 衬线 16px / rotate(-6deg) */
+.mk-end{display:flex; justify-content:center; margin:22px auto 18px}
+.mk-end span{display:flex; align-items:center; justify-content:center;
+  width:34px; height:34px; border:2px solid var(--accent); border-radius:50%;
+  color:var(--accent); font-family:var(--font-serif); font-size:.8rem; font-weight:600;
+  transform:rotate(-6deg)}
+.mk-rel{font-family:var(--font-serif); font-size:.82rem; font-weight:600;
+  color:var(--ink); margin:0 0 8px; padding-top:14px; border-top:1px solid var(--line)}
+.mk-rel-row{font-size:.74rem; color:var(--ink-soft); padding:5px 0;
+  border-bottom:1px solid var(--line)}
+/* 新增的「系列」条：发丝线分节，与 .archive-series / .series-row 同一套语言 */
+.mk-series{border-top:1px solid var(--line); padding-top:12px; margin:0 0 4px}
+.mk-series-head{font-family:var(--font-mono); font-size:.63rem; letter-spacing:.06em;
+  color:var(--muted); margin:0 0 6px}
+.mk-series-head b{color:var(--accent); font-weight:600}
+.mk-series-row{display:flex; align-items:center; gap:8px; font-size:.76rem;
+  min-height:26px; color:var(--ink)}
+.mk-series-row .idx{font-family:var(--font-mono); font-size:.68rem; color:var(--muted);
+  font-variant-numeric:tabular-nums}
+.mk-series-row .cur{color:var(--accent); font-weight:600}
+.mk-series-row .nav{margin-left:auto; font-family:var(--font-mono); font-size:.66rem;
+  color:var(--muted); white-space:nowrap}
+/* 目录「当前项」两种语言 */
+.toc-demo{font-size:.79rem; line-height:1.5}
+.toc-demo .li{padding:4px 0 4px 14px; color:var(--muted); position:relative}
+.toc-demo.rail .li{height:26px; line-height:26px; padding:0 0 0 18px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis}
+.toc-demo.rail .li.act{color:var(--accent)}
+.toc-demo.rail .li.act::before{content:""; position:absolute; left:0; top:50%;
+  transform:translateY(-50%); width:2px; height:21px; border-radius:var(--radius-chip);
+  background:var(--accent)}
+.toc-demo.inl .li{border-left:2px solid transparent}
+.toc-demo.inl .li.act{color:var(--accent); border-left-color:var(--accent); font-weight:600}
+.toc-demo.inl.dim .li:not(.act){opacity:.5}
+.sig{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 0}
+.sig span{font-family:var(--font-mono); font-size:.66rem; padding:.2em .6em;
+  border-radius:var(--radius-chip); background:var(--surface-2); color:var(--muted);
+  border:1px solid var(--line-strong)}
+.sig span.on{background:var(--accent-soft); color:var(--accent-ink); border-color:#f0c8c0}
+
+/* ---------- 结尾问题 ---------- */
+.ask{border:1px solid var(--line-strong); border-left:3px solid var(--accent);
+  background:var(--surface); border-radius:var(--radius); padding:26px 28px}
+.ask h2{font-family:var(--font-serif); font-size:1.2rem; margin:0 0 12px}
+.opts{list-style:none; padding:0; margin:16px 0 0}
+.opts li{padding:12px 0; border-top:1px solid var(--line); font-size:.9rem}
+.opts li b{font-family:var(--font-mono); font-size:.78rem; color:var(--accent);
+  margin-right:.7em}
+.opts li em{color:var(--muted); font-style:normal; font-size:.85rem}
+.foot{margin-top:56px; padding-top:20px; border-top:1px solid var(--line);
+  font-size:.78rem; color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">~/Blog · 功能 / 设计 / 交互提案审计</p>
+  <h1>还能优化什么，以及<br>哪些“缺口”其实不该补</h1>
+  <p class="lead">
+    这一页回答的是「功能、设计、交互上还能加什么」。做法是先<b>盘家底</b>（这一步本身就是交付物 ——
+    大多数“缺口”其实早就有了），再只报真正空着的；最后把<b>已经试过又被否掉的项</b>单列一节，
+    免得下一轮有人再提一遍。
+  </p>
+  <div class="factbar">
+    <span class="fact">构建 <b>334</b> 页 / exit 0</span>
+    <span class="fact">警告 <b>0</b></span>
+    <span class="fact">HTML <b>343</b> 个</span>
+    <span class="fact">文章 <b>101</b> + 周刊 <b>24</b></span>
+    <span class="fact">系列 <b>3</b> 组 / <b>21</b> 篇</span>
+    <span class="fact">日期 <b>2026-10-10</b></span>
+  </div>
+
+  <!-- ================= 复算 ================= -->
+  <div class="banner">
+    <h2>上一轮（2026-10-09）· 已复算，已落地</h2>
+    <p>先确认上一轮真的生效，再找它自己带进来的问题 —— 否则会把已经修好的东西再报一遍。
+       复算一律看<b>构建产物</b>，不看源码（源码注释里会引用旧值）。</p>
+    <ul>
+      <li>目录收起态改成「一行高的滚动窗口」—— 产物里 <code>max-height:var(--hit)</code> 与
+          <code>translateY(var(--toc-shift,0px))</code> 都在，行高恒定 <code>height:var(--hit)</code> ✓</li>
+      <li>图钉 <code>#toc-pin</code> 已删 —— 343 个产物页里 <code>toc-pin</code> 命中 <b>0</b> ✓</li>
+      <li>系列改成 <code>&lt;details class="series-row"&gt;</code> 默认收起 ✓</li>
+      <li>定位装置 5 → 4（面包屑 / 目录 / 进度条 / 返回顶部）✓</li>
+      <li>三项常规扫描：刻度长尾 <b>1</b> 处（<code>.media-rating</code> 的 <code>gap:2px</code>，星级间距，正当）、
+          空章节 <b>0</b> 个、跨文件同名选择器 <b>6</b> 组（全是 <code>critical.css</code> 管结构 /
+          页面模块管外观的正当拆分；另有 <code>from</code> / <code>to</code> 两条是 <code>@keyframes</code> 键帧，不算重复）</li>
+      <li>死声明两项：<code>transition</code> 挂在父元素且自身不改该属性 → 逐条回读后<b>无真阳性</b>；
+          token 定义 127 个，<b>引用 0 次的有 0 个</b></li>
+    </ul>
+    <p>本页与仓库里既有的评审页不重复：<code>design-audit.html</code> / <code>archive-review.html</code> /
+       <code>perf-interaction-review.html</code> 是历史档案，这里每一条都是新查的。</p>
+  </div>
+
+  <!-- ================= 一、盘家底 ================= -->
+  <section>
+    <h2 class="sec"><span class="num">01</span>盘家底：这些已经都有了</h2>
+    <p class="sec-note">先列出来，是因为「推荐加什么」最容易犯的错是把已有的再报一遍。以下全部在构建产物里逐条核实过。</p>
+    <ul class="have">
+      <li>全文搜索（<code>/</code> · <code>⌘K</code>）</li>
+      <li>搜索的分类 / 标签筛选</li>
+      <li>搜索的最近 5 次</li>
+      <li>搜索结果 ↑↓ / Enter / Esc</li>
+      <li>标签云（三档字号）</li>
+      <li>404 页：搜索框 + 随机一篇</li>
+      <li>目录双形态（刻度栏 / 内联）</li>
+      <li>目录祖先链高亮</li>
+      <li>阅读进度条</li>
+      <li>返回顶部</li>
+      <li>面包屑（视觉 + JSON-LD）</li>
+      <li>相关文章</li>
+      <li>脚注</li>
+      <li>外链 ↗ 标记</li>
+      <li>代码块复制</li>
+      <li>图片灯箱（← → / Esc / 滑动）</li>
+      <li>文末「完」印章</li>
+      <li>打印样式</li>
+      <li>skip-link</li>
+      <li>焦点陷阱（搜索 / 灯箱）</li>
+      <li><code>text-autospace</code> 中英空距</li>
+      <li>标题孤行保护</li>
+      <li>深浅色</li>
+      <li>JSON-LD 四份</li>
+      <li>Speculation Rules 预渲染</li>
+      <li>RSS 全文 + 自动发现</li>
+      <li>数学公式（纯样式块）</li>
+      <li>阅读位置记忆</li>
+      <li>结算页 <code>/stats/</code></li>
+      <li>深色图片降亮</li>
+      <li><code>--hit</code> 44px 命中区（18 条规则）</li>
+      <li>prefers-reduced-motion</li>
+    </ul>
+    <p class="sec-note" style="margin-top:20px">
+      另外三项看着像缺口、<b>查过是刻意的</b>，不在下面的清单里：
+      <code>/posts/</code> 是 <code>content/posts/_index.md</code> 里写明了的 noindex 内部页（产物里精确入链 0，sitemap 里也没有）；
+      周刊文章的 URL 落在 <code>/posts/</code> 下是 <code>hugo.toml</code> 的 <code>[permalinks]</code> 明文配置；
+      <code>page/1/</code> 是 Hugo 生成的 canonical 跳转桩，不是空页面。
+    </p>
+  </section>
+
+  <!-- ================= 二、诊断 ================= -->
+  <section>
+    <h2 class="sec"><span class="num">02</span>诊断：真正空着的、和该收一收的</h2>
+    <p class="sec-note">五条。P0 只有一条 —— 它同时是「缺功能」和「已有数据没接上」。</p>
+
+    <!-- ---- 2.1 ---- -->
+    <div class="card">
+      <h3><span class="badge b-p0">P0</span>文章页没有「系列」出口，读单篇看不出自己在连载里的位置</h3>
+      <p class="where">改：<code>layouts/_default/single.html</code> · <code>assets/css/critical-post.css</code>（新增一段）</p>
+      <p>站里已经有 <b>3 组、21 篇</b>带 <code>series:</code> 字段的文章：</p>
+      <table>
+        <thead><tr><th>系列</th><th class="mono">篇数</th><th>构成</th></tr></thead>
+        <tbody>
+          <tr><td>跑步</td><td class="mono">12</td><td>8 篇文章 + 4 期周刊</td></tr>
+          <tr><td>综述写作</td><td class="mono">5</td><td>2025-12 → 2026-02，有明确先后</td></tr>
+          <tr><td>居家流水账</td><td class="mono">4</td><td>2026-08，连续 4 天</td></tr>
+        </tbody>
+      </table>
+      <p>但这个字段<b>只被 <code>layouts/_default/archive.html</code> 用了</b>。
+      实测：<code>layouts/_default/single.html</code> 与所有 <code>partials/*.html</code> 里
+      <code>series</code> 只出现在一句注释里；产物侧更直接 —— 文章页 HTML 里 <code>series</code> 相关字符串命中 <b>0</b>。</p>
+      <p>后果：从搜索、微信、别人的链接点进《综述写作之-文献管理》的读者，
+      看到的是 <code>首页 › 工具 › 综述写作之-文献管理</code>，正文里也没有任何「这是第 4 篇 / 共 5 篇」的痕迹，
+      想读上一节只能自己想起来去归档页找。
+      而 <code>archive.html</code> 的注释里写着这个字段的用途正是
+      「读者读完上篇不保证能走到下篇」—— 系列入口做在归档页，
+      但<b>读者读单篇时不在归档页</b>。</p>
+
+      <p class="mock-note">下面两个小样是<b>手搓的 HTML/CSS 复刻，不是截图</b>（本机起不了无头浏览器）。
+      字号 / 线宽 / 色值都取自站点真值：文末印章 2px 实线 <code>--accent</code> 圆 + 衬线 600 + <code>rotate(-6deg)</code>，
+      分节线 1px <code>--line</code>，「相关文章」走 <code>--font-serif</code>。</p>
+      <div class="mocks">
+        <div class="mock">
+          <div class="mock-h now">现状 · 文末</div>
+          <div class="mock-b">
+            <div class="mk-crumb">首页 <i>›</i> 工具 <i>›</i> 综述写作之-文献管理</div>
+            <p class="mk-title">综述写作之-文献管理</p>
+            <p class="mk-meta">2025-12-15 · 约 4,100 字</p>
+            <div class="mk-line m"></div><div class="mk-line"></div>
+            <div class="mk-line s"></div><div class="mk-line m"></div>
+            <div class="mk-end"><span>完</span></div>
+            <p class="mk-rel">相关文章</p>
+            <div class="mk-rel-row">综述写作之-确定主题</div>
+            <div class="mk-rel-row">科研人的一些工具分享</div>
+          </div>
+          <p class="mock-cap">「相关文章」按标签 / 分类算，<b>不认系列</b> —— 上例里它给了「确定主题」和一篇工具文，
+            系列内的「投喂文献（上）」反而不在。</p>
+        </div>
+        <div class="mock">
+          <div class="mock-h next">改造后 · 加一条系列带</div>
+          <div class="mock-b">
+            <div class="mk-crumb">首页 <i>›</i> 工具 <i>›</i> 综述写作之-文献管理</div>
+            <p class="mk-title">综述写作之-文献管理</p>
+            <p class="mk-meta">2025-12-15 · 约 4,100 字</p>
+            <div class="mk-line m"></div><div class="mk-line"></div>
+            <div class="mk-line s"></div>
+            <div class="mk-end"><span>完</span></div>
+            <div class="mk-series">
+              <p class="mk-series-head">系列 · <b>综述写作</b> · 第 2 / 5 篇</p>
+              <div class="mk-series-row"><span class="idx">01</span>确定主题
+                <span class="nav">← 上一篇</span></div>
+              <div class="mk-series-row"><span class="idx">03</span>投喂文献（上）
+                <span class="nav">下一篇 →</span></div>
+            </div>
+            <p class="mk-rel">相关文章</p>
+            <div class="mk-rel-row">综述写作之-确定主题</div>
+          </div>
+          <p class="mock-cap">新增一段，<b>零新内容工作</b> —— 分组和排序逻辑在
+            <code>archive.html</code> 里已经跑通了（<code>where $posts "Params.series" $name</code> + <code>.ByDate</code>），
+            搬过来即可。线语言沿用发丝线分节，红色只落在当前篇。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- 2.2 ---- -->
+    <div class="card">
+      <h3><span class="badge b-p1">P1</span>搜索面板的 ARIA 只做了一半</h3>
+      <p class="where">改：<code>assets/js/search.js</code>（约 573–602 行 + 95 行输入框）</p>
+      <p>搜索是全站最复杂的交互，作者也确实在认真处理 ARIA ——
+      <code>search.js:98</code> 有一条注释解释了「为什么不给外层挂 <code>role="listbox"</code>」，
+      焦点陷阱、<code>aria-label</code>、<code>aria-pressed</code> 都齐。但结果列表这一层缺了状态同步：</p>
+      <table>
+        <thead><tr><th>应有</th><th class="mono">现状</th><th>后果</th></tr></thead>
+        <tbody>
+          <tr><td><code>aria-selected</code> 在选中项上</td><td class="mono n">缺</td>
+              <td><code>setActive()</code> 只 <code>classList.add("is-active")</code>，屏幕阅读器不知道 ↑↓ 移到了哪一条</td></tr>
+          <tr><td>输入框 <code>role="combobox"</code> + <code>aria-expanded</code> + <code>aria-controls</code></td>
+              <td class="mono n">缺</td><td>listbox 与输入框没有任何 ARIA 关联</td></tr>
+          <tr><td><code>aria-activedescendant</code></td><td class="mono n">缺</td>
+              <td>焦点留在输入框里，选中项不会被朗读</td></tr>
+          <tr><td><code>role="option"</code> 挂在哪</td>
+              <td class="mono n">挂在 <code>&lt;a&gt;</code> 上</td>
+              <td><b>覆盖掉了链接语义</b> —— <code>role="option"</code> 会让 AT 不再把它当链接读</td></tr>
+        </tbody>
+      </table>
+      <p>视觉与键盘用户完全不受影响（↑↓ / Enter / Esc 都能用），所以这是 P1 不是 P0。
+      修法很小：<code>setActive()</code> 里同步 <code>aria-selected</code>，
+      输入框补三个属性，<code>role="option"</code> 移到内层 <code>&lt;span&gt;</code> 或改成
+      <code>role="option"</code> + 保留 <code>&lt;a&gt;</code> 的导航职责（二选一，见结尾问题）。</p>
+    </div>
+
+    <!-- ---- 2.3 ---- -->
+    <div class="card">
+      <h3><span class="badge b-p2">P2</span>同一个「目录」，两种形态用了两套「当前项」语言</h3>
+      <p class="where">改：<code>assets/css/critical-post.css</code>（410–417 行 vs 604–662 行）</p>
+      <p>目录在宽屏是右侧刻度栏、窄屏是正文开头那块，共用 <code>.post-toc-nav</code> 这个类。
+      10-09 那次改的是刻度栏那一份，于是两边的「我在哪」现在长得不一样：</p>
+      <div class="mocks">
+        <div class="mock">
+          <div class="mock-h now">刻度栏（宽屏）· 2 重信号</div>
+          <div class="mock-b">
+            <div class="toc-demo rail">
+              <div class="li">一、为什么是文献管理</div>
+              <div class="li act">二、Zotero 的目录结构</div>
+              <div class="li">三、与 Obsidian 联动</div>
+            </div>
+            <div class="sig"><span class="on">color: --accent</span><span class="on">::before 红刻度</span>
+              <span>其余项 opacity: 1</span></div>
+          </div>
+          <p class="mock-cap">行高恒为 <code>--hit</code>、<code>white-space:nowrap</code>，
+            所以不会因为字重变化而回流。红刻度 2px 宽 × <code>--tick × 3.5</code>（一级 21px）。</p>
+        </div>
+        <div class="mock">
+          <div class="mock-h now">内联（手机 / 窄屏）· 4 重信号</div>
+          <div class="mock-b">
+            <div class="toc-demo inl dim">
+              <div class="li">一、为什么是文献管理</div>
+              <div class="li act">二、Zotero 的目录结构</div>
+              <div class="li">三、与 Obsidian 联动</div>
+            </div>
+            <div class="sig"><span class="on">color: --accent</span><span class="on">border-left 2px</span>
+              <span class="on">font-weight: 600</span><span class="on">其余项 opacity: .5</span></div>
+          </div>
+          <p class="mock-cap">多出来的 <code>font-weight: 600</code> 会把当前行拉宽。
+            这份内联目录默认是收起的（<code>initInlineToc()</code>），所以只有用户手动展开时才会看到，
+            但那一刻它比刻度栏「响」一倍。</p>
+        </div>
+      </div>
+      <p style="margin-top:18px">DESIGN.md 的两条立场在这里都被轻微越过了：<b>「红必须稀缺」</b>
+      （内联那份把红同时给了文字和左边框，再加字重与压暗）和<b>「层级靠线不靠影」</b>。
+      刻度栏那 2 重是 10-09 定的新基线，内联这份建议收到同一档：留 <code>color</code> +
+      <code>border-left</code> 就够，去掉 <code>font-weight: 600</code> 与其余项的 <code>opacity: .5</code>。</p>
+    </div>
+
+    <!-- ---- 2.4 ---- -->
+    <div class="card">
+      <h3><span class="badge b-p2">P2</span>刻度栏窗口首次定位会「从第 1 行滑过去」</h3>
+      <p class="where">改：<code>assets/js/toc.js</code>（<code>placeRailWindow</code>）+ <code>assets/css/critical-post.css:586</code></p>
+      <p>这是 10-09 那次改动自己带进来的。事实链：</p>
+      <table>
+        <thead><tr><th>环节</th><th class="mono">事实</th></tr></thead>
+        <tbody>
+          <tr><td>CSS 默认值</td><td class="mono"><code>translateY(var(--toc-shift, 0px))</code> → 初始 0</td></tr>
+          <tr><td>0 意味着</td><td class="mono">窗口对准目录<b>第 1 行</b></td></tr>
+          <tr><td>过渡</td><td class="mono"><code>transition: transform var(--dur-base) var(--ease)</code> —— <b>无条件生效</b></td></tr>
+          <tr><td>JS 写入时机</td><td class="mono"><code>defer</code> 脚本的 <code>DOMContentLoaded</code> → <code>sync()</code> → <code>setActive()</code> → <code>aimRailWindow()</code></td></tr>
+        </tbody>
+      </table>
+      <p>于是从搜索结果或别人的链接<b>带着 #锚点落到文章中段</b>时，收起态的窗口一定是
+      「先显示第 1 行，再用 0.22s 滑到当前行」。滑到正确位置是好的（那正是「日历翻页」的手感），
+      但<b>第一次定位不该有动画</b> —— 它不是「翻页」，是「落位」。</p>
+      <p>修法很小：给 <code>.post-rail</code> 加一个 <code>is-ready</code> 类，首次
+      <code>placeRailWindow()</code> 之后再打上；CSS 把 <code>transition</code> 挂到
+      <code>.post-rail.is-ready .post-toc-nav</code> 上。这样 <code>mouseleave</code> 那次的回位动画照旧。</p>
+    </div>
+
+    <!-- ---- 2.5 ---- -->
+    <div class="card">
+      <h3><span class="badge b-p2">P2</span>两处注释里的系列数字自相矛盾，外加一条空 <code>series</code></h3>
+      <p class="where">改：<code>assets/css/critical-info.css:151</code> · <code>layouts/_default/archive.html:20</code> ·
+        <code>content/posts/工科研究生用 Mac，也可以很完美.md</code></p>
+      <table>
+        <thead><tr><th>位置</th><th>写的</th><th class="mono">实测</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">critical-info.css:151</td><td>「<b>两组</b>天然连载（综述写作之- / 居家流水账-）」</td>
+              <td class="mono n">3 组（漏了「跑步」12 篇）</td></tr>
+          <tr><td class="mono">critical-info.css:157</td><td>「<b>三组</b>全铺开…」</td>
+              <td class="mono y">3 组 ✓</td></tr>
+          <tr><td class="mono">archive.html:20</td><td>「数据来源就是 <code>series:</code> 字段（本次给这 <b>9 篇</b>补上）」</td>
+              <td class="mono n">21 篇</td></tr>
+          <tr><td class="mono">工科研究生用 Mac….md</td><td><code>series: ""</code></td>
+              <td class="mono n">空字符串，应删掉该行</td></tr>
+        </tbody>
+      </table>
+      <p>同一个注释块里 151 行说「两组」、157 行说「三组」，是同一轮改动只更新了其中一句。
+      空 <code>series</code> 目前<b>没有可见后果</b> —— <code>archive.html</code> 用的是
+      <code>{{ with .Params.series }}</code>，Go 模板里 <code>""</code> 是假值，所以它没被渲染出来，
+      产物里那个系列区仍然只有 3 条。但它是脏数据：下一轮谁写个「列出所有系列」的脚本就会多出一条空标题。</p>
+    </div>
+  </section>
+
+  <!-- ================= 三、不建议加 ================= -->
+  <section>
+    <h2 class="sec"><span class="num">03</span>不建议加，以及为什么（必答项）</h2>
+    <p class="sec-note">这一节是为了让下一轮不用重新论证一遍。前面几轮里<b>试过又被否掉</b>的，也在这一节。</p>
+    <table>
+      <thead><tr><th>项</th><th>裁决</th><th>依据</th></tr></thead>
+      <tbody>
+        <tr><td>Now 页 <code>/now/</code></td><td class="n">不加</td>
+            <td>2026-10-08 <b>用户拍板删的</b>，连文件带导航一起撤。<code>footer.html</code> 与
+                <code>index.html</code> 的注释都留了「⚠️ 别再加回来，页面已经不存在」。
+                （<code>~/bearneo-trial</code> 是另一个站，那边加过不影响这里。）</td></tr>
+        <tr><td>文末「赞一下」/「引用本文」</td><td class="n">不加</td>
+            <td>2026-10-08 新增，<b>同日按用户要求移除</b>。落点在
+                <code>partials/post-kudos.html</code> + <code>partials/post-cite.html</code> +
+                <code>critical-post.css</code> 末两段 + <code>ui.js</code>。要加回来是四处一起补。</td></tr>
+        <tr><td>文末「上一篇 / 下一篇」（按时间）</td><td class="n">不加</td>
+            <td>2026-10-05 整条移除。它原先与「相关文章」是 if/else 互斥，而 124 篇里没有一篇算不出相关文章 ——
+                那一支<b>从没亮过</b>。要「按顺序连载」走 <code>series</code>（即上面那条 P0）。</td></tr>
+        <tr><td>点赞 / Kudos</td><td class="n">不加</td>
+            <td>bearneo 唯一真需要后端的（Cloudflare Workers + D1），工程量过夜、收益不确定。</td></tr>
+        <tr><td>Mermaid 图表</td><td class="n">不加</td>
+            <td><code>content/</code> 里命中 0 处，加了就是死代码。</td></tr>
+        <tr><td>字号调节 / 阅读模式</td><td class="n">不加</td>
+            <td>浏览器本身就有缩放；自建一套等于再维护一份排版真相。</td></tr>
+        <tr><td>邮件订阅</td><td class="n">不加</td>
+            <td>要第三方服务与地址托管；RSS 全文已经开着。</td></tr>
+        <tr><td>bearneo 的纯 CSS 图片放大</td><td class="n">不搬</td>
+            <td><code>input[type=checkbox]</code> + 双 <code>&lt;label&gt;</code>，<b>连 Esc 都关不掉</b>。
+                本博客的 JS 灯箱 + 真 <code>&lt;a href="原图"&gt;</code> 更好。</td></tr>
+        <tr><td><code>hr</code> 改成虚线</td><td class="n">不搬</td>
+            <td>本博客「40% 宽 + 印章红圆点」是签名。</td></tr>
+        <tr><td><code>text-wrap: balance / pretty</code></td><td class="n">不加</td>
+            <td>Level 4 这批特性设计目标几乎都是英文场景，中文里表现为<b>行提前换行</b> ——
+                正是「断开的地方没到最右端」这个症状。</td></tr>
+        <tr><td><code>text-spacing-trim</code> / <code>font-feature-settings:"halt"</code></td><td class="n">加不了</td>
+            <td>硬约束：Songti SC 连 GSUB 表都没有，PingFang SC 也没有 <code>halt</code>/<code>chws</code> ——
+                属性会被浏览器<b>静默禁用</b>。写了比不写更糟。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ================= 四、清单 ================= -->
+  <section>
+    <h2 class="sec"><span class="num">04</span>清单：改哪个文件</h2>
+    <table>
+      <thead><tr><th>级别</th><th>项</th><th>改哪个文件</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge b-p0">P0</span></td>
+          <td>文章页加「系列」带（第 N / M 篇 + 系列内上/下一篇）</td>
+          <td class="mono">layouts/_default/single.html<br>assets/css/critical-post.css（新增一段）</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-p1">P1</span></td>
+          <td>搜索面板补 ARIA 状态同步</td>
+          <td class="mono">assets/js/search.js（573–602、95）</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-p2">P2</span></td>
+          <td>内联目录的「当前项」收到 2 重信号</td>
+          <td class="mono">assets/css/critical-post.css（410–417）</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-p2">P2</span></td>
+          <td>刻度栏首次定位不要动画</td>
+          <td class="mono">assets/js/toc.js（placeRailWindow）<br>assets/css/critical-post.css:586</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-p2">P2</span></td>
+          <td>修注释里的系列数字 + 删空的 <code>series</code></td>
+          <td class="mono">assets/css/critical-info.css:151<br>layouts/_default/archive.html:20<br>content/posts/工科研究生用 Mac，也可以很完美.md</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="sec-note">P0 只有一条。这个站已经过了「加功能」的阶段 ——
+      剩下能动的多是<b>把已有数据接上</b>和<b>把两套语言收成一套</b>，不是堆新东西。</p>
+  </section>
+
+  <!-- ================= 五、要保留 ================= -->
+  <section>
+    <h2 class="sec"><span class="num">05</span>要保留的</h2>
+    <ul style="font-size:.9rem; color:var(--ink-soft); padding-left:1.2em">
+      <li>「纸账 + 印章」这套身份，以及「层级用发丝线、不用投影」这条纪律 ——
+          全站 735 张 <code>&lt;img&gt;</code>、127 个 token、6 个 CSS 模块里，
+          游离的字号 / 圆角 / 间距值几乎为零，硬编码颜色只出现在灯箱（本就恒深）与打印样式里。</li>
+      <li>目录的<b>双形态</b>本身。宽屏刻度栏 + 窄屏内联是必要的，不要为了「统一」把它们并成一个。</li>
+      <li>文末只留「相关文章」、不放打赏、不放上下篇 —— 这一轮不要再动它。</li>
+      <li><code>--hit</code> 那套命中区手法（伪元素 + 负 inset，视觉尺寸不变），以及
+          「到不了 44 的两类都写进文档」这个诚实做法。</li>
+      <li>把「试过又撤掉」的原因留在代码注释里（<code>/now/</code>、<code>/uses/</code>、
+          <code>/colophon/</code>、图钉、kudos 都有）。这份账很有用 —— 本轮就是靠它才没把
+          已否掉的项重新提一遍。</li>
+    </ul>
+  </section>
+
+  <!-- ================= 六、拍板 ================= -->
+  <section>
+    <div class="ask">
+      <h2>需要你拍板的一件事</h2>
+      <p>P0 那条「系列带」的形态，我不替你决定。三种做法代价不同，选一个我再动手：</p>
+      <ul class="opts">
+        <li><b>方案 A</b> 文末一条「系列 · 综述写作 · 第 2 / 5 篇」+ 系列内上一篇 / 下一篇两行。
+          <em>最省事，只动 <code>single.html</code> 与一段 CSS；位置在「完」印章与「相关文章」之间。</em></li>
+        <li><b>方案 B</b> 在 A 的基础上，把整个系列 5 篇都列出来（像归档页那排胶囊，当前篇高亮）。
+          <em>读者一眼看到全貌，但文末会多出 1–3 行；跑步那组 12 篇会明显变长，需要折叠。</em></li>
+        <li><b>方案 C</b> 不放在文末，放在文章标题下面的面包屑旁，只写「系列 · 第 2 / 5 篇」（可点开看全部）。
+          <em>位置更早、更显眼，但要碰 <code>single.html</code> 的头部区与面包屑那条线语言。</em></li>
+      </ul>
+      <p style="margin:18px 0 0; font-size:.88rem; color:var(--muted)">
+        另外 P1 的搜索 ARIA 有个小选择：<code>role="option"</code> 是<b>移到内层 span</b>（保住 <code>&lt;a&gt;</code> 的链接语义，
+        但 listbox 的键盘模型就不完全标准），还是<b>保留在 <code>&lt;a&gt;</code> 上并补全
+        <code>aria-selected</code> / <code>aria-activedescendant</code></b>（ARIA 完全合规，代价是 AT 不再把它当链接读）。
+        我倾向后者 —— 那个列表本来就是「选一个然后跳走」的 listbox 语义。你不特别说的话我就按后者做。
+      </p>
+    </div>
+  </section>
+
+  <p class="foot">
+    本页是工作产物，不是截图合集 —— 两个小样都是按站点真值手写的 HTML/CSS（本机无可用无头浏览器）。
+    所有「N 处 / N 篇 / N 组」都从工具输出回读，未凭印象书写。
+    核实基准：<code>hugo --gc --minify --cleanDestinationDir</code> → 334 页 / exit 0 / 0 警告。
+  </p>
+
+</div>
+</body>
+</html>

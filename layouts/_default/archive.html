@@ -15,13 +15,29 @@
        背景：站里有两组天然连载（综述写作之- 5 篇、居家流水账- 4 篇）加一组主题合集
        （跑步 12 篇），但 front matter 里原本没有任何字段能表达「这几篇是一组」，
        读者读完上篇不保证能走到下篇，周刊更是从设计上就没有上一期/下一期。
-       文末导航 2026-10-05 又收敛成只留「相关文章」，于是这一页成了系列唯一的、稳定的出口。
+       文末导航 2026-10-05 又收敛成只留「相关文章」，于是这一页一度成了系列唯一的出口。
 
-       数据来源就是 content 的 `series:` 字段（本次给这 9 篇补上）。分组用
+       ⚠️ 2026-10-10 起**不再是唯一出口**：single.html 新增了文末「系列」带
+       （第 N / M 篇 + 系列内上/下篇，用户拍板方案 A）。这一页仍然是**总览**，
+       两者的分工是：归档页看「全站有哪些系列、每组有哪几篇」，
+       文章页看「我正读的这篇在组里的坐标」。两处都从同一个 `series:` 字段
+       和同一套 `.ByDate` 排序算出来，所以篇序号必然一致。
+
+       数据来源就是 content 的 `series:` 字段（2026-10-05 给头 9 篇补上，
+       2026-10-10 复算实际是 **21 篇**：5 + 4 + 12）。分组用
        `where $posts "Params.series" $name`，排序用 `.ByDate`（升序 = 连载顺序）。
-       形态是**一行胶囊**（2026-10-05 二改，用户要求「更小的胶囊设计」）：左边系列名 +
-       篇数，右边按连载顺序一排小胶囊，每颗是「等宽序号 + 短标题」，超宽自动换行。
-       胶囊走全站既有那套控件描边四态（同 .tag-chip），红只出现在 hover。 */ -}}
+       形态（2026-10-09 三改，用户要求「做成折叠显示」）：
+       **一条系列 = 一个 <details>，默认收起**。收起时整块只剩「系列名 …… N 篇 ▸」
+       三行；点开才铺出那排胶囊（左边系列名 + 篇数，右边按连载顺序一排小胶囊，
+       每颗是「等宽序号 + 短标题」，超宽自动换行）。
+
+       为什么默认收起：这页顶部本来就长（下面是全部年份的全部文章），而跑步那组
+       12 篇一铺就是三行胶囊 —— 三组全铺开，读者还没看到文章列表就得先划过一片标签。
+       收起来之后这一块从「一片标签」变回「三条目录」，和下面 `.archive-year`
+       那些折叠行是同一套语言（都是 <details> + 一行 summary + 会转的箭头）。
+       胶囊本身的设计没动，仍然走全站那套控件描边四态（同 .tag-chip），红只出现在 hover。
+
+       ⚠️ 想改成默认展开，给 <details> 加一个 `open` 就行（别改 CSS）。 */ -}}
 {{- $seriesNames := slice -}}
 {{- range $posts -}}{{- with .Params.series -}}{{- $seriesNames = $seriesNames | append . -}}{{- end -}}{{- end -}}
 {{- $seriesNames = $seriesNames | uniq | sort -}}
@@ -31,9 +47,9 @@
   {{ range $seriesNames }}
     {{- $name := . -}}
     {{- $group := (where $posts "Params.series" $name).ByDate -}}
-    <div class="series-row">
-      <span class="series-label">{{ $name }}<span class="series-label-count">{{ len $group }} 篇</span></span>
-      <span class="series-pills">
+    <details class="series-row">
+      <summary class="series-label">{{ $name }}<span class="series-label-count">{{ len $group }} 篇</span></summary>
+      <div class="series-pills">
         {{- range $i, $p := $group -}}
           {{- /* 标题里的系列前缀（「综述写作之-」「居家流水账-」）和旁边的系列名重复了，
                  剥掉它胶囊才短得下来；完整标题留在 title 里，鼠标停一下还能看到。 */ -}}
@@ -41,8 +57,8 @@
           {{- $label = strings.TrimPrefix (printf "%s-" $name) $label -}}
           <a class="series-pill" href="{{ $p.RelPermalink }}" title="{{ $p.Title }}"><span class="series-pill-num">{{ add $i 1 }}</span>{{ $label }}</a>
         {{- end }}
-      </span>
-    </div>
+      </div>
+    </details>
   {{ end }}
 </section>
 {{ end }}

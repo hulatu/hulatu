@@ -87,7 +87,8 @@
            · 这里的结构块（`#resume` / `#resume-pct` / `#resume-go` / `#resume-restart`）
            · assets/js/ui.js 末尾的 initResume() IIFE
            · assets/css/critical-post.css 末尾的 `.resume*` 段
-           · content/privacy.md 与 content/colophon.md 里「阅读位置」那一条登记
+           · content/privacy.md 里「阅读位置」那一条登记
+             （原先还有 content/colophon.md 一处，那一页 2026-10-09 整个删掉了）
          连带后果：全站 localStorage 从两处回到一处（只剩搜索面板的最近搜索），
          所以 privacy.md 那句「只用于两件事」也一并改成一件。 */ -}}
 
@@ -95,29 +96,23 @@
   <div class="post-rail">
     {{- /* .post-rail 是铺满「顶栏以下」的定位容器（本身 pointer-events: none、不吃点击），
            整块目录靠它的 align-items: center 纵向居中。
-           里面 .post-toc-wrap 纵排「图钉 + 目录本体」两行（flex-direction: column，
-           gap: --space-1）；`width: 100%` 不能省 —— 它是 align-items: center 的
-           flex 子项，不撑满就会被居中成一团，目录里的长标题也就出不了省略号。 */ -}}
-    <div class="post-toc-wrap">
-      {{- /* 图钉：钉住后目录保持展开，不用一直把鼠标停在上面（参考 sspai 文章页的目录）。
-             四态与命中区见 critical-post.css 的 `.post-toc-pin`，逻辑在 toc.js 的 initPin()。
-             2026-10-08 晚恢复 —— 此前撤过一版，理由是「同一件事 :hover 已经做了」；
-             但读长文时鼠标要一直停在右栏才看得见目录，那是持续的手腕成本，比多一个
-             按钮更贵。**四处要一起存在**：这里的按钮、toc.js 的 initPin()、
-             critical-post.css 的 `.post-toc-pin` 全部规则、以及三处
-             `.post-rail.is-pinned …` 展开触发条件。 */ -}}
-      <button type="button" class="post-toc-pin" id="toc-pin" aria-pressed="false" aria-label="钉住目录" title="钉住目录（保持展开）">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 17v5"></path>
-          <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path>
-        </svg>
-      </button>
-      <aside class="post-toc">
-        <nav class="post-toc-nav">
-          {{ $toc | safeHTML }}
-        </nav>
-      </aside>
-    </div>
+
+           ⚠️ `.post-toc` 上的 `width: 100%` 不能省 —— .post-rail 是 align-items: center
+           的 flex 容器，子项不撑满就会被居中成一团，目录里的长标题也就出不了省略号。
+
+           这里原来还有一层 `.post-toc-wrap`（纵排「图钉 + 目录」两行）和那个图钉按钮，
+           2026-10-09 一起删了。理由：图钉解决的是「悬停才展开的目录想让它常驻」，
+           而现在**收起态本身就常驻显示当前标题**（滚动窗口，见 critical-post.css 的
+           `.post-rail .post-toc-nav`），要展开也只需把指针移上来 —— 图钉那个
+           「多做一次动作换一直保持一个姿势」的权衡不再成立。
+           少一层 DOM，也少一个需要学的按钮。
+           要加回来得四处一起补：这里的按钮、toc.js 的 initPin()、
+           critical-post.css 的 `.post-toc-pin` 与三处 `.post-rail.is-pinned …` 展开触发条件。 */ -}}
+    <aside class="post-toc">
+      <nav class="post-toc-nav">
+        {{ $toc | safeHTML }}
+      </nav>
+    </aside>
   </div>
   {{ end }}
 
@@ -145,6 +140,74 @@
 <div class="post-end" aria-hidden="true"><span>完</span></div>
 
 {{ if $isArticle }}
+  {{- /* ---------- 文末「系列」带（2026-10-10 新增，用户拍板方案 A）----------
+       背景：站里已有 3 组 21 篇带 `series:` 字段（跑步 12 / 综述写作 5 / 居家流水账 4），
+       但在这次之前它**只被 archive.html 用了** —— 读者从搜索、外链、微信点进单篇时，
+       看不出自己在连载里的位置，也没有到同系列其他篇的出口。
+       而 archive.html 的注释里写着这个字段的用途正是「读者读完上篇不保证能走到下篇」，
+       问题在于**读者读单篇时不在归档页**。
+
+       数据与排序**照搬 archive.html**（`where … "Params.series" $name` + `.ByDate`，
+       升序 = 连载顺序），所以两处算出来的「第几篇」必然一致，不会各说各话。
+
+       形态：一条发丝线分节 + 一行「系列 · 名字 …… 第 N / M 篇」+ 最多两行上/下篇。
+       线语言与 .archive-series / .related-title 同源（层级靠线，不加底色、不加影）。
+       红色只落在「第 N / M 篇」这个位置指示上 —— 稀缺。
+
+       位置：**「完」印章之后、「相关文章」之前**。印章是正文的句号，
+       系列带是「这篇在连载里的坐标」，都属于「读完之后」的信息；
+       相关文章是按标签算的横向推荐，排在纵向的系列之后更顺。
+
+       ⚠️ 只有 `len $seriesGroup > 1` 才渲染 —— 单篇「系列」是自相矛盾的。
+       ⚠️ 样式在 post.css（异步包），不在 critical-post.css：首屏第一帧用不到它。
+          和 .related-posts 同一个理由，那一条也在 post.css。 */ -}}
+  {{- $seriesName := .Params.series -}}
+  {{- $seriesGroup := slice -}}
+  {{- $seriesPos := 0 -}}
+  {{- with $seriesName -}}
+    {{- $seriesAll := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
+    {{- $seriesGroup = (where $seriesAll "Params.series" .).ByDate -}}
+    {{- range $i, $p := $seriesGroup -}}
+      {{- if eq $p.RelPermalink $.RelPermalink -}}{{- $seriesPos = add $i 1 -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if and $seriesName (gt (len $seriesGroup) 1) -}}
+  <nav class="post-series" aria-label="系列导航">
+    <p class="post-series-head">系列 · <span class="post-series-name">{{ $seriesName }}</span><span class="post-series-count">第 {{ $seriesPos }} / {{ len $seriesGroup }} 篇</span></p>
+    <div class="post-series-links">
+      {{- if gt $seriesPos 1 -}}
+        {{- $prev := index $seriesGroup (sub $seriesPos 2) -}}
+        {{- /* 标题里的系列前缀（「综述写作之-」「居家流水账-」）和上面那行系列名重复了，
+               剥掉才读得通；完整标题留在 title 里，鼠标停一下还能看到。
+               与 archive.html 的胶囊用同一套剥法，两处保持一致。
+
+               ⚠️ 这里**不走** orphan-safe.html（防孤行那个 partial）：它给标题末 2 字包
+               一个 nowrap 的 span，只在**会换行**的容器里才有意义；而
+               `.post-series-title` 是 `white-space: nowrap` + `ellipsis`，标题永不换行
+               —— 那个 span 是空转的。直接插值即可（HTML 上下文里 Go 模板本来就会自动
+               转义），也和 archive.html 的胶囊写法一致。 */ -}}
+        {{- $prevLabel := strings.TrimPrefix (printf "%s之-" $seriesName) $prev.Title -}}
+        {{- $prevLabel = strings.TrimPrefix (printf "%s-" $seriesName) $prevLabel -}}
+        <a class="post-series-link" href="{{ $prev.RelPermalink }}" title="{{ $prev.Title }}">
+          <span class="post-series-dir">上一篇</span>
+          <span class="post-series-ord">{{ sub $seriesPos 1 }}</span>
+          <span class="post-series-title">{{ $prevLabel }}</span>
+        </a>
+      {{- end -}}
+      {{- if lt $seriesPos (len $seriesGroup) -}}
+        {{- $next := index $seriesGroup $seriesPos -}}
+        {{- $nextLabel := strings.TrimPrefix (printf "%s之-" $seriesName) $next.Title -}}
+        {{- $nextLabel = strings.TrimPrefix (printf "%s-" $seriesName) $nextLabel -}}
+        <a class="post-series-link" href="{{ $next.RelPermalink }}" title="{{ $next.Title }}">
+          <span class="post-series-dir">下一篇</span>
+          <span class="post-series-ord">{{ add $seriesPos 1 }}</span>
+          <span class="post-series-title">{{ $nextLabel }}</span>
+        </a>
+      {{- end -}}
+    </div>
+  </nav>
+  {{- end -}}
+
   {{- /* 「赞一下」/「引用本文」2026-10-08 新增，同日移除（用户拍板）。
          移除的落点：partials/post-kudos.html、partials/post-cite.html、
          critical-post.css 末尾两段、ui.js 的 initKudos() 与 [data-cite-copy] 块。
