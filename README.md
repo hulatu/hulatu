@@ -53,7 +53,7 @@
   浏览器直接打开 feed 时用 `static/rss.xsl` 渲染成一页 HTML（标题 + 简介 + 标题/日期/摘要列表）
 - **SEO**：canonical、Open Graph、JSON-LD、sitemap、robots、旧链接 301。
   `noindex, follow` 覆盖 **196 页**（184 个标签词条 + 8 个分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404）。
-  ⚠️ 每页 `og:image` 目前都是同一张 `share.webp`（按 slug 分图的 125 张已失效，见 DESIGN.md 第 8 节）
+  ⚠️ 每页 `og:image` 目前都是同一张 `share.webp`（按 slug 分图的 125 张**已于 2026-10-11 清理删除**，见 DESIGN.md 第 8 节）
 - **子站**：`run`（跑步数据）、`shot`（随手拍）、`share`（好物分享）、`profile`（个人主页），
   源码在 `sites/`，四个都已上线，配置见 [sites/README.md](sites/README.md)
 
@@ -82,12 +82,11 @@ blog/
 ├── assets/js/giscus.js         # 评论区脚本（只在挂评论的页加载）
 ├── assets/js/code-copy.js      # 代码块复制按钮（只在含代码块的 5 页加载）
 ├── themes/hugo-bearneo/        # ★ 上游主题逐字节副本（27 个文件），**不要改这里**
-├── scripts/                    # 发布前脚本、Garmin 同步、子站构建、仓库清理（13 个，见 MAINTENANCE.md）
+├── scripts/                    # 发布前脚本、Garmin 同步、子站构建、仓库清理（9 个，见 MAINTENANCE.md）
 ├── data/
-│   ├── runs.json               # 跑步数据（唯一一份，run 子站挂载读取）
-│   ├── media.json              # 书影音数据（⚠️ 消费者已删除，见 DESIGN.md 第 8 节）
-│   └── image_dims.json         # 正文远程图片宽高缓存（⚠️ 已失效）
-├── static/                     # 原样发布：_headers / _redirects / 图标 / images/（头像、分享卡、donate/ 赞赏码、og/、uploads/）/ rss.xsl
+│   └── runs.json               # 跑步数据（唯一一份，run 子站挂载读取）
+├── static/                     # 原样发布：_headers / _redirects / 图标 / rss.xsl
+│   └── images/                 # 只剩两个在用：share.webp（全站 og:image）、donate/（2 张赞赏码）
 ├── sites/                      # 四个子站（各自独立的 Hugo 站点）
 ├── admin/                      # 本地图形界面后台（零依赖，双击 博客后台.command 启动）
 ├── archetypes/                 # hugo new 用的模板（posts / weekly）

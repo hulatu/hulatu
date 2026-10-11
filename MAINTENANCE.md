@@ -98,12 +98,25 @@ static/
   favicon.svg logo.svg apple-touch-icon.png icon-192.png icon-512.png site.webmanifest rss.xsl
                           ↑ rss.xsl 不是孤儿：layouts/_default/rss.xml 顶部那行
                             <?xml-stylesheet?> 指的就是它（浏览器直开 feed 时的渲染样式表）
-  images/                 avatar.webp(孤儿) share.webp og/(125，孤儿) media/(孤儿) donate/(2，/donate/ 在用) uploads/
+  images/                 **只剩两个在用**：share.webp（全站唯一的 og:image，由 params.images 引用）
+                          + donate/（2 张收款码，/donate/ 在用）
 
-data/                     image_dims.json / media.json / runs.json（后两个已无本站消费者）
-scripts/                  13 个脚本，见第 4 节
+data/                     **只剩 runs.json**（run 子站挂载在读，见下）
+scripts/                  10 个脚本，见第 4 节
 sites/                    run / shot / share / profile 四个子站（各自独立 Hugo 站点）
 .github/workflows/        build.yml（构建校验）/ sync-garmin.yml（每日同步跑步数据）
+
+> ⚠️ **2026-10-11 清掉的一批「迁移孤儿」**（都是自建主题时代留下的，删前逐个核对过零引用）：
+> `static/images/og/`（125 张按 slug 分的分享图）、`static/images/media/`（71 张书影音封面）、
+> `static/images/avatar.webp`、`static/images/uploads/`（空目录）、
+> `data/media.json`、`data/image_dims.json`，
+> 以及 4 个失效脚本 `sync-douban.py` / `gen-og.js` / `css-critical-coverage.py` / `fetch-image-dims.py`。
+> 加上仓库根目录那批工作产物（6 张截图 + `feature-review.html` + `bearneo-migration-assets/`），
+> 一共约 **8.2 MB**。
+> ⚠️ **`data/runs.json` 没动** —— `sites/run/hugo.toml` 用 `[[module.mounts]]` 把上层 `data/`
+> 挂进了子站，删了跑步子站就没数据了。
+> ⚠️ **`static/images/share.webp` 也没动** —— 它现在是全站唯一的 `og:image`。
+> 想恢复「每篇文章一张分享图」得把 `gen-og.js` 从 git 历史里取回并重跑。
 admin/                    本地 front matter 编辑器（Python + 单页 UI）
 ```
 
@@ -143,10 +156,11 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 `deploy.sh` 会先 `find static sites -name .DS_Store -delete`，
 再用 `rg -q livereload` 拦住「server 没停」的情况。
 
-`publish.sh` 在 `git add` 之前依次跑四个脚本（失败都不阻断发布）：
-`fetch-image-dims.py` → `fetch-profile-content.py` → `add-heading-anchors.py` → `sync-lastmod.py`。
-⚠️ 其中 `fetch-image-dims.py` 和 `sync-lastmod.py` 现在**已无可见产出**（见第 8 节），
-但保留调用不影响发布。
+`publish.sh` 在 `git add` 之前依次跑三个脚本（失败都不阻断发布）：
+`fetch-profile-content.py` → `add-heading-anchors.py` → `sync-lastmod.py`。
+⚠️ 其中 `sync-lastmod.py` 现在**已无可见产出**（见第 8 节），但保留调用不影响发布。
+⚠️ 2026-10-11 删掉了原来排在最前面的 `fetch-image-dims.py`（脚本本身也删了）——
+它抓的 `data/image_dims.json` 上游模板根本不读，**别照旧文档加回来**。
 
 ### CI
 
@@ -240,12 +254,15 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 | `fetch-profile-content.py` | ✅ 在用（刷新 profile.hulatu.com 的「最新文章」快照） |
 | `sync-garmin.py` / `garmin-token.py` | ✅ 在用（每日 CI 同步跑步数据 → `data/runs.json`） |
 | `sync-lastmod.py` | ⚠️ 半废（`lastmod` 只喂 RSS / sitemap 了） |
-| `fetch-image-dims.py` | ❌ 失效（上游 `render-image.html` 不读 `data/image_dims.json`） |
-| `sync-douban.py` | ❌ 失效（`/media/` 已删除） |
-| `gen-og.js` | ❌ 失效（`og/<slug>.png` 已无模板引用，见 DESIGN.md 第 8 节） |
-| `css-critical-coverage.py` | ❌ 作废（文件头已写明；跑起来会 FileNotFoundError） |
 | `build-subdomains.sh` | ✅ 在用（构建四个子站） |
 | `backup-blog.sh` / `cleanup-junk.sh` / `_frontmatter.py` | ✅ 工具 |
+
+> ⚠️ **2026-10-11 删掉了 4 个失效脚本**：`fetch-image-dims.py` / `sync-douban.py` /
+> `gen-og.js` / `css-critical-coverage.py`。它们分别对应自建主题时代的三条链路
+> （图片宽高缓存、豆瓣书影音、按 slug 生成分享图、临界 CSS 覆盖率校验），
+> 随主题迁移全部失去消费者。
+> **要恢复任何一个都从 git 历史里取**（`git log --diff-filter=D --name-only -- scripts/`），
+> 别凭记忆重写。`publish.sh` 里那句对 `fetch-image-dims.py` 的调用也已同步删掉。
 
 ---
 
@@ -549,27 +566,33 @@ PY
 
 ## 8. 待办 / 已知缺口
 
-优先级从高到低。前四条都是 2026-10-10 迁移的**副产物**，需要用户拍板。
+优先级从高到低。
 
-1. **125 张 `og/<slug>.png` 成了孤儿**（见 DESIGN.md 第 8 节第 1 条）。
-   现在每页 `og:image` 都是同一张 `share.webp`。恢复要加**第 13 个**站点层文件
-   `layouts/partials/seo_tags.html`。
-2. **`/media/` 删除留下的孤儿链路**：`scripts/sync-douban.py`、`data/media.json`、
-   `static/images/media/`、`sites/profile/data/profile.json` 的 `media_recent`
-   和「书影音」导览项（那一项已指向不存在的页面）。**要不要把 `/media/` 作为
-   朴素列表页加回来，是用户的决定** —— 加回来同时要恢复同步脚本。
-3. **`scripts/fetch-image-dims.py` 失效** → 正文图片没有 `width`/`height`，
-   加载完会有轻微跳动。`publish.sh` 里那一步是无用功（但无害）。
+> ⚠️ **2026-10-11 清理后，下面第 1/2/3/7 条已经不再是「缺口」了** ——
+> 用户决定「把旧的东西都清除干净」，那批孤儿资源与失效脚本已全部删除
+> （清单见第 1 节末尾那段）。**它们仍在 git 历史里，要恢复就 `git log --diff-filter=D` 取回。**
+> 保留原文是为了记住「当初为什么变成孤儿」，别照着它去找已经不存在的文件。
+
+1. ~~**125 张 `og/<slug>.png` 成了孤儿**~~ → **2026-10-11 已删除**。
+   现在每页 `og:image` 都是同一张 `share.webp`（那是全站唯一一张分享图，**在用，别删**）。
+   要恢复「每篇文章一张分享图」：从 git 历史取回 `scripts/gen-og.js` 重跑，
+   并按 DESIGN.md 第 8 节加**第 13 个**站点层文件 `layouts/partials/seo_tags.html`。
+2. ~~**`/media/` 删除留下的孤儿链路**~~ → **2026-10-11 已删除**
+   （`scripts/sync-douban.py`、`data/media.json`、`static/images/media/`）。
+   ⚠️ **`sites/profile/data/profile.json` 的 `media_recent` 与「书影音」导览项还没处理** ——
+   那一项仍指向不存在的页面。要不要把 `/media/` 作为朴素列表页加回来，**仍是用户的决定**
+   （加回来要同时恢复同步脚本）。
+3. ~~**`scripts/fetch-image-dims.py` 失效**~~ → **2026-10-11 已删除**（脚本 + `data/image_dims.json`
+   + `publish.sh` 里的调用一起）。⚠️ 实测过 CLS ≈ **0**（三个图片最多的页面：0 / 0 / 0.0087），
+   本来就没在抖 —— 所以「正文图片没有 width/height」并不构成实际问题，别再照旧说法去补。
 4. **`scripts/sync-lastmod.py` 半废** → `lastmod` 只喂 RSS / sitemap。
 5. ~~`admin/` 面板里的「系列 series」输入框已无消费者~~ —— **2026-10-11 已解决**：
    `series` 重新有了两个出口（文章页文末坐标带 + `/archive/` 横向入口），
    那个输入框现在**是有效的**。⚠️ 字段必须保持**字符串**语义（一篇只能属于一个系列）。
 6. **列表页没有页面级 `<h1>`**（有意接受上游行为）；**深色下正文图片描边几乎不可见**。
-7. **`static/images/og/`（125 张）无引用** —— ⚠️ `static/images/donate/` 的两张赞赏码
-   是**在用**的（`/donate/` 页），**别再当死资源删**。
-   ⚠️ 但 `static/images/avatar.webp` **又变回孤儿了**（2026-10-11 关于页头像撤掉，
-   全站至此没有一张头像）—— 别顺手删，也别以为它还在用。
-   真删 `og/` 之前先 `cp` 到 `/tmp/blog-junk-backup/`。
+7. ~~**`static/images/og/`（125 张）无引用**~~ → **2026-10-11 已删除**；`avatar.webp` 同日一并删除。
+   ⚠️ **`static/images/` 现在只剩 `donate/`（两张赞赏码，`/donate/` 在用）和 `share.webp`
+   （全站 og:image）** —— 两个都是**在用**的，别再当死资源删。
 8. **`~/bearneo-trial`** 可以留着做对照，也可以删（删除它不影响本站）。
 
 ---

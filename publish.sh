@@ -28,17 +28,17 @@ for cand in "$(command -v python3 2>/dev/null)" \
   fi
 done
 
-# 抓取正文远程图片的尺寸到 data/image_dims.json，让 <img> 带上宽高，
-#     避免图片加载完页面往下跳。只抓新增图片，已缓存的会跳过（很快）。
-#     没网或失败时保留旧数据，不阻断发布。
+# ⚠️ 2026-10-11：这里原本还跑一句 `scripts/fetch-image-dims.py`（抓远程图尺寸到
+#     data/image_dims.json，让 <img> 带上 width/height 避免加载时页面往下跳）。
+#     那一步**已经整个删掉了**，连带脚本和 data/image_dims.json 一起 —— 因为上游
+#     hugo-bearneo 的 render-image.html 根本不读那个文件，写了也进不去 <img>。
+#     实测过 CLS ≈ 0（三个图片最多的页面：0 / 0 / 0.0087），本来也没在抖。
+#     **别照旧文档把它加回来。**
 if [ -n "$PYTHON_BIN" ]; then
-  if ! "$PYTHON_BIN" scripts/fetch-image-dims.py; then
-    echo "    !! 图片尺寸抓取失败，本次新增图片可能缺少宽高（不影响发布）" >&2
-  fi
   # 刷新 profile.hulatu.com（花园页）用的内容快照：最新文章 + 精选瞬间。
   #     它只依赖本地 content/，不联网；产物跟文章一起进这次提交，
   #     否则花园页的「最新文章」会一直停在上一次手动跑子站构建的时候。
-  #     同样放在 git add 之前，失败也不阻断发布。
+  #     放在 git add 之前，失败也不阻断发布。
   if ! "$PYTHON_BIN" scripts/fetch-profile-content.py; then
     echo "    !! 花园页内容快照刷新失败，本次它的最新文章可能不是最新的（不影响发布）" >&2
   fi

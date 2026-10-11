@@ -1098,13 +1098,13 @@ for f in 全部产物:
 | 站内搜索面板（`search-index.json` + `/` 或 `⌘K`） | 334 页里找文章 | 上游有列表页的标题过滤（`postSearch`，当前开启），够用；全文索引要自带一份 JSON + 面板，代价远大于收益 |
 | 深浅色手动切换按钮 | 想手动锁定主题 | 上游 `prefers-color-scheme` 完全跟随系统。**手动开关要记忆选择**（LocalStorage），而「跟随系统」是零配置的正确答案 |
 | 图片灯箱（`lightbox.js` + focus-trap） | 看大图 | 上游有 CSS-only 的 `imageZoom`，零 JS |
-| 书影音页 `/media/` + 豆瓣同步 | 记录读过的书、看过的影像 | ⚠️ **这是本次删除里影响最大的一条**：`sync-douban-media` 技能、`data/media.json`、`static/images/media/` 一起变成了孤儿。要恢复的话，得同时把页面模板和同步链路加回来 |
+| 书影音页 `/media/` + 豆瓣同步 | 记录读过的书、看过的影像 | ⚠️ **这是本次删除里影响最大的一条**：`sync-douban-media` 技能、`data/media.json`、`static/images/media/` 一起变成了孤儿。要恢复的话，得同时把页面模板和同步链路加回来（⚠️ 那三样**2026-10-11 已随清理删除**，从 git 历史取） |
 | 结算页 `/stats/` | 字数、篇数、跑步里程 | 上游没有；`data/runs.json` 仍在（`profile.hulatu.com` 要用），只是本站不再展示 |
 | 公式渲染（`formula.html`） | 数学公式 | 上游只有 Mermaid。文章里没有公式 |
 | ~~阅读进度条~~ + 回到顶部 | 长文定位 | 上游没有。⚠️ **2026-10-11 两个都曾按「只挂长文页」取回**，但**当天用户就要求把进度条删掉**（「进度条不要，去掉」）—— 所以现在**只有返回顶部**，进度条已整段删除（HTML / CSS / keyframes / reduced-motion 覆盖全清）。**别再提进度条。** |
 | 归档页的「按年索引」+「年 → 月」双层折叠 | 334 页里跳转 | 换成上游的「按年分组 + 搜索框」，用更少的控件做同一件事。⚠️ 其中**「系列胶囊」2026-10-11 以新形态回来了**（横向一行、无折叠无分隔线，见第 4 节），但**按年索引与月折叠仍然没有** |
 | 页头头像（全站） | 品牌感 | 上游没有头像概念。副效应：页头比带头像时高约 32px，**有意** |
-| 关于页正文头像（`/about/`） | 让介绍块好看一点 | 2026-10-11 先按「头像放右边」做成两栏，当天又被用户否掉（「算了，先把关于页的头像去除，不显示了」）。**至此全站一张头像都没有**。副效应：`static/images/avatar.webp` 重新变成孤儿文件 |
+| 关于页正文头像（`/about/`） | 让介绍块好看一点 | 2026-10-11 先按「头像放右边」做成两栏，当天又被用户否掉（「算了，先把关于页的头像去除，不显示了」）。**至此全站一张头像都没有**。副效应：`static/images/avatar.webp` 变成孤儿 —— ⚠️ 该文件**2026-10-11 已随清理删除** |
 | 友链页 `/links/` 独立成页 | 把「人」和「我逛的站」分成两份清单 | 2026-10-11 用户要求把 3 位朋友放进导航里那项 Links（`/roll/`）—— 于是两页并成一页，`/links/` 301 到 `/roll/`。**别再拆回去**。当天稍后 `/roll/` 又照 yinji 改成**一条平铺**（连分组小标题也去掉了） |
 | `layout: "about"` / `"archive"` 等一页一模板 | 每页一种版式 | 上游只有 `single` / `list` 两个模板，站点层只给 `/archive/` 保留了一个 |
 
@@ -1156,16 +1156,22 @@ for f in 全部产物:
    要恢复：在站点层加一份 `layouts/partials/seo_tags.html`（上游那份 + 一段按 slug 取图的
    `og:image` 覆盖），代价是站点层覆盖文件从 12 个变成 13 个，
    且以后要跟上游同步这一个 partial。**先没做，等用户拍板。**
-2. **`/media/` 的删除留下了孤儿链路**：`scripts/sync-douban.py`、`data/media.json`、
-   `static/images/media/`、`sites/profile/data/profile.json` 里的 `media_recent`
-   和「书影音」导览项，全都指向一个不存在的页面。**要不要恢复是用户的决定。**
-3. **`scripts/fetch-image-dims.py` 已经不起作用**：它把远程图尺寸写进 `data/image_dims.json`，
-   靠的是自建的 `_markup/render-image.html` 查表输出 `width`/`height`；上游那份不读这张表，
-   所以正文图片**没有宽高**，加载完会有轻微跳动。`publish.sh` 里那一步现在是无用功。
+   ⚠️ **2026-10-11 更新**：用户要求把旧东西清干净，那 125 张 `static/images/og/*.png`
+   与生成脚本 `scripts/gen-og.js` **已一并删除**。所以要恢复的话不只是加模板 ——
+   还得先从 git 历史取回 `gen-og.js` 重跑一遍图片
+   （`git log --diff-filter=D --name-only -- scripts/gen-og.js` 能定位到删除那次提交）。
+2. ~~**`/media/` 的删除留下了孤儿链路**~~ → **2026-10-11 已删除**
+   （`scripts/sync-douban.py`、`data/media.json`、`static/images/media/`）。
+   ⚠️ **唯一还没处理的是** `sites/profile/data/profile.json` 里的 `media_recent`
+   和「书影音」导览项 —— 它们仍指向一个不存在的页面。**要不要恢复 `/media/` 是用户的决定。**
+3. ~~**`scripts/fetch-image-dims.py` 已经不起作用**~~ → **2026-10-11 已删除**
+   （脚本 + `data/image_dims.json` + `publish.sh` 里的调用）。
+   ⚠️ 顺带实测确认：这条**本来也不构成实际问题** —— 三个图片最多的页面 CLS 是
+   **0 / 0 / 0.0087**（唯一那 0.0087 的贡献源还是 `p` / `h2`，不是图片）。
+   所以别照旧说法去「补回宽高」。
 4. **`scripts/sync-lastmod.py` 也不再有可见产出**：它刷 front matter 的 `lastmod`，
    而自建主题的「更新于」那一行随迁移删除了。`lastmod` 现在只喂 RSS / sitemap。
-5. **`scripts/css-critical-coverage.py` 已作废**（文件头已写明）：它校验的是自建的
-   4 个 `critical-*.css` 模块，那些文件都删了。
+5. ~~**`scripts/css-critical-coverage.py` 已作废**~~ → **2026-10-11 已删除**。
 6. ~~`admin/` 面板里的「系列 series」输入框没人读~~ —— **2026-10-11 已解决**：
    `series` 重新有了两个出口（文章页文末的坐标带 + `/archive/` 顶部的横向入口），
    `admin/` 里那个输入框现在是**有效的**。⚠️ 它仍应保持**字符串**语义（一篇只能属于一个系列），
@@ -1173,9 +1179,7 @@ for f in 全部产物:
 7. **列表页没有页面级 h1**（见第 4 节），SEO / 无障碍上是个小缺口，是有意接受上游行为的代价。
 8. **深色主题下正文图片的描边**用的是 `--border-color`（`#30363d`），在 `#121212` 上几乎看不见 ——
    上游如此，未改。
-9. `static/images/avatar.webp` **又变回孤儿文件**（2026-10-11 当天先是「解除」、当天又「复孤」）：
-   关于页的介绍块先加过头像、随后按用户要求整块撤掉（第 6 节），全站至此**一张头像都没有**。
-   别顺手删，也别以为它还在用 —— 真要再加头像，改的就是 `content/about.md` 那个位置。
+9. ~~`static/images/avatar.webp` 又变回孤儿文件~~ → **2026-10-11 已删除**。
    同目录的 `static/images/donate/` 两张赞赏码**仍在用**（`/donate/` 页），**别再当死资源删**。
 10. **`/privacy/` 与 `/posts/` 仍然留在 sitemap 里**：2026-10-11 只恢复了 robots meta
    （三页已正确输出 `noindex, follow`，覆盖 196 页），**没有**恢复旧站的 `layouts/sitemap.xml`
