@@ -222,11 +222,12 @@ hulatu.com（本站：上游主题 + 11 个站点层覆盖文件）
 
 ### 导航
 
-**7 项，全部由 `hugo.toml` 的 `[[menu.main]]` 驱动**，模板里一个链接都不写死：
+**8 项，全部由 `hugo.toml` 的 `[[menu.main]]` 驱动**，模板里一个链接都不写死：
 
 | 标签（英文） | 落点 | 页面标题 |
 | --- | --- | --- |
 | `Home` | `/` | 首页 |
+| `Hub` | `https://profile.hulatu.com/` | ——**不是本站页面**，是个人主页子站（2026-10-11 新增，weight 15 卡在 Home 右侧） |
 | `About` | `/about/` | 关于 |
 | `Now` | `/now/` | 现在 |
 | `Links` | `/roll/` | 收藏（**收藏 + 友链合并页**，2026-10-11 起） |
@@ -237,6 +238,11 @@ hulatu.com（本站：上游主题 + 11 个站点层覆盖文件）
 ⚠️ `RSS` 那一项与页脚那行 `Subscribe via RSS` 指向**同一个** `/index.xml`。
 它不以 `http(s)` 开头，所以 `externalLinksNewTab` 那套不会给它加 `target="_blank"`
 （与页脚那个 RSS 链接行为一致：原地打开）。也**没有「当前页高亮」的概念**。
+
+⚠️ `Hub` 是**唯一一项跨站外链**（`https://profile.hulatu.com/`，个人主页子站，独立部署在
+`sites/profile/`）。因为以 `https://` 开头，`nav.html` 会给它加 `target="_blank"
+rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原地打开不同，这是有意的。
+⚠️ 它同样**没有「当前页高亮」**（外部站点不参与本站的 `RelPermalink` 比对）。
 ⚠️ 导航项一多，窄屏就会折行：`nav` 靠站点层 `custom_head.html` 第 00 段的
 `display: flex; flex-wrap: wrap; column-gap: 8px`（并清掉末项的 `margin-right`）
 保证折行只发生在**项与项之间**。没有这段时 392px 视口会把 `RSS` 拆成 `RS`/`S`。
@@ -261,6 +267,7 @@ hulatu.com（本站：上游主题 + 11 个站点层覆盖文件）
 否掉了「两份清单互不重叠」那套说法。
 
 ⚠️ 顺序由 `weight` 决定，与 `hugo.toml` 里的书写顺序无关。
+`Hub` 的 weight 是 **15**（卡在 `Home` 10 与 `About` 20 之间），所以必然落在 `Home` **右边**；
 `Weekly` 的 weight 是 **45**（卡在 `Links` 40 与 `Posts` 50 之间），
 这样它必然落在 `Posts` **左边** —— 2026-10-11 用户要求的位置。
 

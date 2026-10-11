@@ -123,6 +123,7 @@ disableKinds = ["taxonomy"]
 #
 #  2026-10-10 晚按用户要求改成 BearNeo 样式的英文标签（页面正文仍是中文）：
 #      Home / About / Now / Links / Weekly / Posts / RSS
+#  2026-10-11 晚按用户要求新增 Hub（个人主页 https://profile.hulatu.com/），插在 Home 右侧。
 #
 #  ⚠️ Links 指向 /roll/（**收藏 + 友链**，2026-10-11 起两页并成一页），不是 /friends/。
 #     原友链页 /links/ 已删除，旧地址 301 到 /roll/（见 static/_redirects）。
@@ -144,6 +145,16 @@ disableKinds = ["taxonomy"]
   name = "Home"
   url = "/"
   weight = 10
+
+# 2026-10-11 新增：Hub —— 个人主页子站（profile.hulatu.com），按用户要求插在 Home 右侧。
+# ⚠️ 这是**跨站外链**（http(s) 开头），站点层 nav.html 会按 params.externalLinksNewTab（=true）
+#    自动加 `target="_blank" rel="noopener noreferrer"`（新窗口打开）—— 与 RSS 那项行为不同。
+# ⚠️ 必须写**绝对 URL**；profile 子站是独立部署（sites/profile/），不在本站的路由里，
+#    写成 `/hub/` 之类的站内路径会 404。
+[[menu.main]]
+  name = "Hub"
+  url = "https://profile.hulatu.com/"
+  weight = 15
 
 [[menu.main]]
   name = "About"

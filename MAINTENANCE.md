@@ -76,7 +76,7 @@ layouts/                  ★ 站点层覆盖，19 个文件
   _default/archive.html             ★ 新增：/archive/ 列表页 + 顶部「系列」横向入口
                                     + 底部全部标签平铺（照 yinji，2026-10-11 补回）
   _default/_markup/render-link.html ★ 新增：只为去掉 `</a>` 后面那个换行
-  partials/nav.html                 完全由 [[menu.main]] 驱动（7 项）
+  partials/nav.html                 完全由 [[menu.main]] 驱动（8 项）
   partials/footer.html              版权独立成行 + 订阅行挪到第 3 行 + copyrightNote/licenseName/licenseURL
   partials/custom_head.html         19 段补丁样式 + GoatCounter（03/06/11 留空）
   partials/orphan-safe.html         孤行保护（标题末 2 字包 nowrap）
@@ -531,7 +531,7 @@ PY
 - `/archive/`：搜索框 + 「共 125 篇。」+ **「系列」三条横向行**（居家流水账 4 篇 / 综述写作 5 篇 /
   跑步 12 篇，每行左侧系列名、右侧篇目横向铺开）+ 年份分组（2026 / 2025）
   ⚠️ 这一块**不该有任何分割线 / 折叠三角**（2026-10-11 用户明确否掉了那一版）
-- 导航：`Home / About / Now / Links(/roll/) / Weekly(/weekly/) / Posts(/archive/) / RSS(/index.xml)` —— 7 项
+- 导航：`Home / Hub(https://profile.hulatu.com/) / About / Now / Links(/roll/) / Weekly(/weekly/) / Posts(/archive/) / RSS(/index.xml)` —— 8 项
   ⚠️ 项数一多窄屏必折行：靠站点层第 00 段的 `nav{display:flex;flex-wrap:wrap;column-gap:8px}`
   保证只在**项与项之间**折（没有这段时 392px 会把 `RSS` 拆成 `RS`/`S`）
 - 页脚四行，**顺序是**：Made with → Copyright → **订阅行（RSS / Say hello）** → 英文授权行

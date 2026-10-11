@@ -12,8 +12,8 @@
 
 ## 功能特点
 
-- **导航栏**：7 项英文标签，**完全由 `hugo.toml` 的 `[[menu.main]]` 驱动**，模板里不写死任何链接：
-  `Home` / `About` / `Now` / `Links`(→`/roll/` 收藏与友链) / `Weekly`(→`/weekly/`) / `Posts`(→`/archive/` 归档) / `RSS`(→`/index.xml` 全站订阅源)
+- **导航栏**：8 项英文标签，**完全由 `hugo.toml` 的 `[[menu.main]]` 驱动**，模板里不写死任何链接：
+  `Home` / `Hub`(→`https://profile.hulatu.com/` 个人主页) / `About` / `Now` / `Links`(→`/roll/` 收藏与友链) / `Weekly`(→`/weekly/`) / `Posts`(→`/archive/` 归档) / `RSS`(→`/index.xml` 全站订阅源)
 - **首页**：逐条照 [yinji.org](https://yinji.org/) 的 Bear Neo 版式 —— `Hi!`（h2）+ 一句题记 +
   一段简介 + 一句「…可以选择 **[支持]** 我」（链到 `/donate/`）+ 一行五个平台的入口链接
   （公众号 / 少数派 / 小红书 / 知乎 / 即刻），
