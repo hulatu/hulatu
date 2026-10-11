@@ -1,7 +1,0 @@
-{{- $title := .Title -}}
-{{- if eq .Type "categories" -}}
-  {{- $title = printf "%s · 分类" .Title -}}
-{{- else if eq .Type "tags" -}}
-  {{- $title = printf "%s · 标签" .Title -}}
-{{- end -}}
-{{- return $title -}}

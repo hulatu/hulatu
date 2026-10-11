@@ -1,150 +1,226 @@
+{{- /* 站点层新增（上游没有这个模板）：/archive/ 的页面模板。
+
+       —— 为什么需要它 ——
+       导航里 `Posts` 指向 /archive/，而 /archive/ 是 content/archive.md 这一页
+       普通内容页（不是 section）。上游主题只给 section / taxonomy 准备了 list.html，
+       普通内容页只有 single.html，直接落下去会渲染成「一页空白正文」。
+       所以这里给这一页单独写一个列表模板。
+
+       —— 为什么形态是「照抄上游的 list.html」——
+       上游 list.html 就是 BearNeo 的文章列表页（yinji.org 的 /blog/ 就是它），
+       带搜索框 + 篇数 + 按年分组。这里把它整段搬过来，只换三处：
+         ① `.Pages` → `where site.RegularPages "Type" "in" (slice "posts" "weekly")`
+            （这一页不是 section，没有 .Pages；而且归档要把周刊一起收进来）
+         ② 文案英译中（Search... → 搜索标题…；There are N pieces. → 共 N 篇。）
+       其余（年份分组的 $currentYear 逻辑、搜索脚本、grouped/ungrouped 类名）逐字未改。
+       ⚠️ 上游 `</ul>` 后面那面**标签平铺一度被整块删掉**（当时记的理由是「用户不要标签云」），
+          2026-10-11 用户要求照 yinji 补回 → 现在重新铺上了，见该处那段注释。
+          **「不要标签云」说的是按篇数分档字号那种，平铺不在其中。**
+
+       ⚠️ 这一页**没有页面级 <h1>** —— 与上游 list.html 一致。全站的 <h1> 来自
+          baseof → header.html 里的站名，那是 BearNeo 的设计（Bear Blog 同款）。
+          想加回页面标题：在 <content> 里补一行
+          `{{ if not .Params.hide_title }}<h1>{{ .Title }}</h1>{{ end }}`。
+
+       ⚠️ 别把这一页改成 section（content/archive/_index.md）—— section 的 .Pages
+          是它自己的子页，空数组，列表会渲染成「No posts yet」。 */ -}}
 {{ define "main" }}
+{{- $posts := (where site.RegularPages "Type" "in" (slice "posts" "weekly")).ByDate.Reverse -}}
+<content>
+  {{ if .Site.Params.postSearch }}
+  <input id="search-input" type="text" placeholder="搜索标题…" style="margin-top: 16px" />
+  <script>
+    // 等待 DOM 完全加载后执行
+    document.addEventListener('DOMContentLoaded', function () {
+      // 缓存 DOM 元素
+      const searchInput = document.getElementById('search-input');
+      const posts = document.querySelectorAll('.blog-posts li');
+      const years = document.querySelectorAll('.blog-posts h3');
 
-{{ $posts := where site.RegularPages "Type" "in" (slice "posts" "weekly") }}
-{{- /* 「今年写了多少字」和文章页上的「约 N 字」用同一个口径（Hugo 的 .WordCount，
-       hasCJKLanguage 打开后中文按字计），而且只算文章（posts + weekly）：
-       以前这里数的是所有 RegularPages（连「关于」「隐私政策」「归档」这几个页面也算进去），
-       还用「去掉空白后数 rune」另一套算法，结果和文章页上的字数字对不上。 */ -}}
-{{- $yearChars := 0 -}}
-{{- range where $posts "Date.Year" now.Year }}{{ $yearChars = add $yearChars .WordCount }}{{ end }}
+      // 更新搜索结果
+      function updateSearchResults(searchTerm) {
+        let visiblePosts = 0;
+        const displayedYears = new Set();
+        posts.forEach(function (post) {
+          const title = post.querySelector('a').textContent.toLowerCase();
+          const year = post.querySelector('time').getAttribute('datetime').split('-')[0];
+          if (title.includes(searchTerm)) {
+            post.style.display = '';
+            visiblePosts++;
+            displayedYears.add(year);
+          } else {
+            post.style.display = 'none';
+          }
+        });
 
-<h1 class="page-title">{{ .Title }}</h1>
-<p class="archive-total">共 <strong>{{ len $posts }}</strong> 篇文章 · 今年写了 <strong>{{ lang.FormatNumber 0 $yearChars }}</strong> 字</p>
-
-{{- /* 系列入口（2026-10-05 新增，用户要求）。
-       背景：站里有两组天然连载（综述写作之- 5 篇、居家流水账- 4 篇）加一组主题合集
-       （跑步 12 篇），但 front matter 里原本没有任何字段能表达「这几篇是一组」，
-       读者读完上篇不保证能走到下篇，周刊更是从设计上就没有上一期/下一期。
-       文末导航 2026-10-05 又收敛成只留「相关文章」，于是这一页一度成了系列唯一的出口。
-
-       ⚠️ 2026-10-10 起**不再是唯一出口**：single.html 新增了文末「系列」带
-       （第 N / M 篇 + 系列内上/下篇，用户拍板方案 A）。这一页仍然是**总览**，
-       两者的分工是：归档页看「全站有哪些系列、每组有哪几篇」，
-       文章页看「我正读的这篇在组里的坐标」。两处都从同一个 `series:` 字段
-       和同一套 `.ByDate` 排序算出来，所以篇序号必然一致。
-
-       数据来源就是 content 的 `series:` 字段（2026-10-05 给头 9 篇补上，
-       2026-10-10 复算实际是 **21 篇**：5 + 4 + 12）。分组用
-       `where $posts "Params.series" $name`，排序用 `.ByDate`（升序 = 连载顺序）。
-       形态（2026-10-09 三改，用户要求「做成折叠显示」）：
-       **一条系列 = 一个 <details>，默认收起**。收起时整块只剩「系列名 …… N 篇 ▸」
-       三行；点开才铺出那排胶囊（左边系列名 + 篇数，右边按连载顺序一排小胶囊，
-       每颗是「等宽序号 + 短标题」，超宽自动换行）。
-
-       为什么默认收起：这页顶部本来就长（下面是全部年份的全部文章），而跑步那组
-       12 篇一铺就是三行胶囊 —— 三组全铺开，读者还没看到文章列表就得先划过一片标签。
-       收起来之后这一块从「一片标签」变回「三条目录」，和下面 `.archive-year`
-       那些折叠行是同一套语言（都是 <details> + 一行 summary + 会转的箭头）。
-       胶囊本身的设计没动，仍然走全站那套控件描边四态（同 .tag-chip），红只出现在 hover。
-
-       ⚠️ 想改成默认展开，给 <details> 加一个 `open` 就行（别改 CSS）。 */ -}}
-{{- $seriesNames := slice -}}
-{{- range $posts -}}{{- with .Params.series -}}{{- $seriesNames = $seriesNames | append . -}}{{- end -}}{{- end -}}
-{{- $seriesNames = $seriesNames | uniq | sort -}}
-{{ if $seriesNames }}
-<section class="archive-series" aria-label="系列文章">
-  <h2 class="series-head">系列</h2>
-  {{ range $seriesNames }}
-    {{- $name := . -}}
-    {{- $group := (where $posts "Params.series" $name).ByDate -}}
-    <details class="series-row">
-      <summary class="series-label">{{ $name }}<span class="series-label-count">{{ len $group }} 篇</span></summary>
-      <div class="series-pills">
-        {{- range $i, $p := $group -}}
-          {{- /* 标题里的系列前缀（「综述写作之-」「居家流水账-」）和旁边的系列名重复了，
-                 剥掉它胶囊才短得下来；完整标题留在 title 里，鼠标停一下还能看到。 */ -}}
-          {{- $label := strings.TrimPrefix (printf "%s之-" $name) $p.Title -}}
-          {{- $label = strings.TrimPrefix (printf "%s-" $name) $label -}}
-          <a class="series-pill" href="{{ $p.RelPermalink }}" title="{{ $p.Title }}"><span class="series-pill-num">{{ add $i 1 }}</span>{{ $label }}</a>
-        {{- end }}
-      </div>
-    </details>
-  {{ end }}
-</section>
-{{ end }}
-
-{{- /* 「按年」年份索引（2026-10-08 从首页搬过来，用户要求）。
-       位置就在这儿：**「系列」下面、「文章列表」上面**。
-
-       它原本挂在首页工具条上（layouts/index.html），href 是 `/archive/#2026`
-       这种跨页锚点。用户看过之后要求搬到归档页内部 —— 年份索引本来就属于
-       有年份分组的那一页，读者在页内跳，比从首页绕一圈更顺。
-
-       搬过来顺带做了两处简化：
-       · href 从跨页锚点变成同页锚点（`#2026` 而不是 `/archive/#2026`）。
-       · 去掉了首页那版的 `first 6` 上限。那个上限的理由是「再多年份一排就铺满」
-         —— 但那是**首页工具条只有一行**的约束；这里是独立一行、.year-nav 又是
-         flex-wrap，年份多了自己会折行，没有必要截断，也就没必要留一个魔数。
-
-       年份直接用 $yearGroups（下面文章列表用的同一棵树），
-       这样索引里的年份和页面上真实渲染出来的年份块**必然一一对应** ——
-       各自算一遍迟早会出现「索引里有 2027、列表里没有」这种对不上的情况。
-       只有一年时不渲染（没有可跳的）。 */ -}}
-{{- $yearGroups := $posts.GroupByDate "2006" -}}
-{{ if gt (len $yearGroups) 1 }}
-<nav class="year-nav" aria-label="按年份浏览">
-  <span class="year-nav-label">按年</span>
-  {{- range $yearGroups }}
-  <a class="year-chip" href="#{{ .Key }}">{{ .Key }}</a>
-  {{- end }}
-</nav>
-{{ end }}
-
-{{- /* 2026-10-02 改造。原来这里是「时间轴 + 年 + 月 + 条目」四层，每层都想有存在感，
-       同一件事被说了三遍：篇数说两遍（年、月），月份说两遍（分组标题、每条日期），
-       折叠控件也给两遍（年一个箭头、月一个箭头）。加上左侧 2px 竖线、月份之间的 1px
-       虚线、两种圆点 —— 四套「线/点」语言同时出现，就是「乱」的来源。
-
-       现在：篇数只留年一级并右对齐；月份退成一条标签行（不折叠、无计数、无箭头）；
-       条目日期只渲染「日」，月份交给上面的标签；去掉时间轴与虚线，
-       年份下面一条 1px 横线承担全部层级。每行元素数从 4 + 4 + 2 降到 2 + 1 + 2。
-       详见 MAINTENANCE.md「归档页」。 */ -}}
-<section class="archive-list">
-{{- /* GroupByDate 直接给出「年 → 月 → 文章」的树，而且默认就是新的在前，
-       不用像以前那样对每一层再遍历一遍全量文章做筛选。
-       这里复用上面算好的 $yearGroups，不再调一次 —— 保证「按年」索引里的年份
-       和实际渲染出来的年份块是同一份数据。 */ -}}
-{{ range $yearGroups }}
-  {{- $yearKey := .Key -}}
-  {{- $months := .Pages.GroupByDate "1" -}}
-  {{- /* id 是给本页顶部「按年」索引用的（`#2026`）。直接用年份当 id，
-         不套 "year-" 前缀 —— 地址栏里短、看得出来是年。
-         （2026-10-08 之前这个 id 是给**首页**工具条上的「按年」胶囊用的，
-         那个胶囊当天搬到了本页，id 的用途跟着变了，写法不变。）
-         年份块默认就是 open 的，所以跳过来直接能看见内容，不用再点开。
-         落点的偏移由 CSS 的 scroll-margin-top 处理（见 critical-info.css）。 */ -}}
-  <details class="archive-year-block" id="{{ $yearKey }}" open>
-    <summary class="archive-year">
-      <h2 class="archive-year-num">{{ $yearKey }}</h2>
-      <span class="archive-count">{{ len .Pages }} 篇</span>
-    </summary>
-
-    <div class="archive-year-list">
-      {{ range $months }}
-        {{- /* 这一年只有一个月时（2025 只有 12 月），月份标签不提供任何信息 ——
-               省掉它，免得出现「2025 · 12 篇」紧接着「12月 · 12 篇」这种重复。 */ -}}
-        {{ if gt (len $months) 1 }}
-          <h3 class="archive-month">{{ .Key }} 月</h3>
+        {{ if .Site.Params.groupByYear }}
+        years.forEach(function (y) {
+          const year = y.textContent;
+          y.style.display = displayedYears.has(year) ? '' : 'none';
+        });
         {{ end }}
-        <div class="archive-month-list">
-          {{ range .Pages }}
-            <a class="archive-item" href="{{ .Permalink }}">
-              {{- /* 标题在左、日期在右（2026-10-02 晚改）。原来日期在行首、靠写死的列宽
-                     立成一条左轨；现在换成和首页 / 相关文章的 .post-row-home 同一套语言
-                     —— 标题占满左侧弹性列，日期贴最右。
-                     DOM 顺序也跟着换了，没有用 CSS order 去掰：视觉顺序和读屏顺序
-                     保持一致，别让屏幕阅读器念出「20 标题」。
-                     只渲染「日」：月份已经由上面的标签承担，这里再写一遍就是重复。 */ -}}
-              <span class="archive-item-title">{{ partial "orphan-safe.html" .Title }}</span>
-              <time class="archive-item-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "02" }}</time>
-            </a>
-          {{ end }}
-        </div>
-      {{ end }}
+
+        {{ if .Site.Params.showPostCount }}
+        const countText = `共 ${visiblePosts} 篇。`;
+        document.getElementById('post-count').innerHTML = countText;
+        {{ end }}
+      }
+
+      searchInput.addEventListener('input', function () {
+        updateSearchResults(this.value.toLowerCase().trim());
+      });
+    });
+  </script>
+  {{ end }}
+  {{ if .Site.Params.showPostCount }}
+  <p id="post-count">共 {{ len $posts }} 篇。</p>
+  {{ end }}
+
+  {{- /* ---------- 系列入口（站点层新增，2026-10-11）----------------------
+       站里有 3 组天然连载共 21 篇（跑步 12 / 综述写作 5 / 居家流水账 4），
+       靠 content 的 `series:` 字段表达。这一页是**总览**：全站有哪些系列、
+       每组有哪几篇；文章页文末那条「系列坐标带」是**定位**：我正读的这篇
+       在组里排第几、上下篇是哪两篇（layouts/_default/single.html）。
+
+       两处都从同一个 `series:` 字段、同一套 `.ByDate`（升序 = 连载顺序）算，
+       所以篇序号必然一致，不会各说各话 —— 改一处要回来对另一处。
+
+       ── 形态（2026-10-11 二次改版，用户否掉了第一版）────────────────
+       第一版：每个系列一个 `<details>`，默认收起，行间画一条发丝线。
+       用户原话：「我的归档页的『系列』，请不要有分割线等多余的设计，
+       简单的设计成一个个系列，水平排布」。
+       现在：**一个系列 = 一行 div**，系列名（含篇数）在左、该系列的篇目在右
+       **横向铺开**，超宽自动换行。**没有分割线、没有折叠、没有箭头。**
+       所以模板这边从 `<details>/<summary>/<ol>` 换成了
+       `<div class="series-row">` + `<span class="series-name">` +
+       `<span class="series-posts">`（`<a>` 直接铺，不再套 `<li>`）。
+
+       ⚠️ 类名与 partials/custom_head.html 第 09 段是一份契约，改一处要改两处。
+       ⚠️ 别再退回 <details> 折叠 —— 那是被用户明确否掉的第一版形态。 */ -}}
+  {{- $seriesNames := slice -}}
+  {{- range $posts -}}{{- with .Params.series -}}{{- $seriesNames = $seriesNames | append . -}}{{- end -}}{{- end -}}
+  {{- $seriesNames = $seriesNames | uniq | sort -}}
+  {{ if $seriesNames }}
+  <section class="archive-series" aria-label="系列文章">
+    {{- range $seriesNames }}
+    {{- $name := . -}}
+    {{- $group := (where $posts "Params.series" $name).ByDate }}
+    <div class="series-row">
+      <span class="series-name">{{ $name }}<span class="series-label-count">{{ len $group }} 篇</span></span>
+      <span class="series-posts">
+        {{- range $group -}}
+          {{- /* 标题里的系列前缀（「综述写作之-」「居家流水账-」）和旁边的系列名
+                 重复了，剥掉才读得通；完整标题留在 title 里，鼠标停一下还能看到。
+                 与文章页文末系列带用同一套剥法，两处保持一致。 */ -}}
+          {{- $label := strings.TrimPrefix (printf "%s之-" $name) .Title -}}
+          {{- $label = strings.TrimPrefix (printf "%s-" $name) $label -}}
+          <a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ $label }}</a>
+        {{- end }}
+      </span>
     </div>
-  </details>
-{{ else }}
-  <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
-{{ end }}
-</section>
+    {{- end }}
+  </section>
+  {{ end }}
+
+  <ul class="blog-posts">
+    {{ $currentYear := 0 }}
+    {{ range $posts }}
+    {{ if not .Params.hidden }}
+    {{ if .Site.Params.groupByYear }}
+    {{ $year := .Date.Year }}
+    {{ if ne $year $currentYear }}
+    <h3>{{ $year }}</h3>
+    {{ $currentYear = $year }}
+    {{ end }}
+    {{ end }}
+    <li>
+      <span class="{{ if .Site.Params.groupByYear }} grouped {{ else }} ungrouped {{ end }}">
+        <i>
+          <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
+            {{ if .Site.Params.groupByYear }}
+            {{ .Date.Format (default "02 Jan." .Site.Params.dateFormat) }}
+            {{ else }}
+            {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
+            {{ end }}
+          </time>
+        </i>
+      </span>
+      <a href="{{ .Permalink }}">{{ partial "orphan-safe.html" .Title }}</a>
+    </li>
+    {{ end }}
+    {{ else }}
+    <li>
+      这里还没有内容。
+    </li>
+    {{ end }}
+  </ul>
+
+  {{- /* ---------- 全部标签（2026-10-11 补回，照 yinji.org/blog）-----------------
+
+       上游 list.html 本来就在 `</ul>` 后面铺一遍全部标签（那 10 行），
+       迁移时整块删掉了（见文件头注释 ③）。用户 2026-10-11 要求
+       「照 yinji 的归档页加一个 tags 目录」，于是按上游/yinji 的**原样**补回来：
+       `<small>` 包一层、里面一个 `<div>`、每个标签 `<a>#名字</a>&nbsp;` 平铺。
+       yinji.org/blog 的产物结构与这里逐字相同（我 curl 下来比过它的 279 个标签）。
+
+       ⚠️ **这与当年删掉的「标签墙」不是一回事，别当成推翻了旧决定：**
+          那不是**标签云** —— 没有字号分级、没有按权重排序，就是一行小字平铺。
+          这里也没做分级，`#` + 名字 + `&nbsp;` 而已。「不要标签云」那条说的是
+          「按篇数分档字号」那种，仍然有效。
+
+       ── 排序：数字 → 英文 → 中文（用户明确要求）────────────────────────
+       它**不是**这里写出来的，而是 `range` 一个 map 时 Go 模板自动按 key 升序：
+       `.Site.Taxonomies.tags` 是 `map[string]WeightedPages`，Go 对基础类型 key 排序，
+       字符串按**字节**比。字节序恰好就是
+           数字 0-9 (0x30–0x39) < 英文 (0x41–0x7A) < 汉字 (0x4E00+)
+       而汉字之间是**码位序**（丁 U+4E01 < 万 U+4E07 < 三 U+4E09 …）。
+       yinji.org/blog 的 279 个标签正是这个顺序（数字 4 → 英文 84 → 中文 191），
+       所以照抄上游就能得到要的排序，**不需要额外 sort**。
+       ⚠️ 本站现状（2026-10-11）：184 个标签 = 英文 9 + 中文 175，**没有数字标签**。
+       ⚠️ 字节序的副作用：英文内部**不严格按字母表**。大写 `I`(0x49) 排在小写
+          `a`(0x61) 前面 —— 哪天加了 `iOS` 这类标签，它会插在小写标签**之前**。
+          要严格「数字 → 英文（不分大小写字母序）→ 中文」，得自己 sort，
+          做法写在 MAINTENANCE.md 第 4 节。
+          验收脚本里数一遍三类各占多少，顺序变了才看得见（MAINTENANCE 第 7 节第 9 条）。
+
+       ── 显示文字用 `.Page.Title` ─────────────────────────────────────
+       Hugo 的 `titleCaseStyle` 默认是 AP 风格，所以 `ai` → `#AI`、`nba` → `#NBA`、
+       `hugo` → `#Hugo`，与 yinji 的 `#Ai` 是同一套规则（只是 Hugo 版本更新、缩写表更全）。
+       ⚠️ 唯一难看的是 `iphone` → `#IPhone`。想改有两个办法，**都别擅自做**：
+          ① `hugo.toml` 加 `titleCaseStyle = "none"` —— 全部按 front matter 原样
+             （变成 `#iphone`，同时也把 `#AI` 变回 `#ai`，得一并接受）；
+          ② 内容层把那个标签改成 `iPhone`（但 Title 仍会算成 `IPhone`，所以只有 ① 真管用）。
+
+       ⚠️ 链接落在 `/tags/<slug>/` **词条页**（kind `term`，一直存在）。
+          `/tags/` **索引页**是 `hugo.toml` 里 `disableKinds = ["taxonomy"]` 关掉的，
+          产物里没有那个目录 —— **别把这里改成链到 `/tags/`**，会 404。
+       ⚠️ 这一块在 `<ul class="blog-posts">` **外面**，所以归档页顶部那个搜索框
+          （它只遍历 `.blog-posts li`）不会把它过滤掉。想让它跟着筛，得改那段脚本。
+
+       ⚠️⚠️ **别写成 `{{ with .Site.Taxonomies.tags }}` 然后在里面 `range .Site.…`。**
+           `with` 会**把 `.` 重绑定**成那个 map，里面的 `.Site` 于是从「map 的键」里找，
+           找不到就是 nil → range 一个 nil 得到 **0 次迭代**，产物是
+           `<small class=tag-index><div></div></small>`（**空块、构建 0 警告**，
+           2026-10-11 就这样栽了一次）。所以这里先存进 `$tagList` 再
+           `range $name, $pages := $tagList`，全程用 `$` 变量，不依赖 `.` 的含义。
+       ⚠️ 顺带记一个反直觉现象，能帮下次定位：**`with` 判空用 `len>0`**，
+          所以「`<small>` 渲染出来了、里面却是空的」= map 非空 + `range` 取到了 nil，
+          而不是「没有标签」。真没有标签时整个 `<small>` 都不该出现。
+
+       ⚠️ `class="tag-index"` 加在 **`<small>` 上**（上游原位是裸 `<small>`），
+          与 `partials/custom_head.html` 第 09 段是一份契约，改一处要改两处。
+          那一条规则只做一件事：把 `<small>` 变块级并补回 `margin-bottom: 16px`
+          —— 因为 `<small>` 默认 inline，会让原本「`<ul>` 的 1em 下边距折叠穿透 main」
+          失效，**页脚会贴住标签**（实测 16px → 0）。原因写在第 09 段那段注释里。 */}}
+  {{- $tagList := .Site.Taxonomies.tags }}
+  {{- if $tagList }}
+  <small class="tag-index">
+    <div>
+      {{- range $name, $pages := $tagList -}}
+      <a href="{{ $pages.Page.Permalink }}">#{{ $pages.Page.Title }}</a>&nbsp;
+      {{- end }}
+    </div>
+  </small>
+  {{- end }}
+</content>
 {{ end }}

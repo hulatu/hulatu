@@ -1,0 +1,19 @@
+{{- /* 代码块「复制」按钮的脚本（2026-10-11）
+       —— **只在含代码块的页面加载**
+
+       判据与 custom_head.html 第 12 段（代码配色）**完全一致**：
+           and .IsPage (strings.Contains .Content "class=\"highlight\"")
+       `div.highlight` 是 Hugo 自己给围栏代码块加的外层 div，
+       所以 `{{< highlight >}}` 短代码写的块也能命中。
+       实测全站 327 页里 **5 页**命中 —— 不判断的话其余 322 页都要为它付一次请求。
+
+       ⚠️ 别用 `strings.Contains .RawContent "```"`：抓不到短代码写法。
+       ⚠️ 改判断条件要同时改三处：这里、custom_head.html 第 12 段、第 18 段。
+
+       脚本本体在 assets/js/code-copy.js。接入方式与 giscus.js 一致
+       （minify + fingerprint + SRI + defer）—— 这两个是全站仅有的两个 JS。 */ -}}
+{{- $hasCode := and .IsPage (strings.Contains .Content "class=\"highlight\"") -}}
+{{- if $hasCode -}}
+{{- $codeCopyJs := resources.Get "js/code-copy.js" | minify | fingerprint -}}
+<script src="{{ $codeCopyJs.RelPermalink }}" integrity="{{ $codeCopyJs.Data.Integrity }}" crossorigin="anonymous" defer></script>
+{{- end -}}

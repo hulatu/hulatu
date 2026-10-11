@@ -1,36 +1,47 @@
+{{- /* 评论区（giscus）。从 ~/Blog 原样移植，令牌与类名保持一致，
+       assets/js/giscus.js 靠下面这 5 个 id 和 .is-open 类工作，改名字要两边一起改：
+
+         #giscus-box      最外层 <details>
+         #giscus-toggle   胶囊按钮（<summary>）
+         #giscus-loading  加载提示（在 .giscus-body **外面**）
+         #giscus-body     折叠容器（max-height + visibility）
+         #giscus-slot     脚本注入点，data-* 就是 giscus 的配置
+
+       ⚠️ <details> **恒带 open**（始终展开），折叠由 .is-open 类 + max-height 控制 ——
+       这是刻意的：收起态必须用 max-height:0 + visibility:hidden 藏住（而非 display:none），
+       iframe 才保有正常布局宽度，giscus 测算高度不会算出 0（理由详见 custom_head.html）。
+       JS 里 preventDefault 掉 summary 的原生 toggle，改由状态机接管展开/收起。
+
+       提示放在 .giscus-body 外面：正文没就绪时 body 是收着的（max-height: 0），
+       提示放里面就跟着被裁掉、看不见了。
+
+       2026-10-11 简化：去掉了原来包在 #giscus-slot 外面那层 .giscus-inner
+       （它的唯一作用是给旧版的圆角外框让出 18px 内边距，框没了它就没用了），
+       同时 summary 从「胶囊按钮」变成一行纯文字 —— 这些都只是 CSS 的事，
+       下面这 5 个 id 一个都没动，assets/js/giscus.js 不用改。 */ -}}
 {{- if site.Params.giscus.repo -}}
-{{- /* 2026-10-03：折叠开关改成 <details> 胶囊按钮，与打赏块同一套样式。
-         ⚠️ <details> **恒带 open**（始终展开），折叠由 .is-open 类 + max-height 控制 ——
-         这是刻意的：收起态必须用 max-height:0 + visibility:hidden 藏住（而非 display:none），
-         iframe 才保有正常布局宽度，giscus 测算高度不会算出 0（理由详见 post.css 注释）。
-         JS 里 preventDefault 掉 summary 的原生 toggle，改由状态机接管展开/收起。 */ -}}
   <details class="giscus-box" id="giscus-box" open>
     <summary class="giscus-toggle" id="giscus-toggle" aria-label="展开评论">
       <span class="giscus-toggle-text">{{ .title | default "评论" }}</span>
     </summary>
-    {{- /* 加载 / 重试提示放在 .giscus-body **外面**：正文没就绪时 body 是收着的
-           （max-height: 0），提示放里面就跟着被裁掉、看不见了。 */ -}}
     <p class="giscus-loading" id="giscus-loading" hidden aria-live="polite">正在加载评论…</p>
     <div class="giscus-body" id="giscus-body">
-      <div class="giscus-inner">
-        <div id="giscus-slot"
-          data-repo="{{ site.Params.giscus.repo }}"
-          data-repo-id="{{ site.Params.giscus.repoId }}"
-          data-category="{{ site.Params.giscus.category }}"
-          data-category-id="{{ site.Params.giscus.categoryId }}"
-          data-mapping="{{ site.Params.giscus.mapping | default "pathname" }}"
-          data-strict="{{ if site.Params.giscus.strict }}1{{ else }}0{{ end }}"
-          data-reactions-enabled="{{ if site.Params.giscus.reactions }}1{{ else }}0{{ end }}"
-          data-emit-metadata="{{ if site.Params.giscus.emitMetadata }}1{{ else }}0{{ end }}"
-          data-input-position="{{ if .inputPosition }}{{ .inputPosition }}{{ else }}{{ site.Params.giscus.inputPosition | default "bottom" }}{{ end }}"
-          data-theme="preferred_color_scheme"
-          data-lang="{{ site.Params.giscus.lang | default "zh-CN" }}"></div>
-      </div>
+      <div id="giscus-slot"
+        data-repo="{{ site.Params.giscus.repo }}"
+        data-repo-id="{{ site.Params.giscus.repoId }}"
+        data-category="{{ site.Params.giscus.category }}"
+        data-category-id="{{ site.Params.giscus.categoryId }}"
+        data-mapping="{{ site.Params.giscus.mapping | default "pathname" }}"
+        data-strict="{{ if site.Params.giscus.strict }}1{{ else }}0{{ end }}"
+        data-reactions-enabled="{{ if site.Params.giscus.reactions }}1{{ else }}0{{ end }}"
+        data-emit-metadata="{{ if site.Params.giscus.emitMetadata }}1{{ else }}0{{ end }}"
+        data-input-position="{{ if .inputPosition }}{{ .inputPosition }}{{ else }}{{ site.Params.giscus.inputPosition | default "bottom" }}{{ end }}"
+        data-theme="preferred_color_scheme"
+        data-lang="{{ site.Params.giscus.lang | default "zh-CN" }}"></div>
     </div>
   </details>
-  {{- /* 行为逻辑在 assets/js/giscus.js：只有这一页真的带评论才加载它，
-         不塞进全站 bundle（那 320 个页面都要为它付费）。
-         预加载 / 展开状态机、data-state 的含义都写在那个文件头部。 */ -}}
+  {{- /* 只有这一页真的带评论才加载这个脚本，不塞进全站 —— 不然 300 多个
+         页面都要为它付一次请求。它自己会等滚到评论区前 400px 才注入 giscus。 */ -}}
   {{- $giscusJs := resources.Get "js/giscus.js" | minify | fingerprint -}}
   <script src="{{ $giscusJs.RelPermalink }}" integrity="{{ $giscusJs.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- end -}}

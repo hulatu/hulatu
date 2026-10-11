@@ -2,70 +2,77 @@
 title: "关于"
 description: "关于胡拉图——一名食品领域的工科研究生。这里记录我的思考、跑步、写作与工具折腾，也分享生活观察、成长体会和那些不那么一样的日常。"
 date: 2026-08-01T00:00:00+08:00
+# 独立页不该挂「某天」的日期，页面上的日期行关掉（由站点层 single.html 识别）。
+# ⚠️ date 本身保留：RSS / og:article:published_time 等 meta 还要用。
+hideDate: true
+# 2026-10-11：**页面标题整行不显示**（照 yinji.org/about.html）。
+# 标题只留在 <title>（「关于 | 胡拉图说」）和导航高亮里 ——
+# 导航里那项 About 已经在指示「你在哪一页」，正文顶上再写一遍「关于」是冗余。
+# ⚠️ 与 hideDate 是两个独立开关；本页两个都开了。
+# ⚠️ 开关实现在站点层 layouts/_default/single.html（上游主题没有这个键）。
+hideTitle: true
 draft: false
-layout: "about"
-about:
-  role: "食品领域研究生"
-  location: "郑州"
-  tagline: "记录思考、跑步、写作；分享一些折腾经历。"
-  focus: ["跑步", "写作", "工具折腾", "思考", "观察"]
-  intro:
-    - "泥嚎！欢迎来到我的世界。我叫胡拉图，欢迎大家叫我朋朋。"
-    - "一名不谈专业、只聊生活、热爱折腾的工科研究生。目前在郑州上学，平时喜欢捣鼓电子设备、观察思考、写作分享，和折腾新的生产力工具。"
-    - "这个博客用来记录观察、思考和一些不一样的日常。"
-    - "博客搭建基于 Hugo 框架，借助 Codex 调试的博客主题。"
-  site:
-    - label: "首页"
-      note: "日常文章，按时间倒序，记录观察、思考和生活。"
-      url: "/"
-    - label: "花园"
-      note: "我的个人页面，个人的数字后花园。"
-      url: "https://profile.hulatu.com/"
-    - label: "归档"
-      note: "全部文章按年份、月份折叠分组，方便按时间翻阅。"
-      url: "/archive/"
-    - label: "周刊"
-      note: "每周日更新：值得一读的文章、好用的工具、只言片语。"
-      url: "/weekly/"
-    - label: "分类"
-      note: "按主题分类浏览，快速找到同一话题的文章。"
-      url: "/categories/"
-    - label: "标签"
-      note: "文章里的一些关键词展示。"
-      url: "/tags/"
-    - label: "友链"
-      note: "我常读的博客，以及互相交换过链接的朋友。"
-      url: "/friends/"
-    - label: "书影音"
-      note: "读过的书、看过的影像、听过的音乐。数据从豆瓣同步，所以它会自己长。"
-      url: "/media/"
-  subscribe:
-    - label: "全部文章"
-      note: "包含本站所有文章"
-      url: "https://hulatu.com/index.xml"
-    - label: "周刊专线"
-      note: "仅包含周刊内容"
-      url: "https://hulatu.com/weekly/index.xml"
-  platforms:
-    - label: "即刻"
-      url: "https://web.okjike.com/u/25B20BAD-D356-4801-AC0E-093CD1334AF5"
-    - label: "知乎"
-      url: "https://www.zhihu.com/people/hulatu"
-    - label: "少数派"
-      url: "https://sspai.com/u/hulatu/updates"
-    - label: "小红书"
-      url: "https://www.xiaohongshu.com/user/profile/68a9d4e5000000001a00fcf9"
-    - label: "公众号"
-      note: "点开查看二维码"
-      url: "https://img.hulatu.com/post/bk7UaF.webp"
-  contacts:
-    - label: "QQ"
-      note: "点开查看二维码"
-      url: "https://img.hulatu.com/post/paIl9a.webp"
-    - label: "WX"
-      note: "点开查看二维码"
-      url: "https://img.hulatu.com/post/qbD1Mk.webp"
-    - label: "Gmail"
-      note: "点击给我发邮件"
-      url: "mailto:hello@hulatu.com"
 ---
+
+大家好，我叫胡拉图。之所以取这个网名，一方面因为我姓胡，加上我很喜欢的 2 个人物——柏拉图和大耳朵图图，也算是一种反差系的组合，但我真的很喜欢他们俩——一个带来智慧、一个带来快乐。某种意义上来说，他俩都给我带来了快乐和智慧。
+
+希望我也能成为一个给别人带去快乐、带去思考的人。
+
+但我不喜欢大家直呼我的全名，尤其是带着姓氏的称呼，我真的很不喜欢。我还是喜欢大家亲切的称呼我为朋朋、图图。或者我的英文名 Chip。
+
+我是 2001 年的一名男生，本科和硕士都在学习食品领域的知识，目前是一名工科在读研究生（27 年 6 月毕业），上学地点在郑州，有附近的好朋友，也可以主动约我一起吃吃饭、聊聊天、跑跑步、骑骑车、玩一玩，很乐意参加这种活动。
+
+21 年开始写东西，那时候是公众号，一直慢慢写到今天，有了爱记录、分享的习惯，那时候倒不能说有多喜欢写东西，因为你要说每天让我更新东西的话，我当然会觉得有压力、不爽。但神奇的地方是你要是让我一周、一个月不写点什么，那也是一种难受、折磨。所以一直写到今天，自己的收集信息、观察现象、思考问题、自我表达等全方位地能力，我觉得有不少提升，虽然还远达不到多么优秀的水平，但能感知到进步，本就是一种质变。
+
+我的博客，不会像计算机专业的友友那样有多新颖、先进的技术分享。除了我并非是计算机专业的学生外，我个人也不太喜欢「缺少生活气息」的博客，所以我的博客不会那么硬核，会多一些温度和烟火气。
+
+我的博客主要包含 **现象 / 思考 / 运动 / 健康 / 写作 / Mac / AI / 电子产品经验** 的分享。我有一些折腾工具、电子产品的经历，分享出来是一种乐趣，也是一种经验。
+
+关于我更完整的自我介绍，可以看这篇 [关于我](/posts/2025/12/05/personal-profile/)。
+
+想知道我**此刻**在忙什么，可以看 [现在](/now/) —— 这一页会把最近的安排，简单的列出来。
+
+## 订阅我 {#ding-yue-wo}
+
+本站有两种订阅选择，请按需选择。
+
+- **全部文章** — 包含本站所有文章。[RSS](https://hulatu.com/index.xml)
+- **周刊专线** — 仅包含周刊内容。[RSS](https://hulatu.com/weekly/index.xml)
+
+## 联系我 {#lian-xi-wo}
+
+- **QQ** — 点开查看二维码 [查看](https://img.hulatu.com/post/paIl9a.webp)
+- **Gmail** — 点击给我发邮件 [写信](mailto:hello@hulatu.com)
+- **WeChat** — 点开查看二维码 [查看](https://img.hulatu.com/post/qbD1Mk.webp)
+
+## 博客技术 {#bo-ke-ji-shu}
+
+我的博客搭建基于 Hugo 框架，基于 BearNeo 主题，参考了 [印记](https://yinji.org/) 的博客设计，借助 Workbuddy 调试的博客主题，偏极简风。
+
+我的域名购买自 Cloudflare（后面简称 CF），博客也托管运行在 CF。
+
+我的评论功能，使用的是 giscus，简单省心，够用。
+
+图床使用 Cloudflare R2 搭建，对于我个人足够使用，而且图床里的链接直接复制粘贴到公众号，可正常显示。
+
+我的数据统计功能使用的是 GoatCounter，我只开启了浏览量的统计，没有其他任何的隐私收集。
+
+## 博客导览 {#bo-ke-dao-lan}
+
+本站的主要栏目，按需逛逛。
+
+- **花园** — 我的个人页面，个人的数字后花园。[去花园](https://profile.hulatu.com/)
+- **首页** — 日常文章，按时间倒序，记录观察、思考和生活。[去首页](/)
+- **文章** — 全部文章，按年份分组，从新到旧。[去文章](/archive/)
+- **周刊** — 每周日更新：值得一读的文章、好用的工具、只言片语。[去周刊](/weekly/)
+- **收藏** — 我常读的博客、认识的朋友，以及常逛的中文博客圈和聚合站。[去收藏](/roll/)
+- **现在** — 我此刻在做的事，更新得比文章勤，也比文章短。[去看看](/now/)
+
+## 博客历史 {#bo-ke-li-shi}
+
+- 2025/09-2026/05：使用、折腾 PaperMod 主题
+
+- 2025/05-2026/10：尝试各种主题，比如 Blowfish、Bear、自建主题。
+
+- 2025/10-……：希望这个基于 BearNeo 微调的主题，可以伴随我产生更多的内容，而不用花费过多时间和注意力在博客的样式折腾上。
+

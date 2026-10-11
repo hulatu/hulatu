@@ -1,0 +1,137 @@
+{{- /* ============================================================
+       面包屑导航（站点层新增，上游主题与 yinji.org 都没有）
+       —— 2026-10-11
+
+       ── 为什么只给「文章页」挂 ──────────────────────────────────────
+       全站 327 页分四类，只有文章页（posts + weekly，共 125 页）真有层级：
+
+         A. 文章页 /posts/年/月/日/slug/      ← 有层级，本 partial 负责
+         B. 标签 / 分类词条页                   ← 本身就是一次「筛选」，
+                                                 页面顶部已经有「筛选：xxx / 取消筛选」，
+                                                 再加面包屑是重复（没挂）
+         C. 首页、/about/、/now/、/roll/ ...   ← 一级页面，导航高亮已经指示位置，
+                                                 「首页 / 关于」是纯冗余（没挂）
+         D. /archive/、/weekly/ 列表页          ← 一级页面（同上）
+
+       ⚠️ **C 类里 /roll/ /about/ /now/ 是 2026-10-11 刚去掉页面标题的**，
+          在那三页顶上再加一行「首页 / 收藏」会把它们重新垫高、
+          把「正文首行距导航 28px」那个刚对齐的结果改掉。**别顺手给它们加。**
+
+       ── 路径有几种（2026-10-11 第二轮：用户要求「加入我的分类」）──────
+         普通文章   首页 / 文章 / 思考          ← 三段
+         周刊       首页 / 周刊                 ← 两段（为什么不加第三段见下）
+         没有分类的文章（理论上不存在） 首页 / 文章
+         接着紧接着就是 <h1> 标题
+
+         · 第二段「文章」→ `/archive/`，即导航里的 `Posts`（列出全部 125 篇）
+         · 第二段「周刊」→ `/weekly/`，周刊有自己的栏目页
+         · 第三段是**分类名**，→ `/categories/<分类>/` 词条页
+           （实测 8 个分类的词条页都存在：思考 / 周刊 / 记录 / 工具 /
+             运动 / 学习科研 / 饮食 / 健康）
+
+         ⚠️ **周刊刻意不加第三段**：周刊文章的 `categories` 就是 `["周刊"]`，
+            与第二段的栏目名**一模一样**，加了会变成「首页 / 周刊 / 周刊」。
+            这不是漏写 —— 是「栏目名 == 分类名」时去重。
+         ⚠️ **每篇只有一个分类**（实测 125 篇 / 8 个值 / 无多分类），
+            所以直接取第一个。`{{ range 第一个 }}` 不用循环。
+            万一以后出现多分类的文章，这里只会显示**第一个** ——
+            面包屑本来就只表达一条路径，多分类要列出来是另一件事。
+         ⚠️ 取分类用 `.GetTerms "categories"` 而不是 `.Params.categories`：
+            前者给的是**词条页对象**（有 `.LinkTitle` 和 `.RelPermalink`），
+            后者只有字面字符串，还得自己拼 URL。
+
+       ── 形态：只显示「祖先」，不显示当前页 ──────────────────────────
+       常规面包屑末尾会再带一个当前页标题，但**这里刻意不带**，两个理由：
+         · 紧接着的 <h1> 就是同一个标题，连着写两遍是冗余；
+         · 本站标题偏长（「工科研究生用 Mac，也可以很完美」17 字），
+           在窄屏上最后一段必然折行，把这一行撑成两行。
+        ⚠️ SEO 那份不受影响 —— 下面的 JSON-LD 里**是完整的**（含当前文章），
+           搜索引擎拿到的是标准 BreadcrumbList。
+           视觉精简 + 数据完整，两者不冲突。
+
+       ── 分隔符用 `/` ────────────────────────────────────────────────
+       与首页那行平台链接（`公众号 / 少数派 / 小红书 …`）同一套写法，
+       不是 `›` 也不是 `>`。别换成箭头 —— 全站没有箭头语言。
+       分隔符画在 CSS 里（`li + li::before`），不在模板里。
+
+       ── 为什么把 JSON-LD 也放这个文件 ───────────────────────────────
+       JSON-LD 允许出现在 <body> 里（Google 明确支持），
+       所以把「可见的 nav」和「给机器看的 BreadcrumbList」写在同一个 partial，
+       免得在 custom_head.html 里把这段层级逻辑再算一遍。
+       ⚠️ 它输出的 `<script type="application/ld+json">` 紧跟在 nav 之后，
+          不是 head 里 —— 这是有意的，别为了「规范」把它拆出去。
+       ============================================================ */ -}}
+{{- $isPost := and .IsPage (in (slice "posts" "weekly") .Type) -}}
+{{- if $isPost -}}
+
+  {{- /* ---------- 第二段：栏目 ---------- */ -}}
+  {{- $sectionName := "文章" -}}
+  {{- $sectionURL := "/archive/" -}}
+  {{- if eq .Type "weekly" -}}
+    {{- $sectionName = "周刊" -}}
+    {{- $sectionURL = "/weekly/" -}}
+  {{- end -}}
+
+  {{- /* ---------- 第三段：分类（周刊不加，见文件头注释）---------- */ -}}
+  {{- $catName := "" -}}
+  {{- $catURL := "" -}}
+  {{- if ne .Type "weekly" -}}
+    {{- with .GetTerms "categories" -}}
+      {{- $first := index . 0 -}}
+      {{- $catName = $first.LinkTitle -}}
+      {{- $catURL = $first.RelPermalink -}}
+    {{- end -}}
+  {{- end -}}
+
+<nav class="breadcrumbs" aria-label="面包屑">
+  <ol>
+    <li><a href="{{ .Site.Home.RelPermalink }}">首页</a></li>
+    <li><a href="{{ $sectionURL | relURL }}">{{ $sectionName }}</a></li>
+    {{- with $catName }}
+    <li><a href="{{ $catURL }}">{{ . }}</a></li>
+    {{- end }}
+  </ol>
+</nav>
+
+  {{- /* ---------- BreadcrumbList（含当前文章，比可见的那行多一段）---- */ -}}
+  {{- $items := slice
+    (dict "@type" "ListItem" "position" 1 "name" "首页" "item" .Site.Home.Permalink)
+    (dict "@type" "ListItem" "position" 2 "name" $sectionName "item" (absURL $sectionURL)) -}}
+  {{- $pos := 2 -}}
+  {{- with $catName -}}
+    {{- $pos = add $pos 1 -}}
+    {{- $items = $items | append (dict "@type" "ListItem" "position" $pos "name" . "item" (absURL $catURL)) -}}
+  {{- end -}}
+  {{- $items = $items | append (dict "@type" "ListItem" "position" (add $pos 1) "name" $.Title "item" $.Permalink) -}}
+  {{- $ld := dict "@context" "https://schema.org" "@type" "BreadcrumbList" "itemListElement" $items -}}
+
+{{- /* ⚠️⚠️ 下面这一行有三个坑，2026-10-11 三个都踩过，别改：
+
+       ── ① 必须 `| safeJS`，否则整段 JSON 被包成 JS 字符串 ──────────────
+       Go 的 html/template 把 `<script>` 一律当 **JS 上下文**处理（哪怕
+       type 是 application/ld+json），对普通 string 插值做 JS 字符串编码：
+           <script type="application/ld+json">"{\"@context\":\"https:\/\/schema.org\"…}"</script>
+       注意最外层那对引号 —— 它让整段变成一个**字符串**而不是**对象**，
+       Schema.org 不认。（只写 jsonify 就是这个结果，实测过。）
+       `safeJS` 把它标成 template.JS，才会原样输出。
+
+       ── ② 中间**不能加任何别的过滤器**，哪怕只是为了「加固」 ────────────
+       `jsonify` 返回的是 **template.HTML**（Hugo 特地把 JSON 标成 HTML 安全）；
+       而 `replace` 这类函数返回的是**普通 string**，类型被降级 →
+       后面即使接了 safeJS，也还是走 ① 那条路被包成字符串。
+       所以 `jsonify | replace … | safeJS` 是**错的**，输出还是带引号的字符串。
+
+       ── ③ 那个 replace 本身也是错的写法（管道参数位置） ──────────────
+       Go 模板的管道把**左侧的值作为最后一个参数**传给右侧命令：
+           `$x | replace "</" "<\/"`  实际等于  `replace "</" "<\/" $x`
+       而 Hugo 的 `replace` 签名是 `replace INPUT OLD NEW`（INPUT 在**第一个**）——
+       于是 INPUT 变成了字面量 `</`，返回值就是 `</`（实测输出确实只剩两个字符）。
+       **要调 replace 就显式传参**：`replace $x "old" "new"`，别走管道。
+
+       ── 那还需要防 `</script>` 截断吗？不需要 ────────────────────────
+       Hugo 的 `jsonify` **自己就会把 `<` `>` `&` 转义**成 `\u003c` `\u003e` `\u0026`
+       （实测：`"标题<测试> & 符号"` → `"标题\u003c测试\u003e \u0026 符号"`）。
+       所以 JSON 里永远不会出现字面量 `</script>`，① 之外不用再做任何事。
+       ⚠️ 也因此 build 不会因为标题里有尖括号而炸 —— 别自己加转义，加了反而坏事。 */ -}}
+<script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>
+{{- end -}}

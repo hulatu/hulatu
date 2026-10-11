@@ -1,166 +1,103 @@
 {{ define "main" }}
-{{ $toc := .TableOfContents}}
-{{ $hasToc := in $toc "<li" }}
-{{- /* Hugo 的目录自带 `<nav id="TableOfContents">`，页面里有两份（右侧刻度栏 + 正文开头），
-       这里给正文那份换个 id，避免重复 id 的无效 HTML。 */ -}}
-{{- $tocInline := replaceRE `id="TableOfContents"` `id="TableOfContentsInline"` $toc -}}
-{{- /* 是不是「文章」：文章才有发布/更新日期、分类标签、相关文章和评论。
-       周刊和普通文章都算（它们共用一套文章版式），根目录的普通页面不算。 */ -}}
-{{- $isArticle := and .IsPage (in (slice "posts" "weekly") .Type) -}}
-{{ $isWeekly := eq .Type "weekly" }}
-{{- $relatedPosts := slice -}}
-{{- if $isArticle -}}
-  {{- $relatedCandidates := where (site.RegularPages.Related .) "Type" "in" (slice "posts" "weekly") -}}
-  {{- $relatedPosts = first 3 (where $relatedCandidates "Permalink" "!=" .Permalink) -}}
-{{- end -}}
+{{- /* 站点层覆盖：上游这一行是 {{ if eq .Type "blog" }}，把标题和日期写死给了 blog 段。
+       于是 /weekly/ 的 24 篇文章、/about/、/privacy/ 全都渲染成「没有标题、没有日期」的裸正文。
+       这里只把这一层条件去掉，其余（正文、标签、点赞、TOC、Mermaid）原样保留。 */ -}}
+{{- /* 页面是否属于「长文页」（文章 + 周刊）。文末的系列带、上一篇/下一篇、
+       评论区都只挂在这两类上，所以提到最前面算一次，后面复用。
+       ⚠️ 别在下面再写一次 `$longForm :=` —— 同一层作用域重复声明会直接构建失败。 */ -}}
+{{- $longForm := and .IsPage (in (slice "posts" "weekly") .Type) -}}
+{{- /* 面包屑（站点层 partial，只对文章页输出）。放在 <h1> 之前 ——
+       它是「当前位置」的指示，必须在标题上面。见 partials/breadcrumbs.html。 */ -}}
+{{- partial "breadcrumbs.html" . -}}
+{{ if not .Params.menu }}
+{{- /* 标题行。front matter 写 `hideTitle: true` 可以**整行**藏掉 ——
+       目前只有 /roll/ 用它：那一页照 yinji.org/roll 做成一条平铺的收藏清单，
+       页面上不出标题（标题只留在 <title> 和导航高亮里）。
+       ⚠️ 和 hideDate 是两个开关，互不影响：/roll/ 两个都开了。 */ -}}
+{{ if not .Params.hideTitle }}
+<h1>{{ partial "orphan-safe.html" .Title }}</h1>
+{{ end }}
+{{- /* 日期行。front matter 写 `hideDate: true` 可以只藏掉这一行 ——
+       目前 /about/ 用了它（独立页挂一个「最后修改于某天」的日期没有意义）。
+       注意只影响页面上的显示：<meta property="article:published_time"> 等仍按 .Date 输出。 */ -}}
+{{ if and .Date (not .Params.hideDate) }}
+<p>
+  <i>
+    <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
+      {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
+    </time>
+  </i>
+</p>
+{{ end }}
+{{ end }}
 
-<article class="post-single {{ if $hasToc }}has-toc{{ end }}">
-  <header class="post-header">
-    <nav class="breadcrumb" aria-label="面包屑">
-      <a href="{{ "/" | relURL }}">首页</a>
-      {{ with .GetTerms "categories" }}
-        {{ range first 1 . }}
-        <span class="breadcrumb-sep" aria-hidden="true">›</span>
-        <a href="{{ .Permalink }}">{{ .Title }}</a>
-        {{ end }}
-      {{ end }}
-      <span class="breadcrumb-sep" aria-hidden="true">›</span>
-      <span class="breadcrumb-current" aria-current="page">{{ .Title }}</span>
-    </nav>
-    {{ if $isWeekly }}
-      {{- with .Params.issue -}}
-      <p class="issue-badge"><span class="issue-badge-label">周刊</span><span class="issue-badge-num">第 {{ . }} 期</span></p>
-      {{- end -}}
-    {{ end }}
-    {{- /* 标题末 2 字包 nowrap，避免末行只剩一个字（见 partials/orphan-safe.html）。 */ -}}
-    <h1 class="post-title">{{ partial "orphan-safe.html" .Title }}</h1>
-    {{- /* 文章才显示「发布于 / 更新于 / 字数 / 阅读时长」这行元信息。
-           根目录那类普通页面（隐私政策等）也走这个模板，但它们不是文章，
-           挂一行「发布于 2026-09-19 · 读 4 分钟」只会让人困惑。 */ -}}
-    {{ if $isArticle }}
-    <div class="post-meta">
-      <span class="post-meta-main">
-        {{- $pubDay := .Date.Format "2006-01-02" -}}
-        {{- $modDay := .Lastmod.Format "2006-01-02" -}}
-        {{- /* 「更新于」只在 lastmod 晚于 date 时出现。比的是完整时间戳，所以
-              当天写完、当天又改一版也会显示；那种情况下再补上时分，免得出现
-              「发布于 2026-09-28 · 更新于 2026-09-28」这种同一天、看着像没更新的写法。
-              lastmod 不会自己变，靠 publish.sh 跑 scripts/sync-lastmod.py 刷新：它只动
-              「这次真正改动过」的文件，没改过的老文章不会无缘无故多出一行。 */ -}}
-        {{- $modLabel := $modDay -}}
-        {{- if eq $modDay $pubDay -}}{{- $modLabel = .Lastmod.Format "2006-01-02 15:04" -}}{{- end -}}
-        {{- $readMinutes := div (add .WordCount 349) 350 -}}
-        {{- if lt $readMinutes 1 }}{{ $readMinutes = 1 }}{{ end -}}
-        {{- /* 这几段之间**不要**再写 <span class="post-meta-sep">·</span> 了。
-               分隔点现在长在前一段的 ::after 上（见 critical-post.css 的
-               .post-meta-main > *:not(:last-child)::after）—— 写成独立 span 的话
-               它自己就是一个 flex item，手机上换行时会掉到第二行行首，
-               出现「· 读 3 分钟」这种起头。 */ -}}
-        <time datetime="{{ $pubDay }}">发布于 {{ $pubDay }}</time>
-        {{- if gt .Lastmod.Unix .Date.Unix }}
-        <time datetime="{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}">更新于 {{ $modLabel }}</time>
-        {{- end }}
-        <span>约 {{ .WordCount }} 字</span>
-        <span>读 {{ $readMinutes }} 分钟</span>
-      </span>
-      <div class="post-chips-row">
-        {{ with .GetTerms "categories" }}
-          <span class="post-chips post-chips-cats">
-            {{- range . }}<a class="post-cat-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end -}}
-          </span>
-        {{ end }}
-        {{ with .GetTerms "tags" }}
-          <span class="post-chips post-chips-tags">
-            {{- range . }}<a class="post-tag-chip" href="{{ .Permalink }}">{{ .Title }}</a>{{ end -}}
-          </span>
-        {{ end }}
-      </div>
-    </div>
-    {{ end }}
-  </header>
+{{- /* 表格横向滚动包裹（2026-10-11 从旧「印章」主题取回）
+     宽表格在窄屏会**撑破容器**（内容区手机只有 352px），整页跟着横向滚动。
+     解法是在 `<table>` 外面套一层 `.table-wrap`，让**只有表格自己**横滚。
 
-  {{- /* 阅读位置记忆的提示条（`.resume`，「上次读到 62%」）2026-10-07 加、2026-10-08 撤（用户拍板）。
-         撤的理由：它只在「第二次访问同一篇长文、且落在页首」时出现，触发条件窄，
-         而实现是全站最重的一处（localStorage + 三态 + 预渲染闸门 + 三个按钮）。
-         出现率远低于实现成本 —— 文章页的「定位装置」本来就有六个，它是最不值得留的那个。
-         移除的落点（要加回来得四处一起补，别再只加一半）：
-           · 这里的结构块（`#resume` / `#resume-pct` / `#resume-go` / `#resume-restart`）
-           · assets/js/ui.js 末尾的 initResume() IIFE
-           · assets/css/critical-post.css 末尾的 `.resume*` 段
-           · content/privacy.md 里「阅读位置」那一条登记
-             （原先还有 content/colophon.md 一处，那一页 2026-10-09 整个删掉了）
-         连带后果：全站 localStorage 从两处回到一处（只剩搜索面板的最近搜索），
-         所以 privacy.md 那句「只用于两件事」也一并改成一件。 */ -}}
+     ⚠️ 为什么用 `replaceRE` 而不是 Goldmark 的 `render-table.html` 钩子：
+        那个钩子拿到的是 `.THead` / `.TBody` 这类**结构化数据**，
+        要自己把表头、表体、合并单元格全遍历一遍才能还原出表格 ——
+        为「加一层 div」重写整个表格渲染，代价远大于收益。
+        字符串替换在这里更简单、也更难写错（表格是块级元素，`<table` 不会出现在别处）。
+     ⚠️ `</table>` 要带 `>`：只写 `</table` 也行，但带上右尖括号更精确，
+        不会误伤假设中的 `</table-something>`。
+     ⚠️ `.Content` 本来是 `template.HTML`，过一次 `replaceRE` 会**降级成普通 string**
+        （这正是 `render-link.html` 注释里记过的类型坑），所以末尾必须 `safeHTML` 还原回来，
+        否则整篇 HTML 会被转义成可见的标签文本。
+     ⚠️ 没有表格的页面也走这两个 `replaceRE`（空转），代价是两次正则扫描 —— 可忽略。
+        全站只有 1 篇文章有表格（《工科研究生用 Mac，也可以很完美》，3 列）。 */ -}}
+{{- $content := .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table>" "</table></div>" -}}
+<content> {{ $content | safeHTML }} </content>
 
-  {{ if $hasToc }}
-  <div class="post-rail">
-    {{- /* .post-rail 是铺满「顶栏以下」的定位容器（本身 pointer-events: none、不吃点击），
-           整块目录靠它的 align-items: center 纵向居中。
+{{- /* ---------- 标签行（2026-10-11 改回单行）---------------------------
+     ⚠️ 这一行曾经在 2026-10-11 当天**短暂地变成两行**（`● 分类` + `#标签`），
+        用户当天就否掉了：「把我文章页底部的分类去掉」。
+        理由：文章页**页首的面包屑里已经有分类了**（`首页 / 文章 / 工具`），
+        文末再来一遍是重复；而标签是文章页独有的信息（面包屑里没有），所以只留标签。
 
-           ⚠️ `.post-toc` 上的 `width: 100%` 不能省 —— .post-rail 是 align-items: center
-           的 flex 容器，子项不撑满就会被居中成一团，目录里的长标题也就出不了省略号。
+     ⚠️ **别再把它加回来。** 分类的入口有两处，都不在文末：
+        · 页首面包屑的第三段（`/categories/<分类>/`）
+        · `/categories/<分类>/` 词条页本身（仍然生成，只是没有索引页）
+     想找分类入口，看 layouts/partials/breadcrumbs.html 而不是这里。
+     ⚠️ 用 `.GetTerms`（拿的是词条页对象，有 `.LinkTitle` / `.Permalink`），
+        不是 `.Params.tags`（那只有字面字符串）。
+     --------------------------------------------------------------- */ -}}
+{{- with .GetTerms "tags" }}
+<p>
+  {{- range . }}
+  <a href="{{ .Permalink }}">#{{ .LinkTitle }}</a>
+  {{- end }}
+</p>
+{{- end }}
 
-           这里原来还有一层 `.post-toc-wrap`（纵排「图钉 + 目录」两行）和那个图钉按钮，
-           2026-10-09 一起删了。理由：图钉解决的是「悬停才展开的目录想让它常驻」，
-           而现在**收起态本身就常驻显示当前标题**（滚动窗口，见 critical-post.css 的
-           `.post-rail .post-toc-nav`），要展开也只需把指针移上来 —— 图钉那个
-           「多做一次动作换一直保持一个姿势」的权衡不再成立。
-           少一层 DOM，也少一个需要学的按钮。
-           要加回来得四处一起补：这里的按钮、toc.js 的 initPin()、
-           critical-post.css 的 `.post-toc-pin` 与三处 `.post-rail.is-pinned …` 展开触发条件。 */ -}}
-    <aside class="post-toc">
-      <nav class="post-toc-nav">
-        {{ $toc | safeHTML }}
-      </nav>
-    </aside>
-  </div>
-  {{ end }}
+{{- /* ============================================================
+     文末导航（站点层新增，上游主题没有）—— 2026-10-11
+     两段，都在标签行之后、评论区之前：
+       ① 「系列」坐标带 —— 只有连载文章才有
+       ② 「上一篇 / 下一篇」—— 全站按日期排的邻居
 
-  {{ if $hasToc }}
-  {{- /* 窗口不够宽（<1152px，含手机）时，刻度栏放不下，目录就直接顶在正文前面；
-         点标题栏可收起。手机上默认收起，见 assets/js/toc.js 的 initInlineToc()。
-         1152px 这个数和 critical-post.css 里那条 min-width 是一对，改一处必须改另一处。 */ -}}
-  <details class="post-toc-inline" open>
-    <summary class="post-toc-inline-head">
-      <span class="post-toc-inline-title">目录</span>
-    </summary>
-    <nav class="post-toc-nav post-toc-inline-nav">{{ $tocInline | safeHTML }}</nav>
-  </details>
-  {{ end }}
+     为什么是这个顺序：读者读完正文，先想知道「我在这组连载里的哪一篇、上下篇是
+     哪两篇」（纵向），再想知道「时间线上的前后邻居」（横向），最后才是评论。
 
-  <div class="post-content">
-    {{- /* 公式块走 partials/formula.html（把独占一段的 $$…$$ 换成 <p class="formula">，
-           2026-10-07）。放在表格包裹之前、safeHTML 之前 —— 它处理的是 .Content 里的
-           HTML 字符串，和后面两条 replaceRE 互不干扰。 */ -}}
-    {{ partial "formula.html" .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table" "</table></div>" | safeHTML }}
-  </div>
+     ⚠️ 样式在 partials/custom_head.html 第 09 / 10 段（异步于首屏），
+        改类名要两处一起改。
+     ⚠️ 两段都**只给长文页**（posts + weekly）。独立页（/about/、/roll/ …）
+        既没有 series 也不该出现「上一篇」，用 $longForm 挡掉。
+     ============================================================ */ -}}
+{{- if $longForm }}
 
-</article>
+  {{- /* ---------- ① 系列坐标带 ------------------------------------------
+       数据口径与归档页的系列入口**完全一致**：都从 content 的 `series:` 字段
+       取组，都用 `.ByDate`（升序 = 连载顺序）定位，所以两处算出来的
+       「第 N / M 篇」必然一样，不会各说各话。
 
-<div class="post-end" aria-hidden="true"><span>完</span></div>
+       站里现有 3 组 21 篇：跑步 12 / 综述写作 5 / 居家流水账 4。
 
-{{ if $isArticle }}
-  {{- /* ---------- 文末「系列」带（2026-10-10 新增，用户拍板方案 A）----------
-       背景：站里已有 3 组 21 篇带 `series:` 字段（跑步 12 / 综述写作 5 / 居家流水账 4），
-       但在这次之前它**只被 archive.html 用了** —— 读者从搜索、外链、微信点进单篇时，
-       看不出自己在连载里的位置，也没有到同系列其他篇的出口。
-       而 archive.html 的注释里写着这个字段的用途正是「读者读完上篇不保证能走到下篇」，
-       问题在于**读者读单篇时不在归档页**。
-
-       数据与排序**照搬 archive.html**（`where … "Params.series" $name` + `.ByDate`，
-       升序 = 连载顺序），所以两处算出来的「第几篇」必然一致，不会各说各话。
-
-       形态：一条发丝线分节 + 一行「系列 · 名字 …… 第 N / M 篇」+ 最多两行上/下篇。
-       线语言与 .archive-series / .related-title 同源（层级靠线，不加底色、不加影）。
-       红色只落在「第 N / M 篇」这个位置指示上 —— 稀缺。
-
-       位置：**「完」印章之后、「相关文章」之前**。印章是正文的句号，
-       系列带是「这篇在连载里的坐标」，都属于「读完之后」的信息；
-       相关文章是按标签算的横向推荐，排在纵向的系列之后更顺。
-
-       ⚠️ 只有 `len $seriesGroup > 1` 才渲染 —— 单篇「系列」是自相矛盾的。
-       ⚠️ 样式在 post.css（异步包），不在 critical-post.css：首屏第一帧用不到它。
-          和 .related-posts 同一个理由，那一条也在 post.css。 */ -}}
+       ⚠️ 只有 `len $seriesGroup > 1` 才渲染 —— 单篇的「系列」是自相矛盾的。
+       ⚠️ 系列内上下篇用 `index $seriesGroup (sub $seriesPos 2)` 求，**别用
+          `.NextInSection` / `.PrevInSection`** —— 那两个是按 section 的全站日期序，
+          会把系列之外的文章算成邻居。 */ -}}
   {{- $seriesName := .Params.series -}}
   {{- $seriesGroup := slice -}}
   {{- $seriesPos := 0 -}}
@@ -177,15 +114,13 @@
     <div class="post-series-links">
       {{- if gt $seriesPos 1 -}}
         {{- $prev := index $seriesGroup (sub $seriesPos 2) -}}
-        {{- /* 标题里的系列前缀（「综述写作之-」「居家流水账-」）和上面那行系列名重复了，
-               剥掉才读得通；完整标题留在 title 里，鼠标停一下还能看到。
-               与 archive.html 的胶囊用同一套剥法，两处保持一致。
+        {{- /* 标题里的系列前缀（「综述写作之-」「居家流水账-」）和上面那行系列名
+               重复了，剥掉才读得通；完整标题留在 title 里，鼠标停一下还能看到。
+               与归档页的系列入口用同一套剥法，两处保持一致。
 
-               ⚠️ 这里**不走** orphan-safe.html（防孤行那个 partial）：它给标题末 2 字包
-               一个 nowrap 的 span，只在**会换行**的容器里才有意义；而
-               `.post-series-title` 是 `white-space: nowrap` + `ellipsis`，标题永不换行
-               —— 那个 span 是空转的。直接插值即可（HTML 上下文里 Go 模板本来就会自动
-               转义），也和 archive.html 的胶囊写法一致。 */ -}}
+               ⚠️ 这里**不走** orphan-safe 那类「末 2 字包 nowrap」的处理：
+               `.post-series-title` 是 nowrap + ellipsis，标题永不换行，
+               包了也是空转。直接插值即可（HTML 上下文里 Go 模板本来就会转义）。 */ -}}
         {{- $prevLabel := strings.TrimPrefix (printf "%s之-" $seriesName) $prev.Title -}}
         {{- $prevLabel = strings.TrimPrefix (printf "%s-" $seriesName) $prevLabel -}}
         <a class="post-series-link" href="{{ $prev.RelPermalink }}" title="{{ $prev.Title }}">
@@ -208,39 +143,161 @@
   </nav>
   {{- end -}}
 
-  {{- /* 「赞一下」/「引用本文」2026-10-08 新增，同日移除（用户拍板）。
-         移除的落点：partials/post-kudos.html、partials/post-cite.html、
-         critical-post.css 末尾两段、ui.js 的 initKudos() 与 [data-cite-copy] 块。
-         要加回来得四处一起补，别再只加一半。 */ -}}
+  {{- /* ---------- ② 全站「上一篇 / 下一篇」 ------------------------------
+       2026-10-05 曾经删过一次（当时的理由是它和相关文章 if/else 互斥、从没渲染过，
+       且「按顺序连载」交给 series 就够了）；2026-10-11 用户要求加回来 ——
+       这次**和系列带并存**，不互斥：系列带管「组内」，这条管「时间线前后」。
 
-  {{- if $relatedPosts -}}
-  <section class="related-posts">
-    <h2 class="related-title">相关文章</h2>
-    <div class="post-list">
-      {{ range $relatedPosts }}
-        {{ partial "post-row-compact.html" . }}
-      {{ end }}
-    </div>
-  </section>
+       口径：posts + weekly 合起来按 `.ByDate.Reverse`（新的在前）排成一列，
+       找到当前页的下标 i：
+         · i-1 → 更新的那篇 → 标「下一篇」
+         · i+1 → 更早的那篇 → 标「上一篇」
+       即「上一篇 = 更早、下一篇 = 更晚」，**与上面系列带的上下篇方向一致**
+       （系列带也是 上一篇 = 升序里更靠前 = 更早）。两处方向必须一致，
+       否则同一页里两个「上一篇」会指向相反的方向。
+
+       ⚠️ 别用 `.PrevInSection` / `.NextInSection`：那是 section 内的顺序，
+          weekly 和 posts 会被割成两条线，周刊的邻居就丢了。 */ -}}
+  {{- $allPosts := (where site.RegularPages "Type" "in" (slice "posts" "weekly")).ByDate.Reverse -}}
+  {{- $olderPage := false -}}
+  {{- $newerPage := false -}}
+  {{- range $i, $p := $allPosts -}}
+    {{- if eq $p.RelPermalink $.RelPermalink -}}
+      {{- if lt (add $i 1) (len $allPosts) -}}{{- $olderPage = index $allPosts (add $i 1) -}}{{- end -}}
+      {{- if gt $i 0 -}}{{- $newerPage = index $allPosts (sub $i 1) -}}{{- end -}}
+    {{- end -}}
   {{- end -}}
+  {{- if or $olderPage $newerPage -}}
+  <nav class="post-nav" aria-label="上一篇 / 下一篇">
+    {{- with $olderPage }}
+    <a class="post-nav-item post-nav-prev" href="{{ .RelPermalink }}">
+      <span class="post-nav-dir">上一篇</span>
+      <span class="post-nav-title">{{ .Title }}</span>
+    </a>
+    {{- else }}
+    <span class="post-nav-item post-nav-empty" aria-hidden="true"></span>
+    {{- end }}
+    {{- with $newerPage }}
+    <a class="post-nav-item post-nav-next" href="{{ .RelPermalink }}">
+      <span class="post-nav-dir">下一篇</span>
+      <span class="post-nav-title">{{ .Title }}</span>
+    </a>
+    {{- else }}
+    <span class="post-nav-item post-nav-empty" aria-hidden="true"></span>
+    {{- end }}
+  </nav>
+  {{- end -}}
+{{- end }}
+{{- /* 评论区。移植自 ~/Blog：只给「长文页」（文章 + 周刊）挂，
+       并且尊重单篇的 comments: false。
+       列表页 / 关于页 / 隐私页不挂 —— 它们一屏到底，挂上去只会多一个空盒子。
+       上游主题没有评论区，这一段是站点层新增的。 */ -}}
+{{- if and site.Params.giscus.repo $longForm (ne .Params.comments false) }}
+<section class="giscus-wrap" id="comments">
+  {{ partial "giscus.html" (dict "title" "评论") }}
+</section>
+{{- end }}
 
-  {{- /* 文末「上一篇 / 下一篇」2026-10-05 整条移除（用户拍板）：
-         只留「相关文章」。理由与执行清单见 blog-upgrade-review.html 的 A1 ——
-         它原先与「相关文章」是 if/else 互斥，只有算不出相关文章时才渲染，
-         而 124 篇里没有一篇算不出，所以那一支其实从没亮过。
-         连带删掉的还有：post.css 的 .post-nav*（40+ 行）、ui.js 的 [ / ] 快捷键、
-         critical.css 打印规则里的 .post-nav。别再单独加回来 —— 要「按顺序连载」
-         就走 content 的 series 字段 + 归档页的「系列」入口。 */ -}}
+{{ $upvoteEnabled := .Site.Params.upvote }}
+{{ if isset .Params "upvote" }}{{ $upvoteEnabled = .Params.upvote }}{{ end }}
+{{ if and $upvoteEnabled .Site.Params.upvoteURL }}
+<div class="upvote-container">
+<small class="upvote">
+  <button class="upvote-btn" id="upvote-btn" aria-label="Upvote this post" aria-pressed="false">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+    <polyline points="17 11 12 6 7 11"></polyline>
+    <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+    <span class="upvote-count" id="upvote-count">0</span>
+  </button>
+</small>
+</div>
 
-  {{- /* 打赏块**刻意不在这里**（2026-10-02 第四轮）。
-        全站只在关于页保留一处。理由：文章页每篇都挂一个收款码，等于「每篇都在要钱」；
-        收成一页之后，它变成一个「想支持我的人找得到」的地方，而不是每篇文末的固定家具。
-        要加回来就把这一行加回来：partial "donate.html" .  */ -}}
+<script>
+  let hasUpvoted = false;
+  let upvoteBtn;
+  let upvoteCount;
+  {{ $kudosEntity := strings.Trim .RelPermalink "/" }}
+  {{ if eq $kudosEntity "" }}{{ $kudosEntity = "home" }}{{ end }}
+  const entity = {{ replace $kudosEntity "/" ":" | jsonify | safeJS }};
+  const upvoteBaseUrl = {{ .Site.Params.upvoteURL | jsonify | safeJS }}.replace(/\/+$/, '');
 
-  {{ if and site.Params.giscus.repo (ne .Params.comments false) }}
-  <section class="giscus-wrap">
-    {{ partial "giscus.html" (dict "title" "评论") }}
-  </section>
-  {{ end }}
+  function upvoteUrl(action = '') {
+    return `${upvoteBaseUrl}/${encodeURIComponent(entity)}${action}`;
+  }
+
+  async function requestKudos(url, options) {
+    const response = await fetch(url, options);
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error(`Kudos request failed (${response.status})`);
+    }
+    if (!response.ok) {
+      throw new Error(data.error ?? `Kudos request failed (${response.status})`);
+    }
+    return data;
+  }
+
+  function renderUpvote({ count, hasKudos }) {
+    upvoteCount.innerText = count;
+    hasUpvoted = hasKudos;
+    upvoteBtn.classList.toggle('upvoted', hasUpvoted);
+    upvoteBtn.setAttribute('aria-pressed', String(hasUpvoted));
+    upvoteBtn.setAttribute('aria-label', hasUpvoted ? 'Remove your upvote' : 'Upvote this post');
+  }
+
+  // Read the public count and this visitor's state separately so the count
+  // remains cacheable at the Kudos API.
+  document.addEventListener('DOMContentLoaded', function() {
+    upvoteBtn = document.getElementById('upvote-btn');
+    upvoteCount = document.getElementById('upvote-count');
+    loadUpvote();
+
+    upvoteBtn.addEventListener('click', toggleUpvote);
+  });
+
+  async function loadUpvote() {
+    try {
+      const [count, status] = await Promise.all([
+        requestKudos(upvoteUrl()),
+        requestKudos(upvoteUrl('/kudos')),
+      ]);
+      renderUpvote({ count: count.count, hasKudos: status.hasKudos });
+    } catch (error) {
+      console.error('Failed to load upvote:', error);
+    }
+  }
+
+  async function toggleUpvote() {
+    upvoteBtn.disabled = true;
+
+    try {
+      const state = await requestKudos(upvoteUrl('/kudos'), {
+        method: hasUpvoted ? 'DELETE' : 'POST',
+      });
+      renderUpvote(state);
+    } catch (error) {
+      console.error('Failed to update upvote:', error);
+    } finally {
+      upvoteBtn.disabled = false;
+    }
+  }
+</script>
 {{ end }}
+
+<!-- Place the TOC at the end to ensure the article content loads first. -->
+{{ $tocEnabled := default .Site.Params.toc .Params.toc }}
+{{ if $tocEnabled }} 
+<div class="toc">
+{{ partial "toc.html" . }}
+</div>
+{{ end }}
+
+{{/* Load Mermaid only when this page contains Mermaid diagrams. */}}
+{{ if .Params.mermaid }}
+{{ partial "mermaid.html" . }}
+{{ end }}
+
 {{ end }}

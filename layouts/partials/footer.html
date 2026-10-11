@@ -1,54 +1,85 @@
-<footer class="site-footer">
-  <div class="container footer-container">
-    {{- /* 卷末统计（篇数 / 字数 / 写作时长）2026-10-05 加过一版，同日按用户要求撤掉：
-         页脚只留「版权 / 链接 / 协议」那一行。统计口径的复用点（archive.html 的
-         `$posts` 筛选与 `.WordCount`）没变，想再加回来照着那天的方式算就行。 */ -}}
-    <p class="footer-copyright">&copy; {{ site.Params.since }}&ndash;{{ now.Format "2006" }} {{ site.Params.author }}</p>
+{{/*
+  站点层覆盖：themes/hugo-bearneo/layouts/partials/footer.html
 
-    <p class="footer-links">
-      <a href="https://profile.hulatu.com/" target="_blank" rel="noopener">花园</a>
-      {{- /* 2026-10-08：「现在」(/now/) 从页脚撤掉，只留主导航（hugo.toml 的 [menu]）那一个入口。
-             理由：它和「关于」是同一类「关于我这个人」的页面，导航里两条已经挨着，
-             页脚再放一条等于同一个目的地开两个口；页脚留给「站内栏目 / 站外出口」。
-             同日稍晚：那一页连主导航一起撤了、文件也删了 —— 这条注释现在只剩历史意义。
-             ⚠️ 别再加回来，页面已经不存在。 */ -}}
-      <a href="{{ "friends/" | relURL }}">友链</a>
-      {{- /* 2026-10-07：/tags/ 与 /media/ 原先只被 404 页和关于页的「网站导览」链到 ——
-             导航和页脚都没有入口，等于「只有走错路的人才找得到」。这两个是站内栏目，
-             放页脚（次要入口的位置）最合适，不动导航。
-             /stats/ 同理：它是新增的结算页，没有别的地方链它。
-             加完之后页脚会超过一行，窄一点儿的窗口会折行 ——
-             critical.css 的 .footer-links 补了 flex-wrap: wrap，见那里的注释。 */ -}}
-      <a href="{{ "tags/" | relURL }}">标签</a>
-      <a href="{{ "media/" | relURL }}">书影音</a>
-      {{- /* 2026-10-08：「装备」(/uses/) 从页脚撤掉，只留关于页「网站导览」里那一个入口。
-             理由：页脚是「找得到就行」的次要入口，而 /uses/ 是「想了解我用什么」才会点
-             的内容页 —— 它更适合待在关于页那张「这站有什么」的清单里，
-             和「制作说明」挨着。撤掉之后页脚是 9 条，正好回到一行。
-             ⚠️ 2026-10-09 补记：/uses/ 整页后来删了（content/uses.md + 模板
-             + 关于页那条入口 + critical-info.css 的 .info-* 一起），所以「加回
-             关于页 site: 列表」这条也已作废 —— 真要恢复这一页，是重建，不是加链接。 */ -}}
-      <a href="{{ "stats/" | relURL }}">统计</a>
-      <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力">开往</a>
-      <a href="{{ "privacy/" | relURL }}">隐私</a>
-      {{- /* 2026-10-08：「制作」(/colophon/) 加过一版，同日按用户要求撤掉。
-             它是「关于这个站本身」的链接，性质上和 /uses/ 一样 ——
-             页脚只留「找得到就行」的次要入口，而这一页属于「想了解这站怎么搭的」
-             才会点的内容页，更适合待在关于页那张「这站有什么」的清单里
-             （那里本来就有它）。
-             ⚠️ 2026-10-09 补记：/colophon/ 也整页删了（content/colophon.md + 模板
-             + 关于页那条入口 + css-modules.html 的 colophon 分支），
-             所以这条注释现在只说明「它为什么没长在页脚」，不再是一条「加回来」的指引。 */ -}}
-      {{- /* 2026-10-08 第四次减：「邮箱」也从页脚撤掉（用户拍板）。
-             判据和上面几条一致 —— 页脚只放「站内索引 / 站外出口」，而它既不是
-             索引、也不是唯一的出口：关于页的「联系」一节已经有
-             mailto:hello@hulatu.com（见 content/about.md 的 site: 列表）。
-             全站每页最显眼的位置之一再放一条，密度上盖过了主导航（4 项）。
-             撤完页脚是 7 条：花园 / 友链 / 标签 / 书影音 / 统计 / 开往 / 隐私。
-             ⚠️ `site.Params.email` 这个配置**保留** —— layouts/friends/list.html
-             的「交换友链」还在用它拼 mailto:，别顺手把 hugo.toml 里那行删了。 */ -}}
-    </p>
+  唯一改动 —— 上游把 `copyright` 和 `🗺️ Sitemap` 挤在**同一行**（两者之间只有模板换行，
+  HTML 会折成一个空格），无法配置成两行。这里在版权行之后补一个 `<br />`，
+  并把授权说明拆成独立参数 `copyrightNote`，让页脚成为：
 
-    <a class="footer-license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
-  </div>
-</footer>
+      Copyright © 2025-2026, hulatu.
+      本站内容采用 CC BY-NC-SA 4.0 协议 🗺️ Sitemap.
+
+  ⚠️ `.Site.Params.copyright` 是**文本节点**输出，Go 的 html/template 会转义 `&` ——
+     所以 hugo.toml 里必须写**字面量 ©**，写成 `&copy;` 会变成 `&amp;copy;`，
+     页面上原样显示成 "&copy;" 这六个字符。
+
+  其余三个开关（hideRSSAndEmail / hideMadeWithLine / hideSitemap）与上游一致，
+  但第一行有一处**故意的大写改动**（2026-10-11 用户要求）：
+
+      上游： Subscribe via RSS or just say hello.
+      本站： Subscribe via RSS or just Say hello.
+
+  只有链接文字首字母改了，其余一字未动。
+
+  另有一处**新增**（2026-10-11 用户要求）：最后一行补了 `/privacy/` 的链接，
+  也就是「Privacy」——它原本在旧自建主题的页脚里（`<a href=/privacy/>隐私</a>`），
+  迁移到上游页脚后一度没了入口（导航只有 6 项，没有它）。
+
+  同一天稍后用户又要求：这一行**整句改成英文**，并且「CC BY-NC-SA 4.0」要带链接。
+  于是最后一行现在读作：
+
+      This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
+
+  ⚠️ 三个参数都在 hugo.toml 的 [params] 里（copyrightNote / licenseName /
+     licenseURL）。这里走的是 `{{ . }}` 文本输出，Markdown 链接不生效，
+     所以 CC 那一段必须用真的 `<a>`，链接文字取自 licenseName。
+  ⚠️ 隐私链接挂在 hideSitemap 这个开关里面 —— 关掉 Sitemap 会连它一起关。
+     它们本来就是同一行「站点元信息」，分开管没有意义。
+
+  ── 行序（2026-10-11 用户要求「第 1 行放到第 3-4 行之间」）──────────────
+  订阅行原本在最前（上游的顺序），现在挪到版权行之后、授权行之前：
+
+      1. Made with Hugo Bear Neo.
+      2. Copyright © 2025-2026, hulatu.
+      3. Subscribe via RSS or just Say hello.      ← 从第 1 行挪来
+      4. This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
+
+  实现上只是**把整块 {{ if ... hideRSSAndEmail ... }} 搬到版权块后面**，
+  每块自带结尾的 `<br />`（只有最后的授权行没有），所以搬完天然就是 4 行。
+  ⚠️ 搬动时**别把 `<br />` 一起搬丢** —— 少一个 `<br />` 会让两行并成一行，
+     而构建 0 警告、页面上只是「看着像少了点什么」。
+*/}}
+<!-- Made with line -->
+{{ if ne .Site.Params.Footer.hideMadeWithLine true }}Made with
+<a href="https://github.com/rokcso/hugo-bearneo/">Hugo Bear Neo</a>.
+<br />
+{{ end }}
+
+<!-- 版权行（上游是与 Sitemap 同一行，这里独立成行） -->
+{{ if ne .Site.Params.Footer.hideCopyright true }}
+{{ .Site.Params.copyright }}
+<br />
+{{ end }}
+
+<!-- 订阅 / 邮件（2026-10-11 由第 1 行挪到此处，即第 3 行） -->
+{{ if ne .Site.Params.Footer.hideRSSAndEmail true }}
+<!-- Enable RSS and email exists -->
+{{ if and ( ne .Site.Params.RSS.enableRSS false ) .Site.Params.Author.email }}
+Subscribe via <a href="/index.xml">RSS</a> or just <a href="mailto:{{ .Site.Params.Author.email }}">Say hello</a>.
+<br />
+{{ end }}
+<!-- Enable RSS and email does not exists -->
+{{ if and ( ne .Site.Params.RSS.enableRSS false ) (not .Site.Params.Author.email) }}
+Subscribe via <a href="/index.xml">RSS</a>.
+<br />
+{{ end }}
+<!-- Do not enable RSS and email exists -->
+{{ if and ( ne .Site.Params.RSS.enableRSS true ) .Site.Params.Author.email }}
+Say hello via <a href="mailto:{{ .Site.Params.Author.email }}">email</a>.
+<br />
+{{ end }}
+{{ end }}
+
+<!-- 授权声明 + 隐私 + Sitemap（2026-10-11 起全英文，CC 那段带链接） -->
+{{ if ne .Site.Params.Footer.hideSitemap true }}
+{{ with .Site.Params.copyrightNote }}{{ . }} {{ end }}{{ with .Site.Params.licenseName }}<a href="{{ $.Site.Params.licenseURL }}">{{ . }}</a> · {{ end }}<a href="/privacy/">Privacy</a> · 🗺️ <a href="/sitemap.xml">Sitemap</a>.
+{{ end }}

@@ -1,140 +1,83 @@
-{{- partial "check-hugo-version.html" . -}}
 <!DOCTYPE html>
-<html lang="zh-CN">
+{{- /* 站点层覆盖：相对上游有**两处**改动 ——
+
+     ① 上游用的是 .Site.LanguageCode，Hugo 0.158 起已弃用、将来会被移除
+        （届时整个主题会构建失败）。这里换成 .Site.Language.Locale。
+
+     ② 补回 <meta name="robots" content="noindex, follow">（2026-10-11）。
+        上游完全没有 robots 输出，而本站有两类页面本来就该 noindex：
+          · content/privacy.md、content/posts/_index.md 带 `noindex: true`
+          · 标签 / 分类的**词条页**（/tags/写作/ 这类）与 404 页
+        整站迁移到上游主题时，实现它的那段被一起删掉了 → 字段成了**空转**，
+        这两页会重新被收录（线上旧站实测确实是 noindex, follow）。
+        下面这个条件是从旧站逐字取回的（git show HEAD:layouts/_default/baseof.html），
+        **一字未改**，所以行为与迁移前一致。
+
+        ⚠️ `.Data.Plural` 在普通页面上取到空值，eq 比较恒为假，无害。
+        ⚠️ 这次**只恢复 meta**（用户 2026-10-11 的决定）：**没有**恢复旧站的
+           `layouts/sitemap.xml`，所以 /privacy/ 与 /posts/ 仍然留在 sitemap 里。
+           爬虫读到 meta 不会收录，但地址仍会先交给它一次。要彻底干净，得再加
+           一份 sitemap 模板把 `not .Params.noindex` 排掉。
+
+     除这两处外一字未改。 */ -}}
+<html lang="{{ with .Site.Language.Locale }}{{ . }}{{ else }}en-US{{ end }}">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  {{- $pageTitle := partial "page-title.html" . -}}
-  <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ $pageTitle }} - {{ site.Title }}{{ end }}</title>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {{- partial "favicon.html" . -}}
+  <title>{{- block "title" . }}{{ with .Title }}{{ . }} | {{ end }}{{ .Site.Title }}{{- end }}</title>
   {{- $noindex := or (eq .Data.Plural "tags") (eq .Data.Plural "categories") (eq .Kind "404") (eq .Params.noindex true) -}}
   {{- if $noindex }}
   <meta name="robots" content="noindex, follow">
   {{- end }}
-  {{- /* 「长文页」= 文章 + 周刊。这个判断在下面用到两处：评论（giscus）与
-         阅读进度条 / 返回顶部。全站只有这两类页面是真需要它们的 ——
-         其余页面（首页、分页、分类、标签、归档、关于、装备、制作说明、隐私、
-         书影音、结算、友链、404…）大多一屏到底，挂上去只会得到一条停在 0%
-         或瞬间满格的进度条，和一个页面本来就不需要滚动的返回顶部按钮。 */ -}}
-  {{- $longForm := and .IsPage (in (slice "posts" "weekly") .Type) -}}
-  {{- $giscusPage := false -}}
-  {{- if site.Params.giscus.repo -}}
-    {{- if and $longForm (ne .Params.comments false) -}}
-      {{- $giscusPage = true -}}
-    {{- end -}}
-  {{- end -}}
-  <meta name="theme-color" content="#f6f6f8">
-  {{ if $giscusPage }}
-  <link rel="preconnect" href="https://giscus.app">
-  <link rel="dns-prefetch" href="https://giscus.app">
-  {{ end }}
-  {{ if site.Params.analytics.goatcounter }}
-  <link rel="preconnect" href="https://gc.zgo.at">
-  <link rel="dns-prefetch" href="https://gc.zgo.at">
-  {{ end }}
-  {{- $imageHost := site.Params.imageCDN.host | default "img.hulatu.com" -}}
-  {{- $imageCDNOrigin := printf "https://%s" $imageHost -}}
-  {{- /* 图床预连接只按「正文里真的有图床图」判断。
-         2026-10-02 第四轮：原来后半句是 `and site.Params.donate.enabled (in (slice "posts" "weekly") .Type)`
-         —— 打赏码放在图床上，所以让**所有**文章页都预连接一次。那半句本来就是白开的：
-         打赏码是 <details> 里的 loading="lazy" 图，不展开根本不请求
-         （perf-interaction-review.html 的 P3 记过这一条）。
-         现在打赏块又只留在关于页，这半句连「页面判断」都错了，直接去掉。
-         代价：关于页不再预连接图床 —— 但同一个道理，那张码要等用户展开才请求，
-         那时再建连接反而更准。 */ -}}
-  {{- $hasImageCDN := in .Content $imageHost -}}
-  {{ if $hasImageCDN }}
-  <link rel="preconnect" href="{{ $imageCDNOrigin }}">
-  <link rel="dns-prefetch" href="{{ $imageCDNOrigin }}">
-  {{ end }}
-  <link rel="icon" type="image/svg+xml" href="{{ site.Params.assets.favicon | default "/logo.svg" | relURL }}">
-  <link rel="apple-touch-icon" href="{{ site.Params.assets.apple_touch_icon | default "/apple-touch-icon.png" | relURL }}">
-  <link rel="mask-icon" href="{{ site.Params.assets.safari_pinned_tab | default "/logo.svg" | relURL }}" color="#c73e2f">
-  <link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="{{ site.Title }}">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  {{- /* 样式分两段下：
-       ① 关键 CSS 直接内联，首屏不再需要等任何外部请求就能画对，也就没有阻塞渲染的资源了。
-          **关键 CSS 是按页型选的**（见 css-modules.html）：首页只有 critical，
-          文章页多一个 critical-post，列表页多一个 critical-page ——
-          避免把文章排版塞进首页、把标签云塞进文章页。
-       ② 其余按页面类型组合成一个包，用 media="print" + onload 换回 all 异步加载——
-          用这个老写法而不是 rel=preload，是为了保住 integrity（SRI 在 preload 上
-          会强制走 CORS 模式，同源下虽然也能过，但没必要多这一层变量）。
-          noscript 里放一份同步的兜底，脚本被拦时样式照常。
 
-       模块组合见 layouts/partials/css-modules.html；拆分与验证过程见 MAINTENANCE.md。 */ -}}
-  {{- $mods := partial "css-modules.html" . -}}
-  {{- $files := slice -}}
-  {{- range $mods.async -}}{{- $files = $files | append (resources.Get (printf "css/%s.css" .)) -}}{{- end -}}
-  {{- $css := $files | resources.Concat (printf "css/site-%s.css" (delimit $mods.async "-")) | minify | fingerprint -}}
-  {{- $critFiles := slice -}}
-  {{- range $mods.critical -}}{{- $critFiles = $critFiles | append (resources.Get (printf "css/%s.css" .)) -}}{{- end -}}
-  {{- $critical := $critFiles | resources.Concat (printf "css/crit-%s.css" (delimit $mods.critical "-")) | minify -}}
-  <style>{{ $critical.Content | safeCSS }}</style>
-  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}"></noscript>
-  <link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | relURL }}" title="{{ site.Title }}">
-  {{ partial "head-meta.html" . }}
-  {{ partial "analytics.html" . }}
-  <!-- 提前读取系统主题偏好，避免深色模式下出现"白屏闪烁" -->
-  <script>
-    (function () {
-      document.documentElement.classList.add("js");
-      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      var theme = prefersDark ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", theme);
-      var themeMeta = document.querySelector('meta[name="theme-color"]');
-      if (themeMeta) themeMeta.setAttribute("content", theme === "dark" ? "#0b0b10" : "#f6f6f8");
-    })();
-  </script>
-  <!-- 站内跳转预渲染：鼠标停在链接上，浏览器就把下一页整页在后台渲染好，点下去几乎是「已经在那了」。
-       用的是浏览器原生的 Speculation Rules，不执行额外的 JS，不支持的浏览器直接忽略。
-       只预渲染同源页面，跳过 RSS（.xml）和索引文件（.json），避免白下载。
-       注意：预渲染会真的跑一遍页面脚本，所以统计和评论都做了 document.prerendering 判断。 -->
-  <script type="speculationrules">
-  {
-    "prerender": [
-      {
-        "source": "document",
-        "where": {
-          "and": [
-            { "href_matches": "/*" },
-            { "not": { "href_matches": "/*.xml" } },
-            { "not": { "href_matches": "/*.json" } }
-          ]
-        },
-        "eagerness": "moderate"
-      }
-    ]
-  }
-  </script>
+  {{- partial "seo_tags.html" . -}}
+  <meta name="referrer" content="no-referrer-when-downgrade" />
+
+  {{ with .OutputFormats.Get "rss" -}}
+  {{ printf `<link rel="%s" type="%s" href="%s" title="%s" />` .Rel .MediaType.Type .Permalink $.Site.Title | safeHTML }}
+  {{ end -}}
+
+  {{- partial "style.html" . -}}
+
+  <!-- A partial to be overwritten by the user.
+  Simply place a custom_head.html into
+  your local /layouts/partials-directory -->
+  {{- partial "custom_head.html" . -}}
 </head>
-<body>
-  {{- /* 2026-10-08 收窄：这两个装置此前是 343/345 页无条件渲染，其中 218 页用不上
-         （首页、列表、分类、标签、归档、关于、隐私、404…）。现在只挂在长文页上。
-         依据：DESIGN.md 的 P2-7 只约束了进度条的**粗细**（常驻元素压到 2px），
-         从没说过要挂在每一页。
-         不需要给 ui.js 加分支 —— 那边对这两个元素本来就有 null 判断
-         （if (readingProgress) / if (backTop)），页面没有它们时静默跳过。 */ -}}
-  {{ if $longForm }}
-  <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
-  {{ end }}
-  <a class="skip-link" href="#main">跳到主内容</a>
-  {{ partial "header.html" . }}
 
-  <main id="main" class="container{{ if .IsHome }} is-home{{ end }}">
-    {{ block "main" . }}{{ end }}
+{{- /* ⚠️ `id="top"` 是**返回顶部那个锚点的落点**，见 partials/back-top.html。
+       纯 CSS 的返回顶部靠 `<a href="#top">`，所以必须有一个 `#top` 存在。
+       挂在 `<body>` 上而不是另加一个空 `<span>` —— body 本来就在文档最开头，
+       语义上也正是「文档顶部」，不需要为它多插一个空元素。
+       ⚠️ 别删这个 id：删了返回顶部就变成「点了没反应」，而且**不报错**。 */ -}}
+<body id="top">
+  <header>
+    {{- partial "header.html" . -}}
+  </header>
+  <main>
+    {{- block "main" . }}{{- end }}
   </main>
-  {{ partial "footer.html" . }}
+  <footer>
+    {{- partial "footer.html" . -}}
+  </footer>
 
-  {{ if $longForm }}
-  <button type="button" class="back-top" id="back-top" aria-label="返回顶部" title="返回顶部">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-  </button>
-  {{ end }}
+  {{- /* 返回顶部。**只对长文页输出**（判断在 partial 里）。
+         位置在 footer 之后：它是 position: fixed，DOM 顺序不影响视觉，
+         放在最后可以让正文 / 页脚先到达。
+         ⚠️ 曾经的「阅读进度条」2026-10-11 已按用户要求删除，只剩这一个装置。 */ -}}
+  {{- partial "back-top.html" . -}}
 
-  {{ partial "scripts.html" . }}
+  {{- /* 代码块复制按钮的脚本。**只在含代码块的页面加载**（判断在 partial 里），
+         否则 320 多个页面都要为它付一次请求。 */ -}}
+  {{- partial "code-copy.html" . -}}
+
+  <!-- A partial to be overwritten by the user.
+  Simply place a custom_body.html into
+  your local /layouts/partials-directory -->
+  {{- partial "custom_body.html" . -}}
 </body>
+
 </html>

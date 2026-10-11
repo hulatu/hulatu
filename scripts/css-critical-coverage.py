@@ -1,5 +1,24 @@
 #!/usr/bin/env python3
-"""严格版首屏覆盖检查：判据是「页面里**真正内联**的那段 CSS 有没有这条规则」。
+"""⚠️⚠️ 本脚本已作废（2026-10-10 晚）—— 保留仅作历史记录，**跑起来会报错**。⚠️⚠️
+
+它校验的是自建主题那套「首屏按页型内联不同 CSS 模块」的机制：
+assets/css/{critical,critical-post,critical-page,critical-info}.css 四份源文件
++ layouts/partials/css-modules.html 决定每页内联哪几份。
+
+2026-10-10 晚整站迁移到上游 hugo-bearneo 后：
+  · assets/css/ 整个目录删除；
+  · css-modules.html 删除；
+  · 新主题把**唯一一份** CSS（themes/hugo-bearneo/layouts/partials/style.html）
+    内联进每个页面，全站 327 个产物各一份 8635 字节，没有「按页型分档」这回事了。
+所以「这一页有没有内联某条规则」这个问题**不再存在**，脚本失去意义。
+（它现在会以 FileNotFoundError 结束 —— 因为 assets/css/ 已经不在了。）
+
+真要看新站的体积：从产物抽 <style> 按字节 + gzip -9（统一用 **Python 口径**，
+别混 CLI 口径，两者差几十字节）。
+
+──────────────────────── 以下是原说明，仅作历史 ────────────────────────
+
+严格版首屏覆盖检查：判据是「页面里**真正内联**的那段 CSS 有没有这条规则」。
 
 用法:
   python3 scripts/css-critical-coverage.py public/index.html
@@ -12,7 +31,7 @@
 
 三个会给出假「全绿」的坑（前两版都栽过）：
   ① 必须排除 @media print 块 —— 打印重置列表里那一长串 .site-footer, .back-top,
-     .post-rail … 会让选择器「看起来有规则」，实际对屏幕首屏毫无作用。
+     .toc … 会让选择器「看起来有规则」，实际对屏幕首屏毫无作用。
   ② 比对要认选择器边界 —— 直接 substring 会让 .post 命中 .post-content。
   ③ 别读源文件 —— 拆分之后源文件不等于页面实际内联的东西（v2 就是这么误报的）。
 """

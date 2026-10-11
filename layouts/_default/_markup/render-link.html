@@ -1,2 +1,40 @@
-{{- $ext := and (strings.HasPrefix .Destination "http") (not (strings.HasPrefix .Destination site.BaseURL)) -}}
-<a href="{{ .Destination }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if $ext }} target="_blank" rel="noopener"{{ end }}>{{ .Text | safeHTML }}</a>
+{{- /* 站点层覆盖：themes/hugo-bearneo/layouts/_default/_markup/render-link.html
+       —— 相对上游**只改一件事：去掉 `</a>` 后面那个换行**。
+
+       为什么非改不可
+       上游模板最后一行是 `<a {{ $attributes }}>{{ $text }}</a>` **加一个换行**，
+       Hugo 会把这个换行原样写进产物。行内链接后面紧跟中文标点时，HTML 把换行
+       折叠成一个空格，于是渲染成「花墨 ：一个很有设计感的网站」——
+       冒号前面凭空多一个空格，看起来像排错了。
+
+       实测（2026-10-11 迁移后）：**26 个页面、70 处**中招，其中 /roll/ 一页 15 处。
+       对照 yinji.org/roll（同样基于 Bear Neo）的产物里没有这个换行 —— 它是
+       上游模板的疏漏，不是设计。
+
+       改法：模板末尾用 `{{- ... -}}` 把前后空白都吃掉，输出紧贴的 `</a>`。
+       除此之外与上游逐字一致（外链 target/rel、title 的处理都没动）。
+
+       ⚠️ 扫描这类残留：`re.findall(r"</a>\n[，。：；！？、）」』》〈【（]", html)`。
+       ⚠️ 别改 themes/ 里的原文件 —— 那样下次同步上游要重新对一遍。 */ -}}
+{{- $url := .Destination -}}
+{{- $text := .Text -}}
+{{- $title := .Title -}}
+{{- $page := .Page -}}
+{{- $newTabEnabled := $page.Site.Params.externalLinksNewTab | default false -}}
+{{- $isExternal := or (hasPrefix $url "http://") (hasPrefix $url "https://") -}}
+{{- $isInternal := and $isExternal (hasPrefix $url $page.Site.BaseURL) -}}
+{{- $attributes := printf "href=%q" $url | safeHTMLAttr -}}
+
+{{- if and $isExternal (not $isInternal) -}}
+  {{- if $newTabEnabled -}}
+    {{- $attributes = printf "%s target=\"_blank\"" $attributes | safeHTMLAttr -}}
+  {{- end -}}
+  {{- $attributes = printf "%s rel=\"noopener noreferrer\"" $attributes | safeHTMLAttr -}}
+{{- end -}}
+
+{{- with $title -}}
+  {{- $attributes = printf "%s title=%q" $attributes . | safeHTMLAttr -}}
+{{- end -}}
+
+<a {{ $attributes }}>{{ $text }}</a>
+{{- /* ⚠️ 上面这个 `-}}` 就是本文件的全部意义 —— 别删。 */ -}}

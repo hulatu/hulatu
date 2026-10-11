@@ -1,51 +1,133 @@
-{{- $pages := .RegularPages -}}
-{{- if .IsHome }}{{ $pages = where site.RegularPages "Type" "in" (slice "posts" "weekly") }}{{ end -}}
-{{- $limit := site.Config.Services.RSS.Limit -}}
-{{- if ge $limit 1 }}{{ $pages = $pages | first $limit }}{{ end -}}
+{{- /* 站点层覆盖：themes/hugo-bearneo/layouts/_default/rss.xml
+       （上游那份与 Hugo 内置模板逐字相同，只把 language 写成 site.LanguageCode）
+
+       ══ 这份覆盖做三件事 ══════════════════════════════════════════════════
+
+       一、把「浏览器直接打开 /index.xml 时看到的页面」还给旧站的样子。
+           feed 本身还是一份合法 RSS 2.0，但顶部多挂一行
+               <?xml-stylesheet type="text/xsl" href="https://hulatu.com/rss.xsl"?>
+           浏览器读到这行就会用 static/rss.xsl 把 feed 渲染成一页 HTML
+           （标题 + 一句话简介 + 「订阅源 · 共 N 篇」+ 每篇的标题/日期/摘要）。
+           没有这行，浏览器给的就是一片 raw XML —— 这正是迁移后用户看到的
+           「我的 RSS 页面设计怎么没了」。
+           ⚠️ 样式表用 site.BaseURL 拼绝对地址，不要写成相对路径：
+              相对路径在 /weekly/index.xml 那边会解析成 /weekly/rss.xsl → 404。
+           ⚠️ rss.xsl 只读 channel/title、channel/description、item 的
+              title/link/pubDate/description 五个字段 —— 改这里的字段名要同步改它。
+
+       二、让 feed 只收「文章页」。
+           用户要求：新增的 /about/ /now/ /roll/ /privacy/ /donate/ /archive/
+           这类非文章页面**禁止被 RSS 收录**。
+           它们都是 content/ 根目录下的普通页，Type 是 "page"；
+           文章住在 content/posts/（Type "posts"）与 content/weekly/（Type "weekly"）。
+           所以首页那一路 feed 用 where … "Type" "in" (slice "posts" "weekly") 一挡就行。
+           ⚠️ 周刊 feed（/weekly/index.xml）走的是下面 .RegularPages 那一支，
+              本来就是该 section 自己的页面，全是文章，不用另外过滤。
+           ⚠️ 别改成按 .Params.noindex 过滤：noindex 表达的是「别让搜索引擎收录」，
+              与「要不要进订阅」是两件事（/donate/ 设了 noindex，但真正把它挡在外面的
+              是这里的 Type 白名单）。
+
+       三、条目字段补回旧站那几项：atom:updated（更新于）、category（分类与标签）、
+           摘要式 description、全文式 content:encoded。
+           ⚠️ 旧站这里还调过一个 partials/formula.html 把 $$…$$ 换成 <p class="formula">，
+              那个 partial 随自建主题一起删了，本仓已无。**别按旧版照抄那一行**，
+              会直接构建失败（partial not found）。
+
+       ⚠️ 本仓 [minify] disableXML = true，产物不会被压成一行，改完可以肉眼对。
+       ⚠️ 只有 home（[outputs] home = ["HTML","RSS"]）与 content/weekly/_index.md
+          （front matter 里 outputs: ["HTML","RSS"]）出 feed；section / taxonomy / term
+          都被 [outputs] 压回 HTML-only。所以全站只有这两个 .xml：
+          /index.xml（全站文章）与 /weekly/index.xml（只有周刊）。
+*/ -}}
+
+{{- /* 作者信息：兼容旧写法 site.Author（Hugo 已弃用），沿用上游那份的处理。 */ -}}
+{{- $authorEmail := "" }}
+{{- with site.Params.author }}
+  {{- if reflect.IsMap . }}
+    {{- with .email }}
+      {{- $authorEmail = . }}
+    {{- end }}
+  {{- end }}
+{{- else }}
+  {{- with site.Author.email }}
+    {{- $authorEmail = . }}
+    {{- warnf "The author key in site configuration is deprecated. Use params.author.email instead." }}
+  {{- end }}
+{{- end }}
+{{- $authorName := "" }}
+{{- with site.Params.author }}
+  {{- if reflect.IsMap . }}
+    {{- with .name }}
+      {{- $authorName = . }}
+    {{- end }}
+  {{- else }}
+    {{- $authorName = . }}
+  {{- end }}
+{{- else }}
+  {{- with site.Author.name }}
+    {{- $authorName = . }}
+    {{- warnf "The author key in site configuration is deprecated. Use params.author.name instead." }}
+  {{- end }}
+{{- end }}
+
+{{- /* ── 页面集合：首页 = 全站文章；其他（/weekly/）= 本 section 的页面 ── */ -}}
+{{- $pages := .RegularPages }}
+{{- if .IsHome }}{{ $pages = where site.RegularPages "Type" "in" (slice "posts" "weekly") }}{{ end }}
+{{- $limit := site.Params.RSS.pageLimit | default site.Config.Services.RSS.Limit }}
+{{- if ge $limit 1 }}{{ $pages = $pages | first $limit }}{{ end }}
+
 {{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n" | safeHTML }}
 {{- printf "<?xml-stylesheet type=\"text/xsl\" href=\"%srss.xsl\"?>" site.BaseURL | safeHTML }}
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ if eq .Type "posts" }}文章{{ else }}{{ .Title }}{{ end }} - {{ site.Title }}{{ end }}</title>
-    <link>{{ site.BaseURL }}</link>
+    <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} - {{ site.Title }}{{ end }}</title>
+    <link>{{ .Permalink }}</link>
     <description>{{ site.Params.description }}</description>
     <generator>Hugo</generator>
     <language>{{ site.Language.Locale }}</language>
-    {{ with site.Copyright }}<copyright>{{ . }}</copyright>{{ end }}
-    {{- /* 用最新一篇文章的时间，而不是构建时间：
-           否则每次推送（含每天的 Garmin 数据提交）都会让订阅端以为 feed 更新了。 */ -}}
-    {{- if $pages }}
-    <lastBuildDate>{{ (index $pages 0).Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</lastBuildDate>
+    {{- with site.Params.copyright }}
+    <copyright>{{ . }}</copyright>
     {{- end }}
-    {{ with .OutputFormats.Get "RSS" }}{{ printf "<atom:link href=%q rel=\"self\" type=%q />" .Permalink .MediaType | safeHTML }}{{ end }}
-    {{ with site.Params.assets.apple_touch_icon }}
-    <image>
-      <url>{{ . | absURL }}</url>
-      <title>{{ site.Title }}</title>
-      <link>{{ site.BaseURL }}</link>
-    </image>
-    {{ end }}
-    {{ range $pages }}
+    {{- with $authorEmail }}
+    <managingEditor>{{ . }}{{ with $authorName }} ({{ . }}){{ end }}</managingEditor>
+    <webMaster>{{ . }}{{ with $authorName }} ({{ . }}){{ end }}</webMaster>
+    {{- end }}
+    {{- /* 用「最新一篇文章的时间」而不是构建时间：否则每次推送（含每天的跑步数据提交、
+           依赖同步这类不带新内容的构建）都会让订阅端以为 feed 更新了。 */ -}}
+    {{- if $pages }}
+    <lastBuildDate>{{ (index $pages.ByLastmod.Reverse 0).Lastmod.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</lastBuildDate>
+    {{- end }}
+    {{- with .OutputFormats.Get "RSS" }}
+    {{ printf "<atom:link href=%q rel=\"self\" type=%q />" .Permalink .MediaType | safeHTML }}
+    {{- end }}
+    {{- range $pages }}
     <item>
       <title>{{ .Title }}</title>
       <link>{{ .Permalink }}</link>
       <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</pubDate>
-      {{- /* 2026-10-05 新增（D3）：文章页早就有「更新于」（靠 scripts/sync-lastmod.py 刷），
-             RSS 却只发 pubDate —— 订阅端感知不到一篇被修订过。atom:updated 用 RFC3339
-             （-07:00 这个写法输出 +08:00），是 Atom 里表达「更新于」的标准字段；
-             RSS 2.0 的 channel 已经在上面声明了 xmlns:atom，直接写就行。
-             Lastmod 等于 Date 的文章也照发（值相同，读者侧无副作用），
-             这样订阅端不必去区分「有没有更新」两套解析。 */ -}}
+      {{- with $authorEmail }}
+      <author>{{ . }}{{ with $authorName }} ({{ . }}){{ end }}</author>
+      {{- end }}
+      {{- /* 文章页早就有「更新于」（靠 scripts/sync-lastmod.py 刷），RSS 却只发 pubDate
+             —— 订阅端感知不到一篇被修订过。atom:updated 用 RFC3339（-07:00 这个写法
+             输出 +08:00），是 Atom 里表达「更新于」的标准字段；channel 上面已经声明了
+             xmlns:atom。Lastmod 等于 Date 的文章也照发（值相同，读者侧无副作用）。 */ -}}
       <atom:updated>{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" }}</atom:updated>
       <guid>{{ .Permalink }}</guid>
-      {{ range .Params.categories }}<category>{{ . }}</category>{{ end }}
-      {{ range .Params.tags }}<category>{{ . }}</category>{{ end }}
+      {{- range .Params.categories }}
+      <category>{{ . }}</category>
+      {{- end }}
+      {{- range .Params.tags }}
+      <category>{{ . }}</category>
+      {{- end }}
+      {{- /* 摘要是「纯文本摘要」，给 feed 阅读器的列表用；正文另走 content:encoded。
+             plainify 掉标签后还要 htmlUnescape，否则 `&amp;` 会被 Go 再转义一层。 */ -}}
       <description>{{ .Summary | plainify | htmlUnescape }}</description>
-      {{- /* 公式块与正文同源（partials/formula.html）：订阅端拿到的是已经换好的
-             <p class="formula">，不再是裸露的 $$…$$。RSS 里没有站点的 CSS，
-             所以那边只是一个普通段落 —— 总比看见两对美元符号强。 */ -}}
-      <content:encoded>{{ partial "formula.html" .Content | htmlUnescape | transform.XMLEscape | safeHTML }}</content:encoded>
+      {{- /* 全文：RSS 没有本站的样式，订阅端拿到的是一段自成一体的 HTML。
+             transform.XMLEscape 把 < > & 转成实体（= 把 HTML 当文本带过去），
+             外面必须包 safeHTML 阻止 Go 再转义一遍 —— 这是 Hugo 内置模板的口径。 */ -}}
+      <content:encoded>{{ .Content | transform.XMLEscape | safeHTML }}</content:encoded>
     </item>
-    {{ end }}
+    {{- end }}
   </channel>
 </rss>

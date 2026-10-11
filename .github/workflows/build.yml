@@ -6,7 +6,8 @@ name: 构建校验
 #
 # 版本要和 Cloudflare Pages 项目里的 HUGO_VERSION 保持一致。改版本时三处一起改：
 #   本机 hugo version ／ 下面 peaceiris/actions-hugo 的 hugo-version ／ Cloudflare 五个项目的环境变量
-# 还有 hugo.toml 的 [module.hugoVersion] 和 layouts/partials/check-hugo-version.html 的阈值。
+# 还有 hugo.toml 的 [module.hugoVersion]（站点层那个 check-hugo-version.html 已随
+# 2026-10-10 的主题迁移删除，现在版本约束只靠本文件和 hugo.toml）。
 
 on:
   push:
@@ -41,26 +42,12 @@ jobs:
             exit 1
           }
           hugo version | grep -q "extended" || {
-            echo "::error::必须是 extended 版：head-meta.html 要用 imageConfig 读 share.webp 的宽高"
+            echo "::error::需要 extended 版：与 Cloudflare 五个项目的 HUGO_VERSION 保持一致（2026-10-10 迁移到 hugo-bearneo 后已无 imageConfig 调用，但先不动平台配置）"
             exit 1
           }
 
       - name: 构建主站
         run: hugo --minify --gc --destination public
-
-      - name: 检查周刊期号字段
-        run: |
-          # 期号从标题正则改成了 front matter 的 issue，漏填只会「不显示徽章」，
-          # 不会报错，所以在这里补一道显式检查。
-          missing=0
-          for f in content/weekly/*.md; do
-            case "$f" in */_index.md) continue ;; esac
-            grep -qE '^issue:[[:space:]]*[0-9]+' "$f" || {
-              echo "::error file=$f::周刊缺少 issue 字段（写成 issue: 23 这样），否则文章顶部不显示期号徽章"
-              missing=1
-            }
-          done
-          [ "$missing" = 0 ]
 
       - name: 检查中文标题锚点
         run: |

@@ -1,0 +1,35 @@
+{{- /* ============================================================
+       返回顶部（2026-10-11 从旧「印章」主题取回，**纯 CSS、零 JS**）
+       —— 只给「长文页」（文章 + 周刊，125 页）
+
+       ── 它为什么不是老版那个「一个 JS 文件」────────────────────────
+       旧主题是 `ui.js` 监听 `scroll`、滚过一段距离就加 `.is-visible` 类。
+       这里改用 **CSS 滚动驱动动画**：把关键帧的时间轴绑到根滚动容器，
+       用 `animation-range: 400px 600px` 表达「滚过 400px 才开始出现」。
+       好处不只是少一个 JS 文件 —— 它**从第一帧就正确**，
+       没有旧版那个「JS 到达前按钮以默认样式闪一下」的问题。
+
+       ── 降级：不支持滚动驱动动画时**常显** ──────────────────────────
+       它是**功能**不是装饰 —— `<a href="#top">` 是原生锚点，不需要 JS 也能跳。
+       「一直看得见」比「精致但不出现」重要。
+       （这条与**进度条**相反：进度条不支持时选择「不显示」，
+        因为一条停在 0% 或永远满格的进度条是错误信息。）
+       ⚠️ 进度条 2026-10-11 当天已按用户要求**整条删除**，只剩这一个装置。
+          别再把 `.reading-progress` 加回来。
+
+       ── 为什么用 `<a>` 而不是老版的 `<button>` ──────────────────────
+       `<button>` 必须有 JS 才有效（要 `scrollTo`）。纯 CSS 方案里锚点更合适：
+       `<body id="top">`（见 baseof.html）＋ `href="#top"`，
+       配合 `html { scroll-behavior: smooth }`（custom_head.html 第 17 段）就是平滑回顶。
+       ⚠️ 别删 baseof.html 上那个 `id="top"` —— 删了按钮就变成「点了没反应」，而且**不报错**。
+
+       ⚠️ 它**总是**在长文页输出，「显不显示」全部交给 CSS ——
+          别改成用 Hugo 判断浏览器（构建期做不到）。
+       ⚠️ 样式在 custom_head.html 第 16 段，改类名要两边一起改。
+       ============================================================ */ -}}
+{{- $longForm := and .IsPage (in (slice "posts" "weekly") .Type) -}}
+{{- if $longForm }}
+<a class="back-top" href="#top" aria-label="返回顶部" title="返回顶部">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+</a>
+{{- end }}

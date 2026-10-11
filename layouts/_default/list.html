@@ -1,14 +1,103 @@
+{{- /* 站点层覆盖：上游把这几句界面文案写死成英文了（There are N pieces. / Search... /
+       Filtering for "X" / Remove filter），主题没有走 i18n，所以只能整份覆盖这个模板。
+       除这 5 处文案外一字未改。 */ -}}
 {{ define "main" }}
-{{ if not .Params.hide_title }}<h1 class="page-title">{{ .Title }}</h1>{{ end }}
-{{ if .Content }}<div class="page-intro">{{ .Content }}</div>{{ end }}
+<content>
+  {{- /* 站点层改动：上游没有 taxonomy 模板，于是 /tags/ 那一页掉进这里，
+         被当成一次「筛选」渲染 —— 标题写「Filtering for Tags」，
+         正文把全站文章又列一遍。用户决定不要标签云，所以现在直接在
+         hugo.toml 里 `disableKinds = ["taxonomy"]` 把这一页整个关掉
+         （只关 taxonomy 列表页，/tags/xxx/ 词条页仍然生成，文章下方的
+         标签链接照常能用）。这里不再需要任何分支判断。 */ -}}
+  {{ if .Data.Singular }}
+  <h3 style="margin-bottom:0">筛选：{{ .Title }}</h3>
+  <small>
+    <a href="{{ "posts" | relURL }}">取消筛选</a>
+  </small>
+  {{ end }}
+  {{ if .Site.Params.postSearch }}
+  <input id="search-input" type="text" placeholder="搜索标题…" style="margin-top: 16px" />
+  <script>
+    // 等待 DOM 完全加载后执行
+    document.addEventListener('DOMContentLoaded', function () {
+      // 缓存 DOM 元素
+      const searchInput = document.getElementById('search-input');
+      const posts = document.querySelectorAll('.blog-posts li');
+      const years = document.querySelectorAll('.blog-posts h3');
 
-{{ if .Pages }}
-  <section class="post-list">
+      // 更新搜索结果
+      function updateSearchResults(searchTerm) {
+        let visiblePosts = 0;
+        const displayedYears = new Set();
+        posts.forEach(function (post) {
+          const title = post.querySelector('a').textContent.toLowerCase();
+          const year = post.querySelector('time').getAttribute('datetime').split('-')[0];
+          if (title.includes(searchTerm)) {
+            post.style.display = '';
+            visiblePosts++;
+            displayedYears.add(year);
+          } else {
+            post.style.display = 'none';
+          }
+        });
+
+        {{ if .Site.Params.groupByYear }}
+        years.forEach(function (y) {
+          const year = y.textContent;
+          y.style.display = displayedYears.has(year) ? '' : 'none';
+        });
+        {{ end }}
+
+        {{ if .Site.Params.showPostCount }}
+        const countText = `共 ${visiblePosts} 篇。`;
+        document.getElementById('post-count').innerHTML = countText;
+        {{ end }}
+      }
+
+      searchInput.addEventListener('input', function () {
+        updateSearchResults(this.value.toLowerCase().trim());
+      });
+    });
+  </script>
+  {{ end }}
+  {{ if .Site.Params.showPostCount }}
+  {{ $visiblePages := where .Pages "Params.hidden" "!=" true }}
+  <p id="post-count">共 {{ len $visiblePages }} 篇。</p>
+  {{ end }}
+  <ul class="blog-posts">
+    {{ $currentYear := 0 }}
     {{ range .Pages }}
-      {{ partial "post-row.html" . }}
+    {{ if not .Params.hidden }}
+    {{ if .Site.Params.groupByYear }}
+    {{ $year := .Date.Year }}
+    {{ if ne $year $currentYear }}
+    <h3>{{ $year }}</h3>
+    {{ $currentYear = $year }}
     {{ end }}
-  </section>
-{{ else if not .Content }}
-  <p class="empty-tip">这里还没有内容，先从第一篇开始吧。</p>
-{{ end }}
+    {{ end }}
+    <li>
+      <span class="{{ if .Site.Params.groupByYear }} grouped {{ else }} ungrouped {{ end }}">
+        <i>
+          <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
+            {{ if .Site.Params.groupByYear }}
+            {{ .Date.Format (default "02 Jan." .Site.Params.dateFormat) }}
+            {{ else }}
+            {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
+            {{ end }}
+          </time>
+        </i>
+      </span>
+      <a href="{{ .Permalink }}">{{ partial "orphan-safe.html" .Title }}</a>
+    </li>
+    {{ end }}
+    {{ else }}
+    <li>
+      No posts yet
+    </li>
+    {{ end }}
+  </ul>
+  {{- /* 站点层改动：上游在这里把**全部**标签平铺在列表页底部（本站 184 个，
+         铺出来是五屏的蓝色链接墙）。用户决定不要标签云，这一段整块删掉 ——
+         列表页在文章列表之后直接进页脚。 */}}
+</content>
 {{ end }}

@@ -1,0 +1,1442 @@
+{{- /* ============================================================
+       站点层补丁样式（上游主题一个字节都没改）
+       参考：yinji.org —— 同样基于 Hugo Bear Neo，可对照它的做法
+       ============================================================ */ -}}
+{{- /* 只有真会加载 giscus 的页面才预连 —— 省掉一次 DNS + TLS 往返。
+       判断条件和 single.html 里挂评论区的那段保持一致。 */ -}}
+{{- $longForm := and .IsPage (in (slice "posts" "weekly") .Type) }}
+{{- if and site.Params.giscus.repo $longForm (ne .Params.comments false) }}
+<link rel="preconnect" href="https://giscus.app">
+<link rel="dns-prefetch" href="https://giscus.app">
+{{- end }}
+<style>
+  /* ---------------------------------------------------------------
+     00 导航折行：**在导航项之间断行，而不是在词的中间断**
+
+         ⚠️ 2026-10-11 加第 7 项 RSS 时踩到的真 bug，值得完整记一次。
+
+         ── 症状 ────────────────────────────────────────────────────────
+         视口 392px（内容 352px）下，导航第二行显示的是 **「RS」+「S」** ——
+         `RSS` 被从**词中间**劈开（实测：RSS 的背景色出现在 y102–121 的
+         x337.5–359，以及 y126–145 的 x20–30.5，即首行尾巴 + 次行开头）。
+
+         ── 成因 ────────────────────────────────────────────────────────
+         两个规则叠在一起：
+           ① `nav.html` 输出的相邻 `<a>` **之间没有空白**
+              （Go 模板的连字符裁剪把换行都 trim 掉了）→ **没有任何合法断行机会**，
+              整个导航在断行算法里连成一条不可断的长串；
+           ② 主题 `style.html` 的 `body { overflow-wrap: break-word }`
+              （上游为了让长 URL / 长英文词不撑破布局而写的）
+              → 没有断行机会时，它**就在任意字符处断**。
+         实测总宽：7 项内容 298.5px + 6 个 8px 间距 = **346.5px**，
+         而 392 视口的内容宽是 352px —— **本来就放得下**。
+         之所以还是断了，是因为主题的 `nav a { margin-right: 8px }`
+         在**末尾那一项**上也留着 8px，把行尾宽度顶到 354.5 > 352。
+         于是浏览器去断行，又找不到合法断点，就从「RSS」中间劈了。
+
+         ── 修法：flex + gap（不再靠 margin，且项与项之间天然可断）────
+         `display: flex; flex-wrap: wrap` 让每个 `<a>` 成为 flex item，
+         **换行只会发生在 item 之间**；间距改用 `column-gap` —— 
+         它**不会加在行尾**，所以省掉了那多余的 8px。
+         实测修后：346.5px ≤ 352px → **392 视口下 7 项排一行**；
+         更窄（360 视口 → 内容 320px）时干净地折成两行，
+         第二行从 `Posts` 开始，**不再拆词**。
+
+         ⚠️ 必须同时把主题那条 `nav a { margin-right: 8px }` 压成 0 ——
+            否则 padding/gap 会叠加，间距变成 16px。
+            两者的特异性都是 (0,0,2)，靠**本文件在 style.html 之后加载**取胜
+            （baseof.html 里 `partial "style.html"` 在前、`custom_head.html` 在后）。
+         ⚠️ `align-items: baseline` 不能省：默认的 `stretch` 会把各项拉伸到
+            同一高度，多行时**行高会被撑大**（视觉上导航变松）。baseline 与
+            原来的 inline 行盒行为一致。
+         ⚠️ 别改 `themes/hugo-bearneo/` 里的 `nav a` —— 那是上游文件，
+            「主题逐字节未改」是本仓库的一条硬规矩。
+
+         ⚠️⚠️ **选择器必须是 `header nav`，不能写成裸 `nav`**（2026-10-11 修）。
+            裸 `nav` 是**元素选择器**，会命中全站每一个 `<nav>`。一篇文章页上就有
+            **5 个**：页头菜单 / `.breadcrumbs` / `.post-series` / `.post-nav` /
+            `nav#TableOfContents`。被它改坏的是 `.post-series`（第 09 段只写了
+            margin/padding/border，**从没写 display**，于是吃到了这里的 `display:flex`）：
+
+              · 系列名 `<p>` 和上下篇 `<div>` 变成 flex 项**并排**，
+                链接被推到 x=412，**右边空出 208px**，本该上下两行却成了左右两栏；
+              · 标题行的 `margin-bottom: .7rem` 在 flex 里不再产生间距；
+              · `nav#TableOfContents` 里的 `<ul>` 也变成 flex 项，
+                被撑到 224.8px，**溢出它 180px 宽的 `div.toc` 容器 92.8px**。
+
+            `.post-nav` 侥幸没事，只因为它自己写了 `display:grid` 覆盖掉了。
+            改成 `header nav` 后只作用于页头那一个（`header.html` 里唯一的 `<nav>`，
+            也是 `partial "nav.html"` 唯一的使用处）。
+            ⚠️ 代价：其余几个 `<nav>` 恢复了主题那条 `nav a { margin-right: 8px }`，
+               改完要把这 5 个 nav 全部量一遍，别只看页头。
+      --------------------------------------------------------------- */
+  header nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 8px;
+  }
+
+  header nav a {
+    margin-right: 0;
+  }
+  /* ---------------------------------------------------------------
+     01 字体：上游只有 `Verdana, sans-serif`，中文全靠浏览器兜底。
+         Verdana 本身不含汉字，中文字形其实一直是「系统默认」，
+         写不写 PingFang SC 在 macOS 上看起来一样 —— 但在 Windows /
+         Android 上差别很大（可能落到宋体或思源黑的老版本）。
+         借 yinji 的做法把中文字体显式写进栈里，并补上跨平台回退。
+      --------------------------------------------------------------- */
+  :root {
+    --font-primary: Verdana, "PingFang SC", "Hiragino Sans GB",
+      "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+  }
+
+  /* ---------------------------------------------------------------
+     02 正文标题的上下间距
+         上游 h1~h6 一律 `margin: 16px 0` —— 标题和上一段的距离
+         跟标题和下一段的距离一样，层级读不出来。正文里给标题更大的上间距。
+
+         ⚠️ 行高**刻意保持上游的 1.6**，不覆盖 —— 我一度改成 1.78（中文方块字没有
+            x-height 的视觉补偿，1.6 读长文偏挤，中文舒适区在 1.75~1.9），
+            但用户对照参考站后选了「和参考站一致」。参考站 yinji.org 用的就是 1.6。
+
+         ── 这一段原本还有一条 `content { text-autospace: normal }`，2026-10-11 删掉 ──
+         它当时的意图是「浏览器原生的盘古之白」（中英/中数之间自动插 1/4 空隙）。
+         迁移前的老主题就是靠这行做中英空距的，老 DESIGN.md 里写着
+         「**必须显式声明**，否则不生效（Baseline 2025：Chrome/Edge 140+、Safari 18.4+）」。
+
+         ⚠️⚠️ 但**在本机实测它对不上**，而且我第一次的测试方法本身是错的，记下来：
+           · **第一次（错）**：拿 `/roll/` 的产物做 A/B，`normal` / `auto` /
+             `ideograph-alpha` / `no-autospace` 四张截图逐字节相同 →
+             当时据此断定「死声明」。**但这个测试无效** ——
+             `/roll/` 那一页的正文里根本没有「汉字紧贴拉丁字母」的文字
+             （条目都是 `[中文名](url)：中文点评`），没有可插空距的位置，
+             四种取值当然渲染成一模一样。
+           · **第二次（对）**：专门造了一页含紧密相邻中英/中数的文本
+             （`使用Hugo构建`、`用Python写脚本`、`2026年10月11日`），
+             五个变体（含显式 `ideograph-alpha` 与 `ideograph-alpha ideograph-numeric`）
+             各渲染一次，量每行墨迹宽度 → **全部 402.5 / 561.5 / 52.5 / 521.5 CSS px，
+             截图 MD5 逐字节相同**。页面确实渲染了（不是空白），
+             也就是说 **Chromium 155 里连显式值都零效果**。
+
+         结论：**本机浏览器没实现这个属性** —— 不是「`normal` 是初始值」那套说法。
+         （老文档说的 Chrome 140+ 支持，在本机没兑现；这一条属于**浏览器版本问题**，
+         不是 CSS 写法问题。）所以删掉零视觉影响，也与 yinji 对齐（它没有这条）。
+         ⚠️ **但这是「待复核」，不是「永远不做」**：等浏览器升级后再按上面第二次的方法测一遍，
+            如果哪天生效了，加回来只是一行。老主题手打的空格（全站 1540 处）仍在正常工作，
+            所以现阶段没有可读性损失。
+         ⚠️ 真要自己试，正确写法是 `text-autospace: ideograph-alpha`（可加
+            `ideograph-numeric`），并且**测试文本里必须含紧密相邻的中英/中数** ——
+            否则你测出来的一定是「四种取值完全一样」，然后得出错误结论。
+      --------------------------------------------------------------- */
+
+  content h2 {
+    margin: 2.2em 0 0.7em;
+  }
+
+  content h3 {
+    margin: 1.9em 0 0.6em;
+  }
+
+  content h4,
+  content h5,
+  content h6 {
+    margin: 1.6em 0 0.5em;
+  }
+
+  /* 正文第一个元素不带上间距，否则标题下方会多一截空白。
+
+     ⚠️⚠️ **这条 2026-10-11 删掉了**，因为它把 /roll/ 的首行顶到了导航栏下面。
+     原因值得记下来（我一开始的推理是错的）：
+
+     · 它声称「标题下方会多一截空白」，但**在文章页上它其实一直没起作用** ——
+       文章页 `<content>` 前面是日期行 `<p>`，日期行的 `margin-bottom: 16px`
+       和正文首段的 `margin-top` **相邻折叠**（取较大者）：max(16, 16) 和 max(16, 0)
+       都是 16px。所以有没有这条规则，文章页长得一样。
+     · 它真正生效的只有**一个页面**：`/roll/` —— 全站唯一同时开
+       `hideTitle` + `hideDate` 的页，`<content>` 前面既没有 `<h1>` 也没有日期行，
+       首段的 16px 上边距原本会和 `<main>` / `<header>` 的 0 边距折叠穿透，
+       给出 16px 的呼吸；被这条规则归零后就只剩行盒自己的空隙 ≈12.5px，
+       **看着就是「贴住导航栏」**。
+
+     用户 2026-10-11 的原话：「Links 页面的第一行，距离导航栏太近了，
+     与 yinji 的并不一样，按照它的标准统一」。实测（2x 截图逐行取最暗像素，
+     换算回 CSS px，量的是「导航文字下沿 → 正文首行文字上沿」）：
+       本站 12.5px（有这条规则） / yinji 28.5px（没有）—— 差的正是这 16px。
+     删掉之后本站 = 28.5px，与 yinji 逐像素一致。
+
+     ⚠️ **别再把它加回来。** 如果你在某个页面上看到「标题下方多一截空白」，
+     那不是这条规则造成的（如上所述它对带标题的页无效），去查真正的原因。
+     ⚠️ 将来若新增 `<content>` 是页面第一个块的页（即又出现一个 hideTitle 页），
+        它的首行间距自动与 yinji 一致 —— 不用为它补任何样式。 */
+
+  /* 列表：上游 `content ul, content ol { padding-left: 1.5em }` 负责缩进。
+     ⚠️ yinji 把这两条删掉了 —— 别跟着删，删了嵌套列表就没有层级了。 */
+
+  /* ---------------------------------------------------------------
+     03 **刻意留空**：关于页的头像已整块撤掉（2026-10-11 用户要求）
+
+        这一段的来历是一天内翻了两次的方案，写下来免得以后重走：
+
+        ① 原状：头像独占一行，压在「胡拉图（朋朋）」上面（即旧站的样子）。
+        ② 上午：用户要求「头像放在介绍模块的右侧，设计好看一点」→
+           改成两栏（`.about-intro` > `.about-intro-body` + `<img>`），
+           头像 120px 圆图贴右，窄屏落成一列且头像 `order: -1` 回到最上面。
+        ③ 同一天稍后：用户又说「算了，先把关于页的头像去除，不显示了」→
+           **整套撤掉**：`content/about.md` 里那层 `<div class="about-intro">`
+           删掉、退回成一段最朴素的 Markdown，本节的三组规则
+           （`.about-intro` / `.about-intro-body` / `.about-intro-avatar`，
+           连同 `@media (max-width: 480px)` 那一列）也一起删除。
+           （中间还试过「头像再往左 200px」，随 ③ 一起作废。）
+
+        **至此全站一张头像都没有了** —— 页头那张 2026-10-10 全站撤掉，这是最后一张。
+        理由记在 DESIGN.md 第 6 节「已删除的功能」，**别再提案加回来**。
+        ⚠️ `static/images/avatar.webp` 因此**重新变成没有引用的孤儿文件**。
+
+        保留段号而不是删掉这一节，是为了不动 04~08 的编号 ——
+        和 06 段「刻意留空」同一个做法。
+
+        ── 撤掉之前踩过的两个坑，留给以后真要加头像时用 ────────────────
+        ⚠️ 主题有一条全局 `img { margin-left: auto; margin-right: auto }`
+           （它靠这个把正文插图居中）。在**列方向**的 flex 里，交叉轴上的
+           auto 外边距**优先级高于 `align-items`** —— 窄屏落成一列时头像会
+           自己跑到中间，而文字是左对齐的，看着像没对齐。要显式写 margin 压掉。
+        ⚠️ 两栏那版里 `.about-intro-body` 必须写 `min-width: 0`：flex 子项默认
+           `min-width: auto`，「关注方向」那行长串会把左栏顶宽、把头像挤出内容区。
+      --------------------------------------------------------------- */
+
+  /* ---------------------------------------------------------------
+     04 首页「最近更新」列表
+         参考 yinji.org 的 .recent-posts：CSS Grid 两列（定宽日期 + 弹性标题）。
+         比上游 ul.blog-posts 的 flex: 0 0 80px 更稳 —— 定宽列不参与
+         内容竞争，标题永远从同一条竖线开始。
+
+         2026-10-11 用户要求**逐值对齐 yinji**（原话：「按照 yinji 的设计」）。
+         之前本站刻意做得更紧凑，四个值与 yinji 不同，现已全部改成 yinji 的值：
+
+             规则                     本站（旧）        现在（= yinji）
+             grid-template-columns    104px 1fr         120px 1fr
+             time 字号                .85rem            .95rem
+             li margin-bottom         .85rem            1.2rem
+             li line-height           1.5               1.3
+             ul margin-top            1.4rem            2rem
+
+         ⚠️ 同时删掉了本站多加的两个属性：`align-items: baseline` 和 `gap: 4px`
+            —— yinji 的这份规则里没有，去掉才是逐字一致（单行时视觉无差别，
+            标题换行时默认的 stretch 也会把日期对齐到第一行）。
+         ⚠️ 也删掉了原来的 `@media (max-width: 480px)` 单列回退：120px 定宽列在
+            最窄的内容区（Chromium 视口下限 392px → 内容区 352px）仍有 232px
+            留给标题，不需要回退。yinji 没有这条，删掉=更一致。
+         ⚠️ **唯一保留的偏离**：日期颜色用 `var(--text-color-tertiary)` 而不是
+            yinji 写死的 `#999` —— #999 在暗色主题下对比度不足，用令牌才能跟着
+            主题走（暗色下解析成 `#a0a0a0`）。
+         ⚠️ yinji 还有 `.recent-posts a { text-decoration: none }` 和
+            `a:hover { text-decoration: underline }` 两条 —— 它们是**空转**，
+            主题的全局 `a` / `a:hover` 本来就是这两个值，所以没有抄过来。
+      --------------------------------------------------------------- */
+  .recent-posts {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 2rem;
+    margin-bottom: 0;
+  }
+
+  .recent-posts li {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    margin-bottom: 1.2rem;
+    line-height: 1.3;
+  }
+
+  .recent-posts time {
+    color: var(--text-color-tertiary);
+    font-size: 0.95rem;
+  }
+
+  /* ---------------------------------------------------------------
+     05 文章列表的日期列
+         ⚠️ 上游 `ul.blog-posts li span.grouped { flex: 0 0 80px }` 是按它自己
+         的默认格式 `"02 Jan."`（7 个字符）定的。换成 ISO 的 `2006-01-02`
+         （10 个字符）后 80px 装不下 → 101 行列表每行日期都折成两行。
+         改成按内容定宽 + 不换行，就不依赖具体日期格式了。
+      --------------------------------------------------------------- */
+  ul.blog-posts li {
+    gap: 10px;
+  }
+
+  ul.blog-posts li span.grouped {
+    flex: 0 0 auto;
+  }
+
+  ul.blog-posts li time {
+    white-space: nowrap;
+  }
+
+  /* ---------------------------------------------------------------
+     06 目录（TOC）—— **刻意不覆盖**
+         上游的设计是「文字 color: transparent，不悬停就完全看不见」，
+         只留一排灰色短横。
+         ~/bearneo-trial 里曾把它改成「文字低对比度常显」，但 2026-10-10 晚
+         用户明确选了「**完全照搬：默认隐形**」（第一轮移植目录时的三问之一），
+         所以这里一段都不写 —— 上游的默认行为就是最终行为。
+         想改回常显：把 trial 的 custom_head.html 第 06 段抄回来即可。
+      --------------------------------------------------------------- */
+
+  /* ---------------------------------------------------------------
+     07 评论区（giscus）—— 2026-10-11 简化成「一行文字 + 一个标记」
+         原来是「外框 + 胶囊按钮 + 折叠正文」三层。用户要求**去掉所有框**：
+         现在只剩加粗的「评论」二字，右边一个 V 形标记，点一下展开。
+
+         标记画在 ::after 上，是**实心三角 ▼**（展开时 rotate(180deg) 翻成 ▲）——
+         2026-10-11 用户要求从原来的描边 V 形折线换成实心。::before 空着，
+         留给以后需要往外扩命中区时用。
+         ⚠️ 触控命中区靠 summary 自身的 `min-height: 44px` 达标，
+            **不加 padding** —— 加了会把这一行撑高、推掉下面的排版。
+            44px 是本站沿用下来的命中区下限（旧自建主题的 `--hit`）。
+         ⚠️ 外层 <details> **恒带 open**：折叠不靠 details 原生收起，而是靠
+            .is-open 类切 .giscus-body 的 max-height + visibility ——
+            收起时 iframe 仍保有布局宽度，giscus 测算高度不会算出 0，
+            点开才不跳动（详见 partials/giscus.html 的注释）。
+         ⚠️ 这一段的类名/ID 是和 assets/js/giscus.js 的契约，改名要两边一起改。
+      --------------------------------------------------------------- */
+  .giscus-wrap {
+    margin-top: 3rem;
+  }
+
+  .giscus-box summary {
+    list-style: none;
+  }
+
+  .giscus-box summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .giscus-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    min-height: 44px;
+    font-weight: 600;
+    color: var(--text-color-primary);
+    cursor: pointer;
+  }
+
+  .giscus-toggle:hover {
+    color: var(--link-color);
+  }
+
+  .giscus-toggle:focus-visible {
+    outline: 2px solid var(--link-color);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* 标记 2026-10-11 改成**实心三角**（原来是描边的 V 形折线）—— 用户要求。
+     做法换成「0 宽高 + 三条边框」的经典实心三角：
+       左右边框透明（撑出宽度）、上边框实色（撑出高度）→ 得到一个 ▼。
+     展开时 rotate(180deg) 翻成 ▲ —— 和原来一样「转一下」，不换图标。
+     ⚠️ width/height 必须写 0；一旦给了尺寸，边框三角就变成梯形/方块。
+     ⚠️ 别用 clip-path 或 SVG：::after 上没有 content 尺寸约束，边框三角最省。 */
+  .giscus-toggle::after {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 4.5px solid transparent;
+    border-right: 4.5px solid transparent;
+    border-top: 5px solid currentColor;
+    transition: transform 0.22s ease;
+  }
+
+  .giscus-box.is-open .giscus-toggle::after {
+    transform: rotate(180deg);
+  }
+
+  .giscus-loading {
+    margin: 0 0 0.6rem;
+    color: var(--text-color-tertiary);
+    font-size: 0.85rem;
+  }
+
+  .giscus-loading[hidden] {
+    display: none;
+  }
+
+  .giscus-body {
+    max-height: 0;
+    overflow: hidden;
+    visibility: hidden;
+  }
+
+  .giscus-box.is-open .giscus-body {
+    max-height: none;
+    visibility: visible;
+  }
+
+  {{- /* ---------------------------------------------------------------
+       08 支持页（/donate/）的两个收款码 —— **只在这一页输出**
+
+          ── 按页守卫的规矩（2026-10-11 起）────────────────────────────
+          「类名只出现在**一个**页面上的规则，一律包进 `{{ if eq .RelPermalink … }}`」。
+          目前本文件里有**两段**这样处理：08（`.donate-*` → `/donate/`）与
+          11（`.roll-break` → `/roll/`）。第 03 段曾经也是（`.about-intro*`，
+          只服务 /about/），但 2026-10-11 用户要求撤掉关于页头像，
+          那段 CSS 已整段删除、只留注释，所以不算了。
+          其余段（01、02、04~07）保持全站生效 —— 它们服务的类名要么挂在
+          `content` 这种每页都有的元素上（01 字体 / 02 排版），要么本身就是
+          全站组件（05 列表日期列 / 06 目录 / 07 评论区）。
+          09 / 10 也**不**全站生效，但它们不是按 .RelPermalink 判的
+          （要覆盖 125 个文章页），而是按 `$longForm` + 归档页一起包，
+          理由写在 09 段的注释里。
+          11 与 08 同类：`.roll-break` 只服务 /roll/，按 .RelPermalink 判。
+
+          ⚠️ 04 的 `.recent-posts` 是个**历史例外**：它也只在首页出现，却一直
+             没包守卫。它很小（~200 B）且早于这条规矩，这次**故意不动它** ——
+             不为了「统一」去改一段与本次需求无关、已经稳定工作的样式。
+             （2026-10-11 第二轮又动过它一次，但那是**用户点名要求对齐 yinji**，
+              与「按页守卫」这条规矩无关 —— 仍然没包守卫。）
+          ⚠️ 守卫用 .RelPermalink 而不是 front matter 开关：根目录独立页没有
+             [permalinks] 规则，URL 就是 /about/、/donate/，不会漂。万一以后
+             改名，症状是**可见的**（两个码退回成上下大图），不会静默出错。
+          ⚠️ 收款码的尺寸与换码说明在 content/donate.md 的注释里，介绍块的
+             结构说明在 content/about.md 的注释里 —— 各自是一件事，
+             改一处要回来对另一处。
+
+          minmax(150px, 220px) + justify-content: center：
+          宽屏下 auto-fit 排两列，每列被 max 220px 卡住、整行居中 ——
+          不会像 1fr 那样把两个码推到内容区最左最右、中间空一大块。
+          窄屏（375px 内容宽约 295px）只放得下 1 列 150px 轨道，
+          于是自动落成一列、居中。
+      --------------------------------------------------------------- */ -}}
+  {{- if eq .RelPermalink "/donate/" }}
+  .donate-qrs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 220px));
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .donate-qr {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .donate-qr img {
+    display: block;
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    /* 素材本身已经烤进白边（static/images/donate/，无损 WebP），
+       这里是第二道保险：以后换成透明 PNG 也不会在深色下烂掉。 */
+    background: #fff;
+  }
+
+  .donate-qr figcaption {
+    font-size: 0.8rem;
+    color: var(--text-color-tertiary);
+  }
+  {{- end }}
+
+  {{- /* ---------------------------------------------------------------
+       09 「系列」的两处出口（2026-10-11 新增）
+
+          · 文章页文末的**坐标带**：`.post-series`
+            （模板 layouts/_default/single.html）
+          · 归档页顶部的**折叠总览**：`.archive-series` / `.series-row` …
+            （模板 layouts/_default/archive.html）
+
+          两处共用同一套语言：发丝线分节（`border-top: 1px solid var(--border-color)`）、
+          系列名用正文色加粗、篇数/序号用三级灰。**不加底色、不加阴影、不加圆角卡片**
+          —— 与上游主题的克制一致。
+
+          ⚠️ **这里没有印章红。** 用户 2026-10-11 明确「印章红不要回来」，
+             所以强调一律走 `--link-color` / `--text-color-primary`，
+             全文不含任何写死的红色（旧自建主题的 `#c73e2f` 不再出现）。
+          ⚠️ 09 + 10 两段被同一个守卫包住（见下面那行 `{{ if or … }}`）：
+             这两段的类名**只出现在文章页和归档页**，别处 200 个页面（首页、
+             /about/、/now/、/roll/、/tags/* …）一个字都不需要，白搭约 2 KB。
+             守卫条件与模板里的挂载条件**一一对应**，改模板的挂载条件要回来改这里：
+               · $longForm      → single.html 的文末两段（posts + weekly 共 125 页）
+               · /archive/      → archive.html 的折叠总览（1 页）
+             ⚠️ 用 .RelPermalink 判归档页而不是 .Type —— /archive/ 是普通内容页
+                （Type 是 "page"），和 /about/ 之类分不开。
+          ⚠️ 折叠箭头的旋转角度见下面 `.series-label::after` 的注释，
+             和 07 段的三角不是同一套画法，别互相抄。
+         --------------------------------------------------------------- */ -}}
+  {{- if or $longForm (eq .RelPermalink "/archive/") }}
+  .post-series {
+    margin-top: 2.4rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .post-series-head {
+    margin: 0 0 0.7rem;
+    font-size: 0.9rem;
+    color: var(--text-color-tertiary);
+  }
+
+  .post-series-name {
+    color: var(--text-color-primary);
+    font-weight: 600;
+  }
+
+  .post-series-count {
+    margin-left: 0.5rem;
+  }
+
+  .post-series-links {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .post-series-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .post-series-dir {
+    flex: 0 0 auto;
+    color: var(--text-color-tertiary);
+    font-size: 0.85rem;
+  }
+
+  .post-series-ord {
+    flex: 0 0 auto;
+    color: var(--text-color-tertiary);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    /* ⚠️ 这一条是为了**让上下两行的标题左端对齐**（2026-10-11 修）：
+       序号是 1~2 位数字，不兜底的话「9」只占 8.1px、「11」占 16.3px，
+       两条 `.post-series-link` 的标题左端就错开 8.1px —— 实测过
+       《开学了，也要有个新气象》系列第 10 篇（邻居 9 与 11）。
+       给个最小宽度 + 右对齐，数字右缘对齐、标题左缘也对齐。
+       ⚠️ `1.5em` 是本元素自己的 em（`font-size: .8rem` = 12.8px → 19.2px），
+          实测 2 位数字 16.3px，留了约 3px 余量。
+          **只兜得住 2 位**：系列超过 99 篇要回来改（现在最长的是「跑步」12 篇）。 */
+    min-width: 1.5em;
+    text-align: right;
+  }
+
+  /* 标题单行省略。⚠️ flex 子项默认 min-width: auto，不写 0 的话
+     长标题会把行撑破、省略号永远不出现。 */
+  .post-series-title {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  {{- /* ── 归档页的「系列」入口（2026-10-11 二次改版）────────────────────
+       用户原话：「我的归档页的『系列』，请不要有分割线等多余的设计，
+       简单的设计成一个个系列，水平排布」。
+
+       上一版是「每个系列一个 <details>、默认收起、行间一条发丝线」，被否掉了。
+       现在：**一个系列 = 一行**，系列名在左、该系列的篇目在右**横向铺开**
+       （超宽自动换行）。没有分割线、没有折叠、没有箭头、没有圆角、没有底色。
+
+       ⚠️ 这一块**只有 3 行**（站里的系列就这么几个），所以横向铺开不会
+          变成一堵墙；如果以后系列变多、每行变长，再考虑加回折叠，
+          **但别把发丝线加回来**（那是用户明确否掉的「多余的设计」）。
+       ⚠️ 篇数（`.series-label-count`）保留 —— 它是信息不是装饰，且很小。
+       ⚠️ 系列名用 `min-width: 6em` 而不是固定宽度：三个名字长度不一
+          （跑步 2 字 / 综述写作 4 字 / 居家流水账 5 字），给个下限让篇目
+          基本对齐在同一条竖线上；名字更长时自动撑开，不会被裁。
+       ⚠️ `.series-posts` 必须 `min-width: 0`，否则 flex 子项默认
+          `min-width: auto`，长串会把行撑破。
+       ⚠️ 类名与 `layouts/_default/archive.html` 是一份契约，改一处要改两处。 */ -}}
+  .archive-series {
+    margin: 1.5rem 0 0.3rem;
+  }
+
+  .series-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem 0.9rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .series-name {
+    flex: 0 0 auto;
+    min-width: 6em;
+    font-weight: 600;
+    color: var(--text-color-primary);
+  }
+
+  .series-label-count {
+    margin-left: 0.4rem;
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: var(--text-color-tertiary);
+  }
+
+  .series-posts {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1rem;
+    color: var(--text-color-secondary);
+  }
+
+  /* ── 归档页底部的「全部标签」平铺（2026-10-11，照 yinji.org/blog 补回）──
+     ⚠️ 这条规则存在的**唯一原因**是补回被吃掉的一段外边距，不是装饰：
+        上游那一块是 `<small><div>`，`<small>` 默认是 **inline**。
+        它原来的前一个兄弟 `<ul class="blog-posts">` 有浏览器默认的
+        `margin-bottom: 1em`（16px），而 `main` 没有 padding/border-bottom，
+        所以这 16px 会**折叠穿透 main**，正好顶开页脚。
+        换成 inline 的 `<small>` 之后折叠不再发生 → **页脚贴住标签**（实测 16px → 0）。
+        把 `<small>` 变块级并补回 16px，间距与改之前一致。
+     ⚠️ `display: block` 必须加在 `<small>` 上而不是里面的 `<div>`：
+        块级元素套在行内父元素里会产生「匿名块盒」，外边距能不能穿透不可靠。
+     ⚠️ 上面 16px 是**浏览器默认的 `1em`**，不是某个 token —— 这里照抄实际值。
+        改 `body` 的 font-size 要回来核对。 */
+  .tag-index {
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  {{- /* ---------------------------------------------------------------
+       10 文章页文末「上一篇 / 下一篇」（2026-10-11 新增）
+
+          ⚠️ 和 09 的 `.post-series` 是**上下相邻**的两段（DOM 里就是兄弟节点）。
+             两个都带 `border-top` 的话，连载文章会出现两条挨得很近的发丝线，
+             看着像把一小块内容框起来。所以第二条（`.post-series + .post-nav`）
+             把自己的线去掉，只留一点间距。
+          ⚠️ 两列 grid 而不是 flex：`1fr 1fr` 让左右两栏宽度**相等**，
+             标题长的那条不会把另一条挤扁，视觉重心稳定。
+          ⚠️ `.post-nav-empty` 是模板给的**占位空槽**（第一条或最后一条没有邻居时）：
+             用 visibility: hidden 而不是不渲染 —— 不渲染的话，
+             只剩「下一篇」时会掉到左边那一列。
+         --------------------------------------------------------------- */ -}}
+  .post-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem 1.4rem;
+    margin-top: 2.4rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .post-series + .post-nav {
+    margin-top: 1.2rem;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .post-nav-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .post-nav-next {
+    text-align: right;
+  }
+
+  .post-nav-dir {
+    font-size: 0.8rem;
+    color: var(--text-color-tertiary);
+  }
+
+  .post-nav-title {
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  .post-nav-empty {
+    visibility: hidden;
+  }
+
+  @media (max-width: 480px) {
+    .post-nav {
+      grid-template-columns: 1fr;
+    }
+
+    /* 落成一列后，右对齐的「下一篇」会显得像另一段文字 —— 一律左对齐。 */
+    .post-nav-next {
+      text-align: left;
+    }
+  }
+  {{- end }}
+
+  {{- /* ---------------------------------------------------------------
+       11 **刻意留空**：收藏页（/roll/）两组之间的分隔线
+
+         ── 一段改了两遍的历史，写下来免得再走一遍 ──────────────────────
+         这一页照 yinji 做成一条平铺（没有 `##` 分组小标题），但内容上是两组：
+         前 3 条「朋友」（认识的人）、后 11 条「聚合站 / 目录站」（常逛的地方）。
+         没有小标题之后这个区分就只剩顺序，读者看不出来。
+
+         ① 第一版（2026-10-11 早）：**40px 短横线**（`.roll-break`，全部
+            样式写在站点层，包 `{{ if eq .RelPermalink "/roll/" }}` 守卫）。
+            当时的判断是「全宽 `<hr>` 会把这一页切成两块，破坏平铺」。
+         ② 当天稍晚用户改主意：「我想要全宽、断裂的分割线，首页那一款」。
+
+         ── 现在的做法：一行 CSS 都不写 ─────────────────────────────────
+         「首页那一款」= 首页 `Hi!` 与 `Recent Posts:` 之间那条分隔，
+         它就是**主题里那条裸 `hr`**：
+             hr { border: 0; border-top: 1px dashed }
+         `border-top` 没写颜色 → 用 `currentColor` → 跟随 `--text-color-primary`，
+         深浅色都对。**全宽、虚线（「断裂」）、上下各 16px**。
+
+         所以：content/roll.md 里写成**裸 `<hr>`**（不带任何 class），
+         本节不再输出任何 CSS，`.roll-break` 与 `content > ul` 那两条规则都删了。
+         ⚠️ 这**正是**「用主题自带的语言」—— 能靠一个现成元素做到，就别加新类名。
+         ⚠️ 别再给它加 class 或自定义宽度。要改观感就改主题的 `hr`（但那会影响
+            全站所有 hr，包括首页那条 —— 它们是同一条规则）。
+         ⚠️ 两个 `<ul>` 的 1em 外边距和 `hr` 的 0.5em 折叠后正好是 **16px**，
+            与首页那条完全相同 —— 不需要再压边距（第一版压过，现在不必了）。
+
+         ── 保留段号 ────────────────────────────────────────────────────
+         与 03 / 06 段同一个做法：段号留着，免得动 12 段的编号。
+      --------------------------------------------------------------- */ -}}
+
+  {{- /* ---------------------------------------------------------------
+       12 代码高亮配色 —— **只有含代码块的页面才输出**
+
+         ── 为什么需要它：改配置之前，代码块是**看不见的** ────────────────
+         这是 2026-10-11 用户报「代码区域的色彩显示，阅读体验不太好」时挖出来的，
+         不是审美问题，是可读性问题。
+
+         默认 `markup.highlight.noClasses = true` → Chroma 把颜色写成**内联 style**：
+             <pre style="color:#f8f8f2;background-color:#272822">
+         那是 **monokai（深色主题）** 的配色。而主题 style.html 里有：
+             code               { background-color: var(--bg-color-secondary) }
+             div.highlight code { background-color: var(--bg-color-secondary) }
+         它给代码块铺了**浅色**底（#f2f4f7）。`<code>` 铺满 `<pre>`，
+         于是 pre 的深色底被完全盖住 —— 实际渲染成「浅灰底 + 深色主题的字色」。
+
+         **实测（像素采样 /posts/2026/10/07/engineering-students-use-macbook/）**：
+             底        #f2f4f7
+             普通标识符 #f8f8f2  → 对比度 ≈ 1.05:1   ← 完全看不见
+             字符串     #e6db74  → 对比度 ≈ 1.15:1   ← 几乎看不见
+             关键字     #f92672  → 勉强能读
+         所以那篇文章里 `pandas` / `np` / `sns` 这些名字、所有字符串、所有数字
+         全都是隐形的，只有关键字和注释还有颜色。
+
+         ⚠️ **光改 CSS 修不好**：内联 style 的优先级高于任何 CSS 选择器（除非
+            `!important`）。所以修法必须是两步：
+              ① hugo.toml 的 `[markup.highlight] noClasses = false`
+                 → Chroma 只输出 `class="kn"` 这类短类名，不再写任何颜色；
+              ② 配色由本节提供，浅色 / 深色两套跟随 `prefers-color-scheme`。
+
+         ── 配色 ────────────────────────────────────────────────────────
+         参考 GitHub 的浅色 / 深色两套（成熟、对比度达标），
+         底色**沿用** `--bg-color-secondary`，与行内 `code` 同一个底 ——
+         两个的区别靠 1px 边框（`--border-color`）而不是靠换底，
+         这样代码块不会在页面里「打补丁」。
+         浅色下各 token 的对比度都在 4.9:1 以上（AA / AAA）。
+
+         ── 为什么加守卫 ────────────────────────────────────────────────
+         全站 327 页里**只有 5 个页面有代码块**（共 6 块）。不守卫的话每页白搭
+         约 1 KB。判据用 `.Content` 里有没有 `class="highlight"` ——
+         这个 div 是 Hugo 自己加的，fenced 代码块和 `{{< highlight >}}` 短代码
+         都会产生它。⚠️ 别用 `strings.Contains .RawContent "```"`：那样抓不到
+         短代码写法。
+         ⚠️ 类名（`.chroma` / `.highlight` 与那批两字母短类名）是和
+            Chroma 的契约，Hugo 升级后如果 token 命名变了要回来看一眼。
+         ⚠️ 那批 `.k` `.p` `.s` 类名极短，**必须**带 `.highlight` 前缀 ——
+            裸写会误伤站点其他元素。前缀也让这里的规则不会外溢。
+      --------------------------------------------------------------- */ -}}
+  {{- $hasCode := and .IsPage (strings.Contains .Content "class=\"highlight\"") }}
+  {{- if $hasCode }}
+  :root {
+    --code-fg: #24292f;
+    --code-comment: #656d76;
+    --code-keyword: #cf222e;
+    --code-string: #0a3069;
+    --code-number: #0550ae;
+    --code-function: #8250df;
+    --code-builtin: #953800;
+    --code-tag: #116329;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --code-fg: #e5e5e5;
+      --code-comment: #8b949e;
+      --code-keyword: #ff7b72;
+      --code-string: #a5d6ff;
+      --code-number: #79c0ff;
+      --code-function: #d2a8ff;
+      --code-builtin: #ffa657;
+      --code-tag: #7ee787;
+    }
+  }
+
+  /* `.chroma` 里的 tab 宽度原本是 Chroma 的内联样式，关掉内联后要自己补，
+     否则制表符按浏览器默认 8 字符算，Python 代码的缩进会塌。 */
+  pre.chroma {
+    tab-size: 4;
+    -moz-tab-size: 4;
+    color: var(--code-fg);
+    background-color: var(--bg-color-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+  }
+
+  /* 让 pre 的底透过来（主题给 code 铺的底和上面同色，设成 transparent
+     只是为了以后想把块级底色调成与行内不同时不用再改这里）。 */
+  div.highlight code {
+    background-color: transparent;
+  }
+
+  .highlight .c,
+  .highlight .ch,
+  .highlight .cm,
+  .highlight .c1,
+  .highlight .cs,
+  .highlight .cp,
+  .highlight .cpf {
+    color: var(--code-comment);
+  }
+
+  .highlight .k,
+  .highlight .kc,
+  .highlight .kd,
+  .highlight .kn,
+  .highlight .kp,
+  .highlight .kr,
+  .highlight .kt {
+    color: var(--code-keyword);
+  }
+
+  .highlight .s,
+  .highlight .sa,
+  .highlight .sb,
+  .highlight .sc,
+  .highlight .dl,
+  .highlight .sd,
+  .highlight .s1,
+  .highlight .s2,
+  .highlight .se,
+  .highlight .sh,
+  .highlight .si,
+  .highlight .sr,
+  .highlight .ss,
+  .highlight .sx {
+    color: var(--code-string);
+  }
+
+  .highlight .m,
+  .highlight .mb,
+  .highlight .mf,
+  .highlight .mh,
+  .highlight .mi,
+  .highlight .mo,
+  .highlight .il {
+    color: var(--code-number);
+  }
+
+  .highlight .nf,
+  .highlight .fm {
+    color: var(--code-function);
+  }
+
+  .highlight .nc,
+  .highlight .nd,
+  .highlight .ne {
+    color: var(--code-function);
+  }
+
+  .highlight .nb,
+  .highlight .bp,
+  .highlight .nv,
+  .highlight .vi,
+  .highlight .vc,
+  .highlight .vg,
+  .highlight .vm {
+    color: var(--code-builtin);
+  }
+
+  .highlight .na,
+  .highlight .no,
+  .highlight .o,
+  .highlight .ow {
+    color: var(--code-number);
+  }
+
+  .highlight .nt,
+  .highlight .gi {
+    color: var(--code-tag);
+  }
+
+  .highlight .gd,
+  .highlight .err {
+    color: var(--code-keyword);
+  }
+  {{- end }}
+
+  {{- /* ---------------------------------------------------------------
+       13 面包屑（2026-10-11 新增）—— **只给文章页输出**
+
+          ── 形态 ────────────────────────────────────────────────────────
+             首页 / 文章
+             ─────────────────
+             # 工科研究生用 Mac，也可以很完美
+
+          只显示「祖先」两段，**不显示当前页标题** —— 因为紧接着就是 <h1>，
+          写两遍是冗余，而且本站标题偏长，窄屏上最后一段必然折行。
+          JSON-LD 那份仍是完整的 3 段（见 partials/breadcrumbs.html 的注释）。
+
+          ── 样式决策 ────────────────────────────────────────────────────
+          · **没有底色、没有圆角、没有边框** —— 与 09/10 段同一套语言：
+            层级靠**字号 + 三级灰**表达，不加装饰。面包屑是最不需要存在感的东西，
+            它只需要「一眼扫到、想点的时候点得到」。
+          · 分隔符是 **`/`**（写在 CSS 的 `li + li::before` 里，不在模板里）——
+            与首页那行平台链接（`公众号 / 少数派 / …`）同一套写法。
+            ⚠️ 别改成 `›` / `>` / `»`：全站没有箭头语言。
+          · 字号 `0.85rem`：比正文小、和 `.post-nav-dir`（上一篇/下一篇的引导词）
+            同级 —— 它们都是「导航性的小字」。
+          · 颜色用 `--text-color-tertiary`：**面包屑默认不该抢眼**，
+            悬停才变 `--link-color`。这与 TOC「默认隐形」是同一种克制的取向。
+
+          ── 间距 ────────────────────────────────────────────────────────
+          `margin: 1rem 0 0` —— 上边 16px 与 `<h1>` 上边距同值
+          （header 与 main 之间没有别的间距，全靠这一档撑开），
+          下边 0 让 `<h1>` 自带的 `margin-top: 16px` 生效，两者正好一致。
+          ⚠️ 别给下边也写 16px：那样会和 h1 的 16px 折叠成 16px，看着一样，
+             但多写一个值以后改起来容易搞混 —— 交给 h1 就够了。
+
+          ── 为什么挂在 $longForm 上 ─────────────────────────────────────
+          面包屑只对 125 个文章页有意义（见 partials/breadcrumbs.html 开头的分类），
+          其余 202 页不白带这 5 条规则。**条件与模板里的挂载条件一一对应**，
+          改模板的挂载范围要回来改这里。
+      --------------------------------------------------------------- */ -}}
+  {{- if $longForm }}
+  .breadcrumbs {
+    margin: 1rem 0 0;
+    font-size: 0.85rem;
+    color: var(--text-color-tertiary);
+  }
+
+  .breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 分隔符画在前一项的右边，而不是后一项的左边 ——
+     这样「首页 / 文章」折行时不会以一个孤零零的「/」开头。 */
+  .breadcrumbs li + li::before {
+    content: "/";
+    margin-right: 0.4rem;
+    color: var(--text-color-tertiary);
+  }
+
+  .breadcrumbs a {
+    color: var(--text-color-tertiary);
+  }
+
+  .breadcrumbs a:hover {
+    color: var(--link-color);
+  }
+  {{- end }}
+
+  {{- /* ---------------------------------------------------------------
+       14 正文里的两样（2026-10-11 从旧「印章」主题取回）
+          —— **全站生效**（它们是「由内容决定出不出现」的元素）
+
+          · `content .nowrap` —— **孤行保护**必须的那一条（见下）
+          · `.table-wrap` —— 宽表格的横向滚动容器
+
+          ⚠️⚠️ **这一段最初是包在 `{{ if $longForm }}` 里的，那是错的 —— 实测漏了 4 页。**
+          `/about/` `/now/` `/privacy/` `/` 这四页都不是长文页，但它们的正文里
+          **都有 h2**，于是 render-heading 照样输出了 `<a class="heading-anchor">#</a>`，
+          而这四页的 `<style>` 里没有对应规则 → `.heading-anchor` 的
+          `opacity: 0` 也没了 → **`#` 以默认样式裸露在标题旁边**。
+          成因值得记：**「按页型守卫」在这里不成立，因为「有没有 h2」和「是不是文章页」
+          是两件事** —— 前者由内容决定，后者由目录结构决定。
+
+          ⚠️ 2026-10-11 收盘时又调整了一次分工，**现在判据是这样**：
+            · **由「内容」决定出不出现的**（`.nowrap`、`.table-wrap`）→ 全站输出。
+              它们出现的条件是「作者在正文里写了什么」，模板判断不了。
+            · **可以只给文章页的**（`.heading-anchor`）→ 挪到第 19 段并按 `$longForm` 守卫。
+              它之所以能守卫，是因为**模板层也一起加了同样的判断**
+              （render-heading.html 只在 posts/weekly 输出 `#`）——
+              **两处条件必须一致**，这是守卫成立的前提。
+            ⇒ 判据：**问它是由「页面类型」还是「内容」决定的；只在前者才允许守卫。**
+              但如果模板本身能一起判断（像 `#` 这样），那就把类型判断上移到模板层，
+              这样连 CSS 都不用守卫 —— 更稳。
+
+          ⚠️⚠️ **`content .nowrap` 这条千万别删。**
+          `orphan-safe.html` 输出的 `<span class="nowrap">`，**类名本身没有任何样式** ——
+          主题没有定义过 `.nowrap`（实测 grep 为 0）。我一度只取回了 partial 和
+          四处模板调用，构建 0 警告、产物里也能看到 span，但**功能完全没生效**，
+          因为 span 只是被当成了普通行内元素。**行为看着「对」、实际是静默空转** ——
+          这类坑只能靠「加完之后实测换行位置有没有变」发现。
+
+          ⚠️ 表格那层为什么还要写 `margin`：主题的 `table` 有
+             `border-collapse` + `width: 100%`，外层 div 是它唯一的间距来源；
+             不写的话表格会紧贴上下文、和普通段落挤在一起。
+             `overflow-x: auto` 在表格没溢出时不产生任何视觉影响（防御性的）——
+             全站目前只有 1 篇有表格，且是 3 列中文短句、不会溢出。
+         --------------------------------------------------------------- */ -}}
+  content .nowrap {
+    white-space: nowrap;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.2rem 0;
+  }
+
+  .table-wrap > table {
+    margin: 0;
+  }
+
+  {{- /* ---------------------------------------------------------------
+       15 404 页 —— **只在这一页输出**
+
+          守卫用 `eq .Kind "404"` 而不是 `.RelPermalink`：
+          404 的 URL 由托管平台决定（Cloudflare Pages 走 `/404.html`，
+          但本地预览、别的平台可能不同），`Kind` 是 Hugo 给的确定值。
+          这也与 baseof.html 里 `$noindex` 那段的判断方式一致。
+
+          形态照旧「印章」主题：上半「这一页不在账上」+ 三个动作，
+          下半「逛逛别处」两列账本（无卡片、无投影，靠发丝线分行，hover 只变字色）。
+
+          ⚠️ 大字 404 是**水印**（`<p aria-hidden>`），不是标题 ——
+             所以它用 `--text-color-tertiary` 而不是任何强调色。
+             旧版这里曾经是印章红，用户 2026-10-11 明确「印章红不要回来」，
+             所以水印、按钮一律走中性 + 链接蓝。
+          ⚠️ 主按钮（回首页）用链接蓝实底。这是这一页唯一的「重」元素 ——
+             404 页最该做的事就是回到站内。
+         --------------------------------------------------------------- */ -}}
+  {{- if eq .Kind "404" }}
+  .notfound {
+    margin: 2rem 0 0;
+  }
+
+  .notfound-code {
+    margin: 0;
+    font-family: var(--font-secondary);
+    font-size: 3.4rem;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    color: var(--text-color-tertiary);
+    opacity: 0.5;
+  }
+
+  .notfound-title {
+    margin: 0.5rem 0 0.35rem;
+  }
+
+  .notfound-text {
+    margin: 0 0 1.2rem;
+    color: var(--text-color-secondary);
+  }
+
+  .notfound-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .notfound-btn {
+    display: inline-block;
+    padding: 0.42em 1.1em;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    font-size: 0.92rem;
+    text-decoration: none;
+  }
+
+  .notfound-btn:hover {
+    border-color: var(--link-color);
+    color: var(--link-color);
+  }
+
+  .notfound-btn-primary {
+    background: var(--link-color);
+    border-color: var(--link-color);
+    color: var(--bg-color-primary);
+  }
+
+  .notfound-btn-primary:hover {
+    opacity: 0.88;
+    color: var(--bg-color-primary);
+  }
+
+  .notfound-nav {
+    margin: 2.4rem 0 0;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .notfound-nav-head {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color-tertiary);
+  }
+
+  .notfound-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1.6rem;
+  }
+
+  .notfound-links a {
+    display: block;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--border-color);
+    text-decoration: none;
+  }
+
+  .notfound-link-title {
+    display: block;
+    color: var(--text-color-primary);
+  }
+
+  .notfound-link-note {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-color-tertiary);
+  }
+
+  .notfound-links a:hover .notfound-link-title {
+    color: var(--link-color);
+  }
+
+  /* 窄屏收成一列：两列在 352px 内容宽下每列只剩 140px，「全部文章，按年月翻阅」
+     这种说明会折成两三行，反而不如一行一个清楚。 */
+  @media (max-width: 600px) {
+    .notfound-links {
+      grid-template-columns: 1fr;
+    }
+  }
+  {{- end }}
+
+  {{- /* ---------------------------------------------------------------
+       16 返回顶部 —— **只给长文页**（守卫 `$longForm`）
+
+          由 partials/back-top.html 输出（总在长文页输出，
+          「显不显示」全部交给 CSS —— 构建期判断不了浏览器）。
+          与旧版最大的区别：**零 JS**，改用 CSS 滚动驱动动画。
+
+          `animation-range: 400px 600px` 让它在滚过 400px 后淡入，
+          代替旧版的 `.is-visible` 类（那个要 `ui.js` 监听 scroll 才能加）。
+          ⚠️ **降级：不支持滚动驱动动画时让它常显。**
+             它是**功能**不是装饰 —— `<a href="#top">` 是原生锚点，不需要 JS 也能跳。
+             「一直看得见」比「精致但不出现」重要。
+          ⚠️ `.back-top` 的底用 `--bg-color-primary`（与页面同色）+ 1px 边框，
+             不是白色浮层：它背后**没有遮罩**，靠边框跟页面区分就够了。
+             唯一的一点阴影是为了让它在文字上方读得出边界（不引入卡片语言）。
+
+          ⚠️⚠️ **这一段 2026-10-11 当天删掉过「阅读进度条」。**
+             原有 `.reading-progress`（顶部 2px 的灰线，`scaleX` 表达读了百分之几）
+             按用户要求「进度条不要，去掉」**整块删除**。
+             连同它的 `@keyframes reading-progress-grow`、`@supports` 块、
+             以及 reduced-motion 里的 `display: none` 一起删干净。
+             **别再把它加回来** —— 用户看过之后明确不要。
+         --------------------------------------------------------------- */ -}}
+  {{- if $longForm }}
+  .back-top {
+    position: fixed;
+    right: 20px;
+    bottom: 24px;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background-color: var(--bg-color-primary);
+    color: var(--text-color-secondary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    z-index: 90;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+  }
+
+  .back-top:hover {
+    color: var(--link-color);
+    border-color: var(--link-color);
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .back-top {
+      animation: back-top-appear linear both;
+      animation-timeline: scroll(root block);
+      /* 滚过 400px 才开始出现，600px 时完全现身 */
+      animation-range: 400px 600px;
+    }
+
+    @keyframes back-top-appear {
+      from {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+    }
+  }
+
+  /* 不支持滚动驱动动画时：退回「常显」。见上面那段注释里的取舍。 */
+  @supports not (animation-timeline: scroll()) {
+    .back-top {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .back-top {
+      right: 12px;
+      bottom: 16px;
+      width: 38px;
+      height: 38px;
+    }
+  }
+
+  /* reduced-motion：关掉滚动驱动的持续变化。
+     ⚠️ `.back-top` 只关动画、**保留可见** —— 它是功能（原生锚点能跳），
+        不是装饰。降级成「常显」比「看不见」好。
+     ⚠️ 这条覆盖**必须写在 16 段里面**（有 `$longForm` 守卫）。
+        写在外面的全站段会让 `.back-top` 这个类名铺到全部 327 页（实测踩过）。 */
+  @media (prefers-reduced-motion: reduce) {
+    .back-top {
+      animation: none;
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+    }
+  }
+  {{- end }}
+
+  {{- /* ---------------------------------------------------------------
+       17 全站平滑滚动（**无守卫**）
+
+          旧「印章」主题就有的行为（`html { scroll-behavior: smooth }`），
+          2026-10-11 随迁移一起丢了，这里取回。
+          它对全站生效：目录点击、标题锚点 `#`、页脚链接、404 的按钮都会平滑滚动。
+
+          ⚠️ 放在这里（全站段）而不是 16 段（长文页）：锚点跳转不只发生在文章页，
+             `/archive/` 之类页面同样受益。
+
+          ⚠️ **`prefers-reduced-motion` 必须覆盖。**
+             平滑滚动对前庭功能敏感的人是真实的不适来源，这条是可达性要求，不是偏好。
+          ⚠️⚠️ 这一段**只能写 `html` 这一条规则**，别把 16 段那个装置的
+             reduced-motion 覆盖也塞进来 —— 那会让 `.back-top` 这个类名
+             出现在全部 327 页的 `<style>` 里（实测踩过），
+             既白搭体积、也破坏了「按页守卫」这条纪律。
+             它的 reduced-motion 覆盖写在 16 段**内部**（有守卫）。
+         --------------------------------------------------------------- */ -}}
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  {{- /* ---------------------------------------------------------------
+       18 代码块「复制」按钮 —— **只给含代码块的页面输出**
+
+          判据与第 12 段（代码配色）完全一致，改一处要三处同改
+          （这里、第 12 段、partials/code-copy.html）。
+
+          形态（2026-10-11 当天按用户「简单设计，显示复制成功就可以」简化过一次）：
+          **默认完全隐形**（`opacity: 0`），鼠标进到代码块才出现 —— 平时是一行小字，
+          不抢代码的注意力。原版带 `1px` 边框 + 圆角 + 底色，现在全去掉，
+          只留一层**页面底色的底**（`--bg-color-primary`）保证压在代码上仍读得清。
+          ⚠️ **不加边框**：按钮浮在代码上，加边框就变成「代码块里嵌了一个按钮」，
+             而这只是一行辅助文字。它靠自己的底色和代码底色（`--bg-color-secondary`）
+             区分，不靠线。
+          ⚠️ 文案由 assets/js/code-copy.js 写入：默认「复制」，点击后「**已复制**」，
+             1.6 秒后回到「复制」。类名 `.code-copy` 是两边的契约，改名要两边一起改。
+             （当天先后用过「已复制」→「复制成功」→ 又改回「已复制」，以「已复制」为准。）
+          ⚠️ `div.highlight` 是 Hugo 给围栏代码块加的外层 div，
+             所以 `position: relative` 要加在它身上（按钮 absolute 的定位基准）。
+         --------------------------------------------------------------- */ -}}
+  {{- if $hasCode }}
+  div.highlight {
+    position: relative;
+  }
+
+  .code-copy {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    padding: 0.1em 0.5em;
+    font-family: var(--font-secondary);
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: var(--text-color-tertiary);
+    background-color: var(--bg-color-primary);
+    border: 0;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease;
+  }
+
+  div.highlight:hover .code-copy,
+  .code-copy:focus-visible {
+    opacity: 1;
+  }
+
+  .code-copy:hover {
+    color: var(--link-color);
+  }
+
+  /* 复制成功那一瞬：文字变链接蓝。1.6 秒后 JS 把类名和文字一起撤回。 */
+  .code-copy.is-done {
+    color: var(--link-color);
+  }
+
+  /* 触屏没有 hover —— **常显**，否则按钮永远不可见，而这个功能在手机上确实有用
+     （分享一段代码给同学）。这里与 `.heading-anchor` 的处理**刻意不同**，
+     理由见第 19 段。 */
+  @media (hover: none) {
+    .code-copy {
+      opacity: 1;
+    }
+  }
+  {{- end }}
+
+  {{- /* ---------------------------------------------------------------
+       19 标题锚点 `.heading-anchor` —— **只给文章页**（守卫 `$longForm`）
+
+          由 `layouts/_default/_markup/render-heading.html` 输出，
+          **那一边也用了同一个 `$longForm` 判断** —— 这是本段能守卫的前提。
+          ⚠️ 两处条件必须一致：只改一边就会出现「HTML 有、CSS 没有」（`#` 裸露）
+             或「CSS 有、HTML 没有」（白搭体积）。哨兵见 MAINTENANCE.md 第 7 节。
+
+          ── 2026-10-11 收盘时的调整（用户两次反馈「非文章页面的 # 不要直接显示」）
+          之前这一段是全站输出的，靠 `.heading-anchor { opacity: 0 }` 让 `#` 隐形、
+          悬停才显形。用户仍然在 `/about/` `/now/` 这类页面看到它 —— 说明
+          **「靠 CSS 隐形」这条路对「一定不显示」是不够的**（依赖 hover 能力、
+          也容易被别的规则盖掉）。最终改成**模板层就不输出**，CSS 顺势收进守卫里。
+
+          ⚠️⚠️ **触屏上现在是 `display: none`（以前是 `opacity: 1` 常显）。**
+          改的理由：
+            · 用户的要求是「不要直接显示」—— 触屏没有 hover，常显就等于「直接显示」。
+            · 原来的常显是为了避开「`opacity: 0` 仍能被打中 → 点标题末尾莫名跳走」
+              这个陷阱；但 `display: none` **更彻底** —— 既不可见、也不可点、
+              还不占 `margin-left` 那点宽度（标题行尾更干净）。
+          代价：触屏上就用不了「复制小节直链」了。**这是刻意的** ——
+          手机上复制小节链接的需求本来就低，而常显 `#` 的噪音是实打实的。
+
+          命中区：`#` 视觉只有 `0.68em × 1.1em`（≈11×18px），直接点很难中。
+          它左边紧贴标题文字，往左扩会把「选中标题文字」变成「跳锚点」，
+          所以**只向右和上下扩**（`inset` 的第四个值 left 保持 0），右边是行尾空白。
+          ⚠️ 这是这一个元素自己的可用性，不是「全站命中区体系」——
+             本站没有旧版那套 `--hit` 变量，所以这里直接写固定值。
+         --------------------------------------------------------------- */ -}}
+  {{- if $longForm }}
+  .heading-anchor {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1em;
+    height: 1.1em;
+    margin-left: 0.35em;
+    border-radius: 50%;
+    color: var(--text-color-tertiary);
+    font-size: 0.68em;
+    font-weight: 400;
+    line-height: 1;
+    text-decoration: none;
+    opacity: 0;
+    transform: translateX(-3px);
+    transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease,
+      transform 0.15s ease;
+  }
+
+  content h2:hover .heading-anchor,
+  content h3:hover .heading-anchor,
+  content h2:focus-within .heading-anchor,
+  content h3:focus-within .heading-anchor {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .heading-anchor:hover {
+    color: var(--link-color);
+    background: var(--bg-color-secondary);
+  }
+
+  .heading-anchor::after {
+    content: "";
+    position: absolute;
+    inset: -14px -26px -14px 0;
+  }
+
+  /* 触屏：整块不渲染（既不可见也不可点，见上面那段注释里的取舍）。
+     用 `hover: none` 而不是 `max-width`：带触屏的笔记本仍然报 `hover: hover`，
+     不该命中这条。 */
+  @media (hover: none) {
+    .heading-anchor {
+      display: none;
+    }
+  }
+  {{- end }}
+
+</style>
+
+{{- /* ============================================================
+       统计（GoatCounter）
+       上游主题的 baseof.html 里没有统计的挂载点，所以挂在站点层的这个
+       「用户可覆盖」钩子里（baseof 会 partial "custom_head.html"）。
+       行为与改版前的 layouts/partials/analytics.html 逐字一致：
+       延迟到空闲 / 首次滚动 / 首次指针按下才真正下载脚本，并且跳过
+       被预渲染（Speculation Rules）的页面 —— 否则鼠标扫过链接也算一次浏览。
+       ============================================================ */ -}}
+{{- with site.Params.analytics -}}
+  {{- with .goatcounter -}}
+    <script>
+      (function () {
+        var loaded = false;
+        function load() {
+          if (loaded) return;
+          loaded = true;
+          var endpoint = "{{ . }}";
+          var s = document.createElement("script");
+          s.async = true;
+          s.src = "//gc.zgo.at/count.js";
+          s.dataset.goatcounter = endpoint;
+          document.body.appendChild(s);
+        }
+        function schedule() {
+          if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(load, { timeout: 2000 });
+          } else {
+            window.addEventListener("scroll", load, { once: true, passive: true });
+            window.addEventListener("pointerdown", load, { once: true, passive: true });
+            setTimeout(load, 3000);
+          }
+        }
+        if (document.prerendering) {
+          document.addEventListener("prerenderingchange", schedule, { once: true });
+        } else {
+          schedule();
+        }
+      })();
+    </script>
+  {{- end -}}
+{{- end -}}

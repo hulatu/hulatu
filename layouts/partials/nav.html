@@ -1,0 +1,21 @@
+{{- /* 站点层覆盖：themes/hugo-bearneo/layouts/partials/nav.html
+
+      上游把 `Home` 和 `Blog` 两个链接**写死**在 nav.html 里，`Blog` 还排在
+      [[menu.main]] 之后，于是导航读作「Home 关于 周刊 Blog」——
+      Home 和 Blog 语义打架（一个指首页，一个指文章列表），中间还夹着别的。
+
+      这里改成**完全由 [[menu.main]] 驱动**：六个入口
+      Home / About / Now / Links / Weekly / Posts 都写在 hugo.toml 的 [menu] 里，
+      顺序由 weight 决定，增删改导航不用碰模板。
+      ⚠️ 标签是英文（用户指定），页面内容仍是中文。
+
+      除「不再写死链接」外，外链开新窗口的逻辑与上游逐字一致。 */ -}}
+{{- $newTabEnabled := .Site.Params.externalLinksNewTab | default false -}}
+{{- range .Site.Menus.main -}}
+{{- $isExternal := or (hasPrefix .URL "http://") (hasPrefix .URL "https://") -}}
+{{- if and $isExternal $newTabEnabled -}}
+<a href="{{ .URL }}" target="_blank" rel="noopener noreferrer">{{ .Name }}</a>
+{{- else -}}
+<a href="{{ .URL }}">{{ .Name }}</a>
+{{- end -}}
+{{- end -}}

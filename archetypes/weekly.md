@@ -7,7 +7,7 @@ slug: ""
 summary: ""
 description: ""
 categories: ["周刊"]
-issue:      # 期号：填阿拉伯数字（23、24…），文章顶部显示「周刊 · 第 N 期」徽章；不填就没有徽章
+issue:      # ⚠️ 2026-10-10 起**不再渲染**：期号徽章（`.issue-badge`）随自建主题一起删除了，上游 hugo-bearneo 没有这个概念。老周刊的字段留着，新周刊不用再填 —— 标题里本来就写着「第 N 期」
 tags: [""]
 comments: true
 draft: true

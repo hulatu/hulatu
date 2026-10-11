@@ -1,72 +1,75 @@
+{{- /* ============================================================
+       404 页（站点层新增；上游主题自带的只有两行字）
+       —— 2026-10-11 从旧「印章」主题取回
+       （git show HEAD:layouts/404.html，72 行，结构与文案照搬）
+
+       ── 上游默认长什么样 ────────────────────────────────────────────
+           <main><h1>404</h1><h2>ʕノ•ᴥ•ʔノ ︵ ┻━┻</h2></main>
+       就这两行 —— 没有一级标题的语义、没有任何出路、没有栏目导航。
+       404 是读者点错链接时看到的第一印象，值得给它一整页设计。
+
+       ── 两段结构（照老版）──────────────────────────────────────────
+       上半「这一页不在账上」：唯一的一级标题在这里。
+       下半逛栏目、或随手看一篇。
+
+       ⚠️ **老版的动作区有三个按钮，现在只有两个**：
+          老版  = 回首页 / 搜索文章 / 随便看一篇
+          现在  = 回首页 / 随便看一篇 / 看全部文章
+       原因：**搜索面板已经删了**（DESIGN.md 第 6 节），
+       「搜索文章」那个按钮点了没有东西可开 —— 换成「看全部文章」指向 `/archive/`，
+       它是导航里 `Posts` 的落点，也是这一页最该去的下一站。
+
+       ⚠️ **「随便看一篇」是构建时抽签**（Hugo 的 `shuffle`），所以每次发布换一篇。
+          不做「每次刷新换一篇」是刻意的：那要把整个文章列表塞进页面，
+          为一个 404 页多背几十 KB 不划算（老版注释里就是这个判断）。
+
+       ⚠️ 大字 `404` 走的是 `<p aria-hidden="true">` —— **水印，不是标题**。
+          对辅助技术它等于不存在，语义交给 `<h1>这一页不在账上</h1>`。
+          老版之前整页从 `<h2>` 起头、没有任何 `<h1>`，是站内唯一一处那样的页面，
+          2026-10-05 重做时修掉的就是这个。
+          （⚠️ 页头那个 `<h1>胡拉图说</h1>` 是上游设计，全站每页都有，不在本次讨论范围。）
+
+       ⚠️ 这一页的样式在 custom_head.html 第 15 段，**只在这一页输出**
+          （守卫用 `eq .Kind "404"`）。`kind` 比 `RelPermalink` 更稳 ——
+          404 的 URL 由 Cloudflare Pages 决定，不一定是 `/404.html`。
+       ============================================================ */ -}}
 {{ define "main" }}
-{{- /* 404 页两段结构（2026-10-05 重做）：
-     上半「这一页不在账上」—— 唯一的一级标题在这里。此前整页从 <h2> 起头：
-     那个大字 404 是 <p> 且挂了 aria-hidden="true"，对辅助技术等于不存在。
-     现在把 404 降级成纯水印（aria-hidden 保留），语义交给 <h1>。
-     下半给两条**互补**的出路，这是本次重做的主要目的：
-       · notfound-links：按栏目逛 —— 解决「我知道我要找哪一类」；
-       · 最近更新 3 篇：按时间看 —— 解决「随便看看」。
-     两者都不需要额外请求，链接全是站内静态地址。 */ -}}
 {{- $random := "" -}}
 {{- with (where site.RegularPages "Type" "in" (slice "posts" "weekly")) -}}
   {{- $random = index (shuffle .) 0 -}}
 {{- end -}}
-
 <div class="notfound">
   <p class="notfound-code" aria-hidden="true">404</p>
   <h1 class="notfound-title">这一页不在账上</h1>
-  <p class="notfound-text">地址可能打错了，或者这篇文章已经搬走。可以回首页，也可以直接搜。</p>
+  <p class="notfound-text">地址可能打错了，或者这篇文章已经搬走。</p>
   <div class="notfound-actions">
     <a class="notfound-btn notfound-btn-primary" href="{{ "/" | relURL }}">回首页</a>
-    <button type="button" class="notfound-btn" data-open-search data-index="{{ "search-index.json" | relURL }}">搜索文章</button>
-    {{- /* 「随便看一篇」在构建时抽签（Hugo 的 shuffle），所以每次发布换一篇。
-           不做「每次刷新换一篇」是刻意的：那需要把整个文章列表塞进页面，
-           为了一个 404 页多背几十 KB 不划算。 */ -}}
     {{- with $random }}
     <a class="notfound-btn" href="{{ .RelPermalink }}">随便看一篇</a>
     {{- end }}
+    <a class="notfound-btn" href="{{ "/archive/" | relURL }}">看全部文章</a>
   </div>
 </div>
 
 <section class="notfound-nav">
-  {{- /* 复用 .related-title 作为区段标题：它已经是站内「页内区段小标题」的既有样式
-         （定义在 critical.css，404 页内联了这个模块），再起一个同名新类只是重复。 */ -}}
-  <h2 class="related-title">逛逛别处</h2>
+  <h2 class="notfound-nav-head">逛逛别处</h2>
   <div class="notfound-links">
-    <a href="{{ "archive/" | relURL }}">
+    <a href="{{ "/archive/" | relURL }}">
       <span class="notfound-link-title">归档</span>
       <span class="notfound-link-note">全部文章，按年月翻阅</span>
     </a>
-    <a href="{{ "weekly/" | relURL }}">
+    <a href="{{ "/weekly/" | relURL }}">
       <span class="notfound-link-title">周刊</span>
       <span class="notfound-link-note">每周日更新的合集</span>
     </a>
-    <a href="{{ "categories/" | relURL }}">
-      <span class="notfound-link-title">分类</span>
-      <span class="notfound-link-note">按主题浏览</span>
+    <a href="{{ "/roll/" | relURL }}">
+      <span class="notfound-link-title">收藏</span>
+      <span class="notfound-link-note">常读的博客与认识的人</span>
     </a>
-    <a href="{{ "tags/" | relURL }}">
-      <span class="notfound-link-title">标签</span>
-      <span class="notfound-link-note">关键词索引</span>
+    <a href="{{ "/now/" | relURL }}">
+      <span class="notfound-link-title">现在</span>
+      <span class="notfound-link-note">此刻在做什么</span>
     </a>
-    <a href="{{ "media/" | relURL }}">
-      <span class="notfound-link-title">书影音</span>
-      <span class="notfound-link-note">读完看完的推荐</span>
-    </a>
-    <a href="{{ "friends/" | relURL }}">
-      <span class="notfound-link-title">友链</span>
-      <span class="notfound-link-note">我常读的博客</span>
-    </a>
-  </div>
-</section>
-
-<section class="notfound-list">
-  <h2 class="related-title">最近更新</h2>
-  <div class="post-list">
-    {{- /* 「最近更新」按整站内容算，周刊也是内容，不该漏 */ -}}
-    {{ range first 3 (where site.RegularPages "Type" "in" (slice "posts" "weekly")) }}
-      {{ partial "post-row.html" . }}
-    {{ end }}
   </div>
 </section>
 {{ end }}

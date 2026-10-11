@@ -1,182 +1,257 @@
+# ============================================================================
+#  胡拉图说 —— 站点配置
+#
+#  2026-10-10 晚：整站从「自建主题」换成上游 hugo-bearneo（用户在 ~/bearneo-trial
+#  上试运行过一整轮，这次是把它正式搬过来）。主题文件在 themes/hugo-bearneo/，
+#  **逐字节未改**；所有本站特有的东西都在站点层（layouts/ + 本文件 + content/）。
+#
+#  想改主题行为：优先加站点层覆盖（layouts/ 下的同名文件），别改 themes/ 里的文件，
+#  否则下次同步上游要重新对一遍。
+# ============================================================================
+
 baseURL = "https://hulatu.com/"
-locale = "zh-CN"
+theme = "hugo-bearneo"
 title = "胡拉图说"
+# 0.158 起 languageCode 已弃用，改用 locale。
+# ⚠️ 主题的 baseof.html 用的是 .Site.Language.Locale（站点层覆盖过，见 layouts/_default/baseof.html）。
+locale = "zh-CN"
+# 中文按「字」而不是「空格分词」计数 —— 影响 .Summary 截断与 .WordCount。
 hasCJKLanguage = true
 enableRobotsTXT = true
-copyright = "本站内容采用 CC BY-NC-SA 4.0 协议"
 
-[pagination]
-  pagerSize = 10
+# ⚠️ 这一行必须待在**任何 `[table]` 之前** —— 写在后面会被并进那张表，
+#    Hugo 只吐一句 `WARN Unknown kind "disablekinds"` 然后静默失效。
+#
+# 关掉 taxonomy **列表页**（/categories/、/tags/）。理由：上游没有 taxonomy 模板，
+# 这两页会掉进 list.html 被当成一次「筛选」渲染，标题写「筛选：分类」、正文把全站文章
+# 再列一遍。只关列表页 —— `/tags/xxx/` 词条页是 kind "term"，**仍然生成**，
+# 所以文章下方那排 #标签 链接照常能用。
+disableKinds = ["taxonomy"]
+
+# 沿用原站 URL 结构，外链与搜索引擎收录一条都不变。
+# posts 与 weekly 都落在 /posts/YYYY/MM/DD/slug/（周刊也在这条路径下，是刻意的）。
+[permalinks]
+  posts = "/posts/:year/:month/:day/:slug/"
+  weekly = "/posts/:year/:month/:day/:slug/"
+
+[params]
+  title = "胡拉图说"
+  description = "胡拉图说：一个普通研究生的个人博客，喜欢记录思考、分享日常、观察生活，内容包含但不限于运动、健康、成长、科研与工具折腾。"
+
+  # 主题的 favicon 参数（主题里默认是 img/favicon.png，这里指到 static 根下的 svg）
+  favicon = "favicon.svg"
+  images = ["images/share.webp"]
+
+  # 页脚版权行。上游模板是 `{{ .Site.Params.copyright }}` 原样输出，
+  # ⚠️ Go 的 html/template 会转义 `&` —— 所以必须写**字面量 ©**，
+  #    写成 `&copy;` 会被转义成 `&amp;copy;`，页面上原样显示成 "&copy;" 这六个字符。
+  copyright = "Copyright © 2025-2026, hulatu."
+
+  # 页脚最后一行：授权声明 + 隐私 + 🗺️ Sitemap。
+  # 2026-10-11 用户要求：这一行**全英文**，并且「CC BY-NC-SA 4.0」要带链接。
+  # 上游把版权和 Sitemap 挤在同一行，为了拆成两行，站点层覆盖了 partials/footer.html，
+  # 在版权行后补了一个 `<br />`；这段授权声明就从 copyright 里拆出来放到这里。
+  # ⚠️ copyrightNote 走的是 `{{ . }}` **文本输出**，写 Markdown 链接不会生效 ——
+  #    所以 CC 那一段拆成「链接前的文字 / 链接文字 / 链接地址」三个参数。
+  #    任意一段留空就少一段，最后一行只剩「Privacy · 🗺️ Sitemap.」。
+  copyrightNote = "This site is licensed under"
+  licenseName = "CC BY-NC-SA 4.0"
+  licenseURL = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+
+  # 日期格式：主题默认 "02 Jan."（英文月份缩写），中文站改成 ISO。
+  dateFormat = "2006-01-02"
+
+  # 三个 Bear Blog 风格开关（主题自带）
+  groupByYear = true      # 列表页按年份分组，年份用 <h3> 当小标题
+  showPostCount = true    # 列表页顶部显示「共 N 篇。」
+  postSearch = true       # 列表页顶部一个输入框，纯前端按标题过滤（不是全站搜索面板）
+
+  # 文章页能力
+  toc = true              # 右侧固定目录（>800px 才出现，≤800px 整块隐藏）
+  imageZoom = true        # 点正文图片全屏放大（纯 CSS，checkbox + label）
+  externalLinksNewTab = true
+
+  # 首页「最近更新」列表的条数（参考站 yinji.org 的 Recent Posts）。
+  # 设 0 就不显示列表，首页退回上游原样（只有站名 + 一句话）。
+  homeRecentCount = 5
+
+  # 点赞（Kudos）要自建后端，本站没有，关掉。
+  # 打开需要同时提供 params.upvoteURL，否则模板里的 <button> 根本不渲染。
+  upvote = false
+
+  [params.footer]
+    hideCopyright = false
+    hideSitemap = false
+    hideMadeWithLine = false
+    hideRSSAndEmail = false
+
+  [params.RSS]
+    enableRSS = true
+    pageLimit = 20
+
+  [params.author]
+    name = "胡拉图"
+    email = "hello@hulatu.com"
+
+  # 评论区：giscus（GitHub Discussions）。
+  # 上游主题没有评论区，接入点在站点层的 single.html + partials/giscus.html。
+  # ⚠️ mapping = "pathname" 意味着「同一个 URL 认作同一条讨论」。
+  #    本站 URL 由上面的 [permalinks] 生成，和改版前逐字一致，所以**老评论能直接接上**。
+  [params.giscus]
+    enabled = true
+    repo = "hulatu/hulatu"
+    repoId = "R_kgDOTApIwg"
+    category = "Announcements"
+    categoryId = "DIC_kwDOTApIws4DCXd5"
+    mapping = "pathname"
+    strict = false
+    reactions = true
+    emitMetadata = false
+    inputPosition = "bottom"
+    lang = "zh-CN"
+    theme = "preferred_color_scheme"
+
+  # 隐私友好的轻量统计：只使用 GoatCounter。
+  # 上游 baseof.html 里没有统计的挂载点，所以这段是站点层在 custom_head.html 里补的。
+  [params.analytics]
+    goatcounter = "https://hulatu.goatcounter.com/count"
+
+# ============================================================================
+#  导航 —— **全部**由这张表驱动。
+#  站点层覆盖的 partials/nav.html 只渲染这张表，不像上游那样把 `Home` / `Blog`
+#  写死在模板里；顺序由 weight 决定，与下面的书写顺序无关。
+#
+#  2026-10-10 晚按用户要求改成 BearNeo 样式的英文标签（页面正文仍是中文）：
+#      Home / About / Now / Links / Weekly / Posts / RSS
+#
+#  ⚠️ Links 指向 /roll/（**收藏 + 友链**，2026-10-11 起两页并成一页），不是 /friends/。
+#     原友链页 /links/ 已删除，旧地址 301 到 /roll/（见 static/_redirects）。
+#  ⚠️ Posts 指向 /archive/（全部文章，倒序列出）。
+#  ⚠️ Weekly（/weekly/）2026-10-11 按用户要求补回主导航，插在 Posts **左边**
+#     （靠 weight 45 卡位，顺序与下面书写的先后无关）。
+#     分类（/categories/）仍然没有入口 —— 列表页已被上面的 disableKinds 关掉，
+#     只剩文章下方的 #标签 词条页。
+#  ⚠️ RSS（2026-10-11 用户要求「导航栏最右侧加一个 RSS 订阅，就是我全站的内容」）
+#     → 指向 **`/index.xml`**，即首页那路 RSS（全站内容）。weight 60 让它排最右。
+#     ⚠️ 地址与页脚那行 `Subscribe via RSS` 用的是**同一个** `href="/index.xml"`，
+#        改这里要回去看 `layouts/partials/footer.html`。
+#     ⚠️ `/index.xml` 不是 http(s) 开头，所以 `externalLinksNewTab` 那套
+#        不会给它加 `target="_blank"` —— 与页脚那个 RSS 链接行为一致（原地打开）。
+#     ⚠️ 它**不是一条普通导航项**：不需要「当前页高亮」的概念（feed 不是页面）。
+#        导航高亮由 nav.html 决定，目前没有做高亮逻辑，所以无需特殊处理。
+# ============================================================================
+[[menu.main]]
+  name = "Home"
+  url = "/"
+  weight = 10
+
+[[menu.main]]
+  name = "About"
+  url = "/about/"
+  weight = 20
+
+[[menu.main]]
+  name = "Now"
+  url = "/now/"
+  weight = 30
+
+[[menu.main]]
+  name = "Links"
+  url = "/roll/"
+  weight = 40
+
+# 2026-10-11 新增：周刊回到导航，位置在 Posts 左边（weight 卡在 40 和 50 之间）。
+[[menu.main]]
+  name = "Weekly"
+  url = "/weekly/"
+  weight = 45
+
+[[menu.main]]
+  name = "Posts"
+  url = "/archive/"
+  weight = 50
+
+# 2026-10-11 用户要求：**导航最右侧**一个 RSS 订阅入口，指向全站内容的 feed。
+# 见上面「导航」那段注释里的三条 ⚠️（地址与页脚同源、不新开窗口、不需要高亮）。
+[[menu.main]]
+  name = "RSS"
+  url = "/index.xml"
+  weight = 60
+
+# 文章里嵌了腾讯视频的裸 <iframe>，Goldmark 默认会把它们丢掉并吐 WARN。
+[markup.goldmark.renderer]
+  unsafe = true
+
+# ============================================================================
+#  代码高亮（2026-10-11 修：这一块以前是**看不见的**）
+#
+#  noClasses = false → 让 Chroma 输出 `class="kn"` 这样的短类名，
+#  **而不是把颜色写成内联 style**。这是本站唯一能修好代码块配色的开关，
+#  原因见下（不能靠改 CSS 解决）。
+#
+#  ── 为什么必须改成 false ────────────────────────────────────────────
+#  默认值是 true（内联样式）。而主题 style.html 里有两条：
+#      code            { background-color: var(--bg-color-secondary) }
+#      div.highlight code { background-color: var(--bg-color-secondary) }
+#  它们把代码块的底色改成了**浅色**（#f2f4f7），
+#  但 Chroma 内联写的却是 **深色主题 monokai** 的前景色：
+#      <pre style="color:#f8f8f2;background-color:#272822">
+#  内联的 `pre` 背景被 `code` 的浅色背景盖住了（code 铺满 pre），
+#  于是实际渲染成「浅灰底 + 深色主题的字色」——
+#  实测截图采样：底 #f2f4f7，普通标识符 #f8f8f2、字符串 #e6db74，对比度约 **1.05:1 / 1.15:1**，
+#  **等于看不见**（关键词 #f92672 品红还勉强能读，所以看着像「只有一半能看清」）。
+#
+#  内联 style 的优先级高于任何 CSS（除非用 !important），
+#  所以**光改 CSS 修不了** —— 必须让 Chroma 别再写内联色。
+#
+#  改成 false 之后：Chroma 只输出类名，配色由站点层
+#  `layouts/partials/custom_head.html` 第 12 段提供，
+#  浅色 / 深色两套都跟随 `prefers-color-scheme`。
+#
+#  ⚠️ 改回 true 会让代码块重新变成「看不见」，别改。
+#  ⚠️ 样式表在站点层，不在 themes/ 里 —— 改配色去 custom_head.html 第 12 段。
+# ============================================================================
+[markup.highlight]
+  noClasses = false
+
+# 目录只收 h2 / h3 两级：文章里的 h4 多为「小注」，收进来会让右栏变长。
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 3
+
+# 上游 exampleSite 是直接把 taxonomy 关掉，所以它没暴露这个问题：
+# 一旦开着 taxonomy，Hugo 会给**每一个词条**发一份 RSS —— 本站 127 个标签 + 13 个分类
+# 会直接多出 140 个 .xml。这几行把它们压回 HTML-only，
+# 只有首页主源和周刊（content/weekly/_index.md 里单独开了 outputs）出 feed。
+[outputs]
+  home = ["HTML", "RSS"]
+  section = ["HTML"]
+  taxonomy = ["HTML"]
+  term = ["HTML"]
 
 [services.rss]
-  # 每个 feed 输出的条目上限（-1 表示不限制）。全文输出，条数放大反而拖慢订阅端
+  # 每个 feed 输出的条目上限。全文输出，条数放大反而拖慢订阅端。
   limit = 20
 
-[related]
-  threshold = 60
-  includeNewer = true
-  toLower = true
-  [[related.indices]]
-    name = "tags"
-    weight = 100
-  [[related.indices]]
-    name = "categories"
-    weight = 80
-  [[related.indices]]
-    name = "date"
-    weight = 10
-  
-[imaging]
-  resampleFilter = "Lanczos"
-  [imaging.jpeg]
-    quality = 75
-  [imaging.webp]
-    quality = 75
-  [imaging.avif]
-    quality = 75
-  
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+
 [minify]
   disableXML = true
   minifyOutput = true
 
 # 版本约束：本机、GitHub Actions 和 Cloudflare Pages 三边用同一个版本，避免
 # 「本地构建正常、平台构建失败」这种只有上线才发现的问题。
-# extended 是硬要求，不是偏好：layouts/partials/head-meta.html 要用 imageConfig
-# 读 static/images/share.webp 的宽高，标准版 Hugo 解不了 WebP。
-# 改这里时记得同步 .github/workflows/build.yml、README / MAINTENANCE / sites/README
-# 里写的版本号，以及 Cloudflare 五个项目的 HUGO_VERSION。
+#
+# ⚠️ `extended = true` 是**历史遗留**：自建主题时代 `head-meta.html` 用 imageConfig
+#    读分享图的宽高，非 extended 版解不了 WebP。2026-10-10 迁移到上游 hugo-bearneo 后，
+#    全仓库（主题 + 站点层 + 四个子站 + scripts/）已经**没有任何 imageConfig 调用**，
+#    标准版理论上也能构建。但保持 extended 是零成本的，而且省得去改 Cloudflare 五个项目 ——
+#    所以**先留着**，别为了「顺手删掉」去动 CI 和平台配置。
+# 改这里时记得同步 .github/workflows/build.yml、README / MAINTENANCE 里写的版本号，
+# 以及 Cloudflare 五个项目的 HUGO_VERSION。
 [module]
   [module.hugoVersion]
     min = "0.167.0"
     extended = true
-
-[permalinks]
-  posts = "/posts/:year/:month/:day/:slug/"
-  weekly = "/posts/:year/:month/:day/:slug/"
-
-[params]
-  description = "胡拉图说：一个普通研究生的个人博客，喜欢记录思考、分享日常、观察生活，内容包含但不限于运动、健康、成长、科研与工具折腾。"
-  author = "胡拉图"
-  since = "2025"
-  email = "hello@hulatu.com"
-  avatar = "/images/avatar.webp"
-  # 豆瓣 ID —— 书影音页 /media/ 的数据来源（scripts/sync-douban.py 读这里，
-  # 所以平时跑同步不用带 --uid）。填个人主页 URL 里 /people/<这一段>/ 。
-  # 留空则脚本必须显式传 --uid。
-  # 2026-10-08 填上：https://www.douban.com/people/230092146/
-  doubanId = "230092146"
-  # 头像是否走 Cloudflare Image Transformations 缩放（layouts/_default/about.html）。
-  # 开：模板给头像套 /cdn-cgi/image/width=…，按实际显示尺寸（148px / 2x 296px）取图，
-  #     实测从 14KB 降到 3.6–8.4KB；顺带避开 Polish 把 .webp 兜底重编码成 21KB JPEG 的问题。
-  # 关：直接发 static 里的原图。留这个开关是因为头像在关键路径上（eager + fetchpriority=high），
-  #     万一哪天 Image Transformations 不可用，改一个字就能回退，不用动模板。
-  avatarCDN = true
-
-  # 自有图片 CDN：正文图片通过 Cloudflare Image Transformations 动态压缩
-  [params.imageCDN]
-    host = "img.hulatu.com"
-
-  # 打赏：这块现在**只出现在关于页**（layouts/_default/about.html），文章页已移除。
-  # 所以 hint 写的是「本站」而不是「这篇文章」——它是全站唯一一处打赏文案，
-  # 模板不再传自己的 hint 覆盖（见 layouts/partials/donate.html）。
-  #
-  # 收款码是**站内静态资源**（static/images/donate/），不再是图床图（2026-10-02 第四轮）。
-  # 理由：它是「站点家具」而不是文章内容，性质和头像 / 分享卡一样，所以跟它们一起放
-  # /images/（那条路径在 static/_headers 里已经配了 30 天缓存）；顺带也不必再套一层
-  # Cloudflare 图片变换（layouts/partials/cf-image.html 现在只服务正文插图）。
-  # 换码的正确姿势：把新图裁成「二维码本体 + 白静区」的正方形 webp 覆盖同名文件
-  # （生成与校验脚本的思路见 MAINTENANCE.md 的「打赏」一行），然后去 Cloudflare 后台
-  # Purge 一次 /images/donate/* —— 30 天缓存，不 purge 的话老访客看到的还是旧码。
-  # 想放回图床：把下面两行换成完整 https URL 即可，cf-image.html 会重新接管压缩。
-  # 或用第三方平台（如爱发电）填 url。微信、支付宝、url 全空时整块不显示。
-  [params.donate]
-    enabled = true
-    title = "支持"
-    hint = "如果本站对你有帮助，可以请我喝杯咖啡"
-    button = "打赏支持"
-    # 收款方显示名：微信和支付宝的收款码上都是这一串，展开后由模板写成一行提示，
-    # 让付款的人可以先核对再扫。两边的名字不一样就拆成 wechatPayee / alipayPayee。
-    payee = "hututu(**朋)"
-    wechat = "/images/donate/wechat.webp"
-    alipay = "/images/donate/alipay.webp"
-    url = ""
-    urlLabel = "去爱发电支持我"
-
-[params.assets]
-  # 页头那个大 logo（深色模式下由 CSS 的 filter 反白）
-  logo = "/logo.svg"
-  # 标签页图标：内置了 prefers-color-scheme 深色适配，和页头 logo 是两个文件，
-  # 别混用——favicon 里的反白规则会和页头的 filter 叠加，变成反色
-  favicon = "/favicon.svg"
-  apple_touch_icon = "/apple-touch-icon.png"
-  safari_pinned_tab = "/logo.svg"
-  shareImage = "/images/share.webp"
-   
-[params.giscus]
-  enabled = true
-  repo = "hulatu/hulatu"
-  repoId = "R_kgDOTApIwg"
-  category = "Announcements"
-  categoryId = "DIC_kwDOTApIws4DCXd5"
-  mapping = "pathname"
-  strict = false
-  reactions = true
-  emitMetadata = false
-  inputPosition = "bottom"
-  lang = "zh-CN"
-  theme = "preferred_color_scheme"
-
-[outputs]
-  home = ["HTML", "RSS", "SearchIndex"]
-  # 栏目默认不出 RSS：只有首页主源（/index.xml）和周刊（content/weekly/_index.md 单独开）
-  section = ["HTML"]
-  taxonomy = ["HTML"]
-  term = ["HTML"]
-
-[outputFormats.SearchIndex]
-  mediaType = "application/json"
-  baseName = "search-index"
-  isPlainText = true
-  notAlternative = true
-
-[markup]
-  [markup.goldmark]
-    [markup.goldmark.renderer]
-      unsafe = true
-  [markup.tableOfContents]
-    startLevel = 2
-    endLevel = 6
-  [markup.highlight]
-    noClasses = false     
-
-[menu]
-  # 导航顺序由 weight 决定，和下面的书写顺序无关（Hugo 按 weight 排）。
-  [[menu.main]]
-    name = "关于"
-    url = "/about/"
-    weight = 1
-  # 2026-10-08：这一位先排过「现在」(/now/)，同日撤掉；「片刻」(/moments/) 补上，
-  # 同日晚些也整个撤掉了 —— 那一页连同短代码、样式、图片一起删干净。
-  # 撤掉后把后面几项的 weight 整体前移，不留空号 —— 空号看着像「这里原来有东西被删了」，
-  # 读代码的人要多想一秒。
-  [[menu.main]]
-    name = "归档"
-    url = "/archive/"
-    weight = 2
-  [[menu.main]]
-    name = "周刊"
-    url = "/weekly/"
-    weight = 3
-  [[menu.main]]
-    name = "分类"
-    url = "/categories/"
-    weight = 4
-
-[taxonomies]
-  category = "categories"
-  tag = "tags"
-
-# 隐私友好的轻量统计：只使用 GoatCounter
-# goatcounter 填 GoatCounter 后台 Site code 里的完整计数地址
-[params.analytics]
-  goatcounter = "https://hulatu.goatcounter.com/count"
