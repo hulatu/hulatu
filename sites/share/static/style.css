@@ -1,328 +1,355 @@
+/* ============================================================
+   SHARE.HULATU.COM —— 经验分享（好物与经验）
+   2026-10-12：整套视觉语言换成主站 hulatu.com 那一套（上游 hugo-bearneo）。
+   上一版是「印章红 + 冷白纸 + 圆角卡片 + 大阴影 + 胶囊筛选按钮 + 彩色徽章」。
+
+   ⚠️ 下面「BearNeo 基础层」这一段在**四个子站里各有一份**（子站是各自独立的
+      Hugo 站点，没有共享 CSS 的机制）。改令牌要四处一起改，
+      sites/README.md 里有那张对照表。
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   BearNeo 基础层 —— 与 themes/hugo-bearneo/layouts/partials/style.html
+   逐值一致（只多了「字体栈补中文字形」与「header nav 用 flex 折行」两条，
+   那两条主站也写在站点层的 custom_head.html 里）
+   ------------------------------------------------------------ */
 :root {
   color-scheme: light dark;
-  --bg: #f6f6f8;
-  --surface: #ffffff;
-  --ink: #1d1d1f;
-  --muted: #56565c;
-  --line: #e4e4e9;
-  --accent: #c73e2f;
-  --good: #2e9e6b;
-  --bad: #c73e2f;
-  --neutral: #8a6d3b;
-  --radius: 16px;
-  /* 内容宽度：和主站文章页同一个值（hulatu.com 的 --content-width = 680px） */
-  --content-width: 680px;
-  --radius-sm: 10px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(0, 0, 0, 0.08);
+
+  --width-max: 720px;
+  --font-primary: Verdana, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+  --font-secondary: monospace;
+  --font-size-primary: 1em;
+  --font-size-secondary: 0.8em;
+
+  --bg-color-primary: #fdfdfd;
+  --bg-color-secondary: #f2f4f7;
+  --text-color-primary: #1a1a1a;
+  --text-color-secondary: #444;
+  --text-color-tertiary: #8c8c8c;
+  --link-color: #0066cc;
+  --link-visited-color: #551a8b;
+  --border-color: #d0d7de;
+
+  /* ⚠️ 这三个是**语义色**，不是装饰色 —— 它们只在「推荐 / 避雷 / 未评价」
+     这一处出现，用来表达判断，所以主站那套「全站只有链接蓝一个彩色」的
+     规矩在这里开一个口子。取值对齐主站 custom_head.html 第 12 段那套
+     GitHub 系配色，浅深两套对比度都达标。 */
+  --good: #1a7f37;
+  --bad: #cf222e;
+  --neutral: #9a6700;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b0b10;
-    --surface: #1c1c1f;
-    --ink: #f5f5f7;
-    --muted: #a1a1a8;
-    --line: #2c2c31;
-    --accent: #ef7b64;
-    --good: #3fc07f;
-    --bad: #f28b76;
-    --neutral: #d0ab68;
-    --shadow: 0 8px 20px rgba(0, 0, 0, 0.35), 0 24px 64px rgba(0, 0, 0, 0.45);
+    --bg-color-primary: #121212;
+    --bg-color-secondary: #1c1f24;
+    --text-color-primary: #e5e5e5;
+    --text-color-secondary: #b3b3b7;
+    --text-color-tertiary: #a0a0a0;
+    --link-color: #6da6ff;
+    --link-visited-color: #b388ff;
+    --border-color: #30363d;
+    --good: #3fb950;
+    --bad: #f85149;
+    --neutral: #d29922;
   }
 }
 
 * { box-sizing: border-box; }
 
 body {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-primary);
+  margin: auto;
+  padding: 20px;
+  max-width: var(--width-max);
+  text-align: left;
+  background-color: var(--bg-color-primary);
+  color: var(--text-color-primary);
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+h1, h2, h3, h4, h5, h6, strong, b { color: var(--text-color-primary); }
+h1, h2, h3, h4, h5, h6 { margin: 16px 0; }
+
+a { color: var(--link-color); cursor: pointer; text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.title { text-decoration: none; border: 0; }
+.title:hover { text-decoration: none; }
+
+/* ⚠️ 与主站 custom_head.html 第 00 段同一个做法：导航靠 flex + column-gap
+   折行，只在**项与项之间**断，不会从词中间劈开（RSS → RS/S）。 */
+header nav { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+header nav a { margin-right: 0; }
+
+hr { border: 0; border-top: 1px dashed; }
+
+img {
+  max-width: 100%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+blockquote {
+  border-left: 4px solid var(--border-color);
+  color: var(--text-color-secondary);
   margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  line-height: 1.65;
+  padding-left: 8px;
 }
 
-a { color: inherit; text-decoration: none; }
+blockquote p { margin: 0; }
 
-main {
-  width: min(var(--content-width), calc(100% - 32px));
-  margin: 0 auto;
-  padding: 64px 0 72px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
 }
 
-.home-link,
-.back {
-  display: inline-flex;
-  align-items: center;
-  color: var(--muted);
-  font-size: 0.92rem;
-  margin-bottom: 36px;
+th, td {
+  border: 1px solid var(--border-color);
+  padding: 4px;
 }
 
-.home-link:hover,
-.back:hover { color: var(--accent); }
+th { background-color: var(--bg-color-secondary); }
 
-.page-head h1 {
-  margin: 0;
-  font-size: clamp(2rem, 5vw, 3.2rem);
-  letter-spacing: 0.03em;
+code {
+  font-family: var(--font-secondary);
+  background-color: var(--bg-color-secondary);
+  padding: 2px;
+  border-radius: 4px;
 }
 
-.page-head p {
-  margin: 12px 0 0;
-  color: var(--muted);
+time { font-family: var(--font-secondary); font-size: 15px; }
+
+footer { padding: 25px 0; text-align: center; font-size: var(--font-size-secondary); }
+
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
+
+/* ------------------------------------------------------------
+   本页专有
+   ------------------------------------------------------------ */
+
+main h2 { margin: 2.2em 0 0.7em; }
+
+.page-intro {
+  margin: 14px 0 0;
+  color: var(--text-color-secondary);
+}
+
+/* ---------- 分类筛选（纯文字，不是胶囊按钮） ---------- */
 
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 34px 0 22px;
+  gap: 0.25rem 0.9rem;
+  margin: 20px 0 0;
 }
 
 .filter-chip {
-  padding: 0.45em 1em;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: 0.86rem;
+  padding: 0;
+  border: 0;
+  background: none;
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text-color-tertiary);
 }
 
-.filter-chip:hover,
+.filter-chip:hover {
+  color: var(--link-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .filter-chip.is-active {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+  color: var(--text-color-primary);
+  font-weight: 600;
 }
 
 .filter-chip span {
-  margin-left: 4px;
-  font-size: 0.75rem;
-  opacity: 0.72;
+  font-size: 0.8em;
+  opacity: 0.7;
 }
 
+/* ---------- 列表 ---------- */
+
+/* 网格条目：**不是卡片**。每条只有「图 + 分类/判断 + 标题 + 条目 + 元信息」，
+   没有外框、没有圆角、没有阴影、没有悬浮上浮。 */
 .share-grid {
   display: grid;
-  /* 列数跟着实际内容宽度走：680px 下是 2 列，卡片不至于挤成一条 */
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 26px 20px;
+  margin-top: 24px;
 }
 
 .share-card {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  gap: 8px;
 }
 
-.share-card:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+.share-card:hover { text-decoration: none; }
+
+.share-card:hover .share-title {
+  color: var(--link-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .share-card.is-hidden { display: none; }
 
 .share-media {
   display: block;
-  aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: var(--line);
 }
 
 .share-media img {
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
+  margin: 0;
 }
 
 .share-body {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 7px;
-  padding: 16px;
+  gap: 4px;
 }
 
 .share-topline {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 10px;
 }
 
 .share-category,
 .single-category {
-  color: var(--muted);
-  font-size: 0.76rem;
+  color: var(--text-color-tertiary);
+  font-size: 0.8rem;
 }
 
+/* 判断标记：**只有文字和颜色，没有底色胶囊**。 */
 .verdict {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 0.1em 0.55em;
-  border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.verdict.good {
-  color: var(--good);
-  background: color-mix(in srgb, var(--good) 12%, transparent);
-}
-
-.verdict.bad {
-  color: var(--bad);
-  background: color-mix(in srgb, var(--bad) 12%, transparent);
-}
-
-.verdict.neutral {
-  color: var(--neutral);
-  background: color-mix(in srgb, var(--neutral) 12%, transparent);
-}
+.verdict.good { color: var(--good); }
+.verdict.bad { color: var(--bad); }
+.verdict.neutral { color: var(--neutral); }
 
 .share-title {
-  font-size: 1.05rem;
-  font-weight: 650;
+  font-size: 1.02rem;
+  font-weight: 600;
   line-height: 1.4;
 }
 
 .share-item {
-  color: var(--muted);
-  font-size: 0.86rem;
+  color: var(--text-color-secondary);
+  font-size: 0.88rem;
 }
 
 .share-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: auto;
-  padding-top: 8px;
-  color: var(--muted);
-  font-size: 0.76rem;
+  margin-top: 2px;
+  color: var(--text-color-tertiary);
+  font-size: 0.78rem;
 }
 
 .empty {
-  margin-top: 32px;
-  color: var(--muted);
+  margin-top: 24px;
+  color: var(--text-color-tertiary);
 }
 
-.share-single {
-  width: min(var(--content-width), 100%);
-  margin: 0 auto;
+/* ---------- 单篇 ---------- */
+
+.back {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
 }
 
-.single-head {
-  margin: 4px 0 26px;
-}
+.single-head { margin: 0 0 24px; }
 
 .single-head h1 {
-  margin: 8px 0 8px;
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  line-height: 1.25;
+  margin: 6px 0 6px;
+  font-size: 1.5em;
+  line-height: 1.3;
 }
 
 .single-item {
   margin: 0;
-  color: var(--muted);
+  color: var(--text-color-secondary);
 }
 
 .single-meta {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   gap: 12px;
-  margin-top: 18px;
-  color: var(--muted);
-  font-size: 0.84rem;
+  margin-top: 14px;
+  color: var(--text-color-tertiary);
+  font-size: 0.85rem;
 }
 
 .single-meta .score {
-  color: var(--accent);
-  font-weight: 650;
+  color: var(--text-color-primary);
+  font-weight: 600;
 }
 
-.single-figure {
-  margin: 0 0 28px;
-}
+.single-figure { margin: 0 0 24px; }
 
 .single-figure img {
   width: 100%;
   height: auto;
-  border-radius: var(--radius);
 }
 
-.single-content {
-  font-size: 1rem;
+.single-content { line-height: 1.6; }
+
+.single-content img { height: auto; }
+
+/* 正文里的列表缩进：主题是 `content ul { padding-left: 1.5em }`，
+   子站没有那个 content 元素，这里补等价的一条。 */
+.single-content ul,
+.single-content ol,
+.pros-cons ul,
+.pros-cons ol {
+  padding-left: 1.5em;
 }
 
-.single-content img {
-  max-width: 100%;
-  height: auto;
-  border-radius: var(--radius-sm);
-}
-
-.pros-cons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-top: 30px;
-}
-
-.pros,
-.cons {
-  padding: 18px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
+/* 优点 / 缺点：上下两段普通正文（<h2> + <ul>），不是左右两栏卡片。
+   BearNeo 是单栏流式排版，并列卡片不在它的语言里。 */
+.pros-cons { margin-top: 8px; }
 
 .pros h2,
-.cons h2 {
-  margin: 0 0 12px;
-  font-size: 1rem;
-}
-
-.pros h2 { color: var(--good); }
-.cons h2 { color: var(--bad); }
-
-.pros ul,
-.cons ul {
-  margin: 0;
-  padding-left: 1.2em;
-}
+.cons h2 { font-size: 1.1rem; }
 
 .pros li,
-.cons li {
-  margin: 6px 0;
-}
+.cons li { margin: 4px 0; }
 
+/* 利益披露：用主题现成的 blockquote 语言（左侧 4px 发丝块），不新造样式。 */
 .disclosure {
-  margin-top: 26px;
-  padding: 12px 14px;
-  color: var(--muted);
-  font-size: 0.82rem;
-  background: color-mix(in srgb, var(--neutral) 8%, transparent);
-  border-left: 3px solid var(--neutral);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-}
-
-@media (max-width: 800px) {
-  .share-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 560px) {
-  main { padding: 42px 0 56px; }
-
-  .share-grid,
-  .pros-cons {
-    grid-template-columns: 1fr;
-  }
+  margin: 24px 0 0;
+  padding-left: 8px;
+  border-left: 4px solid var(--border-color);
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
 }

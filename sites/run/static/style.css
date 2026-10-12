@@ -1,255 +1,283 @@
+/* ============================================================
+   RUN.HULATU.COM —— 跑步数据
+   2026-10-12：整套视觉语言换成主站 hulatu.com 那一套（上游 hugo-bearneo）。
+   上一版是「印章红 + 冷白纸 + 圆角卡片 + 大阴影」，与主站已经不是一路了。
+
+   ⚠️ 下面「BearNeo 基础层」这一段在**四个子站里各有一份**（子站是各自独立的
+      Hugo 站点，没有共享 CSS 的机制）。改令牌要四处一起改，
+      sites/README.md 里有那张对照表。
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   BearNeo 基础层 —— 与 themes/hugo-bearneo/layouts/partials/style.html
+   逐值一致（只多了「字体栈补中文字形」与「header nav 用 flex 折行」两条，
+   那两条主站也写在站点层的 custom_head.html 里）
+   ------------------------------------------------------------ */
 :root {
   color-scheme: light dark;
-  --bg: #f6f6f8;
-  --surface: #ffffff;
-  --ink: #1d1d1f;
-  --muted: #56565c;
-  --line: #e4e4e9;
-  --accent: #c73e2f;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(0, 0, 0, 0.08);
-  /* 内容宽度：和主站文章页同一个值（hulatu.com 的 --content-width = 680px），
-     五个站点统一，页面之间跳转不会忽宽忽窄 */
-  --content-width: 680px;
+
+  --width-max: 720px;
+  --font-primary: Verdana, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+  --font-secondary: monospace;
+  --font-size-primary: 1em;
+  --font-size-secondary: 0.8em;
+
+  --bg-color-primary: #fdfdfd;
+  --bg-color-secondary: #f2f4f7;
+  --text-color-primary: #1a1a1a;
+  --text-color-secondary: #444;
+  --text-color-tertiary: #8c8c8c;
+  --link-color: #0066cc;
+  --link-visited-color: #551a8b;
+  --border-color: #d0d7de;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b0b10;
-    --surface: #1c1c1f;
-    --ink: #f5f5f7;
-    --muted: #a1a1a8;
-    --line: #2c2c31;
-    --accent: #ef7b64;
-    --shadow: 0 8px 20px rgba(0, 0, 0, 0.35), 0 24px 64px rgba(0, 0, 0, 0.45);
+    --bg-color-primary: #121212;
+    --bg-color-secondary: #1c1f24;
+    --text-color-primary: #e5e5e5;
+    --text-color-secondary: #b3b3b7;
+    --text-color-tertiary: #a0a0a0;
+    --link-color: #6da6ff;
+    --link-visited-color: #b388ff;
+    --border-color: #30363d;
   }
 }
 
 * { box-sizing: border-box; }
 
 body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  line-height: 1.65;
-}
-
-a { color: inherit; text-decoration: none; }
-
-main {
-  width: min(var(--content-width), calc(100% - 32px));
-  margin: 0 auto;
-  padding: 64px 0 72px;
-}
-
-.home-link {
-  display: inline-flex;
-  align-items: center;
-  color: var(--muted);
-  font-size: 0.92rem;
-  margin-bottom: 36px;
-}
-
-.home-link:hover { color: var(--accent); }
-
-.page-head h1 {
-  margin: 0;
-  font-size: clamp(2rem, 5vw, 3.2rem);
-  letter-spacing: 0.03em;
-}
-
-.page-head p {
-  margin: 12px 0 0;
-  color: var(--muted);
-}
-
-.summary-grid {
-  display: grid;
-  /* 列数跟着实际内容宽度走：680px 下是 2 列，卡片里的数字才不会被挤到换行 */
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
-  margin: 36px 0;
-}
-
-.summary-card {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-primary);
+  margin: auto;
   padding: 20px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  max-width: var(--width-max);
+  text-align: left;
+  background-color: var(--bg-color-primary);
+  color: var(--text-color-primary);
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
-.summary-label {
+h1, h2, h3, h4, h5, h6, strong, b { color: var(--text-color-primary); }
+h1, h2, h3, h4, h5, h6 { margin: 16px 0; }
+
+a { color: var(--link-color); cursor: pointer; text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.title { text-decoration: none; border: 0; }
+.title:hover { text-decoration: none; }
+
+/* ⚠️ 与主站 custom_head.html 第 00 段同一个做法：导航靠 flex + column-gap
+   折行，只在**项与项之间**断，不会从词中间劈开（RSS → RS/S）。 */
+header nav { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+header nav a { margin-right: 0; }
+
+hr { border: 0; border-top: 1px dashed; }
+
+img {
+  max-width: 100%;
   display: block;
-  color: var(--muted);
-  font-size: 0.82rem;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
 }
 
-.summary-value {
-  display: block;
-  margin-top: 8px;
-  font-size: 1.55rem;
-  font-weight: 650;
+blockquote {
+  border-left: 4px solid var(--border-color);
+  color: var(--text-color-secondary);
+  margin: 0;
+  padding-left: 8px;
 }
 
-.summary-unit {
-  font-size: 0.82rem;
-  font-weight: 400;
-  color: var(--muted);
+blockquote p { margin: 0; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
 }
 
-.summary-sub {
-  display: block;
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.4;
+th, td {
+  border: 1px solid var(--border-color);
+  padding: 4px;
 }
 
-.section-title {
-  margin: 42px 0 16px;
+th { background-color: var(--bg-color-secondary); }
+
+code {
+  font-family: var(--font-secondary);
+  background-color: var(--bg-color-secondary);
+  padding: 2px;
+  border-radius: 4px;
+}
+
+time { font-family: var(--font-secondary); font-size: 15px; }
+
+footer { padding: 25px 0; text-align: center; font-size: var(--font-size-secondary); }
+
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ------------------------------------------------------------
+   本页专有
+   ------------------------------------------------------------ */
+
+/* 正文里的 h2 给更大的上间距（与主站 custom_head.html 第 02 段同值）——
+   上游 h1~h6 一律 `margin: 16px 0`，层级读不出来。 */
+main h2 { margin: 2.2em 0 0.7em; }
+
+.page-intro {
+  margin: 14px 0 0;
+  color: var(--text-color-secondary);
+}
+
+/* 统计格子：**没有卡片**。
+   BearNeo 里没有「卡片」这个概念，所以数据只用「标签 + 数值」两行文字表达，
+   行与行之间靠一条发丝线分隔。列数跟着内容宽度自己走，不用为断点单独调。 */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0 24px;
+  margin: 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stat-label {
+  color: var(--text-color-tertiary);
+  font-size: 0.8rem;
+}
+
+.stat-value {
   font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
 }
 
+.stat-unit {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-color-secondary);
+}
+
+.stat-sub {
+  color: var(--text-color-tertiary);
+  font-size: 0.75rem;
+}
+
+/* 月度里程柱状图。
+   ⚠️ 柱子用 `--link-color` 是**刻意**的：主站全站只有「链接蓝」一个彩色，
+      404 页那个主按钮也是拿它当强调色（见主站 custom_head.html 第 15 段）。
+      这里沿用同一条规矩，不新引入第三种颜色。 */
 .chart {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  height: 220px;
-  padding: 16px 12px 8px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  gap: 6px;
+  height: 200px;
+  padding: 0;
   overflow-x: auto;
 }
 
 .month {
   display: flex;
-  flex: 1 0 52px;
+  flex: 1 0 48px;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   height: 100%;
-  min-width: 52px;
+  min-width: 48px;
 }
 
 .month-bar {
-  width: 24px;
+  width: 20px;
   min-height: 2px;
-  border-radius: 8px 8px 3px 3px;
-  background: var(--accent);
-  opacity: 0.88;
+  background: var(--link-color);
+  border-radius: 2px 2px 0 0;
 }
 
 .month-value {
-  margin-top: 8px;
-  color: var(--muted);
+  margin-top: 6px;
+  color: var(--text-color-tertiary);
   font-size: 0.72rem;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .month-key {
-  margin-top: 3px;
-  color: var(--muted);
+  margin-top: 2px;
+  color: var(--text-color-tertiary);
+  font-family: var(--font-secondary);
   font-size: 0.72rem;
   white-space: nowrap;
 }
 
-.table-wrap {
-  overflow-x: auto;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.run-year {
-  margin: 0 0 14px;
-  overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
+/* 按年折叠的全部记录：summary 就是一行「年份 + 汇总 + 加减号」，
+   下面一条发丝线；展开后是主题那张表格（1px 边框 + 4px 圆角）。 */
+.run-year { margin: 0 0 10px; }
 
 .run-year summary {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  padding: 16px 18px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
   cursor: pointer;
   list-style: none;
 }
 
-.run-year summary::-webkit-details-marker {
-  display: none;
-}
+.run-year summary::-webkit-details-marker { display: none; }
 
 .run-year summary::after {
   content: "+";
-  color: var(--muted);
-  font-size: 1.2rem;
+  flex: none;
+  color: var(--text-color-tertiary);
+  font-family: var(--font-secondary);
   line-height: 1;
 }
 
-.run-year[open] summary::after {
-  content: "−";
-}
+.run-year[open] summary::after { content: "−"; }
 
-.run-year-name {
-  font-weight: 650;
-}
+.run-year-name { font-weight: 600; }
 
 .run-year-meta {
-  color: var(--muted);
+  color: var(--text-color-tertiary);
   font-size: 0.85rem;
 }
 
-.run-year .table-wrap {
-  border: 0;
-  border-top: 1px solid var(--line);
-  border-radius: 0;
+.table-wrap {
+  margin-top: 10px;
+  overflow-x: auto;
 }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.92rem;
-}
-
-th, td {
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  white-space: nowrap;
-}
-
-th {
-  color: var(--muted);
-  font-weight: 500;
-  background: color-mix(in srgb, var(--surface) 84%, var(--line));
-}
-
-tr:last-child td { border-bottom: 0; }
 
 .updated {
   margin-top: 28px;
-  color: var(--muted);
+  color: var(--text-color-tertiary);
   font-size: 0.82rem;
 }
 
 @media (max-width: 700px) {
-  main { padding: 42px 0 56px; }
-
-  .summary-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .run-year summary {
     align-items: flex-start;
     flex-direction: column;
-    gap: 6px;
+    gap: 2px;
   }
+
+  .run-year-meta { margin-left: 0; }
 }

@@ -1,12 +1,7 @@
 {{ define "main" }}
 {{- $posts := sort .Pages "Date" "desc" -}}
 
-<a class="home-link" href="{{ "/" | relURL }}">← 经验分享首页</a>
-
-<header class="page-head">
-  <h1>{{ .Title }}</h1>
-  <p>{{ .Description }}</p>
-</header>
+<p class="page-intro">{{ .Description }}</p>
 
 {{ if $posts }}
   <section class="share-grid">

@@ -1,25 +1,28 @@
 {{ define "main" }}
 {{- $shots := sort (where site.RegularPages "Type" "shots") "Date" "desc" -}}
 
-<header class="site-head">
-  <a class="home-link" href="https://hulatu.com/">← hulatu.com</a>
-  <h1>{{ .Title }}</h1>
-  <p>{{ .Description }}</p>
-</header>
+{{- /* 页面标题不再另起 <h1>：页头那个 <h1> 已经是站名，与主站的列表页同构
+       （主站 /archive/ /weekly/ 也没有页面级 h1，是上游的设计）。 */ -}}
+<p class="page-intro">{{ .Description }}</p>
 
 {{ if $shots }}
   <section class="shot-grid">
     {{ range $shots }}
+      {{- /* ⚠️ 必须在 with 之前把标题取出来：`with .Params.image` 会把 `.`
+             重绑成图片地址字符串，里面再写 `.Title` 就不是这一条 Shot 的标题了。
+             原来写的是 `$.Title` —— 那是**首页**的标题（「瞬间」），
+             于是每张图的 alt 都成了「瞬间」。2026-10-12 一并修掉。 */ -}}
+      {{- $title := .Title -}}
       <a class="shot-card" href="{{ .RelPermalink }}">
         <span class="shot-media">
           {{ with .Params.image }}
             {{- $src := partial "cf-image.html" (dict "src" . "params" "width=800,fit=cover,format=auto,quality=82,metadata=none") -}}
-            <img src="{{ $src }}" alt="{{ $.Title }}" loading="lazy" decoding="async">
+            <img src="{{ $src }}" alt="{{ $title }}" loading="lazy" decoding="async">
           {{ end }}
         </span>
         <span class="shot-body">
           <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
-          <span class="shot-title">{{ .Title }}</span>
+          <span class="shot-title">{{ $title }}</span>
           {{ with .Params.caption }}<span class="shot-caption">{{ . }}</span>{{ end }}
         </span>
       </a>

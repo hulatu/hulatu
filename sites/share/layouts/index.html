@@ -1,12 +1,8 @@
 {{ define "main" }}
 {{- $posts := sort site.RegularPages "Date" "desc" -}}
 
-<a class="home-link" href="https://hulatu.com/">← hulatu.com</a>
-
-<header class="page-head">
-  <h1>{{ .Title }}</h1>
-  <p>{{ .Description }}</p>
-</header>
+{{- /* 页面标题不再另起 <h1>：页头那个 <h1> 已经是站名，与主站的列表页同构。 */ -}}
+<p class="page-intro">{{ .Description }}</p>
 
 {{ if $posts }}
   {{- $catMap := dict -}}
@@ -20,6 +16,11 @@
   {{- end -}}
   {{- $cats = sort $cats -}}
 
+  {{- /* 筛选器 2026-10-12 从「胶囊按钮」改成**纯文字**：
+         BearNeo 里没有胶囊/徽章这类控件，主站首页那行平台入口
+         （公众号 / 少数派 / 知乎 / 即刻）就是「一排用空格分开的链接」。
+         ⚠️ 类名 `.filter-chip` / `.is-active` 与 data-category 是
+            static/share.js 的契约，改名要两边一起改。 */}}
   <div class="filters" aria-label="按分类筛选">
     <button type="button" class="filter-chip is-active" data-category="all">全部 <span>{{ len $posts }}</span></button>
     {{ range $cats }}

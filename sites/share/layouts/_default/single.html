@@ -31,6 +31,9 @@
     {{ .Content }}
   </div>
 
+  {{- /* 优点 / 缺点 2026-10-12 从「左右两栏 + 卡片」改成**上下两段普通正文**：
+         BearNeo 是单栏流式排版，没有并列卡片这种构件；
+         用 <h2> + <ul> 就是它本来的语言（和文章页的小节完全一样）。 */}}
   {{ if or .Params.pros .Params.cons }}
     <section class="pros-cons">
       {{ with .Params.pros }}

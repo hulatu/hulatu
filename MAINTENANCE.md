@@ -214,14 +214,16 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 
 | 想做的事 | 去哪儿 |
 | --- | --- |
-| 改导航（增删项 / 改标签 / 换落点） | `hugo.toml` 的 `[[menu.main]]`，**不用碰模板** |
+| 改导航（增删项 / 改标签 / 换落点） | `hugo.toml` 的 `[[menu.main]]`，**不用碰模板**<br>⚠️ **改完要同步四个子站**：`sites/{run,shot,share,profile}/hugo.toml` 里各有一份**同样的 8 项**（`url` 用绝对地址），漏改会出现「跨站导航缺项」。四处一起改 |
 | 改首页文案 | `content/_index.md` |
 | 改首页列表条数 | `hugo.toml` 的 `homeRecentCount`（设 0 退回上游原样） |
 | 改首页列表的对齐 / 间距 | `custom_head.html` 第 04 段。⚠️ 列表必须与 `Recent Posts:` 标题**左对齐**（`padding-left: 0`），失效时会缩进 40px<br>几何值（120px / .95rem / 1.2rem / 1.3 / 2rem）**逐值照 yinji**，改前想清楚 |
 | 改关于页的介绍块 | `content/about.md`（**纯 Markdown，全站没有头像**）|
 | 改支持页 / 换收款码 | `content/donate.md`（结构 + 文案）+ `custom_head.html` 第 08 段（样式）<br>⚠️ **换码后要去 Cloudflare Purge `/images/donate/*`** —— 30 天缓存 |
 | 改页脚 | `hugo.toml` 的 `copyright` / `copyrightNote` / `licenseName` / `licenseURL` / `[params.footer]` 四个开关 |
-| 改颜色 / 字体 / 宽度 / 圆角 | `themes/hugo-bearneo/layouts/partials/style.html` 的 `:root`（改上游，改完在 DESIGN.md 第 5 节登记） |
+| 改颜色 / 字体 / 宽度 / 圆角 | `themes/hugo-bearneo/layouts/partials/style.html` 的 `:root`（改上游，改完在 DESIGN.md 第 5 节登记）<br>⚠️ **四个子站另有一份**（各自 `sites/*/static/style.css` 的 `:root`，外链不是内联）—— 要对齐就**四处一起改**，见 [sites/README.md](sites/README.md) |
+| 改子站页头 / 页脚 | `sites/{run,shot,share,profile}/layouts/_default/baseof.html`（四份内容相同）+ 各自 `hugo.toml` 的菜单<br>⚠️ 子站 `baseof.html` 对菜单项**硬编码** `target="_blank" rel="noopener noreferrer"`（主站是靠 `nav.html` 按 `externalLinksNewTab` 自动加） |
+| 改子站版式（统计格子 / 图片网格 / 筛选器 / profile 分区） | 各自的 `static/style.css` + `layouts/`。<br>⚠️ `share` 的筛选器类名 `.filter-chip` / `.is-active` 与 `static/share.js` 有契约，**改名要两边一起改** |
 | 改正文标题的上下间距 | `layouts/partials/custom_head.html` 第 02 段（⚠️ 行高刻意保持上游的 1.6；`text-autospace` 与 `content > :first-child` 两条已删 —— 后者是「首行贴导航栏」的元凶，见 DESIGN.md 第 5 节第 ③ 条） |
 | 改文末「系列坐标带」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html`，样式 `custom_head.html` 第 09 / 10 段（**改类名要两边一起改**） |
 | 改归档页顶部的「系列」横向入口 | 模板 `layouts/_default/archive.html`，样式 `custom_head.html` 第 09 段 |
@@ -510,6 +512,52 @@ PY
 # ⚠️ 写这些断言时当心：`'header nav{' in css.replace(' ','')` 是错的
 #    （把 needle 里的空格也去掉了）→ 永远 False；`(?<![\w.#-])nav\s*\{` 漏了空格，
 #    会把 `header nav{` 也当成裸 nav → 永远报 327。**这两条我自己都踩过。**
+
+# 10) ★ 四个子站：页头 9 个链接 + 导航 8 项绝对地址 + 无旧视觉残留（2026-10-12 加）
+bash scripts/build-subdomains.sh    # 先重建（⚠️ 别加 --quiet）
+python3 - <<'PY'
+import re, pathlib
+EXPECT = [("Home","https://hulatu.com/"),("Hub","https://profile.hulatu.com/"),
+          ("About","https://hulatu.com/about/"),("Now","https://hulatu.com/now/"),
+          ("Links","https://hulatu.com/roll/"),("Weekly","https://hulatu.com/weekly/"),
+          ("Posts","https://hulatu.com/archive/"),("RSS","https://hulatu.com/index.xml")]
+# ⚠️ minify 会剥掉属性引号（href=/），子站 CSS 是**外链**不是内联 —— 见下方注释
+A = r'href=(?:"([^"]*)"|([^\s>]+))'
+def hrefs(s):
+    out=[]
+    for m in re.finditer(r'<a\s([^>]*)>(.*?)</a>', s, re.S):
+        hm=re.search(A,m.group(1)); out.append((hm.group(1) or hm.group(2)) if hm else "")
+    return out
+bad=0
+for f in sorted(pathlib.Path("sites").glob("*/public/**/*.html")):
+    t=f.read_text(encoding="utf-8"); r=[]
+    h=re.search(r"<header>(.*?)</header>",t,re.S)
+    if not h: r.append("无 header")
+    else:
+        if len(hrefs(h.group(1)))!=9: r.append(f"页头链接 {len(hrefs(h.group(1)))} 个")
+        nav=re.search(r"<nav>(.*?)</nav>",h.group(1),re.S)
+        if not nav or [u for u in hrefs(nav.group(1))]!= [u for _,u in EXPECT]:
+            r.append("导航不符")
+        if 'target=_blank' not in (nav.group(1) if nav else ""): r.append("缺 target=_blank")
+    for p,n in [(r"box-shadow","box-shadow"),(r"c73e2f","印章红"),(r"f6f6f8","冷白纸"),
+                (r"border-radius:\s*1[68]px","圆角卡片"),(r"Georgia","衬线")]:
+        if re.search(p,t,re.I): r.append("HTML 残留 "+n)
+    print(("OK " if not r else "NG "), f, r); bad+=len(r)
+for c in sorted(pathlib.Path("sites").glob("*/public/style.css")):
+    s=c.read_text(encoding="utf-8"); r=[]
+    for p,n in [(r"#fdfdfd","底色"),(r"#0066cc","链接"),(r"#d0d7de","分割线"),
+                (r"Verdana","字体"),(r"720px","宽度")]:
+        if not re.search(p,s,re.I): r.append("缺 "+n)
+    for p,n in [(r"box-shadow","box-shadow"),(r"c73e2f","印章红"),(r"f6f6f8","冷白纸")]:
+        if re.search(p,s,re.I): r.append("残留 "+n)
+    print(("OK " if not r else "NG "), c, r); bad+=len(r)
+print("异常合计（应 0）：", bad)
+PY
+# ⚠️ 这一条我自己踩过两次假阳性，都写下来：
+#   ① `href="…"` 在产物里是 `href=…`（minify 剥引号）→ 断言里必须同时兼容两种写法，
+#      否则 6 个页面全部报「页头链接 0 个」，看着像全站崩了；
+#   ② 子站的 CSS 是**外链** `static/style.css`，不在 HTML 的 `<style>` 里 ——
+#      颜色令牌要去读 `sites/*/public/style.css`，在 HTML 里找永远找不到。
 ```
 
 > 第 5 条是 2026-10-11 加的：Go 模板注释里如果出现 C 风格注释的收尾符，
@@ -561,6 +609,13 @@ PY
   ⚠️ `/privacy/` 与 `/donate/` **仍然保留页面标题** —— 用户只点名了 About 和 Now，别顺手统一
 - `/privacy/` `/posts/` `/donate/` `/404.html` 与全部词条页：
   `<meta name=robots content="noindex, follow">`（合计 **196 页**）
+- **四个子站**（`run.` / `shot.` / `share.` / `profile.hulatu.com`，2026-10-12 改造后）：
+  页头必须是「站名 `h1` + **同一套 8 项导航**（绝对地址、新窗口）」，
+  视觉必须是 BearNeo（Verdana / 蓝链接 / 发丝线 / **没有圆角卡片与阴影**）。
+  ⚠️ 子站的 CSS 是**外链** `static/style.css`（不是内联），改完要看 `sites/*/public/style.css`
+  ⚠️ 子站内容很少：`shot` / `share` **一条内容都没有**（只有 `_index.md`），
+  它们的列表页 / 单篇页是**空状态**，别以为「页面白屏 = 构建坏了」
+  ⚠️ 想验证图片网格 / 筛选器版式要**临时造条目**（`_zz-` 前缀），验完**记得删**
 
 ---
 

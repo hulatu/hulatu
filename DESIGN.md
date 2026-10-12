@@ -760,6 +760,32 @@ This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
 ⚠️ `Privacy` 挂在 `hideSitemap` 这个开关里面：关掉 Sitemap 会连它一起关
 （它们本来就是同一行「站点元信息」，分开管没有意义）。
 
+### 四个子站（2026-10-12 起并入同一套令牌）
+
+`sites/run` / `sites/shot` / `sites/share` / `sites/profile` 是**独立 Hugo 站点**，
+部署在 `run.` / `shot.` / `share.` / `profile.hulatu.com`。
+
+**2026-10-12 之前**它们用的是自建的「纸账 + 印章」视觉（印章红 `#c73e2f`、冷白纸底 `#f6f6f8`、
+圆角 16/18px 卡片、大阴影、衬线标题、纸面噪点、竖向参考线、内容宽 680px），
+与本站 2026-10-10 迁到 BearNeo 之后**完全脱节**。这一天四个子站整体改成 BearNeo 语言：
+
+- **令牌逐值抄本站**（底色 `#fdfdfd`、正文 `#1a1a1a`、链接 `#0066cc`、分割线 `#d0d7de`、
+  Verdana、`line-height: 1.5`、`--width-max: 720px`），`body` 也是上游那套
+  `margin: auto; padding: 20px; max-width: var(--width-max)`。
+- **页头 / 页脚与本站完全一致**（站名 `h1` + 同一套 8 项导航 + 同一句页脚文案）。
+  导航写在各自 `hugo.toml` 的 `[[menu.main]]`，`url` 用**绝对地址**（子站是独立域名）。
+- **卡片 → 发丝线列表**：`run` 的统计格子、`profile` 的六个分区、`share` 的条目全部去掉
+  边框卡片与阴影，改成「标签 + 值」两行 + 底部 `1px` 线。
+- **`share` 的筛选器**从胶囊按钮改成纯文字（类名 `.filter-chip` / `.is-active` 保留，
+  因为 `share.js` 按类名取元素）。
+
+⚠️ 子站**没有共享 CSS 的机制**（独立站点，CSS 是外链 `static/style.css`），
+所以这套令牌在**四份 `style.css` 里各写一份** —— **改颜色 / 宽度 / 导航要四处一起改**。
+细则与「刻意删掉的东西」清单见 [`sites/README.md`](sites/README.md)。
+
+⚠️ 子站**仍然保留**的唯一非 BearNeo 色是 `share` 的 `.verdict`
+（推荐 `#1a7f37` / 避雷 `#cf222e` / 中立 `#9a6700`）—— 那是**内容语义**，不是主题色。
+
 ---
 
 ## 5. 站点层偏离（19 个文件，18 行）

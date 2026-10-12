@@ -12,54 +12,78 @@
 > 因此上面四个 Pages 项目的 **Root directory 必须保持 `/`**——子站要能看见上一层的 `data/`。
 > 想只构建某个子站时也别忘了这点：`hugo --source sites/run` 是从仓库根目录跑的。
 
-## 内容宽度约定：四个子站都是 680px（主站已不再相同）
+## 五个站共用一套设计令牌（2026-10-12 起）
 
-四个子站的内容列是 **680px**，在各自 `static/style.css` 的 `:root` 里各写一份
-`--content-width: 680px`，页面宽度靠
-`main { width: min(var(--content-width), calc(100% - 32px)) }` 取；`sites/profile` 是
-`calc(100% - 40px)`，另外 `shot-single` / `share-single` 这类单篇页也引用同一个变量。
+**2026-10-12 四个子站整体改成 BearNeo 视觉语言，与主站对齐。** 现在主站与四个子站共用同一套
+令牌，值直接抄上游主题 `themes/hugo-bearneo/layouts/partials/style.html`：
 
-这样做是为了**四个子站之间跨站跳转时页面不会忽宽忽窄**（改之前 run 960px、shot 1000px、share 1040px、profile 600px）。
-要再调宽度时，四处一起改；子站里那些 `repeat(4, 1fr)` / `repeat(3, 1fr)` 已经换成
-`repeat(auto-fit, minmax(…, 1fr))`，列数自己跟着宽度走，不用再单独调。
-
-> ⚠️ **2026-10-10 晚起主站不再参与这个约定**：主站迁移到上游 hugo-bearneo 后，
-> 宽度由主题的 `--width-max: 720px` 决定（`themes/hugo-bearneo/layouts/partials/style.html`），
-> 不再是 680px。所以现在从主站跳子站会差 40px。
-> **没有跟着改子站**是刻意的 —— 改四个子站的 CSS 是独立的一次改动，不该混在主题迁移里做。
-> 真要对齐，把四个 `static/style.css` 的 `--content-width` 一起改成 `720px` 即可。
-
-## 颜色约定：四个子站共用一套语义色（主站已换掉）
-
-四个子站的 `:root` 是各写一份的（子站是独立 Hugo 站点，没有共享 CSS 的机制），所以**改颜色要四处一起改**。
-变量名两套：profile 用 `--paper`，run / share / shot 用 `--bg`，指的是同一个「冷白纸底」。
-
-当前这套值（**以四个子站为准**，主站已不再使用）：
-
-| 语义 | 浅色 | 深色 | 谁在用 |
+| 语义 | 浅色 | 深色 | CSS 变量（子站里） |
 |---|---|---|---|
-| 主色（印章红） | `#c73e2f` | `#ef7b64` | 四个子站 |
-| 页面底色 | `#f6f6f8` | `#0b0b10` | 四个子站 |
-| 正文色 | `#1d1d1f` | `#f5f5f7` | 四个子站 |
-| 次要文字 | `#56565c` | `#a1a1a8` | 四个子站 |
-| 分割线 | `#e4e4e9` | `#2c2c31` | 四个子站 |
+| 页面底色 | `#fdfdfd` | `#121212` | `--bg-color-primary` |
+| 次级底色（表头 / 代码块） | `#f2f4f7` | `#1c1f24` | `--bg-color-secondary` |
+| 正文色 | `#1a1a1a` | `#e5e5e5` | `--text-color-primary` |
+| 次要文字 | `#444` | `#b3b3b7` | `--text-color-secondary` |
+| 三级文字（日期 / 计数） | `#8c8c8c` | `#a0a0a0` | `--text-color-tertiary` |
+| 链接色 | `#0066cc` | `#6da6ff` | `--link-color` |
+| 已访问链接 | `#551a8b` | `#b388ff` | `--link-visited-color` |
+| 分割线 / 图片边框 | `#d0d7de` | `#30363d` | `--border-color` |
 
-2026-09 清理过一次漂移：profile 的 `--muted` 是 `#6b6b72`、run / share / shot 是 `#66666c`、
-深色 `--line` profile 是 `#26262c`，都统一成了上表的值。再改配色时对着这张表抄，别各自微调。
+字体栈 **`Verdana, sans-serif`**（子站在前面插了 `"PingFang SC"` 等中文字体兜底），
+`line-height: 1.5`，宽度靠 `body { margin: auto; padding: 20px; max-width: var(--width-max) }`
+取，`--width-max: 720px` —— **四个子站与上游主题逐值一致**。
 
-> ⚠️ **2026-10-10 晚起主站已换成上游 hugo-bearneo 的配色**（底色 `#fdfdfd`、
-> 正文 `#1a1a1a`、链接 `#0066cc`、分割线 `#d0d7de`，**没有印章红**），
-> 见 [../DESIGN.md](../DESIGN.md)。所以「五个站共用一套语义色」这句话**已经不成立了**：
-> 现在是「四个子站共用一套 + 主站另用上游那套」。同样**刻意没跟改**。
+⚠️ **四个子站是独立 Hugo 站点，没有共享 CSS 的机制**，所以上面这套值在四份
+`static/style.css` 里**各写一份**——**改颜色 / 宽度要四处一起改**。
+（子站的 CSS 是**外链** `static/style.css`，不是像主站那样内联在 `<style>` 里。）
 
-两处**故意不同**，不用去「修」：
+### 刻意去掉的东西（别再加回来）
 
-- **深浅色切换**：四个子站只跟随系统 `prefers-color-scheme`。
+| 已删除 | 为什么 |
+|---|---|
+| 印章红 `#c73e2f` / 深色 `#ef7b64` | 上游 BearNeo 没有主色，链接就是蓝的 |
+| 冷白纸底 `#f6f6f8` / 正文 `#1d1d1f` | 换成 BearNeo 的 `#fdfdfd` / `#1a1a1a` |
+| 圆角卡片（`border-radius: 16/18px`） | 全部改成发丝线列表 / 无边框网格 |
+| `box-shadow` 大阴影 | BearNeo 无阴影；图片只有 1px 边框 + 4px 圆角 |
+| 衬线标题（Georgia 等） | 统一 Verdana 无衬线 |
+| 纸面噪点、竖向参考线、胶囊筛选按钮 | 同上，纯装饰性 |
+| `--paper` / `--bg` / `--content-width` 旧变量名 | 换成上表的 `--*-color-*` 系列 |
+
+**唯一的语义色例外**：`sites/share` 的 `.verdict`（推荐 / 避雷 / 中立）保留
+`--good: #1a7f37` / `--bad: #cf222e` / `--neutral: #9a6700`（深色 `#3fb950` / `#f85149` / `#d29922`）
+——它是**内容语义**不是主题色，且已去掉胶囊底色、只剩文字着色。
+
+### 页头：四个子站与主站完全一致
+
+四个子站的页头是**同一套结构**（各自 `layouts/_default/baseof.html` 里各写一份）：
+
+```
+<header>
+  <a href="/" class="title"><h1>{{ site.Title }}</h1></a>   ← 站名 h1
+  <nav> 8 项导航，全部绝对地址指向主站 </nav>
+</header>
+```
+
+8 项导航（`Home / Hub / About / Now / Links / Weekly / Posts / RSS`）写在各自 `hugo.toml` 的
+`[[menu.main]]` 里，`url` 一律用**绝对地址**（`https://hulatu.com/…`），因为子站是独立域名、
+相对地址会 404。子站的 `baseof.html` 对每个菜单项硬编码
+`target="_blank" rel="noopener noreferrer"`（主站是靠 `nav.html` 按 `externalLinksNewTab` 自动加）。
+
+> ⚠️ 改主站导航时**四个子站的 `hugo.toml` 要一起改**，否则跨站导航会缺项。
+> 主站导航的权威定义在根目录 `hugo.toml` 的 `[[menu.main]]`（见 [../DESIGN.md](../DESIGN.md)）。
+
+**页脚**同样是主站那一套：`hulatu.com · Subscribe via RSS or just say hello.` +
+`Copyright © 2025-2026, hulatu.`
+
+### 仍然故意不同的两处
+
+- **深浅色切换**：五个站都**只跟随系统** `prefers-color-scheme`。
   ⚠️ 主站原本有个右上角手动切换按钮（`data-theme` + `assets/js/theme.js`），
-  **2026-10-10 已随迁移删除** —— 现在**五个站都只跟随系统**，这一条反而统一了。
+  **2026-10-10 已随迁移删除** —— 现在这一条是统一的，没有差异。
 - **响应式断点**：主站 **800px 一档**（上游主题如此，只用来藏目录），
-  profile 600 / 520px，run 700px，share 800 / 560px，shot 没有断点。
+  子站是 **run 700px**、**profile 520px**、**shot / share 没有断点**（改用
+  `repeat(auto-fit, minmax(…, 1fr))` 让列数自己跟着宽度走）。
   断点是跟着各站版式定的，不是共用的设计令牌。
+  四个子站都额外带一个 `@media (prefers-reduced-motion: reduce)` 关掉过渡动画。
 
 ## 本地构建
 

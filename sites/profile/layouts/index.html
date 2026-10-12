@@ -1,219 +1,135 @@
 {{ define "main" }}
 {{- $profile := hugo.Data.profile | default dict -}}
 
-<div class="sheet">
-  <header class="masthead">
-    <div class="masthead-mark">
-      <span class="mark-dot" aria-hidden="true"></span>
-      <span>PROFILE.HULATU.COM</span>
-    </div>
+{{- /* 身份块。
+       ⚠️ 这里**没有 <h1>** —— 页头那个 <h1> 已经是「胡拉图」（站名），
+          与主站首页同构（主站首页也是「页头 h1 = 站名」+ 正文从 h2 起）。
+       ⚠️ 头像 2026-10-12 改成**本站自托管**：原来指向
+          `https://hulatu.com/images/avatar.webp`，而那个文件 2026-10-11
+          已被主站清掉（只剩 Cloudflare 边缘缓存撑着，30 天后就 404）。
+          现在图片在 sites/profile/static/avatar.webp（480×360，17.8 KB，
+          从 git 历史取回）。 */ -}}
+<div class="profile-intro">
+  {{ with $profile.avatar }}
+    <img class="avatar" src="{{ . | relURL }}" alt="{{ $profile.name | default site.Title }}"
+         width="480" height="360" decoding="async">
+  {{ end }}
+  {{ with $profile.bio }}<p class="bio">{{ . }}</p>{{ end }}
+  {{ with $profile.status }}<p class="status">{{ . }}</p>{{ end }}
+  {{ with $profile.location }}<p class="presence">{{ . }} · GMT+8</p>{{ end }}
+</div>
 
-    <div class="masthead-body">
-      <div class="masthead-main">
-        <div class="masthead-text">
-          <h1>{{ $profile.name | default site.Title }}</h1>
-          {{ with $profile.bio }}<p class="bio">{{ . }}</p>{{ end }}
-          {{ with $profile.status }}<p class="status">{{ . }}</p>{{ end }}
-        </div>
-        <div class="presence" aria-label="当前状态">
-          <span class="presence-dot" aria-hidden="true"></span>
-          {{ with $profile.location }}<span>{{ . }}</span><span class="presence-sep" aria-hidden="true">/</span>{{ end }}
-          <span>GMT+8</span>
-        </div>
-      </div>
-      {{ with $profile.avatar }}
-        {{- /* 头像同样走 Cloudflare Image Transformations：这里显示 120px（≤520px 时 84px），
-               而 hulatu.com 上的源图是 480×360 / 17.8KB，等于发 4 倍于所需的像素。
-               只重写 hulatu.com 下的头像；以后换成外链（Gravatar 之类）就原样用，
-               不硬套参数，免得把别人的图也塞进我们的转换端点。 */ -}}
-        {{- $av1x := . -}}
-        {{- $av2x := . -}}
-        {{- if strings.HasPrefix . "https://hulatu.com/images/" -}}
-          {{- $avPath := strings.TrimPrefix "https://hulatu.com" . -}}
-          {{- $av1x = printf "https://hulatu.com/cdn-cgi/image/width=120,format=auto,quality=80,metadata=none%s" $avPath -}}
-          {{- $av2x = printf "https://hulatu.com/cdn-cgi/image/width=240,format=auto,quality=80,metadata=none%s" $avPath -}}
-        {{- end -}}
-        <img class="avatar" src="{{ $av2x }}" alt="{{ $profile.name | default site.Title }}"
-             srcset="{{ $av1x }} 120w, {{ $av2x }} 240w"
-             sizes="(max-width: 520px) 84px, 120px" decoding="async">
+{{ with hugo.Data.latest_posts }}
+  {{ if .posts }}
+    <h2>文章 <span class="h2-en">Writing</span></h2>
+    <div class="rows">
+      {{ range .posts }}
+        <a class="row" href="{{ .url }}" target="_blank" rel="noopener">
+          <time datetime="{{ .date }}">{{ .date }}</time>
+          <span class="row-title">{{ .title }}</span>
+          <span class="row-arrow" aria-hidden="true">↗</span>
+        </a>
       {{ end }}
     </div>
-  </header>
-
-  {{ with hugo.Data.latest_posts }}
-    {{ if .posts }}
-      <section class="section">
-        <div class="section-tag">
-          <span class="tag-index">01</span>
-          <span class="tag-hatch" aria-hidden="true"></span>
-          <span class="tag-label">文章 <span class="tag-en">Writing</span></span>
-        </div>
-        <div class="blog-list">
-          {{ range .posts }}
-            <a class="blog-row" href="{{ .url }}" target="_blank" rel="noopener">
-              {{ with .cover }}
-                <span class="row-cover" aria-hidden="true">
-                  <img src="{{ . }}" alt="" loading="lazy" decoding="async">
-                </span>
-              {{ end }}
-              <span class="row-body">
-                <time datetime="{{ .date }}">{{ .date }}</time>
-                <span class="row-title">{{ .title }}</span>
-              </span>
-              <span class="row-arrow" aria-hidden="true">↗</span>
-            </a>
-          {{ end }}
-        </div>
-        <a class="section-more" href="https://hulatu.com/archive/" target="_blank" rel="noopener">全部文章 →</a>
-      </section>
-    {{ end }}
+    <p class="more"><a href="https://hulatu.com/archive/" target="_blank" rel="noopener">全部文章 →</a></p>
   {{ end }}
+{{ end }}
 
-  {{ with $profile.groups }}
-    <section class="section">
-      <div class="section-tag">
-        <span class="tag-index">02</span>
-        <span class="tag-hatch" aria-hidden="true"></span>
-        <span class="tag-label">入口 <span class="tag-en">Links</span></span>
-      </div>
-      <div class="groups">
-        {{ range $group := . }}
-          <div class="group">
-            <div class="group-label">{{ $group.name }}</div>
-            {{ range $link := $group.links }}
-              {{ if $link.url }}
-                <a class="link-row" href="{{ $link.url }}" target="_blank" rel="noopener">
-                  <span class="link-icon">{{ partial "profile-icon.html" (dict "name" $link.icon) }}</span>
-                  <span class="link-text">
-                    <span class="link-label">{{ $link.label }}</span>
-                    {{ with $link.desc }}<span class="link-desc">{{ . }}</span>{{ end }}
-                  </span>
-                  <span class="row-arrow" aria-hidden="true">↗</span>
-                </a>
-              {{ else }}
-                <span class="link-row is-empty">
-                  <span class="link-icon">{{ partial "profile-icon.html" (dict "name" $link.icon) }}</span>
-                  <span class="link-text">
-                    <span class="link-label">{{ $link.label }}</span>
-                    {{ with $link.desc }}<span class="link-desc">{{ . }}</span>{{ end }}
-                  </span>
-                </span>
-              {{ end }}
-            {{ end }}
-          </div>
-        {{ end }}
-      </div>
-    </section>
-  {{ end }}
-
-  {{ with $profile.projects }}
-    <section class="section">
-      <div class="section-tag">
-        <span class="tag-index">03</span>
-        <span class="tag-hatch" aria-hidden="true"></span>
-        <span class="tag-label">项目 <span class="tag-en">Projects</span></span>
-      </div>
-      <div class="rows">
-        {{ range $project := . }}
-          {{ if $project.url }}
-            <a class="row" href="{{ $project.url }}" target="_blank" rel="noopener">
-              <span class="row-body">
-                <span class="row-title">{{ $project.label }}</span>
-                <span class="row-domain">{{ $project.domain }}</span>
-              </span>
-              <span class="row-desc">{{ $project.desc }}</span>
-            </a>
-          {{ else }}
-            <span class="row is-empty">
-              <span class="row-body">
-                <span class="row-title">{{ $project.label }}</span>
-                <span class="row-domain">{{ $project.domain }}</span>
-              </span>
-              <span class="row-desc">{{ $project.desc }}</span>
-            </span>
-          {{ end }}
-        {{ end }}
-      </div>
-    </section>
-  {{ end }}
-
-  {{ with $profile.media_recent }}
-    <section class="section">
-      <div class="section-tag">
-        <span class="tag-index">04</span>
-        <span class="tag-hatch" aria-hidden="true"></span>
-        <span class="tag-label">书影音 <span class="tag-en">Media</span></span>
-      </div>
-      <div class="media-strip">
-        {{ range $item := . }}
-          <a class="media-card" href="{{ $item.url }}" target="_blank" rel="noopener">
-            <span class="media-type">{{ $item.type }}</span>
-            <span class="media-title">{{ $item.title }}</span>
-            <span class="media-meta">{{ $item.creator }}</span>
+{{ with $profile.groups }}
+  <h2>入口 <span class="h2-en">Links</span></h2>
+  {{ range $group := . }}
+    <p class="group-label">{{ $group.name }}</p>
+    <div class="rows">
+      {{ range $link := $group.links }}
+        {{ if $link.url }}
+          <a class="row" href="{{ $link.url }}" target="_blank" rel="noopener">
+            <span class="row-icon">{{ partial "profile-icon.html" (dict "name" $link.icon) }}</span>
+            <span class="row-title">{{ $link.label }}</span>
+            {{ with $link.desc }}<span class="row-desc">{{ . }}</span>{{ end }}
+            <span class="row-arrow" aria-hidden="true">↗</span>
           </a>
+        {{ else }}
+          <span class="row is-empty">
+            <span class="row-icon">{{ partial "profile-icon.html" (dict "name" $link.icon) }}</span>
+            <span class="row-title">{{ $link.label }}</span>
+            {{ with $link.desc }}<span class="row-desc">{{ . }}</span>{{ end }}
+          </span>
         {{ end }}
-      </div>
-    </section>
+      {{ end }}
+    </div>
   {{ end }}
+{{ end }}
 
-  {{ with $profile.garden }}
-    <section class="section">
-      <div class="section-tag">
-        <span class="tag-index">05</span>
-        <span class="tag-hatch" aria-hidden="true"></span>
-        <span class="tag-label">数字花园 <span class="tag-en">Garden</span></span>
-      </div>
-      <div class="garden">
-        {{ range $root := . }}
-          <div class="garden-root">
-            <span class="garden-dot" aria-hidden="true"></span>
-            <a href="https://{{ $root.name }}/" target="_blank" rel="noopener"><strong>{{ $root.name }}</strong></a>
-            <span>{{ $root.desc }}</span>
-          </div>
-          {{ range $child := $root.children }}
-            <div class="garden-child">
-              <a href="https://{{ $child.name }}/" target="_blank" rel="noopener">{{ $child.name }}</a>
-              <span>{{ $child.desc }}</span>
-            </div>
-          {{ end }}
-        {{ end }}
-      </div>
-    </section>
-  {{ end }}
+{{ with $profile.projects }}
+  <h2>项目 <span class="h2-en">Projects</span></h2>
+  <div class="rows">
+    {{ range $project := . }}
+      {{ if $project.url }}
+        <a class="row" href="{{ $project.url }}" target="_blank" rel="noopener">
+          <span class="row-title">{{ $project.label }}</span>
+          <span class="row-domain">{{ $project.domain }}</span>
+          <span class="row-desc">{{ $project.desc }}</span>
+        </a>
+      {{ else }}
+        <span class="row is-empty">
+          <span class="row-title">{{ $project.label }}</span>
+          <span class="row-domain">{{ $project.domain }}</span>
+          <span class="row-desc">{{ $project.desc }}</span>
+        </span>
+      {{ end }}
+    {{ end }}
+  </div>
+{{ end }}
 
-  {{ with $profile.subscriptions }}
-    <section class="section">
-      <div class="section-tag">
-        <span class="tag-index">06</span>
-        <span class="tag-hatch" aria-hidden="true"></span>
-        <span class="tag-label">订阅 <span class="tag-en">Subscribe</span></span>
-      </div>
-      <div class="rows">
-        {{ range $sub := . }}
-          {{ if $sub.url }}
-            <a class="row" href="{{ $sub.url }}" target="_blank" rel="noopener">
-              <span class="row-body">
-                <span class="row-title">{{ $sub.label }}</span>
-              </span>
-              <span class="row-desc">{{ $sub.desc }}</span>
-            </a>
-          {{ else }}
-            <span class="row is-empty">
-              <span class="row-body">
-                <span class="row-title">{{ $sub.label }}</span>
-              </span>
-              <span class="row-desc">{{ $sub.desc }}</span>
-            </span>
-          {{ end }}
-        {{ end }}
-      </div>
-    </section>
-  {{ end }}
+{{ with $profile.media_recent }}
+  <h2>书影音 <span class="h2-en">Media</span></h2>
+  <div class="rows">
+    {{ range $item := . }}
+      <a class="row" href="{{ $item.url }}" target="_blank" rel="noopener">
+        <span class="media-type">{{ $item.type }}</span>
+        <span class="row-title">{{ $item.title }}</span>
+        <span class="row-desc">{{ $item.creator }}</span>
+        <span class="row-arrow" aria-hidden="true">↗</span>
+      </a>
+    {{ end }}
+  </div>
+{{ end }}
 
-  <footer class="sheet-footer">
-    <span>{{ $profile.footer | default "hulatu.com" }}</span>
-    <span class="footer-sep" aria-hidden="true">·</span>
-    <span>个人主页 / Personal Index</span>
-  </footer>
-</div>
+{{ with $profile.garden }}
+  <h2>数字花园 <span class="h2-en">Garden</span></h2>
+  <div class="garden">
+    {{ range $root := . }}
+      <div class="garden-row">
+        <a href="https://{{ $root.name }}/" target="_blank" rel="noopener">{{ $root.name }}</a>
+        <span class="garden-desc">{{ $root.desc }}</span>
+      </div>
+      {{ range $child := $root.children }}
+        <div class="garden-row garden-child">
+          <a href="https://{{ $child.name }}/" target="_blank" rel="noopener">{{ $child.name }}</a>
+          <span class="garden-desc">{{ $child.desc }}</span>
+        </div>
+      {{ end }}
+    {{ end }}
+  </div>
+{{ end }}
+
+{{ with $profile.subscriptions }}
+  <h2>订阅 <span class="h2-en">Subscribe</span></h2>
+  <div class="rows">
+    {{ range $sub := . }}
+      {{ if $sub.url }}
+        <a class="row" href="{{ $sub.url }}" target="_blank" rel="noopener">
+          <span class="row-title">{{ $sub.label }}</span>
+          <span class="row-desc">{{ $sub.desc }}</span>
+          <span class="row-arrow" aria-hidden="true">↗</span>
+        </a>
+      {{ else }}
+        <span class="row is-empty">
+          <span class="row-title">{{ $sub.label }}</span>
+          <span class="row-desc">{{ $sub.desc }}</span>
+        </span>
+      {{ end }}
+    {{ end }}
+  </div>
+{{ end }}
 {{ end }}

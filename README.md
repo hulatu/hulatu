@@ -55,7 +55,8 @@
   `noindex, follow` 覆盖 **196 页**（184 个标签词条 + 8 个分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404）。
   ⚠️ 每页 `og:image` 目前都是同一张 `share.webp`（按 slug 分图的 125 张**已于 2026-10-11 清理删除**，见 DESIGN.md 第 8 节）
 - **子站**：`run`（跑步数据）、`shot`（随手拍）、`share`（好物分享）、`profile`（个人主页），
-  源码在 `sites/`，四个都已上线，配置见 [sites/README.md](sites/README.md)
+  源码在 `sites/`，四个都已上线。**2026-10-12 起四个子站换成与本站同一套 BearNeo 视觉
+  （同款页头 / 导航 / 页脚 + 同一份设计令牌）**，配置与约定见 [sites/README.md](sites/README.md)
 
 ## 目录结构
 
