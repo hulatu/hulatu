@@ -14,30 +14,33 @@
 | Hugo | `0.167.0+extended`（本机 / GitHub Actions / Cloudflare 三边一致） |
 | 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
 | 代码高亮 | `hugo.toml` 的 `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
-| 站点层 | **19 个文件**（见第 1 节）—— 全站所有自定义都在这里 |
-| 页面 | 331 页 → **327 个 HTML** |
-| 内容 | 101 篇文章 + 24 期周刊 = **125 个内容页**（+ 6 个根级独立页） |
+| 站点层 | **20 个文件**（见第 1 节）—— 全站所有自定义都在这里 |
+| 页面 | 335 页 → **331 个 HTML**（2026-10-12 实测，`os.walk` 数 `.html`） |
+| 内容 | 101 篇文章 + **25 期**周刊 = **126 个内容页**（+ 6 个根级独立页） |
 | 订阅源 | **两个 `.xml`**：`/index.xml`（全站文章 20 条）+ `/weekly/index.xml`（周刊 20 条）。**都只收文章页** —— `/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 一条都没有。浏览器直开走 `static/rss.xsl` 渲染 |
-| 词条页 | 标签 **184** 个 + 分类 **8** 个（索引页 `/tags/` `/categories/` 已关） |
-| CSS | **全部内联**，普通页每页 8142 字节（gzip 2458）；长文页 11929 / 3227；含代码块的 5 页 14114 / 3706。没有 `/css/` 目录 |
+| 词条页 | 标签 **187** 个 + 分类 **8** 个（索引页 `/tags/` `/categories/` 已关） |
+| CSS | **全部内联**，普通页每页 8675 字节（gzip 2610）；长文页 12610 / 3400；含代码块的 5 页 14861 / 3893。没有 `/css/` 目录 |
 | JS | **两个文件**：`/js/giscus.min.<hash>.js`（指纹化，长缓存）—— 分别只在评论区页 / 含代码块的 5 页加载 |
 | 无警告 | 干净构建 **0 警告** |
-| URL | 与迁移前**逐条一致**（125 个 `/posts/…` 全部保留），只有 8 个刻意删除的地址加了 301 |
+| URL | 与迁移前**逐条一致**（126 个 `/posts/…` 全部保留），只有 8 个刻意删除的地址加了 301 |
 
-内联 CSS 的构成（2026-10-11 第四批实测，Python `gzip.compress(d,9)` 口径；
+内联 CSS 的构成（**2026-10-12 第六轮实测**，Python `gzip.compress(d,9)` 口径；
 下面「补丁」= 该档全页 `<style>` 合计 **减去**主题固定的 6424 B）：
 
 | 档 | 页数 | 内联 CSS raw / gzip | 补丁 |
 | --- | --- | --- | --- |
-| 普通页（首页 / 独立页 / 词条页） | 199 | 8247 / 2495 | 1823 B（+00 +14 +17 段） |
-| **文章页（125 篇）** | **120** | **12111 / 3274** | 5687 B（再 +09 +10 +13 +16 +19 五段） |
-| **文章页 + 代码块** | **5** | **14296 / 3760** | 7872 B（再 +12 +18 两段） |
-| `/archive/`（归档列表页） | 1 | 9976 / 2845 | 3552 B |
-| `/donate/` | 1 | 8673 / 2589 | 2249 B（+08 段） |
-| **`/404.html`** | 1 | **9661 / 2773** | 3237 B（+15 段） |
-`/about/` 与普通页**完全一致** —— 关于页头像撤掉后，03 段不再输出任何 CSS。
-⚠️ 第四批把第 00 段的选择器从裸 `nav` 改成 `header nav`（+14 B/页），
-并把 `.tag-index` 加进 09 段（只影响 `/archive/` 一页）。
+| 普通页（首页 / 6 个独立页 / 词条页 195 / posts 列表页） | 202 | 8675 / 2610 | 2251 B（+00 +14 +17 +20 +21 +22 +23 段） |
+| **长文页（101 文章 + 25 周刊，无代码块）** | **121** | **12610 / 3400** | 6186 B（再 +09 +10 +13 +16 +19 五段） |
+| **长文页 + 代码块** | **5** | **14861 / 3893** | 8437 B（再 +12 +18 两段） |
+| `/archive/`（归档列表页） | 1 | 10404 / 2962 | 3980 B |
+| `/donate/` | 1 | 9101 / 2705 | 2677 B（+08 段） |
+| **`/404.html`** | 1 | **10089 / 2888** | 3665 B（+15 段） |
+**合计 331 页**，与 `os.walk` 数出的 HTML 数一致。
+`/about/` `/now/` `/roll/` `/privacy/` `/weekly/` 与普通页**完全一致** —— 关于页头像撤掉后，
+03 段不再输出任何 CSS。
+⚠️ 第六轮新增 4 条全站规则（20 / 21 / 22 / 23 段，共 **+428 B raw / +115 B gzip**）：
+目录断点抬到 1200px、`img { height: auto }`、等宽字体令牌、`.toc-nav a` 的 transition 收窄。
+⚠️ 第 24 段（`/archive/` 的 `content-visibility`）评估后**撤回**，只留注释，运行时 +0 B。
 详见 DESIGN.md 第 5 节。
 
 ---
@@ -58,7 +61,7 @@ content/
                           （donate.md 是 2026-10-11 从旧自建主题搬回的支持页）
                           ⚠️ links.md 2026-10-11 已删（友链并进 roll.md），别再加回来
   posts/                  101 篇文章 + _index.md（noindex，纯内部页）
-  weekly/                 24 期周刊 + _index.md（单独开 RSS 输出）
+  weekly/                 25 期周刊 + _index.md（单独开 RSS 输出）
 
 archetypes/
   posts.md weekly.md      新建文章的模板（含发布前检查清单）
@@ -204,7 +207,7 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
    漏了跑 `python3 scripts/add-heading-anchors.py`（需要 macOS 拼音库）。
 3. **`noindex: true` 是生效的**（站点层 `baseof.html` 有 robots 分支，上游主题没有）。
    ⚠️ 2026-10-11 才把它补回来 —— 整站迁移时那段实现被一起删掉了，字段一度**空转**。
-   现在覆盖 **196 页** = 184 标签词条 + 8 分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404。
+   现在覆盖 **199 页** = 187 标签词条 + 8 分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404。
    ⚠️ **但 `/privacy/`、`/posts/`、`/donate/` 仍然留在 sitemap 里**（当时只恢复了 meta，
    没恢复旧站的 `layouts/sitemap.xml`）—— 别以为 sitemap 也排除了，这是已知缺口。
 
@@ -257,6 +260,7 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 | `sync-garmin.py` / `garmin-token.py` | ✅ 在用（每日 CI 同步跑步数据 → `data/runs.json`） |
 | `sync-lastmod.py` | ⚠️ 半废（`lastmod` 只喂 RSS / sitemap 了） |
 | `build-subdomains.sh` | ✅ 在用（构建四个子站） |
+| `sync-image-dims.py` | ✅ 在用（**2026-10-12 新增**：HTTP 探测图床图片的真实宽高 → `data/image-dims.json`，供 `render-image.html` 消费。⚠️ **不在 `publish.sh` 里，加了新图后手工跑一次**） |
 | `backup-blog.sh` / `cleanup-junk.sh` / `_frontmatter.py` | ✅ 工具 |
 
 > ⚠️ **2026-10-11 删掉了 4 个失效脚本**：`fetch-image-dims.py` / `sync-douban.py` /
@@ -265,6 +269,11 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 > 随主题迁移全部失去消费者。
 > **要恢复任何一个都从 git 历史里取**（`git log --diff-filter=D --name-only -- scripts/`），
 > 别凭记忆重写。`publish.sh` 里那句对 `fetch-image-dims.py` 的调用也已同步删掉。
+>
+> ⚠️ **2026-10-12 更正**：上面删掉的「图片宽高缓存」这条链路**以新形态回来了** ——
+> 新脚本 `sync-image-dims.py`（**不是**从 git 取回的旧 `fetch-image-dims.py`：旧版扫本地文件，
+> 新版走 HTTP 探测图床、写 `data/image-dims.json`，给 `render-image.html` 消费）。
+> 它**不进** `publish.sh` 流水线，是「加了新图」之后**手工**跑一次。
 
 ---
 
@@ -272,9 +281,9 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 
 ### URL 不变量（**改任何东西之前先守住这几条**）
 
-- 文章 / 周刊：`/posts/YYYY/MM/DD/slug/`（125 条，由 `[permalinks]` 生成）
+- 文章 / 周刊：`/posts/YYYY/MM/DD/slug/`（126 条，由 `[permalinks]` 生成）
 - 根级页：`/`、`/about/`、`/now/`、`/roll/`、`/privacy/`、`/archive/`、`/weekly/`、`/donate/`
-- 词条页：`/tags/<tag>/`（184）、`/categories/<cat>/`（8）
+- 词条页：`/tags/<tag>/`（187）、`/categories/<cat>/`（8）
 - `/posts/` 存在但 `noindex`，且全站没有页面链到它 —— 导航的 `Posts` 指的是 `/archive/`
 
 **验收方式**：改完构建到 `/tmp`，`find . -name '*.html'` 排序后和迁移前的清单 `comm` 对比。
@@ -415,7 +424,7 @@ print('a) </a>+换行+中文标点 (应 0):',
       sum(len(re.findall(r'</a>\n[，。：；！？、）」』》〈【（]', s)) for s in r))
 print('b) 系列坐标带页面 (应 21):',
       sum(1 for s in r if re.search(r'<nav class=["\']?post-series', s)))
-print('c) 上下篇页面 (应 125):',
+print('c) 上下篇页面 (应 126):',
       sum(1 for s in r if re.search(r'<nav class=["\']?post-nav', s)))
 a = open('/tmp/hb-check/archive/index.html', encoding='utf-8').read()
 print('d) 归档页系列横向行 (应 3):', len(re.findall(r'<div class=series-row>', a)))
@@ -458,8 +467,8 @@ for f in glob.glob('/tmp/hb-check/posts/**/index.html', recursive=True):
           and ld['itemListElement'][0]['name'] == '首页')
     n_ok += ok
     n_bad += (not ok)
-print('h) 面包屑页面 (应 125):', n_ok + n_bad)
-print('   JSON-LD 合格 / 不合格 (应 125 / 0):', n_ok, '/', n_bad)
+print('h) 面包屑页面 (应 126):', n_ok + n_bad)
+print('   JSON-LD 合格 / 不合格 (应 126 / 0):', n_ok, '/', n_bad)
 print('   可见段数分布 (应 {3: 101, 2: 24}；3 段=文章带分类，2 段=周刊):', dict(shapes))
 PY
 
@@ -505,13 +514,13 @@ print('c) 含 header nav 规则的页 (应 = HTML 总数):',
       sum(1 for f, s in r if re.search(r'header\s+nav\s*\{', st(s))))
 print('d) ★ 残留「裸 nav」选择器的页 (应 0):',
       sum(1 for f, s in r if re.search(r'(?<![\w.#\-\s])nav\s*\{', st(s))))
-print('e) post-series-ord 带 min-width 的页 (应 126 = 125 长文 + /archive/):',
+print('e) post-series-ord 带 min-width 的页 (应 127 = 126 长文 + /archive/):',
       sum(1 for f, s in r if re.search(r'\.post-series-ord\s*\{[^}]*min-width', st(s))))
 PY
-# 期望：a) 184，三类顺序 ['英文','中文']（本站没有数字标签），b) 0，c) 327，d) 0，e) 126
+# 期望：a) 187，三类顺序 ['英文','中文']（本站没有数字标签），b) 0，c) 331，d) 0，e) 127
 # ⚠️ 写这些断言时当心：`'header nav{' in css.replace(' ','')` 是错的
 #    （把 needle 里的空格也去掉了）→ 永远 False；`(?<![\w.#-])nav\s*\{` 漏了空格，
-#    会把 `header nav{` 也当成裸 nav → 永远报 327。**这两条我自己都踩过。**
+#    会把 `header nav{` 也当成裸 nav → 永远报 331（总页数）。**这两条我自己都踩过。**
 
 # 10) ★ 四个子站：页头 9 个链接 + 导航 8 项绝对地址 + 无旧视觉残留（2026-10-12 加）
 bash scripts/build-subdomains.sh    # 先重建（⚠️ 别加 --quiet）
@@ -560,6 +569,33 @@ PY
 #      颜色令牌要去读 `sites/*/public/style.css`，在 HTML 里找永远找不到。
 ```
 
+```bash
+# 11) ★ 正文图片的 width/height + 坏格式哨兵（2026-10-12 加）
+#     ① 每个 <figure> 里的 <img> 都该带 width 与 height（防 CLS，版面先占住）；
+#     ② overlay 那份 <img> 要带 loading="lazy"（imageZoom 的 checkbox 遮罩里那张）；
+#     ③ 产物里**不能出现 `%!d`** —— `data/image-dims.json` 里的数字是 float64，
+#        Go 模板的 `%d` 会输出 `%!d(float64=1200)` 而**构建 0 警告**，
+#        是本站第三次遇到的「静默残缺」（前两次：`.Site.Data` 弃用、注释提前收尾）。
+python3 - <<'PY'
+import glob, re
+fig = img = withdim = lazy = bad = 0
+for f in set(glob.glob('public/**/*.html', recursive=True)):
+    s = open(f, encoding='utf-8').read()
+    fig += s.count('<figure')
+    for m in re.finditer(r'<img\b[^>]*>', s):
+        t = m.group(0); img += 1
+        if 'width=' in t and 'height=' in t: withdim += 1
+        if 'loading=lazy' in t.replace('"', ''): lazy += 1
+    if '%!d' in s: bad += 1
+print('a) <figure> 总数      :', fig)
+print('b) <img> 总数         :', img)
+print('c) 带 width+height    :', withdim, '(应 = b)')
+print('d) 带 loading=lazy    :', lazy, '(应 ≈ b，裸 img 除外)')
+print('e) 含 %!d 坏格式的页  :', bad, '(应 0)')
+PY
+# ⚠️ 旧产物（没有 21 段 img{height:auto} 时）21 张图会全部塌成 720x2px —— 见 DESIGN.md 第 5 节第 24 段旁
+```
+
 > 第 5 条是 2026-10-11 加的：Go 模板注释里如果出现 C 风格注释的收尾符，
 > 注释会**提前结束**且**构建不报错**，后半段变成普通文字输出到页面上；
 > 落在 `<style>` 里还会吞掉紧随其后的那条规则（当天把首页列表顶出 40px 缩进）。
@@ -576,7 +612,7 @@ PY
   行高走 body 的 1.5、`Hi!` 上方有 16px 空）；要退回上游就把它包回去
   ⚠️ **列表左边界要和 `Recent Posts:` 标题对齐**（实测都是 x≈140）；缩进 40px 就是
   `.recent-posts { padding-left: 0 }` 被吞了，去跑第 5 条哨兵
-- `/archive/`：搜索框 + 「共 125 篇。」+ **「系列」三条横向行**（居家流水账 4 篇 / 综述写作 5 篇 /
+- `/archive/`：搜索框 + 「共 **126** 篇。」+ **「系列」三条横向行**（居家流水账 4 篇 / 综述写作 5 篇 /
   跑步 12 篇，每行左侧系列名、右侧篇目横向铺开）+ 年份分组（2026 / 2025）
   ⚠️ 这一块**不该有任何分割线 / 折叠三角**（2026-10-11 用户明确否掉了那一版）
 - 导航：`Home / Hub(https://profile.hulatu.com/) / About / Now / Links(/roll/) / Weekly(/weekly/) / Posts(/archive/) / RSS(/index.xml)` —— 8 项
@@ -593,7 +629,7 @@ PY
   哨兵：`<footer>` 里 `<br>` 恰好 **3 个**、`go.html` 恰好出现 **1 次**、`·` 出现 **0 次**、
   且「Say hello」与「开往」必须落在**同一个 `<br>` 分段**里（少了就是掉到第 4 行去了）
 - 文章页：`<h1>`、日期行、标签行、**文末「系列坐标带」（只有 21 篇连载有）
-  +「上一篇 / 下一篇」（125 篇都有）**、TOC、评论区
+  +「上一篇 / 下一篇」（126 篇都有）**、TOC、评论区
   ⚠️ **「上一篇」= 更早、「下一篇」= 更晚**，与系列带方向一致；两段相邻时只画一条发丝线
   ⚠️ 最新一篇（`engineering-students-use-macbook`）没有「下一篇」、
   最早一篇（`personal-profile`）没有「上一篇」—— 会留一个不可见空槽，正常

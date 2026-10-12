@@ -171,13 +171,17 @@ hulatu.com（本站：上游主题 + 11 个站点层覆盖文件）
 | 角色 | 栈 | 用在哪儿 |
 | --- | --- | --- |
 | `--font-primary` | `Verdana, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif`（站点层补） | 正文、标题 |
-| `--font-secondary` | `monospace` | `<time>`、`<code>` |
+| `--font-secondary` | `ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", "Sarasa Mono SC", "Noto Sans Mono CJK SC", monospace`（站点层补，2026-10-12） | `<time>`、`<code>`、代码块 |
 
 - ⚠️ yinji 的写法是 `"Verdana","PingFang SC", sans-serif` —— **本站前两项与它逐字相同**
   （macOS 上解析结果完全一样：拉丁走 Verdana、汉字走苹方），只是**多挂了三个跨平台回退**，
   在 Windows / Android 上才不会掉到宋体。所以「字体参考 yinji」也**无需改动**。
 - ⚠️ 上游**没有** `--font-serif`（衬线标题）也没有 `--font-meta`（等宽元信息）这两个概念 ——
-  那是上一版自建主题的。现在日期和代码共用 `monospace`，标题和正文共用 Verdana。
+  那是上一版自建主题的。现在日期和代码共用 `--font-secondary`，标题和正文共用 Verdana。
+- ⚠️ **`--font-secondary` 2026-10-12 也补了跨平台回退**（原来只是一句裸 `monospace`）：
+  `ui-monospace` 起头（macOS 走 SF Mono、Windows 走 Cascadia / Consolas、Android 走 Roboto Mono），
+  再挂 `"Sarasa Mono SC"` / `"Noto Sans Mono CJK SC"` 两个**中文等宽**，最后才是 `monospace`。
+  第 22 段，全站生效。没有它时中文注释会掉到宋体、与拉丁字符对不齐。
 
 ### 尺寸
 
@@ -189,7 +193,8 @@ hulatu.com（本站：上游主题 + 11 个站点层覆盖文件）
 | `--font-size-secondary` | `0.8em` | 页脚 / 图片说明 |
 | `time` | `15px` | 硬编码，不走令牌 |
 | 圆角 | `4px` | 全站唯一一档 |
-| 断点 | `800px` | 唯一一档 |
+| 断点 | `800px` | 主题原生那一档（minipic / image-zoom / TOC 整块隐藏） |
+| 断点（站点层） | `1200px` | **目录 TOC 的显示闸门**（2026-10-12 从 800 抬到 1200，第 20 段） |
 
 ---
 
@@ -465,11 +470,11 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 
 - `/weekly/` 用站点层 `layouts/_default/list.html`（上游那份的 5 处界面文案英译中 + 删标签墙）。
 - `/archive/` 用 `layouts/_default/archive.html`（**站点层新增**，因为 `/archive/` 是普通内容页
-  不是 section，上游没有对应模板）。内容 = `posts` + `weekly` 全部 125 篇，按年分组。
+  不是 section，上游没有对应模板）。内容 = `posts` + `weekly` 全部 126 篇，按年分组。
 - ⚠️ **两页都没有页面级 `<h1>`**，与上游一致。
 - ⚠️ **都没有分页**（上游不用 `.Paginate`）。`/weekly/page/1..3/` 与首页 `/page/*` 的旧地址
   在 `static/_redirects` 里 301 兜底。
-- ⚠️ **都没有标签墙**（上游 `list.html` 底部会铺全部标签，本站 184 个，五屏蓝色链接）。
+- ⚠️ **都没有标签墙**（上游 `list.html` 底部会铺全部标签，本站 187 个，五屏蓝色链接）。
   用户在 2026-10-10 明确不要标签云，`/tags/` 索引页也一并 `disableKinds` 关掉
   （`/tags/xxx/` 词条页仍然生成，文章下方的标签链接照常可用）。
 
@@ -511,7 +516,7 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 
 - **面包屑** + `<h1>` 标题 + 日期行 + 正文 + **标签行** + **文末两段导航** + 评论区 + 目录。
 - ⚠️ **文末只有标签行，没有分类行**。2026-10-11 当天曾经短暂地加过一行
-  `● 分类`（理由是「125 篇里 0 篇有分类链接，而 8 个分类词条页与 `categories` 字段都在」），
+  `● 分类`（理由是「126 篇里 0 篇有分类链接，而 8 个分类词条页与 `categories` 字段都在」），
   用户当天就否掉了：「把我文章页底部的分类去掉」。
   **理由：分类的入口在页首面包屑的第三段**（`首页 / 收藏 / 工具`），
   文末再来一遍是重复；而**标签是文章页独有的**（面包屑里没有），所以只留标签。
@@ -522,7 +527,7 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 - **日期行可以单独藏掉**：front matter 写 `hideDate: true`（站点层 `single.html` 识别）。
   用在 `/about/`、`/now/`、`/roll/`、`/donate/` 这几个独立页 —— 它们挂一个「最后修改于某天」
   没有意义。⚠️ **`date` 字段本身别删**，RSS / og meta 还要用。
-- 上游原本把标题和日期**写死给 `blog` 段**，导致 `/weekly/` 的 24 篇、`/about/`、`/privacy/`
+- 上游原本把标题和日期**写死给 `blog` 段**，导致 `/weekly/` 的 25 篇、`/about/`、`/privacy/`
   全都渲染成「没有标题没有日期的裸正文」。站点层去掉了这层条件。
 - **代码块没有红绿灯、没有复制按钮** —— 上游只有 `pre code` 的底色和圆角。已删。
 
@@ -554,6 +559,10 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 字色分别是 `#0a3069`（字符串，最多）/ `#656d76`（注释）/ `#24292f`（标识符）/ `#cf222e`（关键字），
 **内联 monokai 色 0 处残留**。
 
+- **图片带 `width` / `height`**（2026-10-12）：正文 `<img>` 都带真实宽高（取自
+  `data/image-dims.json`），加载前就占好版面 → 无 CLS。⚠️ 配套**三件套缺一不可**：
+  ① 数据文件 `data/image-dims.json` ② `render-image.html` 输出属性 ③ 第 21 段的 `img { height: auto }`。
+  少了 ③ 时 `height` 会当硬高度生效，图会被**竖向拉伸**（实测旧产物 21 张图全部塌成 720×2px）。
 - **图片有 CSS-only 放大**（`imageZoom = true`）：点图弹近黑遮罩 + 右上角 ✕。
   纯 `:checked` 实现，没有 JS，也没有上一版那个带 `focus-trap` 的灯箱。
 
@@ -561,7 +570,7 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 
 ```
 首页 / 文章 / 工具                    ← 普通文章（101 篇，3 段）
-首页 / 周刊                          ← 周刊（24 篇，2 段）
+首页 / 周刊                          ← 周刊（25 期，2 段）
 ────────────────────────────────────
 # 工科研究生用 Mac，也可以很完美
 ```
@@ -574,7 +583,7 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 
 | 类型 | 页数 | 挂不挂 | 为什么 |
 | --- | --- | --- | --- |
-| 文章页 `/posts/年/月/日/slug/` | 125 | ✅ | 有层级：首页 → 文章/周刊 → 本篇 |
+| 文章页 `/posts/年/月/日/slug/` | 126 | ✅ | 有层级：首页 → 文章/周刊 → 本篇 |
 | 标签 / 分类词条页 | 192 | ❌ | 顶部已经有「筛选：Apple / 取消筛选」，再加面包屑是重复 |
 | 首页、`/about/`、`/now/`、`/roll/`… | 9 | ❌ | 一级页面，**导航高亮已经指示位置**；「首页 / 关于」是纯冗余 |
 | `/archive/` `/weekly/` 列表页 | 2 | ❌ | 同上（一级页面） |
@@ -596,8 +605,8 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 - ⚠️ **周刊刻意不加第三段**。周刊文章的 `categories` 就是 `["周刊"]`，
   与第二段的栏目名**一模一样** → 加了会变成「首页 / 周刊 / 周刊」。
   **这不是漏写，是「栏目名 == 分类名」时去重。**
-  所以 24 篇周刊是 2 段、101 篇普通文章是 3 段（实测 `{3: 101, 2: 24}`）。
-- ⚠️ **每篇只有一个分类**（实测 125 篇 / 8 个值 / **无多分类**），所以直接取第一个。
+  所以 25 期周刊是 2 段、101 篇普通文章是 3 段（实测 `{3: 101, 2: 25}`）。
+- ⚠️ **每篇只有一个分类**（实测 126 篇 / 8 个值 / **无多分类**），所以直接取第一个。
   万一以后出现多分类的文章，这里只会显示**第一个** —— 面包屑本来就只表达一条路径，
   多分类要全列出来是另一件事。
 - 取分类用 `.GetTerms "categories"` 而不是 `.Params.categories`：
@@ -615,7 +624,7 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 
 ⚠️ **SEO 那份不受影响**：JSON-LD 里是**完整的**（首页 / 文章 / 分类 / 当前文章，**4 段**；
 周刊是 3 段）。视觉精简 + 数据完整，两者不冲突。
-实测 125 页的 JSON-LD 全部能被 `json.loads` 解成 `BreadcrumbList` 对象，
+实测 126 页的 JSON-LD 全部能被 `json.loads` 解成 `BreadcrumbList` 对象，
 `itemListElement` 长度 = 可见段数 + 1，且 `position` 从 1 连续。
 
 **样式**（`custom_head.html` 第 13 段，挂在 `$longForm` 上）：
@@ -670,7 +679,7 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
   **别用 `.NextInSection` / `.PrevInSection`** —— 那两个按 section 的全站日期序，
   会把系列之外的文章算成邻居。
 
-**② 上一篇 / 下一篇**（全站 125 篇都有）
+**② 上一篇 / 下一篇**（全站 126 篇都有）
 
 ```
 ────────────────────────────────────────────  ← 发丝线（与上面那段相邻时去掉，见下）
@@ -698,12 +707,18 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 
 ### 目录 TOC
 
-- `position: fixed` 贴右侧栏（`left: calc((100vw + 720px) / 2)`），**≤800px 整块隐藏**。
+- `position: fixed` 贴右侧栏（`left: calc((100vw + 720px) / 2)`），**≤1200px 整块隐藏**。
+  ⚠️ **2026-10-12 把显示闸门从主题原生的 800px 抬到 1200px**：800–1200px 这一段
+  （1024 / 1152 / 1280 的笔记本）主题算出的目录盒宽只有 1–176px，而目录内部固定要吃
+  100px（`.toc-nav` padding 48 + `a` padding 24 + 刻度 16 + margin-right 12），
+  结果就是「只剩一条残片」。覆盖写在 `custom_head.html` 第 20 段，
+  **不动主题那个 800px 的块**（那块里还有 minipic / image-zoom 三条真移动端规则）。
+  实测：1440px 盒宽 288px（x=1080）、1201px 盒宽 180px（x=961）、1100px `display: none`。
 - **默认完全隐形**：`.toc-nav a { color: transparent }`，不悬停只看得见一排灰色短横
   （`::before` 画的 16/12/8px 胶囊，按层级递减宽度、递增右间距）。
   悬停整块才显形，当前小节是 `--text-color-primary`。
 - 这是**用户 2026-10-10 明确选的**「完全照搬：默认隐形」（试运行站里那版常显被否）。
-  `custom_head.html` 第 06 段**刻意留空**并写明了这件事。
+  `custom_head.html` 第 06 段**刻意留空**并写明了这件事（2026-10-12 只改断点，是第 20 段）。
 - 只有一篇文章**正文里有两个以上标题**时才值得挂；`toc: false` 可以逐页关掉。
 
 ### 评论区 giscus
@@ -842,7 +857,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 
 ---
 
-## 5. 站点层偏离（19 个文件，18 行）
+## 5. 站点层偏离（20 个文件）
 
 | 文件 | 偏离 | 为什么 |
 | --- | --- | --- |
@@ -856,10 +871,11 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动 | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架 |
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
-| `layouts/partials/custom_head.html` | 19 段补丁样式 + GoatCounter（03 / 06 / 11 留空；08 / 15 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 各只给一类页；14 / 17 全站） | 见下 |
+| `layouts/partials/custom_head.html` | 24 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 各只给一类页；14 / 17 / 20 / 21 / 22 / 23 全站） | 见下 |
 | `layouts/404.html` | **新增** | 上游默认只有 `<h1>404</h1>` + 一行颜文字 |
 | `layouts/_default/_markup/render-heading.html` | **新增**：标题末尾的 `#` 锚点 | 上游没有这个钩子（Goldmark 只给 id、不给可点入口） |
 | `layouts/partials/orphan-safe.html` | **新增**：标题末 2 字包 `nowrap` | 中文标题的孤行问题（取回旧主题的做法） |
+| `layouts/_default/_markup/render-image.html` | **新增**（2026-10-12）：正文图片补 `width` / `height`，overlay 那份补 `loading="lazy"` | 上游只输出 `src` / `alt`，图片加载前高度为 0 → 页面跳动（CLS）。宽高取自 `data/image-dims.json`（`scripts/sync-image-dims.py` 采集）。⚠️ 必须配第 21 段的 `img { height: auto }`，否则 `height` 会当硬高度生效、图被**竖向拉伸** |
 | `layouts/partials/back-top.html` | **新增**：返回顶部（只长文页） | 上游没有；**纯 CSS 滚动驱动动画，零 JS**。⚠️ 同日曾有过「阅读进度条」，已按用户要求删除 |
 | `layouts/partials/code-copy.html` + `assets/js/code-copy.js` | **新增**：代码块复制按钮（只含代码的页） | 上游没有 |
 | `layouts/partials/giscus.html` + `assets/js/giscus.js` | **新增** | 上游没有评论区 |
@@ -936,7 +952,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 {{- $noindex := or (eq .Data.Plural "tags") (eq .Data.Plural "categories") (eq .Kind "404") (eq .Params.noindex true) -}}
 ```
 
-生效范围实测 **196 页** = 184 个标签词条页 + 8 个分类词条页
+生效范围实测 **199 页** = 187 个标签词条页 + 8 个分类词条页
 + `/privacy/` + `/posts/` + `/donate/` + `/404.html`，
 与线上旧站口径一致（`curl` 逐页比对过；`/donate/` 是 2026-10-11 新加的一页）。
 
@@ -944,7 +960,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 所以 `/privacy/`、`/posts/`、`/donate/` **仍然留在 sitemap 里**。爬虫读到 meta 不会收录，
 但地址仍会先交给它一次。要彻底干净，得再加一份 sitemap 模板把 `not .Params.noindex` 排掉。
 
-### `custom_head.html` 的 19 段
+### `custom_head.html` 的 24 段
 
 | 段 | 内容 | 生效范围 |
 | --- | --- | --- |
@@ -960,14 +976,37 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | 10 | `.post-nav` / `.post-nav-*`（文末上一篇 / 下一篇） | **长文页** |
 | 11 | **刻意留空**：`/roll/` 两组之间的分隔线（第一版是 40px 短横线，现已改用**裸 `<hr>`** 走主题样式） | — |
 | 12 | 代码高亮配色（浅 / 深两套 `--code-*` 变量 + `.highlight` 的那批 token 规则） | **仅含代码块的 5 页** |
-| 13 | `.breadcrumbs`（面包屑；显示「首页 / 栏目 / 分类」） | **仅文章页（125 页）** |
+| 13 | `.breadcrumbs`（面包屑；显示「首页 / 栏目 / 分类」） | **仅文章页（126 页）** |
 | 14 | `content .nowrap` + `.table-wrap`（都是由「内容」决定出不出现的） | **全站**（见下：这类不能按页型守卫） |
-| 19 | `.heading-anchor`（标题锚点 `#`；模板层也只在文章页输出它） | **仅长文页（125 页）** |
+| 19 | `.heading-anchor`（标题锚点 `#`；模板层也只在文章页输出它） | **仅长文页（126 页）** |
 | 15 | `.notfound-*`（404 页两段结构） | **仅 404** |
-| 16 | `.back-top`（返回顶部，含 reduced-motion 覆盖） | **仅长文页（125 页）** |
+| 16 | `.back-top`（返回顶部，含 reduced-motion 覆盖） | **仅长文页（126 页）** |
 | 17 | `html { scroll-behavior: smooth }` + 其 reduced-motion 覆盖 | **全站** |
 | 18 | `.code-copy`（代码块复制按钮） | **仅含代码块的页（5 页）** |
+| 20 | `@media (max-width: 1200px) { div.toc { display: none } }`（目录闸门 800 → 1200） | 全站 |
+| 21 | `img { height: auto }` —— 第 22 段那批 `width` / `height` 属性的**前置条件** | 全站 |
+| 22 | `--font-secondary` 换成带跨平台回退的等宽栈（`ui-monospace` 起头） | 全站 |
+| 23 | `.toc-nav a` 的 `transition: all` 收窄成 `color` + `background-color`，并加 reduced-motion 覆盖 | 全站 |
+| 24 | **刻意留空**：`/archive/` 标签块的 `content-visibility` 评估后撤回（见下方小节） | — |
 | — | 文件末尾：**GoatCounter**（上游 `baseof.html` 没有统计挂载点，只能挂这个钩子） | 全站 |
+
+#### ⚠️ 第 24 段：为什么 `/archive/` 的 `content-visibility` 被撤回（2026-10-12）
+
+第五轮评审建议给归档页底部的标签块加 `content-visibility: auto`，理由是「单页 63.9 KB /
+1046 个 DOM 节点」。评估后**撤回**，两条实测：
+
+1. **「63.9 KB」是原始 HTML 字节，这个指标误导。** `/archive/` 原始 58912 B → **gzip 13565 B**；
+   普通文章页原始 64397 B → gzip 24117 B。归档页**压缩后比一篇文章还小一半**，本机 load 53ms。
+   （评审页写的「331 条链接 + 184 个标签」也是错的：331 是**全站 HTML 文件数**，
+   归档页真实构成是 **126 条文章链接 + 187 个标签**。）
+2. **`contain-intrinsic-size: auto 320px` 的估值没能被真实高度纠正。** 实测 1440 / 390 两种视口下
+   它都恒定报 320px，而真实高度是 **256px（桌面）/ 533px（手机）**。这块是 `<content>` 里
+   最后一个元素，估偏就是**文档总高估偏** → 滚到底时页脚会跳。
+   无头环境量出的 CLS 恒为 0，但那不等于真机不跳。
+
+收益不可测、成本是一条 CSS + `contain: paint` 的副作用 + 手机端可能的页脚跳动 → 撤回。
+段号保留（体例同 03 / 06 / 11），注释留在第 24 段写明「为什么不做」。
+**将来文章涨到几百条时，正确做法是给标签块分页 / 折叠（真正减少 DOM），不是 `content-visibility`。**
 
 #### ⚠️ 第 12 段：为什么代码配色必须动 `hugo.toml`
 
@@ -1042,7 +1081,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
   它们不是「一个页面」，而是「文章页 + 归档页」共 126 页；剩下 200 个页面
   （首页、`/about/`、`/now/`、`/roll/`、`/tags/*` …）一个字都不需要，白搭约 1.7 KB。
   守卫条件与模板里的挂载条件**一一对应**，改模板的挂载条件要回来改这里：
-  `$longForm` → `single.html` 的文末两段（125 页）+ 第 00 段的守卫；
+  `$longForm` → `single.html` 的文末两段（126 页）+ 第 00 段的守卫；
   `/archive/` → `archive.html` 的横向总览与底部标签平铺（1 页）。
 - ⚠️⚠️ **守卫的选择器必须带作用域，别用裸元素选择器 —— 2026-10-11 栽过一次。**
   第 00 段（导航折行）最初写的是裸 `nav { display:flex }`。`nav` 是**元素选择器**，
@@ -1131,7 +1170,7 @@ CSS 顺势收进第 19 段的 `{{ if $longForm }}` 守卫。于是：
 ① 「HTML 里出现了某个类名」但「这一页的 `<style>` 里没有对应规则」→ **裸露**；
 ② 反过来，CSS 有规则但页面里不会出现该类名 → **白搭体积**。
 ①**必须为 0**；② 只会出现在「同判页型、但该页恰好没有该元素」的页面上
-（例如 125 个长文页里只有 88 页有 h2/h3，剩下 37 页带着锚点 CSS 却用不到），属可接受。
+（例如 126 个长文页里只有 89 页有 h2/h3，剩下 37 页带着锚点 CSS 却用不到），属可接受。
 
 ```
 for f in 全部产物:
@@ -1150,16 +1189,18 @@ for f in 全部产物:
 ⇒ 凡是「搬回来的痕迹只体现在 HTML 里」的改动，都要额外问一句
 **「它靠哪条 CSS 起作用？那条在不在？」**
 
-#### 内联 CSS 体积（2026-10-11 第四轮实测）
+#### 内联 CSS 体积（2026-10-12 第六轮实测）
 
 `<style>` 全块按字节 + Python `gzip.compress(d, 9)` 口径：
 
 | 页面 | raw / gzip | 页数 | 补丁大小 |
 | --- | --- | --- | --- |
-| 普通页（首页 / `/about/` / `/now/` / `/roll/` / `/weekly/` / 词条页…） | **7943 / 2389** | 199 | 1519 B |
-| 长文页（125 篇）与 `/archive/` | **9595 / 2725** | 121 | 3171 B |
-| **含代码块的页** | **11272 / 3109** | 5 | 4848 B |
-| `/donate/` | **8369 / 2483** | 1 | 1945 B |
+| 普通页（首页 / 6 个独立页 / 词条页 195 / posts 列表页） | **8675 / 2610** | 202 | 2251 B |
+| 长文页（101 文章 + 25 周刊，无代码块） | **12610 / 3400** | 121 | 6186 B |
+| **长文页 + 代码块** | **14861 / 3893** | 5 | 8437 B |
+| `/archive/` | **10404 / 2962** | 1 | 3980 B |
+| `/donate/` | **9101 / 2705** | 1 | 2677 B |
+| **`/404.html`** | **10089 / 2888** | 1 | 3665 B |
 
 主题自己那块固定 **6424 B**（每页都有）。三档增量的来源：
 
@@ -1200,7 +1241,7 @@ for f in 全部产物:
 | 拿回来的 | 现在的形态 |
 | --- | --- |
 | **系列**（`series:` 字段的出口） | 文章页文末「坐标带」+ `/archive/` 顶部横向入口（第 4 节），**两处同口径** |
-| **文末「上一篇 / 下一篇」** | 全站 125 篇都有，与系列带**并存不互斥**（第 4 节） |
+| **文末「上一篇 / 下一篇」** | 全站 126 篇都有，与系列带**并存不互斥**（第 4 节） |
 
 ---
 
@@ -1213,6 +1254,8 @@ for f in 全部产物:
 - 加独立页时记得两个键：`hideDate: true`（不挂日期行）+ `toc: false`（短页面不挂目录）。
 - 新增根级内容页 → 回 `static/_headers` 补一条 `Cache-Control`（这条规矩 2026-10-07 立）。
 - 改完 CSS 重新量体积：从产物抽 `<style>` 按字节 + `gzip -9`（**Python 口径**，别混 CLI 口径）。
+- **文章里加了新图（或换了图床）→ 重跑 `scripts/sync-image-dims.py`**，否则新图没有
+  `width` / `height`，会退化回「加载时页面跳动」。⚠️ 脚本只认图床 `img.hulatu.com` 上的图。
 - 验证产物用 `/tmp` 目录 + `--cleanDestinationDir`：`hugo server` 开着会覆盖 `public/`。
 
 ### Don't

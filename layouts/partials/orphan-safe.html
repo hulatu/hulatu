@@ -24,11 +24,19 @@
            {{ partial "orphan-safe.html" .Title }}
            {{ partial "orphan-safe.html" (printf "%s" $label) }}
 
-       ⚠️ 当前接在四处（改标题渲染时四处都要带）：
+       ⚠️ 传进来的必须是**纯文本**。它内部按字符串 `htmlEscape` 再切末 2 字，
+          传 `template.HTML` 会把 `<strong>` 这类标签转义成可见字符。
+          （正文小标题那一处传的就是 `.PlainText`，理由写在
+            `layouts/_default/_markup/render-heading.html` 的 ④ 节。）
+
+       ⚠️ 当前接在五处（改标题渲染时五处都要带）：
            1. layouts/_default/single.html      文章 / 周刊的 <h1>
            2. layouts/_default/archive.html     /archive/ 的列表项
            3. layouts/_default/list.html        /weekly/ 的列表项
            4. layouts/index.html                首页「Recent Posts:」的 5 条
+           5. layouts/_default/_markup/render-heading.html
+                                                正文 h2/h3/h4（**2026-10-12 新增**）
+       ⚠️ 第 5 处是**唯一传 `.PlainText` 的**，因为 `.Text` 是 `template.HTML`。
        ⚠️ **别包 `<title>`、别包面包屑、别包 TOC** —— 那些地方要么不是给人扫读的，
           要么容器宽度固定且不允许换行，包了只会让 URL / 标签里多出无用标记。
 

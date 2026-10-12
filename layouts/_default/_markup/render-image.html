@@ -1,0 +1,84 @@
+{{- /* ============================================================
+       图片渲染钩子（站点层覆盖主题同名文件）
+       —— 2026-10-12 为修 P2-⑤「图片没有预留尺寸」而建
+
+       ── 覆盖主题的哪一份 ──────────────────────────────────────────────
+       主题：themes/hugo-bearneo/layouts/_default/_markup/render-image.html
+       本文件结构**与主题逐字一致**，只多了两类属性（见下）。主题那份保持
+       「逐字节未改」，将来同步上游不会冲突。
+
+       ── 为什么需要它（实测，不是推测）──────────────────────────────
+       本站图片全部托管在图床，Hugo 构建期拿不到尺寸 → 产出的 <img> 既没有
+       width/height 也没有 aspect-ratio。图片没到之前它**高度只有 2px**，
+       到了之后撑开到 540px 左右，把下面所有内容往下推。
+
+       实测（`--no-sandbox` 无头浏览器，1440×900，图床指向死端口以模拟未加载）：
+         · 全站 68 个含图页面里，**31 个页面的第一张图落在首屏内**（top < 786px）
+         · 未加载时图高 2px；加载后按 720px 宽算，1200×900 的图高 540px
+         → 首屏内容会被推下 ~538px，CLS 直接进「Poor」区间（>0.25）
+       ⚠️ 直接量 CLS 会**得到 0**，因为无头 Chromium 不等图片就渲染（不遵守 lazy）。
+          所以这条只能靠几何量，不能靠 CLS 量。
+
+       ── 尺寸从哪来 ───────────────────────────────────────────────────
+       `data/image-dims.json`（321 条，由 `scripts/sync-image-dims.py` 离线抓一次
+       后提交进仓库）。**刻意不用 Hugo 的 resources.GetRemote** ——
+       那会让构建依赖网络（图床挂了/断网就构建不了），而「构建零网络依赖」
+       是本站的架构底线。代价：**加了新图要重跑一次那个脚本**。
+
+       ── 两类新增属性 ─────────────────────────────────────────────────
+       ① `width` / `height`（两份 <img> 都有）
+          查得到就输出；查不到**静默不输出**（不报错、不破版），
+          与「新加图片忘了跑脚本」这个已知代价对应。
+          ⚠️⚠️ **必须同时有 `img { height: auto }`**（见 custom_head.html）。
+             主题的 `img` 规则只有 `max-width: 100%`、**没有 `height: auto`** ——
+             此时 height 属性会当成 height:900px 生效，而 max-width 把宽压到 720，
+             结果图被**竖向拉伸变形**（实测 902px 高）。这不是可选项。
+
+       ② `loading="lazy"`（overlay 那份）
+          overlay 是 `display:none` + `position:fixed`，**不参与布局**，
+          所以它加不加 lazy 对 CLS 毫无影响。加它只是「隐藏元素不该抢带宽」的
+          语义正确性 —— 收益很小，但零风险。
+          ⚠️ overlay 与内联那份 **src 完全相同**，浏览器只会发 1 个网络请求
+             （DOM 里 2 个 <img>，请求 1 次）。所以别指望它省下什么。
+
+       ── 三处容易写错的地方 ──────────────────────────────────────────
+       ① `hugo.Data` 里带连字符的 key 要用 `index`：
+              {{ $dims := index hugo.Data "image-dims" }}
+          写成 `hugo.Data.image-dims` 会**静默取不到**（解析成减法）。
+          ⚠️ 用 `hugo.Data` 而**不是** `.Site.Data` —— 后者在 Hugo 0.156 起已弃用，
+             用它会多一条 `WARN deprecated`，而本仓的验收标准是**构建 0 告警**。
+             改之前实测踩过：用 `.Site.Data` 构建照样出页面，只有那条 WARN 在提示。
+       ② ⚠️⚠️ **JSON 里的数字是 `float64`，`printf "%d"` 会输出
+             `width="%!d(float64=1200)"`** —— 不报错、不中断构建，
+             只是产物里多出一个坏属性（实测踩过）。
+             所以必须先 `int` 转换再 `%d`（或者干脆用 `%v`）。
+             验证：产物里搜 `%!d` 应该一条都没有。
+       ② `.Destination` 是 Markdown 里原样写的 URL。本仓有**中文文件名**
+          （`鸡蛋beSQLQ.webp`）和 `%20`（`IMG_0709%202VEGC0R.webp`），
+          数据文件的 key 也按原样存，所以能直接对上。若对不上会静默退化成
+          「不输出尺寸」—— 验证时看产物里那两张图有没有 width/height 即可。
+       ③ `$dims` 为 nil 时 `index` 会报错，所以外面套一层 `with`。
+          ⚠️ 但 `with` 会**重绑定 `.`** —— 里面再写 `.Destination` 就废了。
+             所以先 `$dest := .Destination` 存下来（本站栽过这个坑）。
+       ============================================================ */ -}}
+{{- $dest := .Destination -}}
+{{- $alt := .Text -}}
+{{- $id := printf "img-%s" (substr (md5 $dest) 0 8) -}}
+{{- $zoom := $.Page.Site.Params.imageZoom -}}
+{{- $dim := "" -}}
+{{- with index hugo.Data "image-dims" -}}
+  {{- with index . $dest -}}
+    {{- $dim = printf ` width="%d" height="%d"` (int (index . 0)) (int (index . 1)) -}}
+  {{- end -}}
+{{- end -}}
+<figure class="image-caption{{ if $zoom }} image-zoom-container{{ end }}">
+    {{- if $zoom }}
+    <input type="checkbox" id="{{ $id }}" class="image-zoom-toggle" aria-label="放大图片：{{ $alt }}" />
+    <label for="{{ $id }}" class="image-zoom-label"><img src="{{ $dest | safeURL }}" alt="{{ $alt }}"{{ $dim | safeHTMLAttr }} loading="lazy" class="zoomable-image" /></label>
+    <!-- 添加overlay元素用于显示放大的图片 -->
+    <label for="{{ $id }}" class="image-zoom-overlay"><img src="{{ $dest | safeURL }}" alt="{{ $alt }}"{{ $dim | safeHTMLAttr }} loading="lazy" class="zoomable-image" /></label>
+    {{- else }}
+    <img src="{{ $dest | safeURL }}" alt="{{ $alt }}"{{ $dim | safeHTMLAttr }} loading="lazy" />
+    {{- end }}
+    <figcaption>{{ $alt }}</figcaption>
+</figure>

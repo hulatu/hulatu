@@ -67,7 +67,8 @@ disableKinds = ["taxonomy"]
   postSearch = true       # 列表页顶部一个输入框，纯前端按标题过滤（不是全站搜索面板）
 
   # 文章页能力
-  toc = true              # 右侧固定目录（>800px 才出现，≤800px 整块隐藏）
+  toc = true              # 右侧固定目录。显示断点在站点层 custom_head.html 第 20 段
+                          # （2026-10-12 由主题原生的 800px 抬到 1200px）。
   imageZoom = true        # 点正文图片全屏放大（纯 CSS，checkbox + label）
   externalLinksNewTab = true
 
