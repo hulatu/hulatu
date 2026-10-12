@@ -220,7 +220,7 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 | 改首页列表的对齐 / 间距 | `custom_head.html` 第 04 段。⚠️ 列表必须与 `Recent Posts:` 标题**左对齐**（`padding-left: 0`），失效时会缩进 40px<br>几何值（120px / .95rem / 1.2rem / 1.3 / 2rem）**逐值照 yinji**，改前想清楚 |
 | 改关于页的介绍块 | `content/about.md`（**纯 Markdown，全站没有头像**）|
 | 改支持页 / 换收款码 | `content/donate.md`（结构 + 文案）+ `custom_head.html` 第 08 段（样式）<br>⚠️ **换码后要去 Cloudflare Purge `/images/donate/*`** —— 30 天缓存 |
-| 改页脚 | `hugo.toml` 的 `copyright` / `copyrightNote` / `licenseName` / `licenseURL` / `[params.footer]` 四个开关 |
+| 改页脚 | `hugo.toml` 的 `copyright` / `copyrightNote` / `licenseName` / `licenseURL` / `[params.footer]` 四个开关<br>⚠️ 第 3 行末尾那个「🚇 开往」**不在配置里**，写在 `layouts/partials/footer.html` 的订阅块里（`safeHTML` 存成变量、三个互斥分支各引用一次）。改地址/换图标/删掉都去那儿 |
 | 改颜色 / 字体 / 宽度 / 圆角 | `themes/hugo-bearneo/layouts/partials/style.html` 的 `:root`（改上游，改完在 DESIGN.md 第 5 节登记）<br>⚠️ **四个子站另有一份**（各自 `sites/*/static/style.css` 的 `:root`，外链不是内联）—— 要对齐就**四处一起改**，见 [sites/README.md](sites/README.md) |
 | 改子站页头 / 页脚 | `sites/{run,shot,share,profile}/layouts/_default/baseof.html`（四份内容相同）+ 各自 `hugo.toml` 的菜单<br>⚠️ 子站 `baseof.html` 对菜单项**硬编码** `target="_blank" rel="noopener noreferrer"`（主站是靠 `nav.html` 按 `externalLinksNewTab` 自动加） |
 | 改子站版式（统计格子 / 图片网格 / 筛选器 / profile 分区） | 各自的 `static/style.css` + `layouts/`。<br>⚠️ `share` 的筛选器类名 `.filter-chip` / `.is-active` 与 `static/share.js` 有契约，**改名要两边一起改** |
@@ -582,8 +582,13 @@ PY
 - 导航：`Home / Hub(https://profile.hulatu.com/) / About / Now / Links(/roll/) / Weekly(/weekly/) / Posts(/archive/) / RSS(/index.xml)` —— 8 项
   ⚠️ 项数一多窄屏必折行：靠站点层第 00 段的 `nav{display:flex;flex-wrap:wrap;column-gap:8px}`
   保证只在**项与项之间**折（没有这段时 392px 会把 `RSS` 拆成 `RS`/`S`）
-- 页脚四行，**顺序是**：Made with → Copyright → **订阅行（RSS / Say hello）** → 英文授权行
-  （+ Privacy + Sitemap）。⚠️ 订阅行是 2026-10-11 从第 1 行挪到第 3 行的，别按老印象看
+- 页脚四行，**顺序是**：Made with → Copyright → **订阅行（RSS / Say hello · 🚇 开往）**
+  → 英文授权行（+ Privacy + Sitemap）。
+  ⚠️ 订阅行是 2026-10-11 从第 1 行挪到第 3 行的，别按老印象看
+  ⚠️ 「🚇 开往」是 2026-10-12 加的，**接在订阅行末尾**（不单独占行，页脚仍是 4 行）；
+  指向 `https://www.travellings.cn/go.html`、新窗口打开。
+  哨兵：`<footer>` 里 `<br>` 恰好 **3 个**、`go.html` 恰好出现 **1 次**、
+  且「Say hello」与「开往」必须落在**同一个 `<br>` 分段**里（少了就是掉到第 4 行去了）
 - 文章页：`<h1>`、日期行、标签行、**文末「系列坐标带」（只有 21 篇连载有）
   +「上一篇 / 下一篇」（125 篇都有）**、TOC、评论区
   ⚠️ **「上一篇」= 更早、「下一篇」= 更晚**，与系列带方向一致；两段相邻时只画一条发丝线

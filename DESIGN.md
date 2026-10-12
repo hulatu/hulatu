@@ -734,7 +734,7 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 ```
 Made with Hugo Bear Neo.
 Copyright © 2025-2026, hulatu.
-Subscribe via RSS or just Say hello.                  ← 2026-10-11 从第 1 行挪到第 3 行
+Subscribe via RSS or just Say hello. · 🚇 开往          ← 2026-10-11 从第 1 行挪到第 3 行
 This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
 ```
 
@@ -754,6 +754,35 @@ This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
    它原本在旧自建主题的页脚里（`<a href=/privacy/>隐私</a>`），迁移到上游页脚后
    一度**没了入口**（导航里没有它）。
 4. **「CC BY-NC-SA 4.0」变成链接**，指向 `https://creativecommons.org/licenses/by-nc-sa/4.0/`。
+
+#### 2026-10-12：第 3 行末尾加「🚇 开往」
+
+用户要求「页脚的地方，添加 1 个「开往」的入口」。三个决定都是用户在选项里明确选的：
+
+| 决定 | 用户的选择 |
+| --- | --- |
+| 样式 | **纯文字「🚇 开往」**（不用开往官方徽章图片） |
+| 位置 | **接在现有第 3 行（订阅行）末尾** —— 不单独占行，页脚仍是 **4 行** |
+| 是否也进顶部导航 | **只放页脚** |
+
+- 链接指向开往官方的跳转页 **`https://www.travellings.cn/go.html`**，
+  `target="_blank"` + `rel="noopener noreferrer"`（与站点层 `nav.html` 对外链的处理一致；
+  官方示例写的是 `rel="noopener"`，这里刻意跟本站统一）。
+- 图标用 **🚇** —— 开往官方文档推荐火车 / 地铁类图标（Font Awesome 用 `fa-train-subway`），
+  并**明确不推荐纸飞机**（易与 Telegram 混淆）。
+- ⚠️ **模板里用 `safeHTML` 存成一个变量、在三个分支各引用一次**，不是把 URL 抄三份：
+  订阅块有**三个互斥分支**（RSS+邮件 / 只 RSS / 只邮件），各自带自己的 `<br />`。
+  Go 的 `html/template` 会把 string 里的尖括号转义，直接当字符串输出会**在页面上
+  原样打印出标签文本**，所以必须 `safeHTML`。
+- ⚠️ **它挂在 `hideRSSAndEmail` 里面** —— 关掉订阅行会连开往一起关。
+  这是「接在订阅行末尾」的必然结果，不是 bug。
+- ⚠️ **没加 CSS**：它就是一个裸 `<a>`，和同一行的 `RSS` / `Say hello`、
+  下一行的 `Privacy` / `Sitemap` 走同一条全局 `a` 规则（主题 `footer` 规则只设
+  `padding` / `text-align` / `font-size`）。深浅色自动跟随 `--link-color`。
+
+⚠️ **开往官方要求外链放在「打开网站就能看到的地方」（顶栏 / 侧栏）**，
+页脚在长文页要滚到底才看得到 —— 严格说这一条**没满足**。
+用户明确选了「只放页脚」，**别再自作主张挪进导航**（导航已经 8 项、窄屏本来就折行）。
 
 ⚠️ `copyrightNote` 走的是 `{{ . }}` **文本输出**，写 Markdown 链接不会生效 ——
 所以 CC 那一段拆成三个参数：`copyrightNote` / `licenseName` / `licenseURL`。

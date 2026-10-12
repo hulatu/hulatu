@@ -40,8 +40,12 @@
 
       1. Made with Hugo Bear Neo.
       2. Copyright © 2025-2026, hulatu.
-      3. Subscribe via RSS or just Say hello.      ← 从第 1 行挪来
+      3. Subscribe via RSS or just Say hello. · 🚇 开往     ← 订阅行从第 1 行挪来
       4. This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
+
+  ⚠️ 第 3 行末尾的「🚇 开往」是 2026-10-12 用户要求加的（开往友链接力入口），
+     **接在订阅行末尾**、不单独占行，所以页脚仍然是 4 行。
+     细节（safeHTML / 三个分支 / 官方对放置位置的要求）见下面那段注释。
 
   实现上只是**把整块 {{ if ... hideRSSAndEmail ... }} 搬到版权块后面**，
   每块自带结尾的 `<br />`（只有最后的授权行没有），所以搬完天然就是 4 行。
@@ -60,21 +64,37 @@
 <br />
 {{ end }}
 
-<!-- 订阅 / 邮件（2026-10-11 由第 1 行挪到此处，即第 3 行） -->
+<!-- 订阅 / 邮件（2026-10-11 由第 1 行挪到此处，即第 3 行）
+     + 开往入口（2026-10-12 用户要求「接在订阅行末尾」） -->
 {{ if ne .Site.Params.Footer.hideRSSAndEmail true }}
+{{/* 开往（Travellings）友链接力入口 —— 纯文字「🚇 开往」，不挂徽章图片。
+     链接地址取自开往官方文档：https://www.travellings.cn/docs/join.html
+     （官方要求把 https://www.travellings.cn/go.html 放在「打开网站就能看到的地方」，
+      例如顶栏 / 侧栏；页脚在长文页要滚到底才看得到。用户明确选了「只放页脚」，
+      别再自作主张挪进顶部导航 —— 导航已经 8 项、窄屏本来就折行。）
+
+     ⚠️ 下面三个分支互斥、各自带 `<br />`，所以这里把标记**定义一次、在三处引用**；
+        别把 URL 抄成三份，将来改地址一定会漏一处。
+     ⚠️ 必须 safeHTML：Go 的 html/template 会把 string 里的尖括号转义，
+        直接把变量当字符串输出会在页面上原样打印出标签文本。
+     ⚠️ 这一段挂在 hideRSSAndEmail 里面 —— 关掉订阅行会连它一起关。
+        这是「接在订阅行末尾」的必然结果，不是 bug。
+     ⚠️ rel 用 noopener noreferrer（与站点层 nav.html 对外链的处理一致），
+        不用官方示例里的 noopener。 */}}
+{{ $trav := safeHTML ` · 🚇 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>` }}
 <!-- Enable RSS and email exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS false ) .Site.Params.Author.email }}
-Subscribe via <a href="/index.xml">RSS</a> or just <a href="mailto:{{ .Site.Params.Author.email }}">Say hello</a>.
+Subscribe via <a href="/index.xml">RSS</a> or just <a href="mailto:{{ .Site.Params.Author.email }}">Say hello</a>.{{ $trav }}
 <br />
 {{ end }}
 <!-- Enable RSS and email does not exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS false ) (not .Site.Params.Author.email) }}
-Subscribe via <a href="/index.xml">RSS</a>.
+Subscribe via <a href="/index.xml">RSS</a>.{{ $trav }}
 <br />
 {{ end }}
 <!-- Do not enable RSS and email exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS true ) .Site.Params.Author.email }}
-Say hello via <a href="mailto:{{ .Site.Params.Author.email }}">email</a>.
+Say hello via <a href="mailto:{{ .Site.Params.Author.email }}">email</a>.{{ $trav }}
 <br />
 {{ end }}
 {{ end }}

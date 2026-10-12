@@ -162,7 +162,7 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 |---|---|
 | 博客名 / 描述 / 作者 / 邮箱 | `hugo.toml` 顶部与 `[params]` |
 | **导航菜单**（增删项 / 改标签 / 换落点） | `hugo.toml` 的 `[[menu.main]]`（`weight` 控制顺序），**不用碰模板** |
-| 页脚 | `hugo.toml` 的 `copyright` / `copyrightNote` / `licenseName` / `licenseURL` / `[params.footer]` 四个开关；结构在 `layouts/partials/footer.html`（**四行顺序**：Made with → Copyright → 订阅行 → 英文授权行） |
+| 页脚 | `hugo.toml` 的 `copyright` / `copyrightNote` / `licenseName` / `licenseURL` / `[params.footer]` 四个开关；结构在 `layouts/partials/footer.html`（**四行顺序**：Made with → Copyright → 订阅行（末尾接「🚇 开往」友链接力入口）→ 英文授权行） |
 | 首页文案 | `content/_index.md` |
 | 首页列几篇 | `hugo.toml` 的 `homeRecentCount`（当前 5，设 0 就不显示列表） |
 | 首页列表的对齐 | `layouts/partials/custom_head.html` 第 04 段（`padding-left: 0` 保证与标题左对齐） |
