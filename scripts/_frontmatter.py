@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """content/ 下 YAML front matter 的最小公共实现。
 
-为什么要有这个文件：`fetch-profile-content.py`（读 title / date / slug / draft）和
-`sync-lastmod.py`（改 lastmod）以前各写了一份 front matter 正则，连「哪一段算
-front matter」「行尾怎么处理」都略有出入。收拢成一份，两边都从这里取。
+为什么要有这个文件：`sync-lastmod.py`（改 lastmod）等脚本以前各写了一份 front matter
+正则，连「哪一段算 front matter」「行尾怎么处理」都略有出入。收拢成一份，都从这里取。
+（⚠️ 2026-10-12：原先的另一个调用方 `fetch-profile-content.py` 随 `sites/profile`
+子站一起删除了。）
 
 为什么不用 PyYAML 之类的库：这些脚本必须**原样保留** front matter 的排版——
 里面有中文注释、对齐用的行尾空格、空行。用 yaml 解析再 dump 回去，注释和空行

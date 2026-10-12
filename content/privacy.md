@@ -8,7 +8,7 @@ draft: false
 
 本站是个人博客，不提供账号注册，也**不会主动收集你的姓名、电话、邮箱等个人身份信息**。下面说明访问本站时会涉及的数据处理。
 
-本政策适用于 `hulatu.com`、`profile.hulatu.com`、`run.hulatu.com`、`shot.hulatu.com`、`share.hulatu.com` 这几个关联网页。
+本政策适用于 `hulatu.com`（含 `www.hulatu.com`）与图床域名 `img.hulatu.com`。
 
 ## 本站自身的数据处理 {#ben-zhan-zi-shen-de-shu}
 

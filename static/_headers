@@ -10,6 +10,9 @@
 # 注意它是**单向门**：浏览器一旦记住，max-age 到期前回不去 HTTP，所以加之前该查的要查。
 # 2026-09-28 加之前实测过：hulatu.com / www / profile / run / shot / share / img 这七个域名的
 # http:// 全部 301 跳 https，图床 https 也能正常取图 —— 所以 includeSubDomains 是安全的。
+# ⚠️ 2026-10-12：profile / run / shot / share 四个子站**已全部下线**（仓库里 `sites/` 已删、
+#    Cloudflare 侧的 CNAME 也已撤），现在实际存在的只有 hulatu.com / www / img 三个。
+#    `includeSubDomains` 这条**保留不动** —— 它对已不存在的子域无害，而且以后再加子域时自动覆盖。
 # 想退出：把这条改成 max-age=0，浏览器下次拿到响应就清掉（但已经记住的人要等它过期）。
 # 没加 preload：那需要另外去 hstspreload.org 提交，而且从预加载列表里移除要等好几个月，
 # 收益只覆盖「第一次访问」那一瞬间——属于可选的后话，真要加就补 `; preload` 再去提交。
@@ -81,6 +84,10 @@
   Cache-Control: public, max-age=0, must-revalidate
 
 /donate/
+  Cache-Control: public, max-age=0, must-revalidate
+
+# 2026-10-12 补：跑步数据页（原来在独立子站 run.hulatu.com，这一天搬进主站）。
+/run/
   Cache-Control: public, max-age=0, must-revalidate
 
 # ⚠️ 2026-10-10 晚（整站迁移到上游 hugo-bearneo）删掉了下面三条规则 ——

@@ -1590,6 +1590,171 @@
              （style.html:44 附近），所以这个属性在本仓不是新手法 ——
              不是它不能用，是**用在这里不划算**。
          --------------------------------------------------------------- */ -}}
+
+  {{- /* ---------------------------------------------------------------
+       25 跑步页（/run/）—— 只在这一页输出（守卫 `eq .RelPermalink "/run/"`）
+
+          2026-10-12：跑步数据从独立子站 run.hulatu.com 搬进主站，成为 `/run/`。
+          模板在 layouts/_default/run.html，数据读仓库根的 data/runs.json。
+          这一段是那一页专有的样式，从 sites/run/static/style.css 的「本页专有」
+          一节搬过来，只删了两条：
+            · `main h2 { margin: 2.2em 0 0.7em }` —— 主站第 02 段已经给
+              `content h2` 写了同一个值，模板那边也把数据块包进了 content 元素；
+            · `.page-intro` —— 这一页的导语现在是 Markdown 正文里的普通段落。
+
+          ⚠️ 这些类名只出现在 /run/ 这一页（统计格子、月度柱状图、按年折叠的
+             记录表、更新时间），所以按「按页守卫」的规矩包起来。
+             守卫用 .RelPermalink 而不是 front matter 开关：根目录独立页没有
+             permalinks 规则，URL 就是 /run/，不会漂。
+          ⚠️ `.table-wrap` 是**全站**的（第 14 段），这里只把它的上边距收紧
+             —— 表格在 details 里，1.2rem 太空。
+          ⚠️ 柱状图用 `--link-color` 是刻意的：全站只有「链接蓝」一个彩色，
+             404 页那个主按钮也是拿它当强调色。
+          ⚠️ 类名与 layouts/_default/run.html 是一份契约，改一处要改两处。
+         --------------------------------------------------------------- */ -}}
+  {{- if eq .RelPermalink "/run/" }}
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0 24px;
+    margin: 0;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .stat-label {
+    color: var(--text-color-tertiary);
+    font-size: 0.8rem;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-unit {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--text-color-secondary);
+  }
+
+  .stat-sub {
+    color: var(--text-color-tertiary);
+    font-size: 0.75rem;
+  }
+
+  .chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 200px;
+    padding: 0;
+    overflow-x: auto;
+  }
+
+  .month {
+    display: flex;
+    flex: 1 0 48px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    min-width: 48px;
+  }
+
+  .month-bar {
+    width: 20px;
+    min-height: 2px;
+    background: var(--link-color);
+    border-radius: 2px 2px 0 0;
+  }
+
+  .month-value {
+    margin-top: 6px;
+    color: var(--text-color-tertiary);
+    font-size: 0.72rem;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .month-key {
+    margin-top: 2px;
+    color: var(--text-color-tertiary);
+    font-family: var(--font-secondary);
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .run-year {
+    margin: 0 0 10px;
+  }
+
+  .run-year summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .run-year summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .run-year summary::after {
+    content: "+";
+    flex: none;
+    color: var(--text-color-tertiary);
+    font-family: var(--font-secondary);
+    line-height: 1;
+  }
+
+  .run-year[open] summary::after {
+    content: "−";
+  }
+
+  .run-year-name {
+    font-weight: 600;
+  }
+
+  .run-year-meta {
+    color: var(--text-color-tertiary);
+    font-size: 0.85rem;
+  }
+
+  .run-year .table-wrap {
+    margin-top: 10px;
+  }
+
+  .updated {
+    margin-top: 28px;
+    color: var(--text-color-tertiary);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 700px) {
+    .run-year summary {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .run-year-meta {
+      margin-left: 0;
+    }
+  }
+  {{- end }}
 </style>
 
 {{- /* ============================================================

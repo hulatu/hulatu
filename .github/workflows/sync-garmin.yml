@@ -41,5 +41,8 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Auto Update: 同步 Garmin 跑步数据"
-          # 脚本现在只写这两个文件：run.hulatu.com 直接挂载根目录的 data/，不再有副本要同步
-          file_pattern: data/runs.json sites/profile/data/run_summary.json
+          # 脚本只写这一个文件。⚠️ 2026-10-12 前这里还带
+          # `sites/profile/data/run_summary.json`（profile 子站首页那块跑步摘要），
+          # 那个子站已整体删除，文件不存在 —— 留着会让 git-auto-commit 报错。
+          # 主站 `/run/` 页与子站一样直接读根目录的 `data/runs.json`，从来没有副本。
+          file_pattern: data/runs.json

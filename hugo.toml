@@ -124,7 +124,13 @@ disableKinds = ["taxonomy"]
 #
 #  2026-10-10 晚按用户要求改成 BearNeo 样式的英文标签（页面正文仍是中文）：
 #      Home / About / Now / Links / Weekly / Posts / RSS
-#  2026-10-11 晚按用户要求新增 Hub（个人主页 https://profile.hulatu.com/），插在 Home 右侧。
+#  2026-10-11 晚按用户要求新增 Hub（个人主页 https://profile.hulatu.com/），插在 Home 右侧；
+#  2026-10-12 又按用户要求**撤掉** —— 子站不再从导航进入，入口统一收到 `/about/`
+#      （见 content/about.md）。
+#  ⚠️ 2026-10-12 晚：**四个子站全部下线**（run / shot / share / profile）。
+#      profile 的内容并入 `/about/`；跑步页并入本站 `/run/`；shot / share 本就是空壳。
+#      仓库里的 `sites/` 目录、`scripts/build-subdomains.sh`、以及子站导航配置**已整体删除**，
+#      所以「子站导航带不带 Hub」这类问题已经不存在了。
 #
 #  ⚠️ Links 指向 /roll/（**收藏 + 友链**，2026-10-11 起两页并成一页），不是 /friends/。
 #     原友链页 /links/ 已删除，旧地址 301 到 /roll/（见 static/_redirects）。
@@ -147,16 +153,8 @@ disableKinds = ["taxonomy"]
   url = "/"
   weight = 10
 
-# 2026-10-11 新增：Hub —— 个人主页子站（profile.hulatu.com），按用户要求插在 Home 右侧。
-# ⚠️ 这是**跨站外链**（http(s) 开头），站点层 nav.html 会按 params.externalLinksNewTab（=true）
-#    自动加 `target="_blank" rel="noopener noreferrer"`（新窗口打开）—— 与 RSS 那项行为不同。
-# ⚠️ 必须写**绝对 URL**；profile 子站是独立部署（sites/profile/），不在本站的路由里，
-#    写成 `/hub/` 之类的站内路径会 404。
-[[menu.main]]
-  name = "Hub"
-  url = "https://profile.hulatu.com/"
-  weight = 15
-
+# 2026-10-12 撤掉 Hub（个人主页子站入口）—— 理由见上面「导航」那段注释：
+#     子站入口现在只出现在 `/about/`。⚠️ 同日稍后四个子站整体下线，`sites/` 已删。
 [[menu.main]]
   name = "About"
   url = "/about/"
@@ -258,11 +256,11 @@ disableKinds = ["taxonomy"]
 #
 # ⚠️ `extended = true` 是**历史遗留**：自建主题时代 `head-meta.html` 用 imageConfig
 #    读分享图的宽高，非 extended 版解不了 WebP。2026-10-10 迁移到上游 hugo-bearneo 后，
-#    全仓库（主题 + 站点层 + 四个子站 + scripts/）已经**没有任何 imageConfig 调用**，
-#    标准版理论上也能构建。但保持 extended 是零成本的，而且省得去改 Cloudflare 五个项目 ——
+#    全仓库（主题 + 站点层 + scripts/）已经**没有任何 imageConfig 调用**，
+#    标准版理论上也能构建。但保持 extended 是零成本的，而且省得去改 Cloudflare 项目 ——
 #    所以**先留着**，别为了「顺手删掉」去动 CI 和平台配置。
 # 改这里时记得同步 .github/workflows/build.yml、README / MAINTENANCE 里写的版本号，
-# 以及 Cloudflare 五个项目的 HUGO_VERSION。
+# 以及 Cloudflare 项目的 HUGO_VERSION。
 [module]
   [module.hugoVersion]
     min = "0.167.0"

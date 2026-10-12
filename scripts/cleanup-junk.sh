@@ -99,7 +99,8 @@ section() { echo "── $1"; }
 done_section() { flush_batch; echo; }
 
 # ---------- 1. macOS Finder 元数据 .DS_Store ----------
-# 仓库里到处都是，纯本地噪音；static/ 和 sites/ 下的大概率已被 deploy.sh 清过。
+# 仓库里到处都是，纯本地噪音；static/ 下的大概率已被 deploy.sh 清过。
+# ⚠️ 2026-10-12 前还有 sites/（子站），已随子站下线删除。
 section "1. .DS_Store（macOS 文件夹元数据，全站忽略、永不部署）"
 while IFS= read -r f; do
   BATCH+=("$f")
@@ -203,12 +204,12 @@ echo
 section "7. 构建产物 public/（默认不动，属于可重建但正在用的东西）"
 if [ "$PURGE_BUILD" = 1 ]; then
   BATCH+=("public")
-  while IFS= read -r d; do BATCH+=("$d"); done \
-    < <(find sites -maxdepth 2 -type d -name public -print 2>/dev/null)
+  # ⚠️ 2026-10-12：原来这里还 find sites 下各子站的 public/。四个子站（run / shot /
+  #    share / profile）已全部下线、`sites/` 目录整体删除，所以不再有子站产物。
   flush_batch
   echo "  ⚠️  清掉后请立刻跑 ./deploy.sh 重建，否则 up 会部署一个空的 public/"
 else
-  for d in public sites/*/public; do
+  for d in public; do
     [ -d "$d" ] && printf '  保留 %-28s %s\n' "$d" "$(size_of "$d")"
   done
   echo "  （想连它一起清，加 --purge-build）"

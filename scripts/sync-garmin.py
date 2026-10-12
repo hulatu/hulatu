@@ -133,7 +133,7 @@ def _format_pace(seconds: int | None) -> str | None:
 
 
 def add_pace(item: dict) -> dict:
-    """给单条跑步记录补充配速字段，供 run.hulatu.com 直接展示。"""
+    """给单条跑步记录补充配速字段，供本站 `/run/` 页直接展示。"""
     enriched = dict(item)
     pace = _pace_seconds(item)
     if pace is not None:
@@ -180,7 +180,7 @@ def _summarise(items: list[dict], year: str | None = None, month: str | None = N
 
 
 def compute_stats(activities: list[dict]) -> dict:
-    """生成 run.hulatu.com 需要的派生统计数据。"""
+    """生成本站 `/run/` 页需要的派生统计数据。"""
     enriched = [add_pace(item) for item in activities]
     enriched.sort(key=lambda x: (x.get("date", ""), str(x.get("id", ""))))
 

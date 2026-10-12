@@ -9,7 +9,7 @@ description: >
   `themes/hugo-bearneo/layouts/partials/style.html` —— 整份 CSS 内联进每个页面
   （327 个产物 HTML 各一份，普通页 8142 字节 / gzip 2458、文章页 11929 / 3227、
   含代码块的 5 页 14114 / 3706；改完记得回读体积，别凭印象）。
-  站点层只在 19 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
+  站点层只在 21 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
   **改样式前先读那一节**：绝大多数视觉问题应该在上游那一份里改，
   而不是在站点层再叠一层规则 —— 那是上一版自建主题最后变得无法维护的原因。
 
@@ -68,8 +68,8 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 
 # 设计规范 —— hulatu.com
 
-> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 19 个文件的最小偏离。
-> 这份文档的作用不是「描述我们自己的设计系统」，而是**登记那 19 个文件**，
+> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 21 个文件的最小偏离。
+> 这份文档的作用不是「描述我们自己的设计系统」，而是**登记那 21 个文件**，
 > 以及把「为什么不改」的理由留下来 —— 免得下一轮改造又把上游的东西重做一遍。
 
 ---
@@ -83,6 +83,7 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 | 改首页 | `layouts/index.html`（结构）+ `content/_index.md`（文案：简介、支持链接、五个平台） |
 | 改关于页的介绍块 | `content/about.md`（**纯 Markdown，没有头像、也没有页面标题**）|
 | 改支持页 / 换收款码 | `content/donate.md`（结构 + 文案）+ `custom_head.html` 第 08 段（样式） |
+| 改跑步页 `/run/` | `content/run.md`（导语）+ `layouts/_default/run.html`（结构）+ `custom_head.html` 第 25 段（样式）。数据读 `data/runs.json`，**别在页面里写数字** |
 | 改文末「系列」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html` + `custom_head.html` 第 09 / 10 段 |
 | 改 `/roll/` 两组之间的分隔线 | `content/roll.md` 里那条**裸 `<hr>`**（不要加 class，样式走主题的 `hr`） |
 | 改代码块配色 | `custom_head.html` 第 12 段（浅/深两套）。⚠️ 前提是 `hugo.toml` 的 `[markup.highlight] noClasses = false`，改回 true 会让代码块变成看不见 |
@@ -108,7 +109,7 @@ hugo-bearneo（上游主题，本站现在用的就是它，逐字节未改）
       ↓ 站点层借鉴
 yinji.org（同样基于 hugo-bearneo，是「别人怎么用这个主题」的现成答案）
       ↓
-hulatu.com（本站：上游主题 + 11 个站点层覆盖文件）
+hulatu.com（本站：上游主题 + 21 个站点层覆盖文件）
 ```
 
 **本站自己的设计主张只剩三条**，全部落在站点层，且都很小：
@@ -227,12 +228,11 @@ hulatu.com（本站：上游主题 + 11 个站点层覆盖文件）
 
 ### 导航
 
-**8 项，全部由 `hugo.toml` 的 `[[menu.main]]` 驱动**，模板里一个链接都不写死：
+**7 项，全部由 `hugo.toml` 的 `[[menu.main]]` 驱动**，模板里一个链接都不写死：
 
 | 标签（英文） | 落点 | 页面标题 |
 | --- | --- | --- |
 | `Home` | `/` | 首页 |
-| `Hub` | `https://profile.hulatu.com/` | ——**不是本站页面**，是个人主页子站（2026-10-11 新增，weight 15 卡在 Home 右侧） |
 | `About` | `/about/` | 关于 |
 | `Now` | `/now/` | 现在 |
 | `Links` | `/roll/` | 收藏（**收藏 + 友链合并页**，2026-10-11 起） |
@@ -244,10 +244,14 @@ hulatu.com（本站：上游主题 + 11 个站点层覆盖文件）
 它不以 `http(s)` 开头，所以 `externalLinksNewTab` 那套不会给它加 `target="_blank"`
 （与页脚那个 RSS 链接行为一致：原地打开）。也**没有「当前页高亮」的概念**。
 
-⚠️ `Hub` 是**唯一一项跨站外链**（`https://profile.hulatu.com/`，个人主页子站，独立部署在
-`sites/profile/`）。因为以 `https://` 开头，`nav.html` 会给它加 `target="_blank"
-rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原地打开不同，这是有意的。
-⚠️ 它同样**没有「当前页高亮」**（外部站点不参与本站的 `RelPermalink` 比对）。
+⚠️ **2026-10-12 撤掉了原来的 `Hub` 项**（`https://profile.hulatu.com/`，个人主页子站，
+2026-10-11 加、weight 15 卡在 `Home` 右侧）。用户要求「子站入口只留在 `/about/`」，
+所以导航里不再有跨站外链 —— **7 项全是本站页面**。
+（`RSS` 指向 `/index.xml`，同样不是 `http(s)` 开头、同样不参与 `externalLinksNewTab`。）
+⚠️ **同一天稍后 `profile.hulatu.com` 的子站被整体删除**（用户要求「把 Hub 去掉」），
+内容并入 `/about/`；**同日再晚一点 `run` / `shot` / `share` 三个子站也一并下线、
+`sites/` 目录整体从仓库删除**（见第 4 节「子站」）—— 所以「主站与子站导航差一项」
+这类问题现在**已经不存在了**：全站只剩主站一份 `[[menu.main]]`，7 项。
 ⚠️ 导航项一多，窄屏就会折行：`nav` 靠站点层 `custom_head.html` 第 00 段的
 `display: flex; flex-wrap: wrap; column-gap: 8px`（并清掉末项的 `margin-right`）
 保证折行只发生在**项与项之间**。没有这段时 392px 视口会把 `RSS` 拆成 `RS`/`S`。
@@ -272,9 +276,9 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 否掉了「两份清单互不重叠」那套说法。
 
 ⚠️ 顺序由 `weight` 决定，与 `hugo.toml` 里的书写顺序无关。
-`Hub` 的 weight 是 **15**（卡在 `Home` 10 与 `About` 20 之间），所以必然落在 `Home` **右边**；
 `Weekly` 的 weight 是 **45**（卡在 `Links` 40 与 `Posts` 50 之间），
-这样它必然落在 `Posts` **左边** —— 2026-10-11 用户要求的位置。
+所以它必然落在 `Posts` **左边** —— 2026-10-11 用户要求的位置。
+（原来的 `Hub` 靠 weight **15** 卡在 `Home` 10 与 `About` 20 之间，2026-10-12 已删。）
 
 增删导航只动 `hugo.toml`；外链自动开新窗口（`externalLinksNewTab = true`，在 `nav.html` 里判）。
 
@@ -287,8 +291,9 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 > 总得留下点什么吧。            ← 引用块
 一名不谈地理…的工科研究生。       ← 段落
 如果觉得…可以选择 [支持] 我。      ← 段落，中间夹一个指向 /donate/ 的链接（2026-10-11 新增）
-[公众号] / [少数派] / [小红书]   ← 一行链接（Markdown 段落，Goldmark 自动成 <p>）
-/ [知乎] / [即刻]                 五个平台，2026-10-11 换掉了原来的 RSS / 周刊 / 关于 / 花园
+[公众号] / [少数派] / [知乎]    ← 一行链接（Markdown 段落，Goldmark 自动成 <p>）
+/ [即刻]                       四个平台，2026-10-11 换掉了原来的 RSS / 周刊 / 关于 / 花园
+                               ⚠️ 文档里曾写「五个平台」并多列一个「小红书」—— 产物里**只有 4 个**
 <hr>                         ← 虚线，模板输出
 <h3>Recent Posts:</h3>       ← 英文，和导航同一套语言
 <ul class="recent-posts">    ← 5 条，日期 + 标题
@@ -416,6 +421,25 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
   想统一：给那两页也加 `hideTitle: true` 即可（`/donate/` 的「支持」标题下面紧跟两个收款码，
   去不去掉是另一回事，改了要自己看一眼）。
 
+### 关于页 `/about/` 的章节结构（2026-10-12：并入原 Hub 的内容平台）
+
+`/about/` 现在是**全站唯一的人物页** —— 原来那个独立子站 `profile.hulatu.com`（导航里叫 `Hub`）
+2026-10-12 被用户要求**整体删除**，内容并到这里。
+
+- **只并了一项**：`## 内容平台`（公众号 / 少数派 / 即刻 / Telegram），插在「联系我」之后。
+  用户明确只选了这一项 —— Hub 的工具栈、项目列表、数字花园、书影音**都没有并进来**
+  （其中「数字花园」那张域名表连同子站一起消失了）。
+- 「联系我」原有 QQ / Gmail / WeChat 三个渠道，**没动**；两者不重复：
+  「联系我」是私聊，「内容平台」是公开关注入口。
+- **「博客导览」里那条「花园」入口已删**（它指向的就是被删掉的子站），导语也跟着去掉
+  「以及我另外维护的两个站点」那半句。现在那一节**全是站内链接**。
+- 顺带撤掉了一条跨站外链：`content/privacy.md` 的适用域名列表去掉了 `profile.hulatu.com`
+  （只剩 `hulatu.com` / `run.` / `shot.` / `share.`）。
+
+⚠️ 这一页的章节顺序（改之前想清楚，TOC 是从这里生成的）：
+`介绍 → 订阅我 → 联系我 → 内容平台 → 博客技术 → 博客导览 → 博客历史`。新增小节要显式写
+中文锚点 `## 标题 {#pin-yin}`（`add-heading-anchors.py` 能补，但手写更稳）。
+
 ### 收藏 `/roll/`（2026-10-11 照 yinji 改成平铺）
 
 导航里的 `Links` 指向的就是这一页。**全站唯一的链接清单**（友链页 `/links/` 已删，301 到这里）。
@@ -463,6 +487,28 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
   ⚠️ 两个 `<ul>` 的 1em 外边距与 `hr` 的 0.5em 折叠后正好 **16px**，与首页那条相同 ——
   不需要再压边距（第一版压过，现在不必了）。
 - `hideTitle: true` 现在**服务三个页面**（`/roll/` `/about/` `/now/`，见第 4 节）。
+
+### 跑步 `/run/`（2026-10-12 从子站搬回）
+
+**这一页原来是个独立子站 `run.hulatu.com`**（源码 `sites/run/`）。2026-10-12 用户要求
+「把 `run.hulatu.com` 变成 `hulatu.com/run`，把网页变成我博客里的一个页面」，于是：
+
+- **正文**由 `layouts/_default/run.html` 从 `hugo.Data.runs`（= 仓库根 `data/runs.json`）
+  渲染 —— `content/run.md` 里只有导语一句话，**一个数字都不写在页面里**。
+- **数据来源没变**：`data/runs.json` 每天由 CI 的 `scripts/sync-garmin.py` 刷新；
+  子站当年也只是靠 `[[module.mounts]]` 挂载同一个目录，**从来没有第二份副本**。
+- **结构**：`<h1>跑步</h1>` → 导语 → `## 总览`（8 格）→ `## 近期状态`（4 格）→
+  `## 个人纪录`（4 格）→ `## 年度汇总` → `## 月度里程`（柱状图）→ `## 全部记录`
+  （按年 `<details>`，最早那一年默认展开）→ 一行「数据更新于 …」。
+- **样式**在 `custom_head.html` 第 25 段，**按 `.RelPermalink` 守卫**（只这一页输出）。
+
+⚠️ 这一页**没有**面包屑 / TOC / 评论区 —— 它走自己的模板，根本不经过 `single.html`，
+所以 `$longForm` 那一整套（系列带、上下篇、giscus、标题锚点）都不适用。
+⚠️ **柱状图用 `--link-color`**，不引入第三种颜色（404 页的主按钮也是它）。
+⚠️ 子站 `sites/run` **2026-10-12 晚已随全部子站一起删除**（下线前它只剩一条
+`/* → https://hulatu.com/run/ 301`）。配合 Cloudflare 侧撤掉 CNAME，
+`run.hulatu.com` 现在**既不解析、也没有内容**。要让旧域名重新跳过来，需要重建
+CNAME + 一条 301（重建子站项目，或在 Cloudflare 配 Bulk Redirect）。
 
 ### 归档 `/archive/` 与周刊 `/weekly/`
 
@@ -800,7 +846,7 @@ This site is licensed under CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.
 
 ⚠️ **开往官方要求外链放在「打开网站就能看到的地方」（顶栏 / 侧栏）**，
 页脚在长文页要滚到底才看得到 —— 严格说这一条**没满足**。
-用户明确选了「只放页脚」，**别再自作主张挪进导航**（导航已经 8 项、窄屏本来就折行）。
+用户明确选了「只放页脚」，**别再自作主张挪进导航**（导航 7 项、窄屏本来就折行）。
 
 #### 2026-10-12 稍后：页脚分隔符 `·` 全换成 `.`
 
@@ -821,18 +867,30 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 - ⚠️ **第 4 行两处 ` · ` → `. `**，其中「CC BY-NC-SA 4.0」后面那个点挂在
   `{{ with .Site.Params.licenseName }}…{{ end }}` 的**块内** ——
   `licenseName` 留空时点会跟着一起消失（与改前 `·` 的行为一致，不是新问题）。
-- ⚠️ **这是本站对上游页脚的又一处偏离**，`sites/README.md` 里的四个子站**没跟改**
-  （子站页脚是各自 `baseof.html` 里写死的另一套文案，本来就不含 `·`）。
+- ⚠️ **这是本站对上游页脚的又一处偏离**。原来这里还写着「`sites/README.md` 里的子站没跟改」——
+  2026-10-12 子站全部下线、`sites/` 已删，**现在全站只有主站这一份页脚**，没有「跟不跟改」的问题了。
 
 ⚠️ `copyrightNote` 走的是 `{{ . }}` **文本输出**，写 Markdown 链接不会生效 ——
 所以 CC 那一段拆成三个参数：`copyrightNote` / `licenseName` / `licenseURL`。
 ⚠️ `Privacy` 挂在 `hideSitemap` 这个开关里面：关掉 Sitemap 会连它一起关
 （它们本来就是同一行「站点元信息」，分开管没有意义）。
 
-### 四个子站（2026-10-12 起并入同一套令牌）
+### 子站（2026-10-12 全部下线）
 
-`sites/run` / `sites/shot` / `sites/share` / `sites/profile` 是**独立 Hugo 站点**，
-部署在 `run.` / `shot.` / `share.` / `profile.hulatu.com`。
+⚠️ **`sites/` 目录已从仓库整体删除** —— 这里曾经有四个独立 Hugo 站点
+（`run` / `shot` / `share` / `profile`），部署在 `run.` / `shot.` / `share.` / `profile.hulatu.com`。
+2026-10-12 同一天内它们全部下线，**都不再属于本站的视觉体系**：
+
+| 子站 | 去向 |
+|---|---|
+| `profile`（个人主页 / 导航里的 `Hub`） | 内容并入本站 `/about/`（新增「内容平台」一节），源码删除 |
+| `run`（Garmin 跑步数据） | 跑步页并入本站 `/run/`（`layouts/_default/run.html` + 第 25 段），源码删除 |
+| `shot`（随手拍）/ `share`（好物分享） | ⚠️ **本来就是空壳**（各自 2 个 `_index.md`、合计不到 300 B、**零篇实际内容**），直接删除 |
+
+同时删除的还有 `scripts/build-subdomains.sh`（子站构建脚本）、`resources/`（旧主题图片缓存），
+以及 `sites/README.md`（那份「子站搭建细则」**没有迁移到别处**，需要时 `git show <commit>:sites/README.md`）。
+
+**下面这段是它们下线前的样子，留档以免以后重走一遍**（要恢复子站时先读它）：
 
 **2026-10-12 之前**它们用的是自建的「纸账 + 印章」视觉（印章红 `#c73e2f`、冷白纸底 `#f6f6f8`、
 圆角 16/18px 卡片、大阴影、衬线标题、纸面噪点、竖向参考线、内容宽 680px），
@@ -841,23 +899,22 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 - **令牌逐值抄本站**（底色 `#fdfdfd`、正文 `#1a1a1a`、链接 `#0066cc`、分割线 `#d0d7de`、
   Verdana、`line-height: 1.5`、`--width-max: 720px`），`body` 也是上游那套
   `margin: auto; padding: 20px; max-width: var(--width-max)`。
-- **页头 / 页脚与本站完全一致**（站名 `h1` + 同一套 8 项导航 + 同一句页脚文案）。
+- **页头 / 页脚与本站同一套**（站名 `h1` + 同一份导航 + 同一句页脚文案）。
   导航写在各自 `hugo.toml` 的 `[[menu.main]]`，`url` 用**绝对地址**（子站是独立域名）。
-- **卡片 → 发丝线列表**：`run` 的统计格子、`profile` 的六个分区、`share` 的条目全部去掉
-  边框卡片与阴影，改成「标签 + 值」两行 + 底部 `1px` 线。
+  ⚠️ 子站那份导航**与主站逐项一致、都是 7 项**（曾短暂是 8 项含 `Hub`，
+  2026-10-12 撤掉）。
+- **卡片 → 发丝线列表**：`run` 的统计格子、`share` 的条目全部去掉
+  边框卡片与阴影，改成「标签 + 值」两行 + 底部 `1px` 线。（`profile` 的六个分区同理。）
 - **`share` 的筛选器**从胶囊按钮改成纯文字（类名 `.filter-chip` / `.is-active` 保留，
   因为 `share.js` 按类名取元素）。
-
-⚠️ 子站**没有共享 CSS 的机制**（独立站点，CSS 是外链 `static/style.css`），
-所以这套令牌在**四份 `style.css` 里各写一份** —— **改颜色 / 宽度 / 导航要四处一起改**。
-细则与「刻意删掉的东西」清单见 [`sites/README.md`](sites/README.md)。
-
-⚠️ 子站**仍然保留**的唯一非 BearNeo 色是 `share` 的 `.verdict`
-（推荐 `#1a7f37` / 避雷 `#cf222e` / 中立 `#9a6700`）—— 那是**内容语义**，不是主题色。
+- **子站没有共享 CSS 的机制**（独立站点，CSS 是外链 `static/style.css`），
+  所以那套令牌当时在**每个 `style.css` 里各写一份** —— 这也是它们维护成本高的原因之一。
+- 子站**唯一保留**的非 BearNeo 色是 `share` 的 `.verdict`
+  （推荐 `#1a7f37` / 避雷 `#cf222e` / 中立 `#9a6700`）—— 那是**内容语义**，不是主题色。
 
 ---
 
-## 5. 站点层偏离（20 个文件）
+## 5. 站点层偏离（21 个文件）
 
 | 文件 | 偏离 | 为什么 |
 | --- | --- | --- |
@@ -866,12 +923,13 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | `layouts/_default/list.html` | 5 处界面文案英译中；删底部标签墙 | 上游文案写死英文、没走 i18n；用户不要标签云 |
 | `layouts/_default/rss.xml` | 三处：① 补回 `<?xml-stylesheet?>`（指向 `/rss.xsl`）+ `xmlns:content`；② 首页 feed 改成**只收文章页**（`Type` ∈ `posts`/`weekly`）；③ 补 `atom:updated` / `category` / 摘要式 `description` / 全文 `content:encoded`，并存 `params.RSS.pageLimit` 上限（20） | ① 上游那份（= Hugo 内置模板）不带样式表引用 → 浏览器直接打开 `/index.xml` 只剩 raw XML（用户报「RSS 页面设计没了」）；② 迁移后新增的 `/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 都是 content 根下的普通页，会被一并收进订阅；③ 上游只发全文 `description`、没有「更新于」和分类 |
 | `layouts/_default/archive.html` | **新增**（且比上游 `list.html` 多一段「系列」横向入口） | `/archive/` 是内容页不是 section，上游无对应模板 |
+| `layouts/_default/run.html` | **新增**（2026-10-12）：跑步数据页。从子站 `sites/run/layouts/index.html` 搬来，去掉子站自己的 `<head>` / `<header>` / `<footer>`，补一个页面级 `<h1>`，数据块包进 `<content>` | 跑步数据要从 `run.hulatu.com` 变成本站的 `/run/` 页，数据来自 `hugo.Data.runs`（`data/runs.json`）—— 上游没有任何读 `data/` 的模板 |
 | `layouts/_default/_markup/render-link.html` | **新增**：`</a>` 后**不留换行** | 上游模板末尾多一个换行，行内链接后紧跟中文标点时会被折叠成一个空格（「花墨 ：点评」）。迁移后实测 **26 页 / 70 处**，其中 `/roll/` 一页 15 处。见下 |
 | `layouts/index.html` | **新增**（且简介正文**不包 `<content>`**，与上游不同、与 yinji 一致） | 上游首页只有 `{{ .Content }}`，等于空页；`<content>` 那层见第 4 节「首页」 |
 | `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动 | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架 |
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
-| `layouts/partials/custom_head.html` | 24 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 各只给一类页；14 / 17 / 20 / 21 / 22 / 23 全站） | 见下 |
+| `layouts/partials/custom_head.html` | 25 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 各只给一类页；14 / 17 / 20 / 21 / 22 / 23 全站） | 见下 |
 | `layouts/404.html` | **新增** | 上游默认只有 `<h1>404</h1>` + 一行颜文字 |
 | `layouts/_default/_markup/render-heading.html` | **新增**：标题末尾的 `#` 锚点 | 上游没有这个钩子（Goldmark 只给 id、不给可点入口） |
 | `layouts/partials/orphan-safe.html` | **新增**：标题末 2 字包 `nowrap` | 中文标题的孤行问题（取回旧主题的做法） |
@@ -960,7 +1018,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 所以 `/privacy/`、`/posts/`、`/donate/` **仍然留在 sitemap 里**。爬虫读到 meta 不会收录，
 但地址仍会先交给它一次。要彻底干净，得再加一份 sitemap 模板把 `not .Params.noindex` 排掉。
 
-### `custom_head.html` 的 24 段
+### `custom_head.html` 的 25 段
 
 | 段 | 内容 | 生效范围 |
 | --- | --- | --- |
@@ -988,6 +1046,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | 22 | `--font-secondary` 换成带跨平台回退的等宽栈（`ui-monospace` 起头） | 全站 |
 | 23 | `.toc-nav a` 的 `transition: all` 收窄成 `color` + `background-color`，并加 reduced-motion 覆盖 | 全站 |
 | 24 | **刻意留空**：`/archive/` 标签块的 `content-visibility` 评估后撤回（见下方小节） | — |
+| 25 | `.stats` / `.stat-*` / `.chart` / `.month-*` / `.run-year*` / `.updated`（跑步页 `/run/` 的统计格子、月度柱状图、按年折叠的记录表、更新时间行） | **仅 `/run/`** |
 | — | 文件末尾：**GoatCounter**（上游 `baseof.html` 没有统计挂载点，只能挂这个钩子） | 全站 |
 
 #### ⚠️ 第 24 段：为什么 `/archive/` 的 `content-visibility` 被撤回（2026-10-12）
@@ -1195,19 +1254,22 @@ for f in 全部产物:
 
 | 页面 | raw / gzip | 页数 | 补丁大小 |
 | --- | --- | --- | --- |
-| 普通页（首页 / 6 个独立页 / 词条页 195 / posts 列表页） | **8675 / 2610** | 202 | 2251 B |
+| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` / 词条页 195 / posts 列表页） | **8675 / 2610** | 202 | 2251 B |
 | 长文页（101 文章 + 25 周刊，无代码块） | **12610 / 3400** | 121 | 6186 B |
 | **长文页 + 代码块** | **14861 / 3893** | 5 | 8437 B |
 | `/archive/` | **10404 / 2962** | 1 | 3980 B |
 | `/donate/` | **9101 / 2705** | 1 | 2677 B |
+| `/run/`（跑步数据页） | **10509 / 3006** | 1 | 4085 B |
 | **`/404.html`** | **10089 / 2888** | 1 | 3665 B |
 
-主题自己那块固定 **6424 B**（每页都有）。三档增量的来源：
+合计 **332 页**。主题自己那块固定 **6424 B**（每页都有）。三档增量的来源：
 
 - 长文页 / 归档页 **+1652 B** = 09 段（系列坐标带 + 归档横向入口）+ 10 段（上下篇）
 - 含代码块的页 **+3329 B**（在长文页基础上再 +1677 B）= 12 段的 `--code-*` 变量与
   12 组 token 规则。这一档只有 5 页
 - `/donate/` **+426 B** = 08 段的两个收款码
+- `/run/` **+4085 B** = 25 段（统计格子 + 月度柱状图 + 按年折叠记录表）。**只这一页** ——
+  实测把 25 段整段去掉重构建，首页 / `/now/` / `/about/` 的 `<style>` 逐字节不变
 
 **注释不计入体积**（`minify` 会把 `<style>` 里的 CSS 注释全部剥掉），只有规则算数。
 
@@ -1227,7 +1289,7 @@ for f in 全部产物:
 | 深浅色手动切换按钮 | 想手动锁定主题 | 上游 `prefers-color-scheme` 完全跟随系统。**手动开关要记忆选择**（LocalStorage），而「跟随系统」是零配置的正确答案 |
 | 图片灯箱（`lightbox.js` + focus-trap） | 看大图 | 上游有 CSS-only 的 `imageZoom`，零 JS |
 | 书影音页 `/media/` + 豆瓣同步 | 记录读过的书、看过的影像 | ⚠️ **这是本次删除里影响最大的一条**：`sync-douban-media` 技能、`data/media.json`、`static/images/media/` 一起变成了孤儿。要恢复的话，得同时把页面模板和同步链路加回来（⚠️ 那三样**2026-10-11 已随清理删除**，从 git 历史取） |
-| 结算页 `/stats/` | 字数、篇数、跑步里程 | 上游没有；`data/runs.json` 仍在（`profile.hulatu.com` 要用），只是本站不再展示 |
+| 结算页 `/stats/` | 字数、篇数、跑步里程 | 上游没有；`data/runs.json` 仍在（**本站 `/run/` 页**与主站都用到），只是本站不再展示 |
 | 公式渲染（`formula.html`） | 数学公式 | 上游只有 Mermaid。文章里没有公式 |
 | ~~阅读进度条~~ + 回到顶部 | 长文定位 | 上游没有。⚠️ **2026-10-11 两个都曾按「只挂长文页」取回**，但**当天用户就要求把进度条删掉**（「进度条不要，去掉」）—— 所以现在**只有返回顶部**，进度条已整段删除（HTML / CSS / keyframes / reduced-motion 覆盖全清）。**别再提进度条。** |
 | 归档页的「按年索引」+「年 → 月」双层折叠 | 334 页里跳转 | 换成上游的「按年分组 + 搜索框」，用更少的控件做同一件事。⚠️ 其中**「系列胶囊」2026-10-11 以新形态回来了**（横向一行、无折叠无分隔线，见第 4 节），但**按年索引与月折叠仍然没有** |
@@ -1292,8 +1354,8 @@ for f in 全部产物:
    （`git log --diff-filter=D --name-only -- scripts/gen-og.js` 能定位到删除那次提交）。
 2. ~~**`/media/` 的删除留下了孤儿链路**~~ → **2026-10-11 已删除**
    （`scripts/sync-douban.py`、`data/media.json`、`static/images/media/`）。
-   ⚠️ **唯一还没处理的是** `sites/profile/data/profile.json` 里的 `media_recent`
-   和「书影音」导览项 —— 它们仍指向一个不存在的页面。**要不要恢复 `/media/` 是用户的决定。**
+   ⚠️ 原先还挂着一条「`sites/profile/data/profile.json` 的 `media_recent` 仍指向不存在的页面」——
+   **2026-10-12 随 `sites/profile` 子站整体删除而消失**。**要不要恢复 `/media/` 仍是用户的决定。**
 3. ~~**`scripts/fetch-image-dims.py` 已经不起作用**~~ → **2026-10-11 已删除**
    （脚本 + `data/image_dims.json` + `publish.sh` 里的调用）。
    ⚠️ 顺带实测确认：这条**本来也不构成实际问题** —— 三个图片最多的页面 CLS 是

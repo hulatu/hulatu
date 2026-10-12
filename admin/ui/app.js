@@ -1265,7 +1265,7 @@ function publishModal() {
     title: '发布上线',
     body: `
       <p style="margin-top:0;color:var(--muted);font-size:13px">
-        会执行仓库里的 <code>./publish.sh</code>：先跑几个前置脚本（抓图片尺寸、刷花园页快照、补中文锚点、刷新 lastmod），
+        会执行仓库里的 <code>./publish.sh</code>：先跑几个前置脚本（补中文锚点、刷新 lastmod），
         然后 <b>把当前所有改动一起提交</b>、推送 GitHub。Cloudflare Pages 收到推送后自动重建。
       </p>
       <div class="log" id="pub-log">准备中…</div>`,

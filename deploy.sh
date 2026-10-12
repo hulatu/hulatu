@@ -19,7 +19,8 @@ trap 'rm -rf "$STAGE"' EXIT
 #   但保持和 up() 里同一套写法，免得改的时候两边不一致）。
 #   这里不需要 --cleanDestinationDir：本来就构建到空的临时目录，
 #   后面那句 rsync -a --delete 已经把 public/ 里的陈旧文件删干净了。
-find static sites -name .DS_Store -delete 2>/dev/null || true
+#   ⚠️ 原来这里还带一个 sites/（子站也在仓库里）；2026-10-12 子站全部下线，只剩 static/。
+find static -name .DS_Store -delete 2>/dev/null || true
 
 hugo --gc --minify --destination "$STAGE"
 

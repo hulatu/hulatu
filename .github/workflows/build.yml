@@ -1,11 +1,17 @@
 name: 构建校验
 
-# 目的：push / PR 时先用**和线上一致的 Hugo 版本**把主站和四个子站都构建一遍。
-# 模板写错、短代码语法错、front matter 坏了、module mount 失效这类问题在这里就被
+# 目的：push / PR 时先用**和线上一致的 Hugo 版本**把主站构建一遍。
+# 模板写错、短代码语法错、front matter 坏了这类问题在这里就被
 # 拦下来（报错带文件名和行号），不用等 Cloudflare Pages 构建失败才发现。
 #
+# ⚠️ 2026-10-12：**四个子站（run / shot / share / profile）全部下线** ——
+#    仓库里的 `sites/` 目录与 `scripts/build-subdomains.sh` 已整体删除
+#    （profile 内容并入主站 `/about/`，跑步页并入主站 `/run/`，
+#     shot / share 本来就是空壳）。所以这里不再有「构建子站」那一步。
+#    要恢复：`git log --all -- sites/` 能取回全部源码。
+#
 # 版本要和 Cloudflare Pages 项目里的 HUGO_VERSION 保持一致。改版本时三处一起改：
-#   本机 hugo version ／ 下面 peaceiris/actions-hugo 的 hugo-version ／ Cloudflare 五个项目的环境变量
+#   本机 hugo version ／ 下面 peaceiris/actions-hugo 的 hugo-version ／ Cloudflare 项目的环境变量
 # 还有 hugo.toml 的 [module.hugoVersion]（站点层那个 check-hugo-version.html 已随
 # 2026-10-10 的主题迁移删除，现在版本约束只靠本文件和 hugo.toml）。
 
@@ -42,7 +48,7 @@ jobs:
             exit 1
           }
           hugo version | grep -q "extended" || {
-            echo "::error::需要 extended 版：与 Cloudflare 五个项目的 HUGO_VERSION 保持一致（2026-10-10 迁移到 hugo-bearneo 后已无 imageConfig 调用，但先不动平台配置）"
+            echo "::error::需要 extended 版：与 Cloudflare 项目的 HUGO_VERSION 保持一致（2026-10-10 迁移到 hugo-bearneo 后已无 imageConfig 调用，但先不动平台配置）"
             exit 1
           }
 
@@ -55,6 +61,3 @@ jobs:
           # #%e4%b9%a0%e6%83%af 这种百分号编码。这步只检查不修改；本地缺了就跑
           # python3 scripts/add-heading-anchors.py 自动补齐（需要 macOS 的拼音转写）。
           python3 scripts/add-heading-anchors.py --check
-
-      - name: 构建四个子站
-        run: bash scripts/build-subdomains.sh

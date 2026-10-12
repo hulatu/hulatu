@@ -45,6 +45,15 @@ draft: false
 - **Gmail** — 点击给我发邮件 [写信](mailto:hello@hulatu.com)
 - **WeChat** — 点开查看二维码 [查看](https://img.hulatu.com/post/qbD1Mk.webp)
 
+## 内容平台 {#nei-rong-ping-tai}
+
+除了这个博客，我也会在上面这些平台发东西，挑一个顺手的关注就好。
+
+- **即刻** — 日常碎念与随手拍。[去主页](https://web.okjike.com/u/25B20BAD-D356-4801-AC0E-093CD1334AF5)
+- **公众号** — 胡拉图说，点开查看二维码 [扫码关注](https://img.hulatu.com/post/bk7UaF.webp)
+- **少数派** — 我的文章与经验分享。[去主页](https://sspai.com/u/hulatu/posts)
+- **Telegram** — 联系与更新。[去频道](https://t.me/flyhulatu)
+
 ## 博客技术 {#bo-ke-ji-shu}
 
 我的博客搭建基于 Hugo 框架，基于 BearNeo 主题，参考了 [印记](https://yinji.org/) 的博客设计，借助 Workbuddy 调试的博客主题，偏极简风。
@@ -61,8 +70,7 @@ draft: false
 
 本站的主要栏目，按需逛逛。
 
-- **花园** — 我的个人页面，个人的数字后花园。[去花园](https://profile.hulatu.com/)
-- **首页** — 日常文章，按时间倒序，记录观察、思考和生活。[去首页](/)
+- **跑步** — 我的跑步记录，来自 Garmin 的里程、配速与心率。[去看跑步](/run/)
 - **文章** — 全部文章，按年份分组，从新到旧。[去文章](/archive/)
 - **周刊** — 每周日更新：值得一读的文章、好用的工具、只言片语。[去周刊](/weekly/)
 - **收藏** — 我常读的博客、认识的朋友，以及常逛的中文博客圈和聚合站。[去收藏](/roll/)
