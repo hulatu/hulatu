@@ -210,3 +210,51 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
    ⚠️ **但这几页仍在 sitemap 里**（当时只恢复了 meta，没恢复旧站的 `layouts/sitemap.xml`）—— 已知缺口，别以为 sitemap 也排除了。
 
 ---
+
+## 4. 常见任务 → 改哪儿
+
+| 想做的事 | 去哪儿 |
+| --- | --- |
+| 改导航（增删项 / 改标签 / 换落点） | `hugo.toml` 的 `[[menu.main]]`，**不用碰模板**（当前 7 项：Home / About / Now / Links→`/roll/` / Weekly→`/weekly/` / Posts→`/archive/` / RSS→`/index.xml`） |
+| 改首页文案 | `content/_index.md` |
+| 改首页列表条数 | `hugo.toml` 的 `homeRecentCount`（设 0 退回上游原样） |
+| 改首页列表的对齐 / 间距 | `custom_head.html` 第 04 段。⚠️ 列表必须与 `Recent Posts:` 标题左对齐（`padding-left: 0`），失效时会缩进 40px；几何值（120px / .95rem / 1.2rem / 1.3 / 2rem）逐值照 yinji，改前想清楚 |
+| 改关于页 /「内容平台」一节 | `content/about.md`（纯 Markdown，全站没有头像） |
+| 改支持页 / 换收款码 | `content/donate.md`（结构 + 文案）+ `custom_head.html` 第 08 段（样式）。⚠️ 换码后要去 Cloudflare Purge `/images/donate/*`（30 天缓存） |
+| 改页脚 | `hugo.toml` 的 `copyright` / `copyrightNote` / `licenseName` / `licenseURL` / `[params.footer]` 四个开关。⚠️ 订阅行末尾那个「🚇 开往」**不在配置里**，写在 `layouts/partials/footer.html` 的订阅块里（`safeHTML` 存成变量、三个互斥分支各引用一次） |
+| 改颜色 / 字体 / 宽度 / 圆角 | `themes/hugo-bearneo/layouts/partials/style.html` 的 `:root`（改上游，改完在 DESIGN.md 第 5 节登记）。全站只有这一份 —— 改一处即全站生效 |
+| 改正文标题的上下间距 | `custom_head.html` 第 02 段（⚠️ 行高刻意保持上游 1.6；`text-autospace` 与 `content > :first-child` 两条已删 —— 后者是「首行贴导航栏」的元凶，见 DESIGN.md 第 5 节第 ③ 条） |
+| 改文末「系列坐标带」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html`，样式 `custom_head.html` 第 09 / 10 段（**改类名要两边一起改**） |
+| 改归档页顶部的「系列」横向入口 | 模板 `layouts/_default/archive.html`，样式 `custom_head.html` 第 09 段 |
+| 改归档页底部的标签平铺 | 模板 `layouts/_default/archive.html`（`</ul>` 后那段）+ 样式第 09 段的 `.tag-index`<br>⚠️ 排序不是写出来的：`range` map 时 Go 按 key 字节序排 → 数字 → 英文 → 中文<br>⚠️ 别写成 `{{ with .Site.Taxonomies.tags }}` 再 `range .Site.…` —— `with` 重绑 `.`，静默 0 迭代、只留一个空 `<div>`，**构建 0 警告**<br>⚠️ 链接落 `/tags/<slug>/` 词条页；`/tags/` 索引页是关掉的，别改过去（会 404）<br>⚠️ 外层是 `<small>`（默认 inline），必须有 `.tag-index{display:block;margin-bottom:16px}`，否则页脚会贴住标签 |
+| 改「系列」带里的序号对齐 | `custom_head.html` 第 09 段的 `.post-series-ord`（`min-width: 1.5em` + `text-align: right`）。不写的话「9」与「11」宽度不同（8.1 vs 16.3px），上下两行标题左端错开 8.1px；只兜得住 2 位 |
+| ⚠️ 在 `custom_head.html` 写元素选择器前先数标签 | `grep -c '<nav' public/…/index.html`。2026-10-11 栽过：裸 `nav{display:flex}` 命中一页 5 个 `<nav>`，把 `.post-series` 挤成左右两栏（右边空 208px）、TOC 的 `<ul>` 撑出容器 92.8px。**必须写 `header nav`** |
+| 改代码块配色 | `custom_head.html` 第 12 段（浅 / 深两套 `--code-*`）。⚠️ 前提是 `[markup.highlight] noClasses = false` —— 改回 `true` 代码块立刻变回「看不见」 |
+| 改独立页是否显示标题 | front matter `hideTitle: true`。当前 `/roll/` `/about/` `/now/` 三页开着；`/privacy/` `/donate/` 保留标题 |
+| 改 `/roll/` 两组之间的分隔线 | `content/roll.md` 里那条**裸 `<hr>`**，走主题样式，**没有专属 CSS**（第 11 段留空）。想改观感就改主题的 `hr`（全站生效） |
+| 改 404 页 | `layouts/404.html`（结构）+ 第 15 段（样式）。⚠️「随便看一篇」是 `shuffle` 构建期抽签 |
+| 改标题锚点 `#` | `layouts/_default/_markup/render-heading.html` + 第 19 段。⚠️ **只给文章页**（两边都判 `$longForm`，改一处要一起改） |
+| 改孤行保护 | `layouts/partials/orphan-safe.html` + 四处调用；⚠️ **别信「HTML 里有 span 就等于生效」**，`content .nowrap` 那条规则必须有 |
+| 改返回顶部 | `layouts/partials/back-top.html` + 第 16 段。⚠️ **零 JS**，靠 `animation-timeline: scroll()` |
+| 改代码复制按钮 | `assets/js/code-copy.js` + 第 18 段 + `partials/code-copy.html` 的加载判断（三处类名 / 判据一致） |
+| 改「系列」分组口径 | ⚠️ **两处必须同口径**（`series` 字段 + `.ByDate` 升序）：`single.html` 与 `archive.html` |
+| 改评论区 | `layouts/partials/giscus.html` + `assets/js/giscus.js` + 第 07 段 |
+| 改 robots / `noindex` | `layouts/_default/baseof.html` 的 robots 分支（改前先读 DESIGN.md 第 5 节） |
+| 改首页那行平台链接 | `content/_index.md`（**地址的真相在 `content/about.md` 的「内容平台」段，两边一起改**） |
+| 改链接页（加朋友 / 加聚合站） | `content/roll.md` —— **全站唯一的链接页**，一条平铺<br>⚠️ 条目格式 `- [名称](地址)：一句话点评`<br>⚠️ `</a>` 和中文冒号之间**不要手写空格**（`render-link.html` 已处理）<br>⚠️ 两组之间那条全宽虚线是手写的裸 `<hr>`，**别删** |
+| 加根级独立页 | `content/xxx.md`（`hideDate` + `toc: false`）+ 回 `static/_headers` 补缓存规则 |
+| 加 301 | `static/_redirects`（**首条命中即生效**，splat 要排在精确路径之后） |
+| 改响应头 / 缓存 | `static/_headers` |
+| 换 favicon / 分享图 | `static/favicon.svg` / `static/images/share.webp`（后者由 `params.images` 引用） |
+
+### `scripts/` 现状
+
+| 脚本 | 状态 |
+| --- | --- |
+| `add-heading-anchors.py` | ✅ 在用（CI 也跑 `--check`） |
+| `sync-garmin.py` / `garmin-token.py` | ✅ 在用（每日 CI 同步跑步数据 → `data/runs.json`） |
+| `sync-lastmod.py` | ⚠️ 半废（`lastmod` 只喂 RSS / sitemap） |
+| `sync-image-dims.py` | ✅ 在用（HTTP 探测图床图片真实宽高 → `data/image-dims.json`，供 `render-image.html` 消费）。⚠️ **不在 `publish.sh` 里，加了新图后手工跑一次** |
+| `backup-blog.sh` / `cleanup-junk.sh` / `_frontmatter.py` | ✅ 工具 |
+
+---
