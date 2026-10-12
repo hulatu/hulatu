@@ -734,9 +734,12 @@ rel="noopener noreferrer"` —— 点它**新窗口打开**，与 `RSS` 的原�
 ```
 Made with Hugo Bear Neo.
 Copyright © 2025-2026, hulatu.
-Subscribe via RSS or just Say hello. · 🚇 开往          ← 2026-10-11 从第 1 行挪到第 3 行
-This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
+Subscribe via RSS or just Say hello. 🚇 开往          ← 2026-10-11 从第 1 行挪到第 3 行
+This site is licensed under CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.
 ```
+
+⚠️ **页脚里没有 `·`**（2026-10-12 起，见下）—— 该分段的地方一律用 `.`。
+改前是 3 个 `·`（第 3 行 1 个、第 4 行 2 个）。
 
 - 上游把「版权」和「🗺️ Sitemap」挤在**同一行**，站点层补了一个 `<br>` 拆开。
 - ⚠️ `copyright` 是文本节点输出，Go 的 `html/template` 会转义 `&` ——
@@ -783,6 +786,28 @@ This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
 ⚠️ **开往官方要求外链放在「打开网站就能看到的地方」（顶栏 / 侧栏）**，
 页脚在长文页要滚到底才看得到 —— 严格说这一条**没满足**。
 用户明确选了「只放页脚」，**别再自作主张挪进导航**（导航已经 8 项、窄屏本来就折行）。
+
+#### 2026-10-12 稍后：页脚分隔符 `·` 全换成 `.`
+
+用户原话「我的页脚，不要那么多 ·，但是该显示 . 就显示 .」。三个改法渲染出来给用户挑，
+用户选了**「全改成 `.`」**（另外两个是「只去掉开往前那个 `·`」「只改第 4 行」）：
+
+```
+改前（3 个 ·）                                改后（0 个 ·）
+Made with Hugo Bear Neo.                      Made with Hugo Bear Neo.
+Copyright © 2025-2026, hulatu.                Copyright © 2025-2026, hulatu.
+Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just Say hello. 🚇 开往
+…CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.      …CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.
+```
+
+- ⚠️ **第 3 行不能再补点**：那句本来就有句末的 `.`（`Say hello.`），
+  把 ` ·` 去掉即可，写成 `Say hello.. 🚇 开往` 就错了。模板里是
+  `…Say hello</a>.{{ $trav }}`，而 `$trav` 开头只有一个空格。
+- ⚠️ **第 4 行两处 ` · ` → `. `**，其中「CC BY-NC-SA 4.0」后面那个点挂在
+  `{{ with .Site.Params.licenseName }}…{{ end }}` 的**块内** ——
+  `licenseName` 留空时点会跟着一起消失（与改前 `·` 的行为一致，不是新问题）。
+- ⚠️ **这是本站对上游页脚的又一处偏离**，`sites/README.md` 里的四个子站**没跟改**
+  （子站页脚是各自 `baseof.html` 里写死的另一套文案，本来就不含 `·`）。
 
 ⚠️ `copyrightNote` 走的是 `{{ . }}` **文本输出**，写 Markdown 链接不会生效 ——
 所以 CC 那一段拆成三个参数：`copyrightNote` / `licenseName` / `licenseURL`。

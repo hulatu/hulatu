@@ -25,7 +25,7 @@
   迁移到上游页脚后一度没了入口（导航只有 6 项，没有它）。
 
   同一天稍后用户又要求：这一行**整句改成英文**，并且「CC BY-NC-SA 4.0」要带链接。
-  于是最后一行现在读作：
+  于是最后一行在那天读作（⚠️ 分隔符后来在 2026-10-12 从 `·` 换成了 `.`，见下）：
 
       This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
 
@@ -35,13 +35,29 @@
   ⚠️ 隐私链接挂在 hideSitemap 这个开关里面 —— 关掉 Sitemap 会连它一起关。
      它们本来就是同一行「站点元信息」，分开管没有意义。
 
+  ── 分隔符：全用 `.`，一个 `·` 都不留（2026-10-12 用户要求）────────────
+  用户原话「不要那么多 ·，但是该显示 . 就显示 .」。
+  页脚原本有 **3 个 `·`**（第 3 行 1 个、第 4 行 2 个），现在**全部换成 `.`**：
+
+      改前：Say hello. · 🚇 开往
+      改后：Say hello. 🚇 开往
+
+      改前：This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
+      改后：This site is licensed under CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.
+
+  ⚠️ 第 3 行那句本来就有句末的 `.`，所以「开往」前面只是把 ` ·` 去掉、**不再补点**，
+     不能写成 `Say hello.. 🚇 开往`。
+  ⚠️ 第 4 行两个 ` · ` 都换成 `. `（点 + 空格）。⚠️ 那两处在模板里分别挂在
+     `{{ with .Site.Params.licenseName }}…{{ end }}` 的**块内**，
+     所以 licenseName 留空时点会跟着一起消失（与改前 `·` 的行为一致）。
+
   ── 行序（2026-10-11 用户要求「第 1 行放到第 3-4 行之间」）──────────────
   订阅行原本在最前（上游的顺序），现在挪到版权行之后、授权行之前：
 
       1. Made with Hugo Bear Neo.
       2. Copyright © 2025-2026, hulatu.
-      3. Subscribe via RSS or just Say hello. · 🚇 开往     ← 订阅行从第 1 行挪来
-      4. This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
+      3. Subscribe via RSS or just Say hello. 🚇 开往     ← 订阅行从第 1 行挪来
+      4. This site is licensed under CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.
 
   ⚠️ 第 3 行末尾的「🚇 开往」是 2026-10-12 用户要求加的（开往友链接力入口），
      **接在订阅行末尾**、不单独占行，所以页脚仍然是 4 行。
@@ -80,8 +96,11 @@
      ⚠️ 这一段挂在 hideRSSAndEmail 里面 —— 关掉订阅行会连它一起关。
         这是「接在订阅行末尾」的必然结果，不是 bug。
      ⚠️ rel 用 noopener noreferrer（与站点层 nav.html 对外链的处理一致），
-        不用官方示例里的 noopener。 */}}
-{{ $trav := safeHTML ` · 🚇 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>` }}
+        不用官方示例里的 noopener。
+     ⚠️ 字符串**开头只有一个空格**，没有 ` · ` 分隔符 —— 2026-10-12 用户要求
+        「不要那么多 ·」，页脚里 3 个 `·` 全换成了 `.`。而订阅那句本来就以 `.`
+        收尾，所以这里**不要再补点**（会变成 `Say hello.. 🚇 开往`）。 */}}
+{{ $trav := safeHTML ` 🚇 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>` }}
 <!-- Enable RSS and email exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS false ) .Site.Params.Author.email }}
 Subscribe via <a href="/index.xml">RSS</a> or just <a href="mailto:{{ .Site.Params.Author.email }}">Say hello</a>.{{ $trav }}
@@ -99,7 +118,8 @@ Say hello via <a href="mailto:{{ .Site.Params.Author.email }}">email</a>.{{ $tra
 {{ end }}
 {{ end }}
 
-<!-- 授权声明 + 隐私 + Sitemap（2026-10-11 起全英文，CC 那段带链接） -->
+<!-- 授权声明 + 隐私 + Sitemap（2026-10-11 起全英文，CC 那段带链接；
+     2026-10-12 起分隔符从 `·` 改成 `.`，见文件顶部注释） -->
 {{ if ne .Site.Params.Footer.hideSitemap true }}
-{{ with .Site.Params.copyrightNote }}{{ . }} {{ end }}{{ with .Site.Params.licenseName }}<a href="{{ $.Site.Params.licenseURL }}">{{ . }}</a> · {{ end }}<a href="/privacy/">Privacy</a> · 🗺️ <a href="/sitemap.xml">Sitemap</a>.
+{{ with .Site.Params.copyrightNote }}{{ . }} {{ end }}{{ with .Site.Params.licenseName }}<a href="{{ $.Site.Params.licenseURL }}">{{ . }}</a>. {{ end }}<a href="/privacy/">Privacy</a>. 🗺️ <a href="/sitemap.xml">Sitemap</a>.
 {{ end }}

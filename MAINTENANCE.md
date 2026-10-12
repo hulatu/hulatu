@@ -582,12 +582,15 @@ PY
 - 导航：`Home / Hub(https://profile.hulatu.com/) / About / Now / Links(/roll/) / Weekly(/weekly/) / Posts(/archive/) / RSS(/index.xml)` —— 8 项
   ⚠️ 项数一多窄屏必折行：靠站点层第 00 段的 `nav{display:flex;flex-wrap:wrap;column-gap:8px}`
   保证只在**项与项之间**折（没有这段时 392px 会把 `RSS` 拆成 `RS`/`S`）
-- 页脚四行，**顺序是**：Made with → Copyright → **订阅行（RSS / Say hello · 🚇 开往）**
+- 页脚四行，**顺序是**：Made with → Copyright → **订阅行（RSS / Say hello / 🚇 开往）**
   → 英文授权行（+ Privacy + Sitemap）。
   ⚠️ 订阅行是 2026-10-11 从第 1 行挪到第 3 行的，别按老印象看
   ⚠️ 「🚇 开往」是 2026-10-12 加的，**接在订阅行末尾**（不单独占行，页脚仍是 4 行）；
   指向 `https://www.travellings.cn/go.html`、新窗口打开。
-  哨兵：`<footer>` 里 `<br>` 恰好 **3 个**、`go.html` 恰好出现 **1 次**、
+  ⚠️ **页脚里一个 `·` 都没有**（2026-10-12 用户要求「不要那么多 ·」，3 个全换成 `.`）：
+  读作 `Say hello. 🚇 开往` 与 `…CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.`。
+  改前有 3 个 `·`，现在出现任何一个都是回退了。
+  哨兵：`<footer>` 里 `<br>` 恰好 **3 个**、`go.html` 恰好出现 **1 次**、`·` 出现 **0 次**、
   且「Say hello」与「开往」必须落在**同一个 `<br>` 分段**里（少了就是掉到第 4 行去了）
 - 文章页：`<h1>`、日期行、标签行、**文末「系列坐标带」（只有 21 篇连载有）
   +「上一篇 / 下一篇」（125 篇都有）**、TOC、评论区
