@@ -223,7 +223,7 @@ giscus 基于 GitHub Discussions，不用自建后端：
 本机不装 wrangler，也不手动上传。
 ⚠️ 四个子域名（`run.` / `shot.` / `share.` / `profile.`）的 **CNAME 与 Pages 项目要在
 Cloudflare 后台手动清理** —— 仓库侧无法代劳。CNAME 用户已删除，剩下 Pages 项目
-若有残留建议一并删掉（它指向的 `sites/` 目录已不存在，构建只会失败）。见 MAINTENANCE.md 第 8 节第 9 条。
+若有残留建议一并删掉（它指向的 `sites/` 目录已不存在，构建只会失败）。见 MAINTENANCE.md 第 8 节第 4 条。
 
 日常一条命令：
 

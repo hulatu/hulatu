@@ -258,3 +258,282 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 | `backup-blog.sh` / `cleanup-junk.sh` / `_frontmatter.py` | ✅ 工具 |
 
 ---
+
+## 5. URL、重定向与缓存头
+
+### URL 不变量（改任何东西之前先守住这几条）
+
+- 文章 / 周刊：`/posts/YYYY/MM/DD/slug/`（126 条，由 `[permalinks]` 生成）
+- 根级页：`/`、`/about/`、`/now/`、`/roll/`、`/privacy/`、`/archive/`、`/weekly/`、`/donate/`、`/run/`
+- 词条页：`/tags/<tag>/`（187）、`/categories/<cat>/`（8）
+- `/posts/` 存在但 `noindex`，且全站没有页面链到它 —— 导航的 `Posts` 指的是 `/archive/`
+
+**验收方式**：改完构建到 `/tmp`，`find . -name '*.html'` 排序后和迁移前基线 `comm` 对比（命令见第 7 节第 3 条）。基线 334 个、现在 332 个：多出来的是 `/donate/` 与 `/run/`，差的 9 个是刻意删除的。
+
+### `_redirects`（Cloudflare，首条命中即生效）
+
+| 规则 | 为什么 |
+| --- | --- |
+| 4 条带句点 / 大写的文章旧址 | 历史 URL 兜底 |
+| `/page/1/` → `/`，`/page/*` → `/archive/` | 首页分页取消（2026-10-10） |
+| `/weekly/page/1/`、`/weekly/page/*` → `/weekly/` | 周刊分页取消（2026-10-10 晚） |
+| `/friends/` → `/roll/`、`/links/` → `/roll/` | 友链页并进收藏页（2026-10-11），两条都直接指终点，不串两跳 |
+| `/categories/` `/tags/` → `/archive/` | 索引页用 `disableKinds` 关掉（精确匹配，不误伤词条页） |
+| `/media/` → `/`，`/stats/` → `/archive/` | 两页随自建主题删除 |
+
+⚠️ 加 splat 规则时，精确路径（`/x/1/`）必须写在 splat（`/x/*`）**前面**。
+⚠️ `/running/` → `run.hulatu.com` 那条 **2026-10-12 已删**（子站入口只留在 `/about/`）—— `hulatu.com/running/` 现在 **404**，要恢复就把它加回 `static/_redirects`。
+
+### `_headers`
+
+- HTML 一律 `public, max-age=0, must-revalidate`（**故意不加 stale-while-revalidate** —— 2026-09-28 因此出现过「发了新文章首页还是旧的」）。
+- `/images/*` 30 天、`/js/*` 一年 immutable（文件名带内容哈希）、favicon / logo / 图标 7 天、`site.webmanifest` 1 小时。
+- ⚠️ **`/css/*` 已删除**（产物里没有 `/css/` 目录了）。
+- ⚠️ 新增根级内容页记得回来补一条缓存规则（2026-10-12 就为 `/run/` 补了一条）。
+
+---
+
+## 6. 坑
+
+### Hugo / 构建
+
+1. **`disableKinds` 必须写在任何 `[table]` 之前**，否则被并进那张表，只吐一句 `WARN Unknown kind "disablekinds"` 然后**静默失效**（关 `/tags/` 索引页就靠它；词条页 kind `term` 仍生成）。
+2. **`hugo --config /tmp/x.toml` 会破坏主题解析**（`themesDir` 相对站点根），症状是**静默产出一个没有主题的站**。别这么干。
+3. **`minify` 会剥属性引号**（`href=/about/`）、**去前导零**（`0.32s` → `.32s`）、**不压 `rgba()` 里的空格** → 按压缩后写法 grep 会**假阴性**。先 `findall` 打出真实写法再判。
+4. **Go 模板注释里绝不能出现 C 风格注释收尾符**（星号紧跟斜杠）：`{{/* … */}}` 被提前收掉，后面跟右花括号时**不报错**，注释后半段当文字输出 → 落在 `<style>` 里就吞掉紧随其后的那条 CSS 规则（实例：吞掉 `.recent-posts{padding-left:0}` → 首页缩进 39px，已复发 2 次）。**哨兵：`<style>` 块里不该出现任何中文**（第 7 节第 4 条）。
+5. **`hugo --quiet` 会把构建失败藏起来**，而失败时 `--cleanDestinationDir` 不执行 → 读到上一次产物（症状「改了没生效」，被骗过两次）。改完必须看输出里有没有 `ERROR`。
+
+### 模板 / 布局查找
+
+6. **`/archive/` 是普通内容页，不是 section**，要用 `layout: "archive"` 指到 `layouts/_default/archive.html`。⚠️ 别删 `content/archive.md` 里那一行（删了就回落到 `single.html`，变成「只有正文」的空壳）；也别改成 `content/archive/_index.md`（section 的 `.Pages` 是它自己的子页，空数组，列表渲染成「这里还没有内容」）。
+7. **普通内容页的模板查找顺序是 `layouts/<type>/<layout>.html` → `layouts/_default/<layout>.html`**，根级 md 的 `type` 是 `page`。文件名本身不参与查找，必须靠 front matter 的 `layout` 指。
+8. **`with` 重绑定 `.`** → 里面的 `.Site` 废掉、静默 0 迭代（产物空块、0 警告）。写法：先 `{{- $x := .Site.Taxonomies.tags }}`，再 `{{ if $x }}{{ range $k, $v := $x }}`。
+
+### 内容 / 渲染
+
+9. **Goldmark 默认丢裸 `<iframe>`**（文章里有腾讯视频嵌入）→ `unsafe = true` 已开。
+10. **`{#pinyin}` 锚点是 Goldmark 原生语法**，不依赖自定义 heading 钩子 —— 删掉 `_markup/render-heading.html` 之后它照常工作。
+11. **`{{ .Summary }}` 在 `<meta content>` 里带 `<h1>` 是假阳性**，`--minify` 会重选引号并反转义。判据是用真 HTML 解析器读两种产物比对解析后的值。
+
+### 工具链（本项目用法，跨项目通用）
+
+12. **BSD grep 不支持 `\|` 交替** —— `grep "a\|b"` 会**静默返回空、不报错**，据此得出「没有 X」的结论会错（本站被坑过两次）。用 `grep -E` 或 Grep 工具。
+13. **`&&` 串的校验会静默跳过后面** —— 前面一个 `grep -c` 返回 0（退出码 1）就断链了。独立检查用 `;`。
+14. **标签配平必须用 `html.parser.HTMLParser`**，别手写正则 —— 正则会把压缩产物里 `<a href=/about/>` 末尾那个 `/` 当成自闭合斜杠，于是每个 `<a>` 都不进栈，报出一堆 `stray </a>` 的假崩。
+15. **数「N 处」必须从工具输出回读**（`len(re.findall(...))`），别凭印象。**报 ✗ 时先怀疑正则**：`re.search` 只取第一个同名选择器；`@media[^{]*\{(.*?)\n\}` 会停在第一个 `\n}`；压缩产物上 `@media print \{.*?\n\}` 一次都不匹配。验收脚本一律 `findall`。
+16. **源码注释会引用旧值**，查「旧值还在不在」先 strip 注释（`re.sub(r'/\*.*?\*/', '', s, flags=re.S)`）。
+
+---
+
+## 7. 验收清单
+
+改完之后至少跑这几条（全部实测过，命令可直接复制）。先跑第 1 条，**看输出里有没有 `ERROR`**（别用 `--quiet`）。
+
+```bash
+# 1) 干净构建（应 0 警告；有 ERROR 时 --cleanDestinationDir 不执行，读到的是旧产物）
+hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
+```
+
+```bash
+# 2) 标签配平 + 缺 h1 + data-page-node-id 注入 + 图片宽高 / %!d 哨兵
+#    用 html.parser.HTMLParser，不要用正则
+python3 - <<'PY'
+import glob, re
+from html.parser import HTMLParser
+VOID={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
+class B(HTMLParser):
+    def __init__(s): super().__init__(); s.st=[]; s.bad=[]
+    def handle_starttag(s,t,a):
+        if t not in VOID: s.st.append(t)
+    def handle_endtag(s,t):
+        if t in VOID: return
+        if s.st and s.st[-1]==t: s.st.pop()
+        else: s.bad.append(t)
+bad=h1=inj=fig=img=dim=lazy=badd=0
+for f in glob.glob('/tmp/hb-check/**/*.html',recursive=True):
+    x=open(f,encoding='utf-8',errors='replace').read()
+    p=B(); p.feed(x)
+    if p.bad or p.st: bad+=1
+    if '<h1' not in x: h1+=1
+    if 'data-page-node-id' in x: inj+=1
+    fig += x.count('<figure')
+    for m in re.finditer(r'<img\b[^>]*>', x):
+        t=m.group(0); img+=1
+        if 'width=' in t and 'height=' in t: dim+=1
+        if 'loading=lazy' in t.replace('"',''): lazy+=1
+    if '%!d' in x: badd+=1   # Go 模板 %d 喂 float64：构建 0 警告的静默残缺
+print(f"不配平={bad} 缺h1={h1} 注入={inj} (都应 0)")
+print(f"figure={fig} img={img} 带宽高={dim} (=img) lazy={lazy} %!d页={badd} (应 0)")
+PY
+# ⚠️ 21 段 img{height:auto} 不在时，旧产物 21 张图会塌成 720x2px
+```
+
+```bash
+# 3) URL 未变（和迁移前基线对比）
+cd /tmp/hb-check && find . -name '*.html' | sed 's#^\./##' | sort > /tmp/urls-now.txt
+comm -23 /tmp/urls-before.txt /tmp/urls-now.txt   # 只应剩 8 个刻意删除的地址
+```
+
+```bash
+# 4) 内联 CSS 体积（Python gzip 口径）+ 样式块中文哨兵（应 0 页）
+python3 -c "
+import re,glob,gzip
+t=g=0; bad=[]
+for f in glob.glob('/tmp/hb-check/**/*.html',recursive=True):
+    s=open(f,encoding='utf-8',errors='replace').read()
+    for b in re.findall(r'<style[^>]*>(.*?)</style>',s,re.S):
+        t+=len(b.encode()); g+=len(gzip.compress(b.encode(),9))
+        if re.search(r'[\u4e00-\u9fff]',b): bad.append(f)
+print(f'{t/1024:.0f} KB / gzip {g/1024:.0f} KB   中文泄漏={len(bad)}')"
+# 期望：总量与第 0 节分档表吻合；中文泄漏 0
+# （模板注释提前收尾会泄漏中文并吞掉紧随的 CSS 规则，见第 6 节第 4 条）
+```
+
+```bash
+# 5) 行内链接 / 系列 / 上下篇 / roll / 代码块配色哨兵
+python3 - <<'PY'
+import re, glob
+r=[open(f,encoding='utf-8',errors='replace').read() for f in glob.glob('/tmp/hb-check/**/*.html',recursive=True)]
+print('a) </a>+换行+中文标点 (0):',sum(len(re.findall(r'</a>\n[，。：；！？、）」』》〈【（]',s)) for s in r))
+print('b) 系列坐标带页 (21):',sum(1 for s in r if re.search(r'<nav class=["\']?post-series',s)))
+print('c) 上下篇页 (126):',sum(1 for s in r if re.search(r'<nav class=["\']?post-nav',s)))
+a=open('/tmp/hb-check/archive/index.html',encoding='utf-8').read()
+print('d) 归档页系列横向行 (3):',len(re.findall(r'<div class=series-row>',a)),
+      '| <details class=series-row> 残留 (0):',len(re.findall(r'<details class=series-row',a)))
+ro=open('/tmp/hb-check/roll/index.html',encoding='utf-8').read()
+main=re.search(r'<main>(.*?)</main>',ro,re.S).group(1)
+print('e) /roll/ h1 (0):',len(re.findall(r'<h1',main)),
+      '| ul/li (2/14):',len(re.findall(r'<ul',main)),len(re.findall(r'<li',main)),
+      '| 裸 hr (1):',re.findall(r'<hr[^>]*>',main))
+print('f) 代码块配色页 (5):',sum(1 for s in r if '--code-keyword' in s),
+      '| monokai 残留 (0):',sum(1 for s in r if '#f8f8f2' in s or '#272822' in s))
+for n in ['roll','about','now','privacy','donate']:
+    x=open('/tmp/hb-check/'+n+'/index.html',encoding='utf-8').read()
+    body=re.search(r'<main>(.*?)</main>',x,re.S).group(1)
+    print('   /'+n+'/ ->',re.findall(r"<h1[^>]*>(.*?)</h1>",body,re.S))
+PY
+# g) 期望：roll/about/now 为空（无页面标题）；privacy/donate 各有一个
+# f) 是「代码块看不见」的哨兵：noClasses 被改回 true 时
+#    #f8f8f2 / #272822 这两个 monokai 内联色会重新出现
+```
+
+```bash
+# 6) 面包屑：可见段数 与 JSON-LD 段数必须自洽（JSON-LD = 可见段 + 当前文章）
+python3 - <<'PY'
+import json, glob, re
+from collections import Counter
+n_ok=n_bad=0; shapes=Counter()
+for f in glob.glob('/tmp/hb-check/posts/**/index.html',recursive=True):
+    x=open(f,encoding='utf-8',errors='replace').read()
+    nav=re.search(r'<nav class=breadcrumbs.*?</nav>',x,re.S)
+    if not nav: continue
+    seg=len(re.findall(r'<li>',nav.group(0))); shapes[seg]+=1
+    ld=json.loads(re.search(r'<script type=application/ld\+json>(.*?)</script>',x,re.S).group(1))
+    ok=(ld['@type']=='BreadcrumbList' and len(ld['itemListElement'])==seg+1
+        and [i['position'] for i in ld['itemListElement']]==list(range(1,seg+2))
+        and ld['itemListElement'][0]['name']=='首页')
+    n_ok+=ok; n_bad+=(not ok)
+print('面包屑页面 (126):',n_ok+n_bad,'| JSON-LD 合格/不合格 (126/0):',n_ok,'/',n_bad)
+print('可见段数分布 (应 {3:101, 2:25}；3 段=文章带分类，2 段=周刊):',dict(shapes))
+PY
+```
+
+```bash
+# 7) ★「首行贴导航栏」的哨兵：/roll/ /about/ /now/ 三页的正文首行到导航文字下沿
+#    应都在 ~28 CSS px（与 yinji 一致；12.5px 就是 content > :first-child 被加回来了）
+#    ⚠️ 三页必须在**同一批截图**里量：--window-size 高度不同会得出不同数字
+#    （实测过 46px vs 57px 的假差异）；量法：2x 截图后逐行取最暗像素找文本带，换算回 CSS px
+
+# 8) ★ 订阅源：只收文章页 + 带 XSL 样式表
+python3 - <<'PY'
+import re
+for f in ['/tmp/hb-check/index.xml','/tmp/hb-check/weekly/index.xml']:
+    s=open(f,encoding='utf-8').read()
+    items=s.split('<lastBuildDate>')[-1]          # 跳过 channel 自己的 <link>
+    links=re.findall(r'<link>([^<]+)</link>',items)
+    print(f,'| 条目',len(links),
+          '| 非文章',sum(1 for l in links if '/posts/' not in l),
+          '| 样式表',bool(re.search(r'<\?xml-stylesheet type="text/xsl" href="[^"]+/rss\.xsl"\?>',s)),
+          '| content:encoded',len(re.findall(r'<content:encoded>',items)),
+          '| atom:updated',len(re.findall(r'<atom:updated>',items)),
+          '| category',len(re.findall(r'<category>',items)))
+PY
+# 期望：两个文件都是 条目 20 / 非文章 0 / 样式表 True /
+#       content:encoded 20 / atom:updated 20 / category > 0
+
+# 9) ★ 归档页底部标签平铺 + 样式作用域哨兵
+python3 - <<'PY'
+import re, glob
+st=lambda s:''.join(re.findall(r'<style[^>]*>(.*?)</style>',s,re.S))
+r=[(f,open(f,encoding='utf-8',errors='replace').read()) for f in glob.glob('/tmp/hb-check/**/*.html',recursive=True)]
+a=open('/tmp/hb-check/archive/index.html',encoding='utf-8').read()
+blk=re.search(r'<small class=tag-index><div>(.*?)</div></small>',a,re.S)
+tags=re.findall(r'>#([^<]+)</a>',blk.group(1)) if blk else []
+kind=lambda x:'数字' if re.match(r'^[0-9]',x) else ('英文' if all(ord(c)<128 for c in x) else '中文')
+seq=[kind(t) for t in tags]
+print('a) 归档标签个数 (应 = 标签词条页数 187):',len(tags))
+print('   三类顺序 (应 数字*→英文*→中文*，同类连续):',[k for i,k in enumerate(seq) if i==0 or seq[i-1]!=k])
+print('b) 有 tag-index 块却缺 .tag-index 规则的页 (0):',
+      sum(1 for f,s in r if 'class=tag-index' in s and '.tag-index' not in st(s)))
+print('c) 含 header nav 规则的页 (应 = HTML 总数 332):',
+      sum(1 for f,s in r if re.search(r'header\s+nav\s*\{',st(s))))
+print('d) ★ 残留「裸 nav」选择器的页 (0):',
+      sum(1 for f,s in r if re.search(r'(?<![\w.#\-\s])nav\s*\{',st(s))))
+print('e) post-series-ord 带 min-width 的页 (应 127 = 126 长文 + /archive/):',
+      sum(1 for f,s in r if re.search(r'\.post-series-ord\s*\{[^}]*min-width',st(s))))
+PY
+# 期望：a) 187，三类顺序 ['英文','中文']（本站没有数字标签），b) 0，c) 332，d) 0，e) 127
+# ⚠️ 写断言时当心：`'header nav{' in css.replace(' ','')` 是错的
+#    （把 needle 里的空格也去掉了）→ 永远 False；`(?<![\w.#-])nav\s*\{` 漏了空格，
+#    会把 `header nav{` 也当成裸 nav → 永远报 332。**这两条我自己都踩过。**
+```
+
+> ⚠️ 原第 10 条「子站页头 / 导航 / 视觉残留」整段断言 **2026-10-12 删除** ——
+> 它遍历 `sites/*/public/**/*.html`，而四个子站已全部下线。要恢复子站时连同那段断言
+> 一起从 git 历史取回（`git log --all -- MAINTENANCE.md`）。
+
+改完模板还要手工扫一眼这几处（回归面）：
+
+- 首页：`h2#hi` → 引用 → 段落 → **含「支持」链接的段落** → 四个平台链接行 → 虚线 `<hr>` → `<h3>Recent Posts:</h3>` → 5 条
+  ⚠️ 简介正文外面不该有 `<content>`（照 yinji 去掉的，行高走 body 的 1.5）；列表左边界要和 `Recent Posts:` 标题对齐（实测都 x≈140），缩进 40px 就是 `.recent-posts{padding-left:0}` 被吞了 → 去跑第 4 条哨兵
+- `/archive/`：搜索框 + 「共 **126** 篇。」+ **「系列」三条横向行**（居家流水账 4 / 综述写作 5 / 跑步 12）+ 年份分组；⚠️ 这块**不该有任何分割线 / 折叠三角**
+- 导航 7 项；⚠️ 项多窄屏必折行，靠第 00 段 `header nav{flex-wrap:wrap;column-gap:8px}` 保证只在项与项之间折（没这段时 392px 把 `RSS` 拆成 `RS`/`S`）
+- 页脚四行，顺序：Made with → Copyright → **订阅行（RSS / Say hello / 🚇 开往）** → 英文授权行（+ Privacy + Sitemap）
+  ⚠️ **一个 `·` 都没有**（3 个全换成 `.`）：读作 `Say hello. 🚇 开往` 与 `…CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.`；出现任何一个都是回退
+  哨兵：`<footer>` 里 `<br>` 恰好 **3 个**、`go.html` 恰好 **1 次**、`·` **0 次**，且「Say hello」与「开往」在**同一个 `<br>` 分段**里
+- 文章页：`<h1>`、日期行、标签行、**文末系列坐标带（仅 21 篇连载）+ 上一篇/下一篇（126 篇都有）**、TOC、评论区
+  ⚠️ **「上一篇」= 更早、「下一篇」= 更晚**；两段相邻时只画一条发丝线；最新一篇没有「下一篇」、最早一篇没有「上一篇」（留不可见空槽，正常）
+  ⚠️ 含代码的文章代码块必须「浅灰底 + 深字」（浅色）—— 大片文字发白就是 `noClasses` 被改回 `true`，跑第 5 条 f) 哨兵
+- 文章页顶部面包屑：`首页 / 文章 / 分类`（周刊是 `首页 / 周刊`，**两段** —— 周刊的 `categories` 就是 `["周刊"]`，加了会变「首页 / 周刊 / 周刊」）；⚠️ 面包屑**不该**出现在 `/about/` `/now/` `/roll/` 或词条页上
+- `/roll/`：**没有页面标题**（只在 `<title>` 与导航高亮），两个 `<ul>`：3 条朋友 + 11 条聚合站，中间一条全宽虚线 `<hr>`；结尾「…更新中」，无日期行 / 评论区 / TOC；正文首行到导航文字下沿约 **28 CSS px**（~12.5px 就是 `content > :first-child` 被加回来了）
+- `/about/`：介绍块纯 Markdown，**没有头像**（全站一张头像都没有），**没有页面标题**，首行间距同 28px
+- `/now/`：**没有页面标题**，无日期行 / 评论区 / TOC；⚠️ `/privacy/` 与 `/donate/` **仍保留页面标题**（用户只点名了 About 和 Now，别顺手统一）
+- `/donate/`：两个收款码并排居中（窄屏一列），**没有**日期行 / TOC / 评论区（**有标题**）
+- `/privacy/` `/posts/` `/donate/` `/404.html` 与全部词条页：`<meta name=robots content="noindex, follow">`（合计 **199 页**）
+- `/run/`：`<h1>跑步</h1>` + 导语 + 4 个 `.stats` 格子 + 月度柱状图 + 按年 `<details>` 记录表 + 更新时间行；**没有**面包屑 / TOC / 评论区（走 `layouts/_default/run.html`，不经过 single.html）；数据每天由 CI 的 `sync-garmin.py` 刷新
+
+---
+
+## 8. 待办 / 已知缺口
+
+1. **`scripts/sync-lastmod.py` 半废** → `lastmod` 只喂 RSS / sitemap，页面无可见产出。
+2. **列表页没有页面级 `<h1>`**（有意接受上游行为）；**深色下正文图片描边几乎不可见**。
+3. **sitemap 没排除 noindex 页** —— `/privacy/` `/posts/` `/donate/` 与全部词条页的 meta robots 有，`layouts/sitemap.xml` 没恢复（见第 3 节规矩 3）。
+4. **Cloudflare 后台收尾**（仓库侧无法代劳）：`run.` / `profile.` / `shot.` / `share.` 四个子域名的 CNAME 已删，但 **Pages 项目本身**若还留在后台建议一并删掉 —— 它们指向的 `sites/` 目录已不存在，构建只会失败。
+5. **`~/bearneo-trial`** 可以留着做对照，也可以删（删除它不影响本站）。
+
+> 2026-10-11 / 12 清理掉的孤儿资源与失效脚本清单见第 1 节末尾；**它们都在 git 历史里，要恢复就 `git log --diff-filter=D` 取回**，别照着旧待办去找已经不存在的文件。
+
+---
+
+## 9. 和 `~/bearneo-trial` 的关系
+
+`~/bearneo-trial` 是同一套主题的试运行站（上游逐字节未改 + 站点层覆盖），本站的站点层覆盖从它搬过来。两边关系：
+
+- **同源**：`index.html` / `baseof.html` / `single.html` / `list.html` / `rss.xml` / `nav.html` / `footer.html` / `custom_head.html` / `giscus.html` / `giscus.js`；内容页 `_index.md` / `about.md` / `privacy.md` / `now.md`。
+- **本站多出来的**（试运行站没有）：`archive.html`（没有 `/archive/`）、`_markup/render-link.html`、系列与上下篇两段、`breadcrumbs.html`、`render-image.html`、`run.html`。
+- **本站改过的**：`"blog"` → `"posts"`（4 处）；第 06 段删掉（TOC 保持上游「默认隐形」）；末尾补回 GoatCounter。
+- **别反向同步**：试运行站没有第 11 / 12 / 13 段（`/roll/` 分隔线走裸 `<hr>`、代码块配色、面包屑样式）—— 它仍是 monokai 内联色，即「代码块看不见」那个状态；链接页形态也不同（本站 `/roll/` 一页平铺 14 项，试运行站没有这一页）。
+- 试运行站的 `content/blog/` 对应本站的 `content/posts/`。
+
+⚠️ 改完共享内容记得两边同步；只属于本站的改动**不要**反向同步过去。
