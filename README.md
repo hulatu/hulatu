@@ -76,7 +76,7 @@ blog/
 │   ├── _index.md               # 首页文案（Hi! / 题记 / 简介 / 支持链接 / 四个平台入口链接）
 │   ├── posts/                  # 101 篇文章 + _index.md（noindex，站内没有入口）
 │   ├── weekly/                 # 25 期周刊 + _index.md（单独开了 RSS 输出）
-│   ├── about.md now.md roll.md privacy.md archive.md             五个根级独立页
+│   ├── about.md now.md roll.md privacy.md archive.md             七个根级独立页
 │   │                           # ⚠️ links.md 2026-10-11 已删：友链并进 roll.md（唯一的链接页）
 │   ├── donate.md               # ↑ 之后的第 6 个独立页：支持页（两个赞赏码），2026-10-11 搬回
 │   ├── run.md                  # ↑ 之后的第 7 个独立页：跑步数据（layout: "run"），2026-10-12 从子站搬回
@@ -96,16 +96,15 @@ blog/
 ├── themes/hugo-bearneo/        # ★ 上游主题逐字节副本（27 个文件），**不要改这里**
 ├── scripts/                    # 发布前脚本、Garmin 同步、图床尺寸采集、仓库清理（8 个，见 MAINTENANCE.md）
 ├── data/
-│   └── runs.json               # 跑步数据（唯一一份，主站 `/run/` 页在读）
+│   ├── runs.json               # 跑步数据（主站 `/run/` 页在读）
+│   └── image-dims.json         # 正文图片真实宽高（喂 render-image.html）
 ├── static/                     # 原样发布：_headers / _redirects / 图标 / rss.xsl
 │   └── images/                 # 只剩两个在用：share.webp（全站 og:image）、donate/（2 张赞赏码）
-├── admin/                      # 本地图形界面后台（零依赖，双击 博客后台.command 启动）
 ├── archetypes/                 # hugo new 用的模板（posts / weekly）
 ├── publish.sh                  # 发布：补锚点/刷 lastmod → 提交 → 推 GitHub
 ├── deploy.sh                   # 只在本地干净构建到 public/，不部署
 ├── DESIGN.md                   # 设计规范（站点层 21 个文件的偏离 + 已删功能清单）
-├── MAINTENANCE.md              # 维护手册（文件地图、坑、验收清单）
-└── 博客后台.command             # 双击打开图形界面后台
+└── MAINTENANCE.md              # 维护手册（文件地图、坑、验收清单）
 ```
 
 > ⚠️ **2026-10-12 起没有 `sites/` 目录了** —— 原先的四个子站（run / shot / share / profile）
@@ -124,7 +123,7 @@ hugo version   # 期望：hugo v0.167.0+extended ...
 ```
 
 版本要在三处一致，否则会出现「本地正常、线上构建失败」：本机、`.github/workflows/build.yml` 的
-`hugo-version`、Cloudflare Pages 五个项目的环境变量 `HUGO_VERSION`；`hugo.toml` 的
+`hugo-version`、Cloudflare Pages 唯一项目的环境变量 `HUGO_VERSION`；`hugo.toml` 的
 `[module.hugoVersion]` 是第四处。
 
 ⚠️ **`extended = true` 是历史遗留**：自建主题时代 `head-meta.html` 用 `imageConfig` 读分享图宽高，
@@ -155,19 +154,9 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 按 `archetypes/posts.md` 里的清单填 front matter，写完把 `draft` 改成 `false` 即可发布。
 `date` 决定 URL（`/posts/年/月/日/slug/`），`slug` 决定 URL 的最后一段。
 
-⚠️ **`series`（系列）和 `issue`（周刊期号）两个字段已作废** —— 没有模板读它们了，新文章不用填。
-
-### 4. 图形界面后台（不想敲命令时用）
-
-**双击仓库根目录的「博客后台.command」**，会自动起一个本地服务并打开浏览器（只监听 `127.0.0.1`，
-不联网、不上传任何东西）。在里面可以看列表、筛草稿、新建文章 / 周刊 / 页面、表单改 front matter、
-写正文、看真实预览、一键发布、改顶部导航。关掉那个终端窗口就停。
-
-等价命令：`./admin/start.sh`。它只用 Python 3 标准库，不需要装任何东西。
-
-> ⚠️ **不要直接打开 `admin/ui/index.html` 这个文件**。它的样式和脚本是分开的，只有由后台服务提供时
-> 才会被内联进同一份 HTML；单独打开会是一片空白（页面里有兜底提示，照它做就行）。
-> 默认端口 `8787`，被占用时后台会自动换端口并在终端里说明。
+⚠️ **`series`（系列）字段在用**：文章页文末「系列坐标带」+ `/archive/` 顶部横向入口都读它
+（字符串语义，一篇只能属于一个系列）。`issue`（周刊期号）**2026-10-13 已全部移除** ——
+期号徽章早随迁移删除，标题里本来就写着「第 N 期」。
 
 ## 常用自定义
 
@@ -195,7 +184,7 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 代码复制按钮 | `assets/js/code-copy.js` + `partials/code-copy.html` + 第 18 段 |
 | 分页 | **全站都不分页**（上游不用 `.Paginate`）。旧地址 `/page/*` 和 `/weekly/page/*` 由 `static/_redirects` 301 兜底 |
 | 目录显示断点 | `themes/hugo-bearneo/.../style.html` 里搜 `800px` —— **只有一个断点**（≤800px 整块隐藏） |
-| 图标 | `static/logo.svg`、`static/favicon.svg`、`static/apple-touch-icon.png`、`icon-192/512.png` |
+| 图标 | `static/favicon.svg`（全站唯一图标；PWA 五件套 2026-10-13 已删） |
 | 评论 | `hugo.toml` 的 `[params.giscus]`；单篇用 `comments: false` 关掉 |
 | 统计 | `hugo.toml` 的 `[params.analytics]`（当前只有 GoatCounter，挂在 `custom_head.html` 末尾） |
 | 分享图 | `hugo.toml` 的 `params.images`（当前是 `images/share.webp`，**全站同一张**） |

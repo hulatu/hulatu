@@ -103,8 +103,8 @@ themes/hugo-bearneo/      ★ 上游逐字节副本，27 个文件，**不要改
 
 static/
   _headers _redirects     Cloudflare 的响应头 / 301 规则
-  favicon.svg logo.svg apple-touch-icon.png icon-192.png icon-512.png
-  site.webmanifest rss.xsl
+  favicon.svg rss.xsl     （PWA 五件套 2026-10-13 已删：logo/apple-touch/icon-192/icon-512/webmanifest，
+                          全站没有任何 <link rel=manifest>，整链不可达）
                           ↑ rss.xsl 不是孤儿：layouts/_default/rss.xml 顶部那行
                             <?xml-stylesheet?> 指的就是它
   images/                 **只剩两个在用**：share.webp（全站唯一 og:image，params.images 引用）
@@ -113,7 +113,6 @@ static/
 data/                     runs.json（/run/ 页在读）+ image-dims.json（喂 render-image.html）
                           ⚠️ 两个都别当孤儿删
 scripts/                  8 个脚本，见第 4 节
-admin/                    本地 front matter 编辑器（Python + 单页 UI）
 .github/workflows/        build.yml（构建校验）/ sync-garmin.yml（每日同步跑步数据）
 ```
 
@@ -172,7 +171,7 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 
 ### CI
 
-- `.github/workflows/build.yml`：push / PR 时用同一个 Hugo 版本**只构建主站**，并检查中文标题锚点是否补齐。周刊期号检查那一步 2026-10-10 已删（`issue` 字段不再渲染）。
+- `.github/workflows/build.yml`：push / PR 时用同一个 Hugo 版本**只构建主站**，并检查中文标题锚点是否补齐。周刊期号检查那一步 2026-10-10 已删（`issue` 字段 2026-10-13 已从全部周刊移除）。
 - `.github/workflows/sync-garmin.yml`：每天 22:00（Asia/Taipei）拉跑步数据写 `data/runs.json`。
 
 ---
@@ -199,7 +198,7 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 
 ### 周刊 front matter（`archetypes/weekly.md`）
 
-- `categories: ["周刊"]` 默认已填；`issue` 字段已无消费者，新周刊不用填。
+- `categories: ["周刊"]` 默认已填；`issue` 字段 2026-10-13 已全部移除（连同 archetype 里那一行）。
 - 周刊 URL 也落在 `/posts/YYYY/MM/DD/slug/`（`[permalinks]` 里 `weekly` 与 `posts` 同规则）—— **刻意，不是 bug**。
 
 ### 三个必须记住的规矩
@@ -287,7 +286,7 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 ### `_headers`
 
 - HTML 一律 `public, max-age=0, must-revalidate`（**故意不加 stale-while-revalidate** —— 2026-09-28 因此出现过「发了新文章首页还是旧的」）。
-- `/images/*` 30 天、`/js/*` 一年 immutable（文件名带内容哈希）、favicon / logo / 图标 7 天、`site.webmanifest` 1 小时。
+- `/images/*` 30 天、`/js/*` 一年 immutable（两个文件：giscus + code-copy，文件名带内容哈希）、favicon 7 天。
 - ⚠️ **`/css/*` 已删除**（产物里没有 `/css/` 目录了）。
 - ⚠️ 新增根级内容页记得回来补一条缓存规则（2026-10-12 就为 `/run/` 补了一条）。
 

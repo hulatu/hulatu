@@ -7,8 +7,8 @@ description: >
   自建的 6 个 CSS 模块 / 6 个 JS 全部删除。
   所以下面登记的令牌**全部是上游主题的真值**，唯一真值在
   `themes/hugo-bearneo/layouts/partials/style.html` —— 整份 CSS 内联进每个页面
-  （327 个产物 HTML 各一份，普通页 8142 字节 / gzip 2458、文章页 11929 / 3227、
-  含代码块的 5 页 14114 / 3706；改完记得回读体积，别凭印象）。
+  （332 个产物 HTML 各一份，普通页 8675 字节 / gzip 2610、文章页 12610 / 3400、
+  含代码块的 5 页 14861 / 3893；改完记得回读体积，别凭印象）。
   站点层只在 21 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
   **改样式前先读那一节**：绝大多数视觉问题应该在上游那一份里改，
   而不是在站点层再叠一层规则 —— 那是上一版自建主题最后变得无法维护的原因。
@@ -80,7 +80,7 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 | --- | --- |
 | 改颜色 / 字体 / 宽度 / 圆角 | `themes/hugo-bearneo/layouts/partials/style.html` 的 `:root`。**改上游**，不要在站点层叠 |
 | 改正文排版（标题间距、中文字体） | `layouts/partials/custom_head.html` 第 02 段 |
-| 改首页 | `layouts/index.html`（结构）+ `content/_index.md`（文案：简介、支持链接、五个平台） |
+| 改首页 | `layouts/index.html`（结构）+ `content/_index.md`（文案：简介、支持链接、四个平台） |
 | 改关于页的介绍块 | `content/about.md`（**纯 Markdown，没有头像、也没有页面标题**）|
 | 改支持页 / 换收款码 | `content/donate.md`（结构 + 文案）+ `custom_head.html` 第 08 段（样式） |
 | 改跑步页 `/run/` | `content/run.md`（导语）+ `layouts/_default/run.html`（结构）+ `custom_head.html` 第 25 段（样式）。数据读 `data/runs.json`，**别在页面里写数字** |
@@ -333,19 +333,18 @@ hulatu.com（本站：上游主题 + 21 个站点层覆盖文件）
   去掉这一层之后两站首页的节奏逐项一致。`<hr>` / `<h3>` / `<ul.recent-posts>`
   本来就在 `<content>` 外面，不受影响。
 
-#### 那五个平台链接（2026-10-11）
+#### 那四个平台链接（2026-10-11）
 
 | 顺序 | 标签 | 落点 |
 | --- | --- | --- |
 | 1 | 公众号 | `https://img.hulatu.com/post/bk7UaF.webp`（**二维码大图**） |
 | 2 | 少数派 | `https://sspai.com/u/hulatu/updates` |
-| 3 | 小红书 | `https://www.xiaohongshu.com/user/profile/68a9d4e5…` |
 | 4 | 知乎 | `https://www.zhihu.com/people/hulatu` |
 | 5 | 即刻 | `https://web.okjike.com/u/25B20BAD-…` |
 
 - 顺序是用户指定的，别按字母或热度重排。
 - ⚠️ **公众号没有网页主页**，只能给二维码图。用户 2026-10-11 选了「点开看大图」
-  （不做悬停浮层、也不在首页常显二维码）—— 所以这一行**仍然是五个纯文字链接**，
+  （不做悬停浮层、也不在首页常显二维码）—— 所以这一行**仍然是四个纯文字链接**，
   没有新增任何样式。每条都带 `title` 提示（「点开看二维码，扫码关注…」等）。
 - **地址的唯一真相来源是 `content/about.md` 的「平台」段**，改的时候两边一起改。
 
@@ -575,7 +574,7 @@ CNAME + 一条 301（重建子站项目，或在 Cloudflare 配 Bulk Redirect）
   没有意义。⚠️ **`date` 字段本身别删**，RSS / og meta 还要用。
 - 上游原本把标题和日期**写死给 `blog` 段**，导致 `/weekly/` 的 25 篇、`/about/`、`/privacy/`
   全都渲染成「没有标题没有日期的裸正文」。站点层去掉了这层条件。
-- **代码块没有红绿灯、没有复制按钮** —— 上游只有 `pre code` 的底色和圆角。已删。
+- **代码块没有红绿灯**（复制按钮 2026-10-11 已加回，见下节）—— 上游只有 `pre code` 的底色和圆角。
 
 #### 代码块的语法配色（2026-10-11 **修复**，不是新增）
 
@@ -786,7 +785,7 @@ CNAME + 一条 301（重建子站项目，或在 Cloudflare 配 Bulk Redirect）
   ⚠️ 类名 / ID 是和 `assets/js/giscus.js` 的契约（5 个 id + `.is-open` 类），改名要两边一起改；
   本次改版只动 CSS 与那层没用的 `.giscus-inner` 包装，**JS 一行未改**。
 - `mapping = "pathname"`，所以**只要 URL 不变，老评论直接接上**（本次迁移 URL 未变，已验）。
-- `giscus.js` 是**全站唯一的 JS 文件**（`assets/js/giscus.js`，指纹化成 `/js/giscus.min.<hash>.js`）。
+- 全站只有两个 JS 文件：`giscus.js`（评论区）+ `code-copy.js`（代码块复制按钮，只含代码的页），都经 Hugo 管道指纹化成 `/js/<名字>.min.<hash>.js`。
 
 ### 页脚
 
@@ -1364,10 +1363,9 @@ for f in 全部产物:
 4. **`scripts/sync-lastmod.py` 也不再有可见产出**：它刷 front matter 的 `lastmod`，
    而自建主题的「更新于」那一行随迁移删除了。`lastmod` 现在只喂 RSS / sitemap。
 5. ~~**`scripts/css-critical-coverage.py` 已作废**~~ → **2026-10-11 已删除**。
-6. ~~`admin/` 面板里的「系列 series」输入框没人读~~ —— **2026-10-11 已解决**：
-   `series` 重新有了两个出口（文章页文末的坐标带 + `/archive/` 顶部的横向入口），
-   `admin/` 里那个输入框现在是**有效的**。⚠️ 它仍应保持**字符串**语义（一篇只能属于一个系列），
-   别改成数组。
+6. **`admin/` 图形后台 2026-10-13 已删除**（用户决定，连同 `docs/` 评审存档与 PWA 五件套）。
+   `series` 仍然有效：两个出口是文章页文末的坐标带 + `/archive/` 顶部的横向入口。
+   ⚠️ 它仍是**字符串**语义（一篇只能属于一个系列），别改成数组。
 7. **列表页没有页面级 h1**（见第 4 节），SEO / 无障碍上是个小缺口，是有意接受上游行为的代价。
 8. **深色主题下正文图片的描边**用的是 `--border-color`（`#30363d`），在 `#121212` 上几乎看不见 ——
    上游如此，未改。

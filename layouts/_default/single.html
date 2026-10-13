@@ -1,7 +1,7 @@
 {{ define "main" }}
 {{- /* 站点层覆盖：上游这一行是 {{ if eq .Type "blog" }}，把标题和日期写死给了 blog 段。
        于是 /weekly/ 的 24 篇文章、/about/、/privacy/ 全都渲染成「没有标题、没有日期」的裸正文。
-       这里只把这一层条件去掉，其余（正文、标签、点赞、TOC、Mermaid）原样保留。 */ -}}
+       这里只把这一层条件去掉，其余（正文、标签、TOC、Mermaid）原样保留。 */ -}}
 {{- /* 页面是否属于「长文页」（文章 + 周刊）。文末的系列带、上一篇/下一篇、
        评论区都只挂在这两类上，所以提到最前面算一次，后面复用。
        ⚠️ 别在下面再写一次 `$longForm :=` —— 同一层作用域重复声明会直接构建失败。 */ -}}
@@ -197,95 +197,6 @@
   {{ partial "giscus.html" (dict "title" "评论") }}
 </section>
 {{- end }}
-
-{{ $upvoteEnabled := .Site.Params.upvote }}
-{{ if isset .Params "upvote" }}{{ $upvoteEnabled = .Params.upvote }}{{ end }}
-{{ if and $upvoteEnabled .Site.Params.upvoteURL }}
-<div class="upvote-container">
-<small class="upvote">
-  <button class="upvote-btn" id="upvote-btn" aria-label="Upvote this post" aria-pressed="false">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
-    <polyline points="17 11 12 6 7 11"></polyline>
-    <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-    <span class="upvote-count" id="upvote-count">0</span>
-  </button>
-</small>
-</div>
-
-<script>
-  let hasUpvoted = false;
-  let upvoteBtn;
-  let upvoteCount;
-  {{ $kudosEntity := strings.Trim .RelPermalink "/" }}
-  {{ if eq $kudosEntity "" }}{{ $kudosEntity = "home" }}{{ end }}
-  const entity = {{ replace $kudosEntity "/" ":" | jsonify | safeJS }};
-  const upvoteBaseUrl = {{ .Site.Params.upvoteURL | jsonify | safeJS }}.replace(/\/+$/, '');
-
-  function upvoteUrl(action = '') {
-    return `${upvoteBaseUrl}/${encodeURIComponent(entity)}${action}`;
-  }
-
-  async function requestKudos(url, options) {
-    const response = await fetch(url, options);
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error(`Kudos request failed (${response.status})`);
-    }
-    if (!response.ok) {
-      throw new Error(data.error ?? `Kudos request failed (${response.status})`);
-    }
-    return data;
-  }
-
-  function renderUpvote({ count, hasKudos }) {
-    upvoteCount.innerText = count;
-    hasUpvoted = hasKudos;
-    upvoteBtn.classList.toggle('upvoted', hasUpvoted);
-    upvoteBtn.setAttribute('aria-pressed', String(hasUpvoted));
-    upvoteBtn.setAttribute('aria-label', hasUpvoted ? 'Remove your upvote' : 'Upvote this post');
-  }
-
-  // Read the public count and this visitor's state separately so the count
-  // remains cacheable at the Kudos API.
-  document.addEventListener('DOMContentLoaded', function() {
-    upvoteBtn = document.getElementById('upvote-btn');
-    upvoteCount = document.getElementById('upvote-count');
-    loadUpvote();
-
-    upvoteBtn.addEventListener('click', toggleUpvote);
-  });
-
-  async function loadUpvote() {
-    try {
-      const [count, status] = await Promise.all([
-        requestKudos(upvoteUrl()),
-        requestKudos(upvoteUrl('/kudos')),
-      ]);
-      renderUpvote({ count: count.count, hasKudos: status.hasKudos });
-    } catch (error) {
-      console.error('Failed to load upvote:', error);
-    }
-  }
-
-  async function toggleUpvote() {
-    upvoteBtn.disabled = true;
-
-    try {
-      const state = await requestKudos(upvoteUrl('/kudos'), {
-        method: hasUpvoted ? 'DELETE' : 'POST',
-      });
-      renderUpvote(state);
-    } catch (error) {
-      console.error('Failed to update upvote:', error);
-    } finally {
-      upvoteBtn.disabled = false;
-    }
-  }
-</script>
-{{ end }}
 
 <!-- Place the TOC at the end to ensure the article content loads first. -->
 {{ $tocEnabled := default .Site.Params.toc .Params.toc }}

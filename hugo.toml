@@ -76,9 +76,6 @@ disableKinds = ["taxonomy"]
   # 设 0 就不显示列表，首页退回上游原样（只有站名 + 一句话）。
   homeRecentCount = 5
 
-  # 点赞（Kudos）要自建后端，本站没有，关掉。
-  # 打开需要同时提供 params.upvoteURL，否则模板里的 <button> 根本不渲染。
-  upvote = false
 
   [params.footer]
     hideCopyright = false
@@ -230,7 +227,7 @@ disableKinds = ["taxonomy"]
   endLevel = 3
 
 # 上游 exampleSite 是直接把 taxonomy 关掉，所以它没暴露这个问题：
-# 一旦开着 taxonomy，Hugo 会给**每一个词条**发一份 RSS —— 本站 127 个标签 + 13 个分类
+# 一旦开着 taxonomy，Hugo 会给**每一个词条**发一份 RSS —— 本站 187 个标签 + 8 个分类
 # 会直接多出 140 个 .xml。这几行把它们压回 HTML-only，
 # 只有首页主源和周刊（content/weekly/_index.md 里单独开了 outputs）出 feed。
 [outputs]
