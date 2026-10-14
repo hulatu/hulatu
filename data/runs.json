@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-13T20:00:41+00:00",
+  "updated": "2026-10-14T18:15:19+00:00",
   "activities": [
     {
       "id": "477288307",
@@ -870,18 +870,28 @@
       "calories": 379,
       "pace_s": 394,
       "pace": "6:34"
+    },
+    {
+      "id": "650888861",
+      "date": "2026-10-14",
+      "distance_km": 8.3,
+      "duration_s": 3033,
+      "avg_hr": 157,
+      "calories": 568,
+      "pace_s": 365,
+      "pace": "6:05"
     }
   ],
   "stats": {
     "totals": {
-      "count": 87,
-      "distance_km": 673.63,
-      "duration_s": 248695,
-      "calories": 47592,
+      "count": 88,
+      "distance_km": 681.93,
+      "duration_s": 251728,
+      "calories": 48160,
       "avg_hr": 155,
       "pace_s": 369,
       "pace": "6:09",
-      "latest_date": "2026-10-12"
+      "latest_date": "2026-10-14"
     },
     "best": {
       "longest": {
@@ -926,31 +936,31 @@
       }
     },
     "recent7": {
-      "count": 2,
-      "distance_km": 13.44,
-      "duration_s": 5117,
-      "calories": 956,
+      "count": 3,
+      "distance_km": 21.74,
+      "duration_s": 8150,
+      "calories": 1524,
       "avg_hr": 157,
-      "pace_s": 381,
-      "pace": "6:21"
+      "pace_s": 375,
+      "pace": "6:15"
     },
     "recent30": {
-      "count": 6,
-      "distance_km": 41.46,
-      "duration_s": 15351,
-      "calories": 2944,
-      "avg_hr": 160,
-      "pace_s": 370,
-      "pace": "6:10"
+      "count": 7,
+      "distance_km": 49.76,
+      "duration_s": 18384,
+      "calories": 3512,
+      "avg_hr": 159,
+      "pace_s": 369,
+      "pace": "6:09"
     },
-    "streak_current": 2,
+    "streak_current": 1,
     "streak_longest": 2,
     "yearly": [
       {
-        "count": 39,
-        "distance_km": 260.16,
-        "duration_s": 97803,
-        "calories": 18301,
+        "count": 40,
+        "distance_km": 268.46,
+        "duration_s": 100836,
+        "calories": 18869,
         "avg_hr": 156,
         "pace_s": 376,
         "pace": "6:16",
@@ -1109,11 +1119,11 @@
         "month": "2026-09"
       },
       {
-        "count": 4,
-        "distance_km": 29.52,
-        "duration_s": 10709,
-        "calories": 2098,
-        "avg_hr": 161,
+        "count": 5,
+        "distance_km": 37.82,
+        "duration_s": 13742,
+        "calories": 2666,
+        "avg_hr": 160,
         "pace_s": 363,
         "pace": "6:03",
         "month": "2026-10"
@@ -1123,16 +1133,26 @@
       {
         "year": "2026",
         "summary": {
-          "count": 39,
-          "distance_km": 260.16,
-          "duration_s": 97803,
-          "calories": 18301,
+          "count": 40,
+          "distance_km": 268.46,
+          "duration_s": 100836,
+          "calories": 18869,
           "avg_hr": 156,
           "pace_s": 376,
           "pace": "6:16",
           "year": "2026"
         },
         "activities": [
+          {
+            "id": "650888861",
+            "date": "2026-10-14",
+            "distance_km": 8.3,
+            "duration_s": 3033,
+            "pace_s": 365,
+            "pace": "6:05",
+            "avg_hr": 157,
+            "calories": 568
+          },
           {
             "id": "650045285",
             "date": "2026-10-12",
