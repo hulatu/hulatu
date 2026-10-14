@@ -34,7 +34,16 @@
   {{- end }}
 
   {{- partial "seo_tags.html" . -}}
-  <meta name="referrer" content="no-referrer-when-downgrade" />
+  {{- /* Referrer Policy：2026-10-14 从 `no-referrer-when-downgrade` 改成
+        `strict-origin-when-cross-origin`，两个理由：
+         ① 前者是 Referrer Policy 规范的 **legacy 值**（原样保留只为兼容旧实现）；
+            后者是规范当前的现代值，也是各大浏览器的**默认值**。
+         ② 与 `static/_headers` 的 `Referrer-Policy: strict-origin-when-cross-origin`
+            **保持一致** —— 原来两处不是一个值，而 meta 会覆盖 header，
+            等于 _headers 里那一行在浏览器眼里从没被遵守过。
+       行为差别：跨源请求只带 scheme+host+port（不带完整 URL 与查询串），
+       同源请求仍带完整 URL。本站没有依赖来源信息的第三方服务。 */ -}}
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
 
   {{ with .OutputFormats.Get "rss" -}}
   {{ printf `<link rel="%s" type="%s" href="%s" title="%s" />` .Rel .MediaType.Type .Permalink $.Site.Title | safeHTML }}

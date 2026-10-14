@@ -9,14 +9,14 @@
 
 ---
 
-## 0. 现状速览（2026-10-12 实测）
+## 0. 现状速览（2026-10-14 实测）
 
 | 项 | 值 |
 | --- | --- |
 | Hugo | `0.167.0+extended`（本机 / GitHub Actions / Cloudflare 三边一致） |
 | 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
 | 代码高亮 | `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
-| 站点层 | **21 个文件** = `layouts/` × 19 + `assets/js/` × 2，全站所有自定义都在这里 |
+| 站点层 | **22 个文件** = `layouts/` × 20 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-14 新增 `partials/seo_tags.html`） |
 | 页面 | 336 页 → **332 个 HTML** |
 | 内容 | 101 篇文章 + 25 期周刊 = 126 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`） |
 | 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开走 `static/rss.xsl` |
@@ -30,20 +30,28 @@
 
 | 档 | 页数 | raw / gzip | 补丁 |
 | --- | --- | --- | --- |
-| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` / 195 词条页 / posts 列表页） | 202 | 8675 / 2610 | 2251 B（+00 +14 +17 +20 +21 +22 +23 段） |
-| 长文页（101 文章 + 25 周刊，无代码块） | 121 | 12610 / 3400 | 6186 B（再 +09 +10 +13 +16 +19 段） |
-| 长文页 + 代码块 | 5 | 14861 / 3893 | 8437 B（再 +12 +18 段） |
-| `/archive/` | 1 | 10404 / 2962 | 3980 B |
-| `/donate/` | 1 | 9101 / 2705 | 2677 B（+08 段） |
-| `/run/` | 1 | 10509 / 3006 | 4085 B（+25 段） |
-| `/404.html` | 1 | 10089 / 2888 | 3665 B（+15 段） |
+| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` / 195 词条页 / posts 列表页） | 202 | 9237 / 2734 | 2813 B（+00 +14 +17 +20 +21 +22 +23 +26 段） |
+| 长文页（101 文章 + 25 周刊，无代码块） | 121 | 13172 / 3522 | 6748 B（再 +09 +10 +13 +16 +19 段） |
+| 长文页 + 代码块 | 5 | 15423 / 4015 | 8999 B（再 +12 +18 段） |
+| `/archive/` | 1 | 10966 / 3091 | 4542 B |
+| `/donate/` | 1 | 9663 / 2831 | 3239 B（+08 段） |
+| `/run/` | 1 | 11071 / 3132 | 4647 B（+25 段） |
+| `/404.html` | 1 | 10651 / 3014 | 4227 B（+15 段） |
 
 合计 332 页，与 `os.walk` 数出的 HTML 数一致。`/about/` `/now/` `/roll/` `/privacy/` `/weekly/` 与普通页完全一致（03 段头像撤掉后不再输出任何 CSS）。
 
 - 第 20–23 段是 2026-10-12 新增的 4 条全站规则（**+428 B raw / +115 B gzip**）：目录断点抬到 1200px、`img{height:auto}`、等宽字体令牌、TOC 链接 transition 收窄。
+- **第 26 段是 2026-10-14 新增的 6 条全站规则，每档统一 +562 B raw / +124 B gzip**（① `input{font-size:16px}` ② `color-scheme` ③ `div.toc` 的 `100vw`→`100%` + `80dvh` ④⑤ 图片放大换背景 + checkbox 可聚焦）。改前基线是 8675 / 12610 / 14861 / 10404 / 9101 / 10509 / 10089，逐值 -562 就是当天之前的样子。
 - 第 24 段（`/archive/` 的 `content-visibility`）评估后**撤回**，只留注释，运行时 +0 B。
 - 第 25 段按 `.RelPermalink` 守卫，**其他页 0 字节**（实测：去掉它重构建，首页 `/now/` `/about/` 的 `<style>` 逐字节不变）。
 - 03 / 06 / 11 三段**刻意留空**（只留注释保段号）；详见 DESIGN.md 第 5 节。
+
+⚠️ **全页 gzip 不是「内联 CSS 那档」加 body**：删元数据让页面整体变小的幅度远大于 CSS 的 +562 B。
+2026-10-14 实测（`gzip -c6` 全页）：首页 5941→5082（**−859**）、`/weekly/` 6153→5138（**−1015**）、
+`/posts/` 10610→9868（**−742**）、404 5802→4962（**−840**）、`/tags/mac/` 5721→4802（**−919**）；
+而 `/archive/` 13758→13921（+163）、`/about/` +201、`/now/` +197、`/run/` +193、`/roll/` +193、
+`/donate/` +196、图最多的文章（周刊第 10 期，21 图）22167→22377（**+210**，`--zoom-src` 那条
+独一无二的图片 URL 躲不掉 gzip 去重）。逐值与判断依据见 DESIGN.md 第 9 节。
 
 ---
 
@@ -69,7 +77,7 @@ content/
 archetypes/
   posts.md weekly.md      新建文章的模板（含发布前检查清单）
 
-layouts/                  ★ 站点层覆盖，19 个文件
+layouts/                  ★ 站点层覆盖，20 个文件
   index.html                        首页（上游只有 {{ .Content }}；简介**不包 <content>**）
   _default/baseof.html              LanguageCode → Language.Locale + 补回 robots 分支
   _default/single.html              去掉 `if eq .Type "blog"` 门槛 + hideDate/hideTitle
@@ -84,15 +92,21 @@ layouts/                  ★ 站点层覆盖，19 个文件
   _default/_markup/render-link.html ★ 只为去掉 `</a>` 后面那个换行
   _default/_markup/render-image.html ★ 给正文 <img> 补真实 width/height
                                     （读 data/image-dims.json）
+                                    ⚠️ 2026-10-14：overlay 不再重复一个 <img>，
+                                    URL 走 figure 上的 --zoom-src 画背景（省一半节点）
   partials/nav.html                 完全由 [[menu.main]] 驱动（7 项）
   partials/footer.html              版权独立成行 + 订阅行挪到第 3 行
                                     + copyrightNote/licenseName/licenseURL
-  partials/custom_head.html         25 段补丁样式 + GoatCounter
+  partials/custom_head.html         26 段补丁样式 + GoatCounter
                                     （03/06/11 刻意留空，24 撤回）
+                                    ⚠️ <style> 之前还有两条 theme-color meta，不占段号
   partials/orphan-safe.html         孤行保护（标题末 2 字包 nowrap）
   partials/back-top.html            返回顶部（只长文页，纯 CSS、零 JS）
   partials/code-copy.html           代码块复制按钮的脚本引入（只含代码的页）
   partials/breadcrumbs.html         ★ 面包屑（+ BreadcrumbList JSON-LD），只给文章页
+  partials/seo_tags.html            ★ SEO 头（2026-10-14 新增）：覆盖上游同名 partial
+                                    —— 删 keywords / name=title / 整套微数据，
+                                    换按页型分四类的 JSON-LD，补 og:image 宽高
   partials/giscus.html              评论区（2026-10-11 起无外框，只剩「评论」+ 一个实心三角）
   404.html                          ★ 404 页（上游只有两行字）
 
@@ -222,7 +236,8 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 | 改支持页 / 换收款码 | `content/donate.md`（结构 + 文案）+ `custom_head.html` 第 08 段（样式）。⚠️ 换码后要去 Cloudflare Purge `/images/donate/*`（30 天缓存） |
 | 改页脚 | `hugo.toml` 的 `copyright` / `copyrightNote` / `licenseName` / `licenseURL` / `[params.footer]` 四个开关。⚠️ 订阅行末尾那个「🚇 开往」**不在配置里**，写在 `layouts/partials/footer.html` 的订阅块里（`safeHTML` 存成变量、三个互斥分支各引用一次） |
 | 改颜色 / 字体 / 宽度 / 圆角 | `themes/hugo-bearneo/layouts/partials/style.html` 的 `:root`（改上游，改完在 DESIGN.md 第 5 节登记）。全站只有这一份 —— 改一处即全站生效 |
-| 改正文标题的上下间距 | `custom_head.html` 第 02 段（⚠️ 行高刻意保持上游 1.6；`text-autospace` 与 `content > :first-child` 两条已删 —— 后者是「首行贴导航栏」的元凶，见 DESIGN.md 第 5 节第 ③ 条） |
+| 改正文标题的上下间距 | `custom_head.html` 第 02 段（`text-autospace` 与 `content > :first-child` 两条已删 —— 后者是「首行贴导航栏」的元凶，见 DESIGN.md 第 5 节第 ③ 条） |
+| 改**正文行高** | `themes/hugo-bearneo/layouts/partials/style.html` 的 `content`（**改上游**，改完在 DESIGN.md 第 5 节登记）。⚠️ 上游 1.6，2026-10-14 已改成 **1.8**；`body` 那条 1.5 **不要动**（页头 / 导航 / 页脚是外壳，不是阅读面）。改完回读：`content p` 应 16px / 28.8px，`header nav a` 仍 24px。⚠️ `<content>` 里的**标题也继承这 1.8** |
 | 改文末「系列坐标带」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html`，样式 `custom_head.html` 第 09 / 10 段（**改类名要两边一起改**） |
 | 改归档页顶部的「系列」横向入口 | 模板 `layouts/_default/archive.html`，样式 `custom_head.html` 第 09 段 |
 | 改归档页底部的标签平铺 | 模板 `layouts/_default/archive.html`（`</ul>` 后那段）+ 样式第 09 段的 `.tag-index`<br>⚠️ 排序不是写出来的：`range` map 时 Go 按 key 字节序排 → 数字 → 英文 → 中文<br>⚠️ 别写成 `{{ with .Site.Taxonomies.tags }}` 再 `range .Site.…` —— `with` 重绑 `.`，静默 0 迭代、只留一个空 `<div>`，**构建 0 警告**<br>⚠️ 链接落 `/tags/<slug>/` 词条页；`/tags/` 索引页是关掉的，别改过去（会 404）<br>⚠️ 外层是 `<small>`（默认 inline），必须有 `.tag-index{display:block;margin-bottom:16px}`，否则页脚会贴住标签 |
@@ -244,7 +259,9 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 | 加根级独立页 | `content/xxx.md`（`hideDate` + `toc: false`）+ 回 `static/_headers` 补缓存规则 |
 | 加 301 | `static/_redirects`（**首条命中即生效**，splat 要排在精确路径之后） |
 | 改响应头 / 缓存 | `static/_headers` |
-| 换 favicon / 分享图 | `static/favicon.svg` / `static/images/share.webp`（后者由 `params.images` 引用） |
+| 换 favicon / 分享图 | `static/favicon.svg` / `static/images/share.webp`（后者由 `params.images` 引用）。⚠️ 换图后改 `hugo.toml` 的 `params.ogImageWidth` / `ogImageHeight` 跟上（`seo_tags.html` 读这两个参数输出 og 宽高） |
+| 改 SEO 头（keywords / JSON-LD / og / referrer / theme-color） | `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）。⚠️ `theme-color` 那两条在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 与 `input{font-size}` 在第 26 段；`referrer` 在 `baseof.html`。⚠️ 上游那份是「HTML 规范还在 2015 年」的写法，**别回退** |
+| 改图片放大（放大方式 / 键盘可达性） | 结构在 `layouts/_default/_markup/render-image.html`（`--zoom-src` 挂在 figure 上），样式在第 26 段 ④⑤。⚠️ overlay 是**空壳**（只有 `class`，没有 `<img>`）；`.image-zoom-toggle` 那条**必须带 `display`**，只写定位会让上游的 `display:none` 留下、checkbox 又变回不可聚焦 |
 
 ### `scripts/` 现状
 
@@ -365,6 +382,11 @@ print(f"不配平={bad} 缺h1={h1} 注入={inj} (都应 0)")
 print(f"figure={fig} img={img} 带宽高={dim} (=img) lazy={lazy} %!d页={badd} (应 0)")
 PY
 # ⚠️ 21 段 img{height:auto} 不在时，旧产物 21 张图会塌成 720x2px
+# 期望值（2026-10-14 实测）：figure=323 img=323（**1:1**，overlay 已不重复 <img>）
+#   带宽高=323 lazy=321（少的 2 个是 /donate/ 直接写在 Markdown 里的两张赞赏码，
+#   不经 render-image.html，所以没有 lazy）
+# ⚠️ 改前是 figure=323 img=644 —— img 应**恰好等于** figure，大于它就是
+#   overlay 又渲染了第二个 <img>（2026-10-14 已删，见 DESIGN.md 第 5 节专条）
 ```
 
 ```bash
@@ -418,6 +440,9 @@ PY
 
 ```bash
 # 6) 面包屑：可见段数 与 JSON-LD 段数必须自洽（JSON-LD = 可见段 + 当前文章）
+#    ⚠️⚠️ 2026-10-14 起文章页有**两个** ld+json 块：seo_tags.html 的 BlogPosting 在前、
+#    breadcrumbs.html 的 BreadcrumbList 在后。所以**必须按 @type 挑** BreadcrumbList 那一个，
+#    不能用 re.search 拿「第一个」—— 拿到 BlogPosting 会全判不合格（构建 0 警告，静默）。
 python3 - <<'PY'
 import json, glob, re
 from collections import Counter
@@ -427,13 +452,45 @@ for f in glob.glob('/tmp/hb-check/posts/**/index.html',recursive=True):
     nav=re.search(r'<nav class=breadcrumbs.*?</nav>',x,re.S)
     if not nav: continue
     seg=len(re.findall(r'<li>',nav.group(0))); shapes[seg]+=1
-    ld=json.loads(re.search(r'<script type=application/ld\+json>(.*?)</script>',x,re.S).group(1))
-    ok=(ld['@type']=='BreadcrumbList' and len(ld['itemListElement'])==seg+1
+    blocks=[json.loads(b) for b in re.findall(r'<script type=application/ld\+json>(.*?)</script>',x,re.S)]
+    ld=next((b for b in blocks if b.get('@type')=='BreadcrumbList'),None)
+    ok=(ld is not None and len(ld['itemListElement'])==seg+1
         and [i['position'] for i in ld['itemListElement']]==list(range(1,seg+2))
         and ld['itemListElement'][0]['name']=='首页')
     n_ok+=ok; n_bad+=(not ok)
 print('面包屑页面 (126):',n_ok+n_bad,'| JSON-LD 合格/不合格 (126/0):',n_ok,'/',n_bad)
 print('可见段数分布 (应 {3:101, 2:25}；3 段=文章带分类，2 段=周刊):',dict(shapes))
+PY
+```
+
+```bash
+# 6b) ★ SEO 头哨兵（2026-10-14 新增；对应 DESIGN.md 第 9 节）
+python3 - <<'PY'
+import glob, re
+from collections import Counter
+kw=it=pd=ld=tc=og=ref=0; shapes=Counter()
+for f in glob.glob('/tmp/hb-check/**/*.html',recursive=True):
+    x=open(f,encoding='utf-8',errors='replace').read()
+    kw += 'name=keywords' in x or 'name="keywords"' in x
+    it += 'itemprop' in x
+    pd += ' pubdate' in x or 'pubdate=' in x
+    ld += 'application/ld+json' in x
+    tc += 'theme-color' in x
+    og += 'og:image:width' in x
+    ref+= 'no-referrer-when-downgrade' in x
+    for b in re.findall(r'<script type=application/ld\+json>(.*?)</script>',x,re.S):
+        import json
+        try:
+            d=json.loads(b); shapes[d.get('@type','?')]+=1
+        except Exception: shapes['PARSE-FAIL']+=1
+print('keywords 页 (应 0):',kw,'| itemprop 页 (应 0):',it,'| pubdate 页 (应 0):',pd)
+print('ld+json 覆盖 (应 332):',ld,'| theme-color (应 332):',tc,'| og:image:width (应 332):',og)
+print('旧 referrer 值残留 (应 0):',ref)
+print('JSON-LD 类型分布:',dict(shapes))
+# 期望（2026-10-14 实测）：WebSite 1、WebPage 8（7 个根级独立页 + 404）、
+#   CollectionPage 197（187 标签 + 8 分类 + /posts/ + /weekly/）、BlogPosting 126、
+#   BreadcrumbList 126（文章页每页 2 块，所以块总数 458 > 页数 332，正常）
+#   **零 PARSE-FAIL**（JSON-LD 语法错会让整块失效且构建 0 警告）
 PY
 ```
 
@@ -494,7 +551,7 @@ PY
 改完模板还要手工扫一眼这几处（回归面）：
 
 - 首页：`h2#hi` → 引用 → 段落 → **含「支持」链接的段落** → 四个平台链接行 → 虚线 `<hr>` → `<h3>Recent Posts:</h3>` → 5 条
-  ⚠️ 简介正文外面不该有 `<content>`（照 yinji 去掉的，行高走 body 的 1.5）；列表左边界要和 `Recent Posts:` 标题对齐（实测都 x≈140），缩进 40px 就是 `.recent-posts{padding-left:0}` 被吞了 → 去跑第 4 条哨兵
+  ⚠️ 简介正文外面不该有 `<content>`（照 yinji 去掉的，行高走 body 的 1.5 —— 2026-10-14 正文行高改成 1.8 后这一层更要紧，留着简介会比正文还松）；列表左边界要和 `Recent Posts:` 标题对齐（实测都 x≈140），缩进 40px 就是 `.recent-posts{padding-left:0}` 被吞了 → 去跑第 4 条哨兵
 - `/archive/`：搜索框 + 「共 **126** 篇。」+ **「系列」三条横向行**（居家流水账 4 / 综述写作 5 / 跑步 12）+ 年份分组；⚠️ 这块**不该有任何分割线 / 折叠三角**
 - 导航 7 项；⚠️ 项多窄屏必折行，靠第 00 段 `header nav{flex-wrap:wrap;column-gap:8px}` 保证只在项与项之间折（没这段时 392px 把 `RSS` 拆成 `RS`/`S`）
 - 页脚四行，顺序：Made with → Copyright → **订阅行（RSS / Say hello / 🚇 开往）** → 英文授权行（+ Privacy + Sitemap）
@@ -520,6 +577,19 @@ PY
 3. **sitemap 没排除 noindex 页** —— `/privacy/` `/posts/` `/donate/` 与全部词条页的 meta robots 有，`layouts/sitemap.xml` 没恢复（见第 3 节规矩 3）。
 4. **Cloudflare 后台收尾**（仓库侧无法代劳）：`run.` / `profile.` / `shot.` / `share.` 四个子域名的 CNAME 已删，但 **Pages 项目本身**若还留在后台建议一并删掉 —— 它们指向的 `sites/` 目录已不存在，构建只会失败。
 5. **`~/bearneo-trial`** 可以留着做对照，也可以删（删除它不影响本站）。
+6. **2026-10-14「加载 / 过时写法」审计的落地点已全部实施**（详见 DESIGN.md 第 9 节）：
+   P0 删 `<meta name=keywords>`；P1 修 `input{font-size:14px}`（iOS 聚焦放大整页）与删死掉的微数据
+   `itemprop`；P2 删 `pubdate` / `<meta name=title>`、`referrer` 换 `strict-origin-when-cross-origin`、
+   补 `og:image:width/height`、`100vw`→`100%`、加两条 `theme-color` 与 `color-scheme`、
+   GoatCounter 协议相对 URL 换绝对、`forEach.call` 换原生 `forEach`。
+   **顺带做了两件没在清单里的**：`layouts/partials/seo_tags.html` 整份覆盖上游（换按页型分四类的
+   JSON-LD，332 页全有 `ld+json`）、图片放大从「overlay 重复一个 `<img>`」换成「只画背景」
+   （全站 `<img>` 节点 **644 → 323**，零回流）。
+   ⚠️ **两个刻意不做的**（判断依据见 DESIGN.md 第 9.5 节）：① 删主题死 CSS —— 要么改 `themes/`
+   违反硬规矩，要么复制等价选择器再否定，净负收益；② 替换非标准 `<content>` —— 全站 +约 600 B
+   还留下 500 B 删不掉的死码，净负收益。
+   ⚠️ **per-slug 的 og:image 仍然没做**（DESIGN.md 第 8 节第 1 条），现在改 `seo_tags.html`
+   只需加一段，不用再加文件，但图片得先从 git 历史取回 `gen-og.js` 重跑。
 
 > 2026-10-11 / 12 清理掉的孤儿资源与失效脚本清单见第 1 节末尾；**它们都在 git 历史里，要恢复就 `git log --diff-filter=D` 取回**，别照着旧待办去找已经不存在的文件。
 
@@ -530,9 +600,9 @@ PY
 `~/bearneo-trial` 是同一套主题的试运行站（上游逐字节未改 + 站点层覆盖），本站的站点层覆盖从它搬过来。两边关系：
 
 - **同源**：`index.html` / `baseof.html` / `single.html` / `list.html` / `rss.xml` / `nav.html` / `footer.html` / `custom_head.html` / `giscus.html` / `giscus.js`；内容页 `_index.md` / `about.md` / `privacy.md` / `now.md`。
-- **本站多出来的**（试运行站没有）：`archive.html`（没有 `/archive/`）、`_markup/render-link.html`、系列与上下篇两段、`breadcrumbs.html`、`render-image.html`、`run.html`。
+- **本站多出来的**（试运行站没有）：`archive.html`（没有 `/archive/`）、`_markup/render-link.html`、系列与上下篇两段、`breadcrumbs.html`、`render-image.html`、`run.html`、`seo_tags.html`（2026-10-14）。
 - **本站改过的**：`"blog"` → `"posts"`（4 处）；第 06 段删掉（TOC 保持上游「默认隐形」）；末尾补回 GoatCounter。
-- **别反向同步**：试运行站没有第 11 / 12 / 13 段（`/roll/` 分隔线走裸 `<hr>`、代码块配色、面包屑样式）—— 它仍是 monokai 内联色，即「代码块看不见」那个状态；链接页形态也不同（本站 `/roll/` 一页平铺 14 项，试运行站没有这一页）。
+- **别反向同步**：试运行站没有第 11 / 12 / 13 段（`/roll/` 分隔线走裸 `<hr>`、代码块配色、面包屑样式）—— 它仍是 monokai 内联色，即「代码块看不见」那个状态；链接页形态也不同（本站 `/roll/` 一页平铺 14 项，试运行站没有这一页）。⚠️ **第 26 段与 `seo_tags.html` 同理** —— 上游原始写法，同步过去等于把「过时」那份搬回去。
 - 试运行站的 `content/blog/` 对应本站的 `content/posts/`。
 
 ⚠️ 改完共享内容记得两边同步；只属于本站的改动**不要**反向同步过去。

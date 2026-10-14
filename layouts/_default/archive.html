@@ -136,7 +136,9 @@
     <li>
       <span class="{{ if .Site.Params.groupByYear }} grouped {{ else }} ungrouped {{ end }}">
         <i>
-          <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
+          {{- /* 2026-10-14：去掉 `pubdate`（HTML 规范 2017 年已移除该属性）。
+               与 single.html / list.html 同一套写法。 */ -}}
+          <time datetime='{{ .Date.Format "2006-01-02" }}'>
             {{ if .Site.Params.groupByYear }}
             {{ .Date.Format (default "02 Jan." .Site.Params.dateFormat) }}
             {{ else }}

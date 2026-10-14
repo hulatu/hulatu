@@ -55,7 +55,11 @@
     var boxes = document.querySelectorAll('div.highlight');
     if (!boxes.length) return;
 
-    Array.prototype.forEach.call(boxes, function (box) {
+    /* 2026-10-14：`Array.prototype.forEach.call(boxes, …)` → `boxes.forEach(…)`。
+       NodeList.prototype.forEach 是 IE Edge 15+ / Chrome 51+ / Firefox 50+ / Safari 10+
+       就有的基线方法，本站的 `IntersectionObserver` / `:has()` / `content-visibility`
+       比它新得多 —— 这一层兼容完全是白写的。 */
+    boxes.forEach(function (box) {
       /* 已经加过就跳过（防止被重复初始化，例如以后的局部刷新） */
       if (box.querySelector('.code-copy')) return;
 

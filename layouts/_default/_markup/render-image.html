@@ -25,8 +25,8 @@
        那会让构建依赖网络（图床挂了/断网就构建不了），而「构建零网络依赖」
        是本站的架构底线。代价：**加了新图要重跑一次那个脚本**。
 
-       ── 两类新增属性 ─────────────────────────────────────────────────
-       ① `width` / `height`（两份 <img> 都有）
+       ── 新增的属性和结构 ──────────────────────────────────────────
+       ① `width` / `height`（只有**一个** <img>，见下面「overlay 空壳」）
           查得到就输出；查不到**静默不输出**（不报错、不破版），
           与「新加图片忘了跑脚本」这个已知代价对应。
           ⚠️⚠️ **必须同时有 `img { height: auto }`**（见 custom_head.html）。
@@ -34,12 +34,26 @@
              此时 height 属性会当成 height:900px 生效，而 max-width 把宽压到 720，
              结果图被**竖向拉伸变形**（实测 902px 高）。这不是可选项。
 
-       ② `loading="lazy"`（overlay 那份）
-          overlay 是 `display:none` + `position:fixed`，**不参与布局**，
-          所以它加不加 lazy 对 CLS 毫无影响。加它只是「隐藏元素不该抢带宽」的
-          语义正确性 —— 收益很小，但零风险。
-          ⚠️ overlay 与内联那份 **src 完全相同**，浏览器只会发 1 个网络请求
-             （DOM 里 2 个 <img>，请求 1 次）。所以别指望它省下什么。
+       ② `loading="lazy"`
+          放在唯一那个内联 `<img>` 上。原来 overlay 里也有一份、也带 lazy，
+          已随 overlay 一起删掉（overlay 本来就是 `display:none` + `position:fixed`，
+          它加不加 lazy 对 CLS / 带宽都没有影响 —— 见下面「overlay 空壳」）。
+
+       ── overlay 是空壳（2026-10-14 起）─────────────────────────────
+       以前每张正文图输出**两个** `<img>`（内联一份 + overlay 一份，src 相同）。
+       浏览器只发 1 个请求，但 DOM 里 `<img>` 节点翻倍 —— 实测图最多的文章
+       42 个 `<img>`，全站 321 张图 ≈ 642 个节点。
+       现在 overlay 里的 `<img>` 整段删除，改成：
+         · figure 上带 `style="--zoom-src:url('...')"`（见本文件尾部那段注释）
+         · custom_head.html 第 26 段：
+             .image-zoom-toggle:checked ~ .image-zoom-overlay {
+               background-image: var(--zoom-src); background-size: contain; ... }
+       四条性质：DOM 里 <img> 从 2N 降到 N；内联那个 **不离流 → 零回流**；
+       **仍是 0 个 JS**；主题那 17 条 `.image-zoom-*` 规则一条都没失效
+       （`::before` 的 ✕ 圆、`::after` 的 ✕、`cursor: zoom-out` 全保留）。
+       ⚠️ 「放大后那张图是 background 而不是 <img>」的代价：它不再撑开文档高度，
+          也无法被「图片另存为」以外的方式复制 —— 本站认为这是可接受的
+          （放大态本来就是全屏 Modal）。
 
        ── 三处容易写错的地方 ──────────────────────────────────────────
        ① `hugo.Data` 里带连字符的 key 要用 `index`：
@@ -70,13 +84,28 @@
   {{- with index . $dest -}}
     {{- $dim = printf ` width="%d" height="%d"` (int (index . 0)) (int (index . 1)) -}}
   {{- end -}}
+{{- end }}
+{{- /* `--zoom-src`：2026-10-14 起 overlay 不再重复一个 <img>，URL 改走这个
+       自定义属性，由 custom_head.html 第 26 段用 background-image 画。
+       ⚠️ 单引号包住是因为要写进 style 属性；URL 里若真出现单引号（本站 0 处）
+          就**整段放弃**（不输出），退化表现是「遮罩 + ✕ 仍在、只是没有放大的图」，
+          不会破版、也不会把 HTML 属性撑破。 */ -}}
+{{- $zoomStyle := "" -}}
+{{- if and $zoom (not (strings.Contains $dest "'")) -}}
+  {{- $zoomStyle = printf ` style="--zoom-src:url('%s')"` $dest | safeHTMLAttr -}}
 {{- end -}}
-<figure class="image-caption{{ if $zoom }} image-zoom-container{{ end }}">
+<figure class="image-caption{{ if $zoom }} image-zoom-container{{ end }}"{{ $zoomStyle }}>
     {{- if $zoom }}
     <input type="checkbox" id="{{ $id }}" class="image-zoom-toggle" aria-label="放大图片：{{ $alt }}" />
     <label for="{{ $id }}" class="image-zoom-label"><img src="{{ $dest | safeURL }}" alt="{{ $alt }}"{{ $dim | safeHTMLAttr }} loading="lazy" class="zoomable-image" /></label>
-    <!-- 添加overlay元素用于显示放大的图片 -->
-    <label for="{{ $id }}" class="image-zoom-overlay"><img src="{{ $dest | safeURL }}" alt="{{ $alt }}"{{ $dim | safeHTMLAttr }} loading="lazy" class="zoomable-image" /></label>
+    <!-- overlay：**内容是空的**。原来这里是**第二个 <img>**（和内联那份 src 完全
+         相同），2026-10-14 删掉 —— URL 走 figure 上的 --zoom-src，
+         由 custom_head.html 第 26 段画成背景图。三条收益：
+         ① DOM 里 <img> 从 2N 降到 N（图最多的文章 42 → 21 个）；
+         ② 内联那个 <img> 始终不离文档流 → 点击放大时**零回流**、滚动位置不乱；
+         ③ 仍然是 **0 个 JS**（延续主题的 checkbox 方案）。
+         主题那 17 条 .image-zoom-* 规则一条都没失效（✕ 按钮、zoom-out 光标全在）。 -->
+    <label for="{{ $id }}" class="image-zoom-overlay"></label>
     {{- else }}
     <img src="{{ $dest | safeURL }}" alt="{{ $alt }}"{{ $dim | safeHTMLAttr }} loading="lazy" />
     {{- end }}

@@ -42,6 +42,14 @@ disableKinds = ["taxonomy"]
   favicon = "favicon.svg"
   images = ["images/share.webp"]
 
+  # og:image / twitter:image 的宽高（share.webp 实测 1200×630，lossless VP8）。
+  # Hugo 内置的 opengraph 模板只输出 URL；补上宽高，社交平台不用先把图抓下来
+  # 就能定卡片比例（分享时省一次往返 + 少一帧空白）。
+  # 输出位置：layouts/partials/seo_tags.html（上游模板没有这一段）。
+  # ⚠️ 换分享图要**同步改这两行** —— 写错不会报错，只会让社交卡片比例算错。
+  ogImageWidth = 1200
+  ogImageHeight = 630
+
   # 页脚版权行。上游模板是 `{{ .Site.Params.copyright }}` 原样输出，
   # ⚠️ Go 的 html/template 会转义 `&` —— 所以必须写**字面量 ©**，
   #    写成 `&copy;` 会被转义成 `&amp;copy;`，页面上原样显示成 "&copy;" 这六个字符。

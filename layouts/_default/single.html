@@ -19,11 +19,14 @@
 {{ end }}
 {{- /* 日期行。front matter 写 `hideDate: true` 可以只藏掉这一行 ——
        目前 /about/ 用了它（独立页挂一个「最后修改于某天」的日期没有意义）。
-       注意只影响页面上的显示：<meta property="article:published_time"> 等仍按 .Date 输出。 */ -}}
+       注意只影响页面上的显示：<meta property="article:published_time"> 等仍按 .Date 输出。
+       ⚠️ 2026-10-14：去掉了 `pubdate`。该属性 2017 年就被 HTML 规范移除，
+          现在 `datetime` 一个属性就是完整的语义（微数据那条路本站也不再走，
+          见 layouts/partials/seo_tags.html 的 JSON-LD）。 */ -}}
 {{ if and .Date (not .Params.hideDate) }}
 <p>
   <i>
-    <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
+    <time datetime='{{ .Date.Format "2006-01-02" }}'>
       {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
     </time>
   </i>

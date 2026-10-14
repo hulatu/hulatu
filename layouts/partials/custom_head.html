@@ -9,6 +9,22 @@
 <link rel="preconnect" href="https://giscus.app">
 <link rel="dns-prefetch" href="https://giscus.app">
 {{- end }}
+
+{{- /* ---------------------------------------------------------------
+       移动端地址栏 / 任务切换器配色。
+
+       本站是**纯 `prefers-color-scheme`**（没有手动主题开关，也没有
+       toggle 脚本），所以这里给浅 / 深两档各写一条 media 限定即可，
+       不需要 JS。取值与主题的两个底色 token 一致：
+         浅色 --bg-color-primary  #fdfdfd
+         深色 --bg-color-primary  #121212
+       ⚠️ 换主题底色要同步改这里（写错不报错，只是地址栏颜色和页面不搭）。
+
+       ⚠️ 必须写 media 的**两条**，而不是在 `:root` 上写 `color-scheme` 之外
+          再靠 `<meta>` 推断 —— theme-color 只接受值，媒体条件版才是标准写法。
+      --------------------------------------------------------------- */ -}}
+<meta name="theme-color" content="#fdfdfd" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 <style>
   /* ---------------------------------------------------------------
      00 导航折行：**在导航项之间断行，而不是在词的中间断**
@@ -1755,6 +1771,100 @@
     }
   }
   {{- end }}
+
+  {{- /* ===============================================================
+       26 六项小修（2026-10-14「加载 / 过时写法」审计的落地点，见 MAINTENANCE.md）
+
+       ① `input { font-size: 16px }` —— iOS Safari 聚焦时强行放大整页
+          主题 `style.html:102` 是 `input{font-size:14px}`（< 16px）。
+          本站 198 个页面渲染 `list.html` 的 `#search-input` → 一聚焦整页被顶放大。
+          站点层**后置、同特异性**覆盖即可赢（`content{line-height}` 就是这个套路）。
+          textarea 上游本来就是 16px，这一条把它和 input 对齐。
+
+       ② `:root { color-scheme: light dark }`
+          本站是纯 `prefers-color-scheme` 暗色，但**没有声明 color-scheme**，
+          于是 UA 不知道「这页自己也支持暗色」→ 深色下的原生滚动条、
+          `/weekly/` 那个搜索框、表单控件仍是浅色的。一条声明，零成本。
+          ⚠️ 它**不**影响 `prefers-color-scheme` 媒体查询本身 —— 两套机制独立。
+
+       ③ `div.toc` 的 `100vw` → `100%`
+          主题 `style.html:255` 是 `left: calc((100vw + var(--width-max))/2)`。
+          `100vw` **含滚动条宽度**，而 `position: fixed` 的百分比按 ICB
+          （= documentElement.clientWidth，**不含**滚动条）解析。
+          → Windows / Linux 经典滚动条下目录会右偏约半个滚动条宽（≈7.5px），
+          把「正文 ↔ 目录」的空隙吃大；macOS 的 overlay 滚动条下
+          `100% == 100vw`，**改前改后逐像素一致**（已核，零风险）。
+          `max-height: 80vh` → `80dvh`：主题那条 `80vh` 保留当退化值
+          （不支持 dvh 的浏览器把新声明丢掉，自然回落到 `80vh`）。
+          实际影响面很小：`div.toc` 第 20 段只在 ≥1200px 显示。
+
+       ④ 图片放大：overlay 不再重复一个 `<img>`
+          原来 `render-image.html` 给每张正文图输出**两个** `<img>`
+          （内联一份 + overlay 一份；同 src，网络只 1 次请求，但 DOM 翻倍）
+          —— 图最多的文章实测 42 个 `<img>`，全站 321 张图 ≈ 642 个节点。
+          现在 overlay 里的 `<img>` 整段删掉，URL 走 figure 上的
+          `--zoom-src` 自定义属性，overlay 自己用 `background-image` 画
+          （`background-size: contain`）。四条性质同时成立：
+            · 内联那个 `<img>` **不离流** → 零回流，滚动位置不乱
+            · 仍是 **0 个 JS**（延续主题的 checkbox 方案）
+            · 主题那 17 条 `.image-zoom-*` 规则**一条都没失效**
+              （::before 的 ✕ 圆、::after 的 ✕、cursor: zoom-out 全保留）
+            · `--zoom-src` 是自定义属性，figure 上的子元素都能继承
+
+       ⑤ checkbox 变可聚焦 → 键盘 / 读屏终于能放大图片
+          主题 `.image-zoom-toggle { display: none }` 让 checkbox 完全不可达
+          （Tab 到不了、Enter/Space 用不上，手机上一片区域「看不见但能点」）。
+          改成 1px + opacity:0 的经典「可聚焦但不可见」写法，并补
+          focus-visible 焦点环 —— 主题那条 `.image-zoom-label:focus` 永远不会
+          命中（label 不是焦点目标，写在它是白写）。
+          ⚠️ 代价：每张正文图多一个 Tab 停靠点。这是它应有的行为 ——
+            「图片可放大」是功能不是装饰。
+
+       ⑥ `padding: 5vh 5vw` —— 让 contain 的拟合结果回到主题原来的
+          `max-width: 90vw / max-height: 90vh`
+          （overlay 的 `background-origin` 默认是 padding-box）。
+       --------------------------------------------------------------- */ -}}
+  input {
+    font-size: 16px;
+  }
+
+  :root {
+    color-scheme: light dark;
+  }
+
+  div.toc {
+    left: calc((100% + var(--width-max)) / 2);
+    width: calc((90% - var(--width-max)) / 2);
+    max-height: 80dvh;
+  }
+
+  .image-zoom-toggle {
+    /* ⚠️ 这条必须带上 `display`：只写定位会让主题的 `display: none` 留下来，
+       checkbox 照旧不可聚焦（也就是这次修改要修的那件事）。
+       absolute + 1px + opacity:0 = 经典「可聚焦但不可见」。 */
+    display: block;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .image-zoom-toggle:focus-visible ~ .image-zoom-label {
+    outline: 2px solid var(--link-color);
+    outline-offset: 2px;
+  }
+
+  .image-zoom-toggle:checked ~ .image-zoom-overlay {
+    padding: 5vh 5vw;
+    background-image: var(--zoom-src);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+  }
 </style>
 
 {{- /* ============================================================
@@ -1776,7 +1886,11 @@
           var endpoint = "{{ . }}";
           var s = document.createElement("script");
           s.async = true;
-          s.src = "//gc.zgo.at/count.js";
+          /* ⚠️ 2026-10-14：原来写的是协议相对 `//gc.zgo.at/count.js`。
+             协议相对 URL 是 HTTP/1 时代的历史遗留 —— 页面从
+             file:// 打开、或任何非 http(s) 上下文下它会解析失败。
+             写死 https:// 全场景一致。 */
+          s.src = "https://gc.zgo.at/count.js";
           s.dataset.goatcounter = endpoint;
           document.body.appendChild(s);
         }

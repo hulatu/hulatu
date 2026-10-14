@@ -3,13 +3,19 @@ version: beta
 name: hulatu-bearneo
 description: >
   ⚠️ 2026-10-10 晚**整份重写**。本站的视觉体系**不再是自建的「纸账 + 印章」系统** ——
-  那一天整站迁移到了上游 hugo-bearneo 主题（`themes/hugo-bearneo/`，27 个文件逐字节未改），
+  那一天整站迁移到了上游 hugo-bearneo 主题（`themes/hugo-bearneo/`，27 个文件）。
+  ⚠️ **2026-10-14 起不再是「27 个文件逐字节未改」**：`style.html` 的
+  `content { line-height }` 由上游的 1.6 改成 1.8。**全站只此 1 处改上游**，
+  登记在第 5 节；其余 26 个文件仍与上游逐字节一致（`diff -r` 可验）。
   自建的 6 个 CSS 模块 / 6 个 JS 全部删除。
   所以下面登记的令牌**全部是上游主题的真值**，唯一真值在
   `themes/hugo-bearneo/layouts/partials/style.html` —— 整份 CSS 内联进每个页面
-  （332 个产物 HTML 各一份，普通页 8675 字节 / gzip 2610、文章页 12610 / 3400、
-  含代码块的 5 页 14861 / 3893；改完记得回读体积，别凭印象）。
-  站点层只在 21 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
+  （332 个产物 HTML 各一份，普通页 9237 字节 / 文章页 13172、
+  含代码块的 5 页 15423、`/archive/` 10966、`/donate/` 9663、
+  `/run/` 11071、`/404.html` 10651；改完记得回读体积，别凭印象）。
+  ⚠️ 上表是 **2026-10-14 加了第 26 段之后**的值 —— 每个页型都比当天之前**统一 +562 B**，
+  逐值与更早那份基线在「已删除的功能」一节之后的 2026-10-14 小节里对照。
+  站点层只在 22 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
   **改样式前先读那一节**：绝大多数视觉问题应该在上游那一份里改，
   而不是在站点层再叠一层规则 —— 那是上一版自建主题最后变得无法维护的原因。
 
@@ -42,13 +48,25 @@ typography:
   size-primary: "1em"
   size-secondary: "0.8em"
   body-line-height: 1.5
-  content-line-height: 1.6
+  content-line-height: 1.8       # ⚠️ 2026-10-14 改过，上游是 1.6
   note: >
     上游只有 `Verdana, sans-serif`。Verdana 不含汉字，中文一直靠浏览器兜底 ——
     macOS 上看不出差别，Windows / Android 上会落到宋体或老版思源黑。
     站点层把中文字体显式写进栈里（`custom_head.html` 第 01 段），这是**唯一**动过字体的地方。
-    行高**刻意保持上游的 1.5 / 1.6**，不覆盖：我一度改成 1.78（中文方块字没有 x-height 的
-    视觉补偿，1.6 读长文偏挤），但用户对照参考站 yinji.org 后选了「和参考站一致」。
+
+    ⚠️ **行高 2026-10-14 由 1.6 改成 1.8 —— 这是全站唯一一处改上游主题的地方**
+    （`themes/hugo-bearneo/layouts/partials/style.html` 的 `content`，见第 5 节）。
+    判据：拉丁字母有 x-height 与 ascender/descender 作视觉补偿，1.6 已经够松；
+    **中文是方块字、没有 x-height**，同一行距读长文明显更挤 —— 这就是中文排版的
+    行距惯例要比西文松的原因。
+    2026-10-11 曾改到 1.78 又被退回，理由是「和参考站 yinji.org 一致」；
+    2026-10-14 做花墨（flowersink.com）借鉴审计时实测它的正文正是
+    **16px / 28.8px = 1.8** —— 第二个数据点出现，用户据此拍板。
+    `body` 仍是上游的 1.5：页头 / 导航 / 页脚是外壳，不是阅读面，不跟着放。
+    实测：`content p` = 16px / 28.8px = **1.80**；`header nav a` / `footer` / `body`
+    全部仍 **1.50**；首页的 `<content>` 被站点层去掉，整页仍 1.50（见第 4 节）。
+    体积**零变化** —— 1.6→1.8 字节数相同，加的中文注释被 minify 剥掉：
+    8675 / 12610 / 10404 / 9101 / 10509 / 10089 逐值不变。
 
 layout:
   width-max: 720px            # 唯一的宽度令牌。没有 --content-width / --radius / 间距阶梯
@@ -68,8 +86,8 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 
 # 设计规范 —— hulatu.com
 
-> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 21 个文件的最小偏离。
-> 这份文档的作用不是「描述我们自己的设计系统」，而是**登记那 21 个文件**，
+> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 22 个文件的最小偏离。
+> 这份文档的作用不是「描述我们自己的设计系统」，而是**登记那 22 个文件**，
 > 以及把「为什么不改」的理由留下来 —— 免得下一轮改造又把上游的东西重做一遍。
 
 ---
@@ -109,7 +127,7 @@ hugo-bearneo（上游主题，本站现在用的就是它，逐字节未改）
       ↓ 站点层借鉴
 yinji.org（同样基于 hugo-bearneo，是「别人怎么用这个主题」的现成答案）
       ↓
-hulatu.com（本站：上游主题 + 21 个站点层覆盖文件）
+hulatu.com（本站：上游主题 + 22 个站点层覆盖文件）
 ```
 
 **本站自己的设计主张只剩三条**，全部落在站点层，且都很小：
@@ -207,7 +225,10 @@ hulatu.com（本站：上游主题 + 21 个站点层覆盖文件）
   唯一的阴影是图片放大遮罩上的 `0 8px 32px rgba(0,0,0,.3)`。
 - **`hr` 是虚线**：`hr { border: 0; border-top: 1px dashed }`。
   首页「Hi! 简介」和「Recent Posts:」之间那条分隔就是它，**不用加类名**。
-- **`content` 的 line-height 是 1.6**，`body` 是 1.5。正文比外壳松一点，这是上游的设计。
+- **`content` 的 line-height 是 1.8**（⚠️ 2026-10-14 改过，上游是 1.6，见第 5 节），
+  `body` 是 1.5。正文比外壳松，外壳保持上游不动 —— 这个「松紧差」现在是 1.8 / 1.5。
+  ⚠️ 主题里 `content` 是**唯一**带行高的容器规则，所以 `<content>` 里的
+  `p` / `li` / `blockquote` / **标题** 全都继承这 1.8（标题单行时看不出差别）。
 
 ---
 
@@ -329,9 +350,12 @@ hulatu.com（本站：上游主题 + 21 个站点层覆盖文件）
   行距都 29.0px —— **逐像素一致**。
 - ⚠️ **简介正文不包 `<content>`**（2026-10-11 改，与 yinji 一致、与上游不同）。
   上游 `index.html` 是 `<content>{{ .Content }}</content>`；包着的话首页简介会吃
-  `content { line-height: 1.6 }` 两条，结果是行高 1.6（yinji 走 body 的 1.5）。
+  `content { line-height: … }` 两条（2026-10-14 起是 **1.8**），结果是行高被拉松
+  —— 首页简介走 `body` 的 1.5（yinji 也是 1.5）。
   去掉这一层之后两站首页的节奏逐项一致。`<hr>` / `<h3>` / `<ul.recent-posts>`
   本来就在 `<content>` 外面，不受影响。
+  ⚠️ 行高改成 1.8 之后**这一层的价值更大了**：留着 `<content>` 的话，首页简介会比
+  正文还松。实测改后首页整页仍 1.50、`li` 1.30，与改前逐值一致。
 
 #### 那四个平台链接（2026-10-11）
 
@@ -913,7 +937,18 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 
 ---
 
-## 5. 站点层偏离（21 个文件）
+## 5. 站点层偏离（22 个文件）+ 改上游 1 处
+
+> ⚠️ **2026-10-14 起多了一类偏离：直接改上游主题本身。**
+> 在此之前 27 个主题文件是逐字节未改的；现在
+> `themes/hugo-bearneo/layouts/partials/style.html` 有 **1 行**改动
+> —— `content { line-height: 1.6 → 1.8 }`，**全站唯一**。其余 26 个文件仍与上游逐字节一致。
+>
+> **为什么改上游而不是在站点层再叠一层**：文首那段定下的规矩 + MAINTENANCE.md 第 4 节
+> 的「改颜色 / 字体 / 宽度 / 圆角 → `themes/…/style.html`，改完在第 5 节登记」。
+> 行高属于**设计取舍**（不是修上游的 bug），按规矩落在上游那一份。
+> ⚠️ 代价：`diff -r` 对上游不再全清 —— 只剩这 1 行差异，验的时候先 diff 再判。
+> 注释写在 CSS 里、minify 会剥掉，所以**体积零变化**（8675 / 12610 / 10404 / 9101 / 10509 / 10089 逐值不变）。
 
 | 文件 | 偏离 | 为什么 |
 | --- | --- | --- |
@@ -928,11 +963,12 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动 | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架 |
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
-| `layouts/partials/custom_head.html` | 25 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 各只给一类页；14 / 17 / 20 / 21 / 22 / 23 全站） | 见下 |
+| `layouts/partials/seo_tags.html` | **新增**（2026-10-14）：整份覆盖上游的同名 partial —— ① 删 `<meta name="keywords">` 与 `<meta name="title">`；② 删掉整块微数据（`itemscope` / `itemprop` 那套）；③ 补 `og:image:width` / `height`；④ 换成按页型输出的 JSON-LD | 上游那份是「HTML 规范还在 2015 年」的写法（见第 8 节第 1 条：它原本就是本文件存在的理由）。现在 332 页全部有 `ld+json`、`keywords` / `itemprop` / `pubdate` 全站归零 |
+| `layouts/partials/custom_head.html` | 26 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 全站） | 见下 |
 | `layouts/404.html` | **新增** | 上游默认只有 `<h1>404</h1>` + 一行颜文字 |
 | `layouts/_default/_markup/render-heading.html` | **新增**：标题末尾的 `#` 锚点 | 上游没有这个钩子（Goldmark 只给 id、不给可点入口） |
 | `layouts/partials/orphan-safe.html` | **新增**：标题末 2 字包 `nowrap` | 中文标题的孤行问题（取回旧主题的做法） |
-| `layouts/_default/_markup/render-image.html` | **新增**（2026-10-12）：正文图片补 `width` / `height`，overlay 那份补 `loading="lazy"` | 上游只输出 `src` / `alt`，图片加载前高度为 0 → 页面跳动（CLS）。宽高取自 `data/image-dims.json`（`scripts/sync-image-dims.py` 采集）。⚠️ 必须配第 21 段的 `img { height: auto }`，否则 `height` 会当硬高度生效、图被**竖向拉伸** |
+| `layouts/_default/_markup/render-image.html` | **新增**（2026-10-12）：正文图片补 `width` / `height`。⚠️ **2026-10-14 改了放大方案**：overlay 里原本还重复渲染一个 `<img>`，现在整段删掉、URL 改走 figure 上的 `--zoom-src` 自定义属性（见下） | 上游只输出 `src` / `alt`，图片加载前高度为 0 → 页面跳动（CLS）。宽高取自 `data/image-dims.json`（`scripts/sync-image-dims.py` 采集）。⚠️ 必须配第 21 段的 `img { height: auto }`，否则 `height` 会当硬高度生效、图被**竖向拉伸** |
 | `layouts/partials/back-top.html` | **新增**：返回顶部（只长文页） | 上游没有；**纯 CSS 滚动驱动动画，零 JS**。⚠️ 同日曾有过「阅读进度条」，已按用户要求删除 |
 | `layouts/partials/code-copy.html` + `assets/js/code-copy.js` | **新增**：代码块复制按钮（只含代码的页） | 上游没有 |
 | `layouts/partials/giscus.html` + `assets/js/giscus.js` | **新增** | 上游没有评论区 |
@@ -1017,7 +1053,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 所以 `/privacy/`、`/posts/`、`/donate/` **仍然留在 sitemap 里**。爬虫读到 meta 不会收录，
 但地址仍会先交给它一次。要彻底干净，得再加一份 sitemap 模板把 `not .Params.noindex` 排掉。
 
-### `custom_head.html` 的 25 段
+### `custom_head.html` 的 26 段
 
 | 段 | 内容 | 生效范围 |
 | --- | --- | --- |
@@ -1040,13 +1076,39 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | 16 | `.back-top`（返回顶部，含 reduced-motion 覆盖） | **仅长文页（126 页）** |
 | 17 | `html { scroll-behavior: smooth }` + 其 reduced-motion 覆盖 | **全站** |
 | 18 | `.code-copy`（代码块复制按钮） | **仅含代码块的页（5 页）** |
-| 20 | `@media (max-width: 1200px) { div.toc { display: none } }`（目录闸门 800 → 1200） | 全站 |
+| 20 | `@media (max-width: 1200px) { div.toc { display: none } }`（目录闸门 800 → 1200）<br>⚠️ **几何修正已挪到第 26 段**（`100vw` → `100%`、补 `width`、`80vh` → `80dvh`） | 全站 |
 | 21 | `img { height: auto }` —— 第 22 段那批 `width` / `height` 属性的**前置条件** | 全站 |
 | 22 | `--font-secondary` 换成带跨平台回退的等宽栈（`ui-monospace` 起头） | 全站 |
 | 23 | `.toc-nav a` 的 `transition: all` 收窄成 `color` + `background-color`，并加 reduced-motion 覆盖 | 全站 |
 | 24 | **刻意留空**：`/archive/` 标签块的 `content-visibility` 评估后撤回（见下方小节） | — |
 | 25 | `.stats` / `.stat-*` / `.chart` / `.month-*` / `.run-year*` / `.updated`（跑步页 `/run/` 的统计格子、月度柱状图、按年折叠的记录表、更新时间行） | **仅 `/run/`** |
+| 26 | **六项小修**（2026-10-14「加载 / 过时写法」审计的落地点）：① `input{font-size:16px}` ② `:root{color-scheme:light dark}` ③ `div.toc` 的 `100vw`→`100%` + 补 `width` + `80dvh` ④ `.image-zoom-*` 换成「overlay 只画背景、不重复 `<img>`」+ checkbox 变可聚焦 | **全站** |
 | — | 文件末尾：**GoatCounter**（上游 `baseof.html` 没有统计挂载点，只能挂这个钩子） | 全站 |
+
+#### ⚠️ 第 26 段 ④⑤：图片放大从「两个 `<img>`」改成「一份背景」（2026-10-14）
+
+上游（也就是本站原样继承的）方案是**每个正文图输出两个 `<img>`** ——
+内联一份 + overlay 里再放一份同 src 的图。网络请求只有 1 次（浏览器按 URL 去重），
+但 **DOM 节点翻倍**：图最多的文章（周刊第 10 期）实测 **42 个 `<img>`**，全站 **644 个**。
+
+2026-10-14 换成「overlay 只画背景」：URL 走 figure 上的 `--zoom-src` 自定义属性，
+overlay 自己用 `background-image: contain` 画。**四条性质同时成立**：
+
+- 内联那个 `<img>` **不离流** → 零回流，滚动位置不乱（实测 `beforeH=786 / afterH=786`）
+- 仍是 **0 个 JS** —— 延续主题的 checkbox 方案，没引入 `<dialog>` / Popover API
+- 主题那 17 条 `.image-zoom-*` 规则**一条都没失效**（`::before` 的 ✕ 圆、`::after` 的 ✕、
+  `cursor: zoom-out` 全保留）
+- `--zoom-src` 是自定义属性，figure 上的子元素都能继承
+
+**代价**（如实记）：图最多的文章全页 gzip **+210 B**。因为 `--zoom-src` 里那条
+独一无二的图片 URL 没法被 gzip 当成重复内容去重 —— 换掉的是 `<img loading="lazy"
+width height class...>` 那串模板字面量，换来一条每页只出现一次的长字符串。
+
+**顺带修了键盘可达性**（第 26 段 ⑤）：主题 `.image-zoom-toggle { display: none }`
+让 checkbox 完全不可达 —— Tab 到不了、Enter/Space 用不上，手机上一片区域「看不见但能点」。
+改成 1px + `opacity:0` 的经典「可聚焦但不可见」写法，并补 `:focus-visible` 焦点环
+（主题那条 `.image-zoom-label:focus` **永远不会命中** —— label 不是焦点目标，写在它是白写）。
+⚠️ 代价：每张正文图多一个 Tab 停靠点。这是它应有的行为 ——「图片可放大」是功能不是装饰。
 
 #### ⚠️ 第 24 段：为什么 `/archive/` 的 `content-visibility` 被撤回（2026-10-12）
 
@@ -1351,6 +1413,15 @@ for f in 全部产物:
    与生成脚本 `scripts/gen-og.js` **已一并删除**。所以要恢复的话不只是加模板 ——
    还得先从 git 历史取回 `gen-og.js` 重跑一遍图片
    （`git log --diff-filter=D --name-only -- scripts/gen-og.js` 能定位到删除那次提交）。
+   ⚠️⚠️ **2026-10-14 二次更新（这一段已经过时了一半）**：`layouts/partials/seo_tags.html`
+   **已经建了**，但**内容不是上面写的那个**。当天做的不是「按 slug 恢复分图」，而是
+   **重写这一份**：删 `keywords` / `name=title` / 整套微数据，改输出按页型分四类的 JSON-LD，
+   并补 `og:image:width` / `height`。所以：
+   - 「站点层从 12 个变 13 个」→ **22 个**（这一段写的数字是迁移早期的旧值）
+   - 「每页 og:image 都是同一张 share.webp」→ **仍然成立**，分图那件事**并没有做**
+   - 要恢复 per-slug og:image，现在只需在**现有这份** `seo_tags.html` 里加一段按 slug 取图的
+     覆盖，**不用再加文件**；但仍需先从 git 历史取回 `gen-og.js` 重跑图片
+   （`git log --diff-filter=D --name-only -- scripts/gen-og.js` 能定位到删除那次提交）。
 2. ~~**`/media/` 的删除留下了孤儿链路**~~ → **2026-10-11 已删除**
    （`scripts/sync-douban.py`、`data/media.json`、`static/images/media/`）。
    ⚠️ 原先还挂着一条「`sites/profile/data/profile.json` 的 `media_recent` 仍指向不存在的页面」——
@@ -1375,3 +1446,98 @@ for f in 全部产物:
    （三页已正确输出 `noindex, follow`，覆盖 196 页），**没有**恢复旧站的 `layouts/sitemap.xml`
    —— 那是用户当时的选择。爬虫读到 meta 不会收录，但地址仍会先交给它一次。
    要彻底干净，得再加一份 sitemap 模板把 `not .Params.noindex` 排掉。
+
+---
+
+## 9. 2026-10-14「加载 / 过时写法」审计的全部落地点
+
+用户先问「哪些 JS / CSS 可以改进或去除、哪些设计代码框架已经过时」，随后要求**全部实施**。
+只读审计 + 实施，逐条如下。**基线 = 本次改动前的干净构建**，全部数字实测
+（`hugo --gc --minify --cleanDestinationDir`，gzip 用 `gzip -c6`）。
+
+### 9.1 改了什么
+
+| # | 级别 | 改动 | 落点 |
+| --- | --- | --- | --- |
+| 1 | P0 | **删 `<meta name="keywords">`** | 新增 `layouts/partials/seo_tags.html`（站点层覆盖） |
+| 2 | P1 | `input { font-size: 14px }` → **16px**（iOS Safari 聚焦会强行放大整页） | `custom_head.html` 第 26 段 |
+| 3 | P1 | **删掉整块微数据**（`itemscope` / `itemprop` 无 `itemscope` 祖先即失效的死码） | `seo_tags.html` |
+| 4 | P2 | 删 `pubdate` 属性（2017 年被 HTML 规范移除） | `single.html` / `list.html` / `archive.html` 三处 `<time>` |
+| 5 | P2 | 删 `<meta name="title">`（与 `<title>` 重复，无人读） | `seo_tags.html` |
+| 6 | P2 | `referrer` 从 `no-referrer-when-downgrade` → **`strict-origin-when-cross-origin`**（与 `_headers` 对齐） | `baseof.html` |
+| 7 | P2 | 补 `og:image:width` / `height`（宽高取自 `hugo.toml` 的 `params.ogImageWidth` / `Height`） | `seo_tags.html` + `hugo.toml` |
+| 8 | P2 | `div.toc` 的 `100vw` → **`100%`** + 补 `width` + `max-height: 80vh` → `80dvh` | 第 26 段 |
+| 9 | P2 | 加两条 `theme-color`（light `#fdfdfd` / dark `#121212`）+ `:root{color-scheme:light dark}` | 两条 `theme-color` 在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 在第 26 段 |
+| 10 | P2 | GoatCounter 从协议相对 `//gc.zgo.at/count.js` → **`https://`** | `custom_head.html` 末尾 |
+| 11 | P2 | `Array.prototype.forEach.call(boxes, …)` → `boxes.forEach(…)` | `assets/js/code-copy.js` |
+| 12 | 取舍 | **图片放大换成「overlay 不重复 `<img>`」**（见第 5 节专条） | `render-image.html` + 第 26 段 |
+
+### 9.2 微数据为什么整块删掉
+
+上游 `seo_tags.html` 引的是 Hugo 内置的 `_internal/schema.html`，输出的是
+**microdata**（`itemscope` / `itemtype` / `itemprop`）。它有两个硬伤：
+
+1. **本站从来没有 `itemscope` 祖先** —— microdata 的 `itemprop` 只在 `itemscope` 元素的后代里
+   才有意义，所以那一整套属性**全部是死码**（实测改前全站 `itemprop` 属性输出 332 页）。
+2. microdata 已被 **JSON-LD 取代**（Google 官方推荐 JSON-LD，schema.org 也在 2021 年后只维护它）。
+
+新 `seo_tags.html` 按页型输出四类 JSON-LD：`WebSite`（首页）/ `BlogPosting`（文章+周刊，带
+`wordCount` / `datePublished` / `dateModified`）/ `WebPage` 极简 `{name,url}`（其他根级独立页与
+404）/ `CollectionPage`（section 与 term）。**刻意不带 `description`** —— 实测 `/archive/` +283、
+`/about/` +315 B gzip，而 `.Summary` 本来就重复 `og:description` 了。
+
+### 9.3 体积回归（全实测）
+
+**内联 `<style>` 总量**：每个页型**统一 +562 B**（第 26 段的六条规则）：
+
+| 页型 | 基线 | 改后 |
+| --- | --- | --- |
+| 普通页（首页 / `/weekly/` / `/about/` / `/now/` / `/roll/` / `/posts/`） | 8675 | 9237 |
+| 文章页（长文，带 TOC） | 12610 | 13172 |
+| 含代码块的 5 页 | 14861 | 15423 |
+| `/archive/` | 10404 | 10966 |
+| `/donate/` | 9101 | 9663 |
+| `/run/` | 10509 | 11071 |
+| `/404.html` | 10089 | 10651 |
+
+**全页 gzip**（删 meta 赚回来的远大于 CSS 那 562 B）：
+
+| 页型 | 基线 | 改后 | 净 |
+| --- | --- | --- | --- |
+| 首页 | 5941 | 5082 | **−859** |
+| `/weekly/` | 6153 | 5138 | **−1015** |
+| `/posts/` | 10610 | 9868 | **−742** |
+| `/404.html` | 5802 | 4962 | **−840** |
+| 标签词条页（`/tags/mac/`） | 5721 | 4802 | **−919** |
+| `/archive/` | 13758 | 13921 | +163 |
+| `/about/` | 7742 | 7943 | +201 |
+| `/now/` | 4413 | 4610 | +197 |
+| `/run/` | 7191 | 7384 | +193 |
+| `/roll/` | 5092 | 5285 | +193 |
+| `/donate/` | 4345 | 4541 | +196 |
+| 图最多的文章（周刊第 10 期，21 图） | 22167 | 22377 | **+210** |
+
+**六页变小的原因是删掉的元数据比加进去的 CSS 更重**（`keywords` + `name=title` + 微数据块
++ `pubdate`，三处 `<time>` 各省一个属性）；五页变大是因为它们**本来就没什么元数据可删**
+（列表页只有 20 来条链接），只剩 CSS 那 +562 的纯成本。
+**图最多的文章 +210 B 是「独一无二的 `--zoom-src` URL」躲不掉 gzip 去重**的代价，如实记在这。
+
+**DOM**：全站 `<img>` 节点 **644 → 323**，图最多的文章 **42 → 21**。
+
+### 9.4 全站验证（改后产物）
+
+- `keywords` / `itemprop` / `pubdate` 命中页数 = **0 / 0 / 0**
+- `ld+json` 覆盖 **332 / 332 页**；`theme-color` **332 / 332**；`og:image:width` **332 / 332**
+- 干净构建 **0 警告 0 错误**（`hugo --gc --minify --cleanDestinationDir`，不用 `--quiet`）
+- 无头实测放大功能：`beforeH=786 / afterH=786`（**零回流**）、overlay `display=flex`、
+  `backgroundSize=contain`、全视口 1432×786
+- 键盘可达性：`display=block` / `tabbable=true` / `:focus-visible` 焦点环 2px
+
+### 9.5 刻意**不做**的两项（连同判断依据，免得下轮再提）
+
+1. **删主题死 CSS**（`upvote` 70 B / `--upvoted-color` 17 B / `#minipic` 38 B /
+   `transition: all` 10 B gzip）—— 全都要么改 `themes/`（违反「逐字节未改」的硬规矩），
+   要么在站点层复制等价选择器再否定掉，**净负收益**（复制比删掉的还长）。
+2. **替换非标准的 `<content>` 元素** —— 主题全局在用，全站点替换会 **+约 600 B**，
+   同时留下 500 B 删不掉的死码（`.content` 选择器在主题 CSS 里还有 20 多处引用）。
+   净负收益，且 `<content>` 目前行为完全正常（`display: block`，语义上等效 `<main>`）。

@@ -1,0 +1,139 @@
+{{- /* ============================================================
+       站点层覆盖：themes/hugo-bearneo/layouts/partials/seo_tags.html
+
+       ── 为什么整份覆盖 ────────────────────────────────────────────
+       上游有三样东西本站不要，只能整份覆盖（改 themes/ 是硬规矩）：
+         ① `<meta name="keywords">` —— Google 2009-09 起官方声明不再使用，
+            Bing 同样忽略。上游的 `{{ else }}` 分支（非 .IsPage 页）
+            `range .Site.Taxonomies` 把**全站 187 个标签平铺进 head**，
+            实测单页 670 B / 边际 gzip 首页 −1062 B、/weekly/ −1173 B、
+            187 个标签词条页各 −1067 B —— 每页白搭约 1 KB，还白送一份标签清单。
+         ② `<meta name="title">` —— 与 `<title>` 重复，无搜索引擎使用。
+         ③ `{{ template "_internal/schema.html" . }}` —— 每页吐 6 个
+            `<meta itemprop=…>`，而全站 **`itemscope` / `itemtype` 计数为 0**
+            （实测）。Microdata 规范要求 itemprop 挂在有 itemscope 的祖先上，
+            否则不属于任何 item → 零语义价值。改成下面的 JSON-LD。
+
+       ── 顺带的三件事 ──────────────────────────────────────────────
+         ① 调用路径从 `_internal/opengraph.html` 换成 Hugo 0.146 起的
+            `_partials/opengraph.html`（前者是兼容别名，构建 0 警告，
+            收益为 0，纯粹跟上当前写法）。
+         ② 补 `og:image:width` / `og:image:height`。
+            Hugo 的内置模板只输出 URL；社交平台没有宽高就得先把图抓下来
+            才能定卡片比例（传图 = 分享时多一次往返、还慢一帧）。
+            值取自 hugo.toml 的 `ogImageWidth` / `ogImageHeight`，
+            **换分享图要同步改这两行**（写错不会报错，只会让比例算错）。
+         ③ `og:image` 用的是全站同一张 share.webp。将来若某篇单独配了
+            `images`，这里的宽高会对不上 —— 需要时按页覆盖，别硬改这一段。
+
+       ⚠️ 本文件与 themes/ 那一份保持「同结构、少三样、多两样」，
+          上游若改动 seo_tags.html，diff 时按这个口径对，别整份重抄。
+       ⚠️ 产物里搜 `keywords` / `itemprop` / `name=title` 都应为 0 处；
+         `og:image:width` / `ld+json` 每页都应有。
+       ============================================================ */ -}}
+
+<!-- Primary Meta Tags -->
+<meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ if .IsPage }}{{ .Summary }}{{ else }}{{ with .Site.Params.Description }}{{ . }}{{ end }}{{ end }}{{ end }}">
+
+<link rel="canonical" href="{{ .Permalink }}">
+
+<!-- Open Graph / Facebook -->
+{{ template "_partials/opengraph.html" . }}
+
+<!-- Twitter -->
+{{ template "_partials/twitter_cards.html" . }}
+
+{{- /* og:image 的宽高（见文件头注释）。站点级兜底 —— 上游的 opengraph
+       模板只输出 URL。值在 hugo.toml 的 [params] 里。
+       ⚠️ 先取出来再用：`with` 会把 `.` 重绑定，第二层就是「高」，直接写 `{{ . }}`
+          会把宽写成高（本仓踩过同类坑）—— 所以下面两个都是具名变量。 */ -}}
+{{- $ogW := .Site.Params.ogImageWidth -}}
+{{- $ogH := .Site.Params.ogImageHeight -}}
+{{- if and $ogW $ogH -}}
+<meta property="og:image:width" content="{{ $ogW }}">
+<meta property="og:image:height" content="{{ $ogH }}">
+{{- end -}}
+
+{{- /* ---------------------------------------------------------------
+       结构化数据：JSON-LD（取代上游的 itemprop 微数据）。
+
+       页型映射（.IsPage = kind page，即文章 + about/now/roll/privacy/
+       donate/run/archive 这些根级独立页；section / term / home 为 false）：
+         首页 .IsHome        → WebSite（name / url / inLanguage / publisher）
+         文章 + 周刊 (posts / weekly，126 页) → BlogPosting 全套
+         其他根级独立页（about / archive / now / roll / run / privacy / donate）
+                              → WebPage **极简**（只有 name / url）
+         404 .Kind == "404"  → WebPage（不是 CollectionPage —— 它是 noindex 页）
+         section / term      → CollectionPage（name / url）
+
+       ⚠️ **刻意不带 `description`**（2026-10-14 实测后撤掉）：上游 schema 那段
+          没有它，而我第一版按「结构化数据要自包含」补上了，结果 /archive/ 与
+          /about/ 各 +294 / +324 B gzip —— 这两页没有 front matter description，
+          取值回落到**整段 .Summary**（站点描述，76 字）。
+          而 `og:description` 已经带着同一句话，Google / 社交卡片读的是它。
+          → JSON-LD 只留 headline / url / 日期 / image / author / wordCount，
+            不重复一份长文本。
+
+       ⚠️⚠️ 三个坑与 `layouts/partials/breadcrumbs.html` 的 JSON-LD 完全相同：
+       ① 必须 `| jsonify | safeJS`，否则 Go 的 html/template 把整段包成
+          JS 字符串（最外层多一对引号），Schema.org 不认。
+       ② `jsonify` 之后**不能再接任何过滤器**（`replace` 会把 template.HTML
+          降级成 string，又回到 ①）。
+       ③ `jsonify` 自己会把 `<` `>` `&` 转义成 `\u003c` 等，
+          **不需要**再防 `</script>` 截断；手加转义反而坏事。
+
+       面包屑另有 `BreadcrumbList` 一段（在 partials/breadcrumbs.html，
+       只给文章页输出）—— 两者互不冲突，Google 支持同一页多段 JSON-LD。
+       --------------------------------------------------------------- */ -}}
+{{- $img := "" -}}
+{{- with .Site.Params.images -}}
+  {{- $img = index . 0 -}}
+{{- end -}}
+{{- if .IsHome -}}
+  {{- $ld := dict "@context" "https://schema.org" "@type" "WebSite"
+      "name" .Site.Title "url" .Site.BaseURL "inLanguage" .Site.Language.Locale
+      "publisher" (dict "@type" "Organization" "name" .Site.Title) -}}
+<script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>
+{{- else if .IsPage -}}
+  {{- /* 文章 / 周刊（posts + weekly，共 126 页）→ BlogPosting 全套；
+        其余**根级独立页**（/about/ /archive/ /privacy/ /donate/ /now/ /roll/ /run/）
+        → WebPage 极简三字段（name / url，不硬造 author / image / 日期）。
+
+        ⚠️ 为什么要拆开：2026-10-14 第一版按 `.IsPage` 一律发 BlogPosting 全套，
+           实测 /archive/ **+283 B gzip**、/about/ **+315 B** —— 那些字段对
+           「归档页」没有任何意义，纯白送。
+           而这批页面 fallback 到旧的 itemprop 只有 6 个短 meta ≈ 400 B，
+           极简 WebPage ≈ 120 B，反而比改之前**更小**。 */ -}}
+  {{- if in (slice "posts" "weekly") .Type -}}
+  {{- $ld := dict "@context" "https://schema.org" "@type" "BlogPosting"
+      "headline" .Title
+      "url" .Permalink
+      "mainEntityOfPage" (dict "@type" "WebPage" "@id" .Permalink)
+      "wordCount" .WordCount
+      "author" (dict "@type" "Person" "name" .Site.Params.author.name "url" .Site.BaseURL)
+      "publisher" (dict "@type" "Organization" "name" .Site.Title)
+      "image" (slice (absURL $img)) -}}
+  {{- with .Date -}}
+    {{- $ld = merge $ld (dict "datePublished" (.Format "2006-01-02T15:04:05-07:00")) -}}
+  {{- end -}}
+  {{- with .Lastmod -}}
+    {{- $ld = merge $ld (dict "dateModified" (.Format "2006-01-02T15:04:05-07:00")) -}}
+  {{- end -}}
+<script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>
+  {{- else -}}
+  {{- $ld := dict "@context" "https://schema.org" "@type" "WebPage"
+      "name" .Title "url" .Permalink -}}
+<script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>
+  {{- end -}}
+{{- else if eq .Kind "404" -}}
+  {{- /* 404 页：发 WebPage 而不是 CollectionPage。
+        它本来就是 `noindex, follow`（见 baseof.html），结构化数据只是别让它
+        语义上错成一个「集合」。标题取 .Site.Title —— 404 没有自己的标题。 */ -}}
+  {{- $ld := dict "@context" "https://schema.org" "@type" "WebPage"
+      "name" .Site.Title "url" .Permalink -}}
+<script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>
+{{- else -}}
+  {{- $ld := dict "@context" "https://schema.org" "@type" "CollectionPage"
+      "name" (or .Title .Site.Title) "url" .Permalink -}}
+<script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>
+{{- end -}}

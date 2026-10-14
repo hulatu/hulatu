@@ -104,7 +104,13 @@
     }
 
     content {
-        line-height: 1.6;
+        /* ⚠️ 本站改过：上游是 1.6（2026-10-14 改成 1.8）。
+           理由：拉丁字母有 x-height 与 ascender/descender 作视觉补偿，1.6 够松；
+           中文是方块字、没有 x-height，同一行距读长文明显更挤。
+           1.8 = 16px / 28.8px，与参考站花墨 flowersink.com 实测一致。
+           详情与「推翻过的旧结论」见 DESIGN.md 第 5 节。
+           本注释不计体积 —— minify 会剥掉（原 6424 B 的那份没有注释）。 */
+        line-height: 1.8;
     }
 
     content ul,
