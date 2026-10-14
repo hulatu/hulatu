@@ -1085,6 +1085,33 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | 26 | **六项小修**（2026-10-14「加载 / 过时写法」审计的落地点）：① `input{font-size:16px}` ② `:root{color-scheme:light dark}` ③ `div.toc` 的 `100vw`→`100%` + 补 `width` + `80dvh` ④ `.image-zoom-*` 换成「overlay 只画背景、不重复 `<img>`」+ checkbox 变可聚焦 | **全站** |
 | — | 文件末尾：**GoatCounter**（上游 `baseof.html` 没有统计挂载点，只能挂这个钩子） | 全站 |
 
+#### 周刊页的「请订阅 RSS」（2026-10-14 用户要求，当天改为普通链接）
+
+`layouts/_default/list.html` 的计数行原本对所有列表页一律输出 `共 N 篇。`。
+现在 **/weekly/ 这一页**输出：
+
+```
+共 25 期周刊内容，请订阅 RSS
+```
+
+三条实现要点：
+
+1. **判断条件用 Kind + Section**（`eq .Kind "section"` + `eq .Section "weekly"`）。
+   词条页是 Kind "term"，不会误进分支；`/posts/`、`/tags/xxx/` 等页
+   仍走原来的 `共 N 篇。`。
+2. **`#post-count` 是 `<span>`，订阅链接刻意放在它外面**，中间是中文逗号 ——
+   这样搜索框过滤时只改 span 的 `textContent`，**链接不会被 `innerHTML` 覆盖掉**
+   （否则搜一次链接就永久消失，且构建 0 警告、肉眼看不出）。已实测验证。
+3. **链接指向周刊自己的 feed** `/weekly/index.xml`，不是全站的 `/index.xml`
+   （后者混着 126 篇文章）。走 `relURL` 不写死路径，站点将来挂子路径不用改模板。
+
+⚠️ **样式：不要加。** 当天先做过一版「1px 边框 + RSS 图标」的小徽章
+（`custom_head.html` 第 27 段，带 `eq .RelPermalink "/weekly/"` 守卫），
+用户看过实物后要求「简化」，**整段删掉、订阅入口改成普通文字链接**，
+与页面其他链接长得一样（走主题默认的 `a` 样式），全站 **0 字节 CSS 成本**。
+所以现在 `custom_head.html` 仍是 **26 段**，第 27 段号**刻意不占**。
+若将来又想要徽章，样式得重新写，且必须带按页守卫。
+
 #### ⚠️ 第 26 段 ④⑤：图片放大从「两个 `<img>`」改成「一份背景」（2026-10-14）
 
 上游（也就是本站原样继承的）方案是**每个正文图输出两个 `<img>`** ——

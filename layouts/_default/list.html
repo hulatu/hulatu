@@ -3,6 +3,13 @@
        除这 5 处文案外一字未改。 */ -}}
 {{ define "main" }}
 <content>
+  {{- /* 周刊页的计数行要带一个 RSS 订阅按钮（2026-10-14 用户要求把「共 N 篇。」
+       改成「共 N 期周刊内容，请订阅 RSS」）。
+       判断条件用 Kind + Section：Kind "section" 只命中 /weekly/ 这一页本身，
+       词条页（/tags/xxx/）是 Kind "term"，不会误进这个分支。
+       ⚠️ 链接指向周刊**自己的** feed（/weekly/index.xml），不是全站的 /index.xml
+         —— 后者混着 126 篇文章，订阅它的人想要的是周刊。 */ -}}
+  {{ $isWeekly := and (eq .Kind "section") (eq .Section "weekly") }}
   {{- /* 站点层改动：上游没有 taxonomy 模板，于是 /tags/ 那一页掉进这里，
          被当成一次「筛选」渲染 —— 标题写「Filtering for Tags」，
          正文把全站文章又列一遍。用户决定不要标签云，所以现在直接在
@@ -49,8 +56,16 @@
         {{ end }}
 
         {{ if .Site.Params.showPostCount }}
-        const countText = `共 ${visiblePosts} 篇。`;
-        document.getElementById('post-count').innerHTML = countText;
+        /* ⚠️ 周刊页用「共 N 期周刊内容」，其余页沿用「共 N 篇。」。
+           ⚠️ 这里只改 `#post-count` 这个 **span** 的 textContent —— 订阅按钮刻意
+           放在它**外面**（见下面计数行的结构）。若用 innerHTML 重写整行，
+           搜索完按钮会被整个覆盖掉、从此消失。 */
+        const countEl = document.getElementById('post-count');
+        {{ if $isWeekly }}
+        countEl.textContent = `共 ${visiblePosts} 期周刊内容`;
+        {{ else }}
+        countEl.textContent = `共 ${visiblePosts} 篇。`;
+        {{ end }}
         {{ end }}
       }
 
@@ -62,7 +77,24 @@
   {{ end }}
   {{ if .Site.Params.showPostCount }}
   {{ $visiblePages := where .Pages "Params.hidden" "!=" true }}
+  {{- /* 周刊页的计数行（2026-10-14 用户要求）：
+       共 25 期周刊内容，请订阅 RSS
+
+       ⚠️ `#post-count` 是 **span**，订阅链接在它**外面**、两者之间放中文逗号 ——
+         这样搜索框过滤时只改 span 的文字，链接不会被 innerHTML 覆盖掉
+         （见上面搜索脚本的注释）。
+       ⚠️ 订阅入口是**普通文字链接**，不额外加样式（2026-10-14 用户要求「简化」：
+         原先是带 1px 边框 + RSS 图标的小徽章，样式在 custom_head.html 第 27 段，
+         已整段删除）。与页面其他链接长得一样即可。
+       ⚠️ 链接走 relURL，不写死 `/weekly/index.xml`：站点将来挂到子路径
+         （baseURL 变 /blog/）时不用回来改模板。 */ -}}
+  {{ if $isWeekly }}
+  <p>
+    <span id="post-count">共 {{ len $visiblePages }} 期周刊内容</span>，<a href="{{ "weekly/index.xml" | relURL }}">请订阅 RSS</a>
+  </p>
+  {{ else }}
   <p id="post-count">共 {{ len $visiblePages }} 篇。</p>
+  {{ end }}
   {{ end }}
   <ul class="blog-posts">
     {{ $currentYear := 0 }}

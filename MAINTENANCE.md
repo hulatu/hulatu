@@ -100,6 +100,7 @@ layouts/                  ★ 站点层覆盖，20 个文件
   partials/custom_head.html         26 段补丁样式 + GoatCounter
                                     （03/06/11 刻意留空，24 撤回）
                                     ⚠️ <style> 之前还有两条 theme-color meta，不占段号
+                                    ⚠️ 第 27 段号**刻意不占** —— 当天建当天撤，原因见 DESIGN.md
   partials/orphan-safe.html         孤行保护（标题末 2 字包 nowrap）
   partials/back-top.html            返回顶部（只长文页，纯 CSS、零 JS）
   partials/code-copy.html           代码块复制按钮的脚本引入（只含代码的页）
@@ -262,6 +263,7 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 | 换 favicon / 分享图 | `static/favicon.svg` / `static/images/share.webp`（后者由 `params.images` 引用）。⚠️ 换图后改 `hugo.toml` 的 `params.ogImageWidth` / `ogImageHeight` 跟上（`seo_tags.html` 读这两个参数输出 og 宽高） |
 | 改 SEO 头（keywords / JSON-LD / og / referrer / theme-color） | `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）。⚠️ `theme-color` 那两条在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 与 `input{font-size}` 在第 26 段；`referrer` 在 `baseof.html`。⚠️ 上游那份是「HTML 规范还在 2015 年」的写法，**别回退** |
 | 改图片放大（放大方式 / 键盘可达性） | 结构在 `layouts/_default/_markup/render-image.html`（`--zoom-src` 挂在 figure 上），样式在第 26 段 ④⑤。⚠️ overlay 是**空壳**（只有 `class`，没有 `<img>`）；`.image-zoom-toggle` 那条**必须带 `display`**，只写定位会让上游的 `display:none` 留下、checkbox 又变回不可聚焦 |
+| 改周刊页的计数行 / RSS 订阅入口 | `layouts/_default/list.html`（`$isWeekly` = Kind section + Section weekly；`#post-count` 是 `<span>`、订阅链接在它**外面**）。⚠️ 订阅入口是**普通文字链接，不要加样式**（2026-10-14 用户看过带边框 + 图标的徽章后要求简化）；想让链接在搜索后存活，**只能改 span 的 `textContent`**，用 `innerHTML` 会把它整个覆盖掉 |
 
 ### `scripts/` 现状
 
