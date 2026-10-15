@@ -9,17 +9,17 @@
 
 ---
 
-## 0. 现状速览（2026-10-14 实测）
+## 0. 现状速览（2026-10-14 实测，2026-10-15 补入订阅源浏览器视图）
 
 | 项 | 值 |
 | --- | --- |
 | Hugo | `0.167.0+extended`（本机 / GitHub Actions / Cloudflare 三边一致） |
 | 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
 | 代码高亮 | `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
-| 站点层 | **22 个文件** = `layouts/` × 20 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-14 新增 `partials/seo_tags.html`） |
-| 页面 | 336 页 → **332 个 HTML** |
-| 内容 | 101 篇文章 + 25 期周刊 = 126 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`） |
-| 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开走 `static/rss.xsl` |
+| 站点层 | **25 个文件** = `layouts/` × 23 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-15 新增 `feed/list.html` `feed/single.html` `partials/feed-view.html`） |
+| 页面 | 338 页 → **334 个 HTML** |
+| 内容 | 101 篇文章 + 25 期周刊 = 126 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
+| 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开由 `functions/_middleware.js` 分派到 `/feed/` 那两页，订阅器照旧拿 XML |
 | 词条页 | 标签 187 + 分类 8（索引页 `/tags/` `/categories/` 已关） |
 | CSS | **全部内联**，无 `/css/` 目录 |
 | JS | 两个：giscus（指纹化长缓存）+ 代码块复制按钮 |
@@ -37,8 +37,10 @@
 | `/donate/` | 1 | 9663 / 2831 | 3239 B（+08 段） |
 | `/run/` | 1 | 11071 / 3132 | 4647 B（+25 段） |
 | `/404.html` | 1 | 10651 / 3014 | 4227 B（+15 段） |
+| 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 9616 / 2820 | 3192 B（+28 段，2026-10-15 新增） |
 
-合计 332 页，与 `os.walk` 数出的 HTML 数一致。`/about/` `/now/` `/roll/` `/privacy/` `/weekly/` 与普通页完全一致（03 段头像撤掉后不再输出任何 CSS）。
+合计 334 页，与 `os.walk` 数出的 HTML 数一致。`/about/` `/now/` `/roll/` `/privacy/` `/weekly/` 与普通页完全一致（03 段头像撤掉后不再输出任何 CSS）。
+⚠️ 上面每一档的**逐值都是 2026-10-14 那次审计的实测值**（`/feed/` 那行是 2026-10-15 新增的）。第 28 段只在 `/feed/` 那两页输出，所以其余各档的 raw / gzip 逐值**未变**；页数合计从 332 变成 334 只是因为多了那两页。
 
 - 第 20–23 段是 2026-10-12 新增的 4 条全站规则（**+428 B raw / +115 B gzip**）：目录断点抬到 1200px、`img{height:auto}`、等宽字体令牌、TOC 链接 transition 收窄。
 - **第 26 段是 2026-10-14 新增的 6 条全站规则，每档统一 +562 B raw / +124 B gzip**（① `input{font-size:16px}` ② `color-scheme` ③ `div.toc` 的 `100vw`→`100%` + `80dvh` ④⑤ 图片放大换背景 + checkbox 可聚焦）。改前基线是 8675 / 12610 / 14861 / 10404 / 9101 / 10509 / 10089，逐值 -562 就是当天之前的样子。
@@ -73,22 +75,30 @@ content/
                             layouts/_default/run.html，数据读 data/runs.json
   posts/                  101 篇文章 + _index.md（noindex，纯内部页）
   weekly/                 25 期周刊 + _index.md（单独开 RSS 输出）
+  feed/                   /feed/ 与 /feed/weekly/ —— 订阅源的「浏览器视图」的两个壳
+                          （_index.md + weekly.md，**只有 front matter**：noindex + feedScope；
+                          内容全在 layouts/partials/feed-view.html。⚠️ 别挂进导航）
 
 archetypes/
   posts.md weekly.md      新建文章的模板（含发布前检查清单）
 
-layouts/                  ★ 站点层覆盖，20 个文件
+layouts/                  ★ 站点层覆盖，23 个文件
   index.html                        首页（上游只有 {{ .Content }}；简介**不包 <content>**）
   _default/baseof.html              LanguageCode → Language.Locale + 补回 robots 分支
   _default/single.html              去掉 `if eq .Type "blog"` 门槛 + hideDate/hideTitle
                                     + 文末「系列坐标带」与「上一篇/下一篇」+ 评论区
   _default/list.html                5 处文案英译中 + 删底部标签墙
-  _default/rss.xml                  ★ 补回 <?xml-stylesheet?> 指向 /rss.xsl + 首页 feed
-                                    只收文章页 + atom:updated / category / 摘要 description /
-                                    全文 content:encoded + pageLimit 20
+  _default/rss.xml                  ★ 首页 feed 只收文章页 + atom:updated / category /
+                                    摘要 description / 全文 content:encoded + pageLimit 20
+                                    ⚠️ 2026-10-15 起**不再输出 <?xml-stylesheet?>**（旧的
+                                    static/rss.xsl 已删），浏览器视图改由 /feed/ 承担
   _default/archive.html             ★ /archive/ 列表页 + 顶部「系列」横向入口
                                     + 底部全部标签平铺（照 yinji）
   _default/run.html                 ★ /run/ 跑步数据页（2026-10-12 从子站搬入）
+  feed/list.html                    ★ /feed/ —— 订阅源浏览器视图（section 页）
+  feed/single.html                  ★ /feed/weekly/ —— 同一个视图（普通页）
+                                    ⚠️ 两个文件名都要有，否则周刊那页会掉进
+                                    _default/single.html 被渲染成「文章」
   _default/_markup/render-link.html ★ 只为去掉 `</a>` 后面那个换行
   _default/_markup/render-image.html ★ 给正文 <img> 补真实 width/height
                                     （读 data/image-dims.json）
@@ -97,10 +107,15 @@ layouts/                  ★ 站点层覆盖，20 个文件
   partials/nav.html                 完全由 [[menu.main]] 驱动（7 项）
   partials/footer.html              版权独立成行 + 订阅行挪到第 3 行
                                     + copyrightNote/licenseName/licenseURL
-  partials/custom_head.html         26 段补丁样式 + GoatCounter
+  partials/custom_head.html         28 段补丁样式 + GoatCounter
                                     （03/06/11 刻意留空，24 撤回）
                                     ⚠️ <style> 之前还有两条 theme-color meta，不占段号
                                     ⚠️ 第 27 段号**刻意不占** —— 当天建当天撤，原因见 DESIGN.md
+                                    ⚠️ 第 28 段是订阅源浏览器视图的样式，**只给 /feed/ 那两页**
+                                    （守卫 `or (eq .Type "feed") (eq .Section "feed")`）
+  partials/feed-view.html           ★ 订阅源浏览器视图（2026-10-15）：标题 + 简介 +
+                                    订阅地址 + 条目「日期/标题/摘要」
+                                    ⚠️ 页面集合口径必须与 _default/rss.xml 逐字一致
   partials/orphan-safe.html         孤行保护（标题末 2 字包 nowrap）
   partials/back-top.html            返回顶部（只长文页，纯 CSS、零 JS）
   partials/code-copy.html           代码块复制按钮的脚本引入（只含代码的页）
@@ -118,12 +133,16 @@ themes/hugo-bearneo/      ★ 上游逐字节副本，27 个文件，**不要改
 
 static/
   _headers _redirects     Cloudflare 的响应头 / 301 规则
-  favicon.svg rss.xsl     （PWA 五件套 2026-10-13 已删：logo/apple-touch/icon-192/icon-512/webmanifest，
+  favicon.svg             （PWA 五件套 2026-10-13 已删：logo/apple-touch/icon-192/icon-512/webmanifest，
                           全站没有任何 <link rel=manifest>，整链不可达）
-                          ↑ rss.xsl 不是孤儿：layouts/_default/rss.xml 顶部那行
-                            <?xml-stylesheet?> 指的就是它
+                          ⚠️ rss.xsl 2026-10-15 已删 —— 它是 XSLT 方案的一部分，
+                            feed 顶部那行 xml-stylesheet 也一起去掉了（见第 2 节末）
   images/                 **只剩两个在用**：share.webp（全站唯一 og:image，params.images 引用）
                           + donate/（2 张收款码，/donate/ 在用）
+
+functions/                ★ Cloudflare Pages Functions（2026-10-15 新增）
+  _middleware.js            订阅源的内容协商：浏览器导航 /index.xml → /feed/ 的 HTML，
+                            订阅器 → 原样 XML。⚠️ 这是整套方案唯一会**静默失效**的一环
 
 data/                     runs.json（/run/ 页在读）+ image-dims.json（喂 render-image.html）
                           ⚠️ 两个都别当孤儿删
@@ -148,6 +167,11 @@ scripts/                  8 个脚本，见第 4 节
 > `sync-douban.py` / `gen-og.js` / `css-critical-coverage.py` / `fetch-image-dims.py`，
 > 加仓库根的工作产物共约 8.2 MB。**要恢复任何一个都从 git 历史取**
 > （`git log --diff-filter=D --name-only`），别凭记忆重写。
+>
+> ⚠️ **2026-10-15 删掉的**：`static/rss.xsl`（连带 `static/_headers` 里那条 `/rss.xsl` 规则）。
+> 它服务的是「浏览器打开 `/index.xml` 时用 XSLT 渲染成一页 HTML」这个方案，随 Chromium 移除
+> XSLT 整体撤掉，改由 `/feed/` 两页 + `functions/_middleware.js` 承担（见第 2 节「边缘函数」）。
+> ⚠️ **别加回来** —— 加回来横幅就跟着回来；真要取：`git show <旧提交>:static/rss.xsl`。
 
 ---
 
@@ -183,6 +207,40 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 ⚠️ `sync-lastmod.py` 已无可见产出（`lastmod` 只喂 RSS / sitemap），保留调用而已。
 ⚠️ 2026-10-11 删掉了原来排最前的 `fetch-image-dims.py`（脚本也删了）—— 它抓的 `data/image_dims.json` 上游模板根本不读，**别照旧文档加回来**。
 ⚠️ 2026-10-12 删掉了 `fetch-profile-content.py`（随 profile 子站一起删）—— 它刷的「花园页」快照已不存在。
+
+### 边缘函数（Cloudflare Pages Functions）
+
+`functions/_middleware.js`（2026-10-15 新增）**不在 Hugo 构建里** —— 它由 Cloudflare Pages
+在部署时打包，只在线上生效，`hugo server` 预览不到、本地也没有等价的测试环境。
+
+```bash
+# ① 浏览器视角：应返回 HTML 订阅页（这两个头缺一不可）
+curl -s -o /dev/null -w '%{http_code} %{content_type}\n' \
+  -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
+  -H 'Sec-Fetch-Dest: document' https://hulatu.com/index.xml
+#   期望：200 text/html; charset=utf-8
+
+# ② 订阅器视角：应原样返回 XML
+curl -s -o /dev/null -w '%{http_code} %{content_type}\n' \
+  -H 'Accept: application/rss+xml, application/xml;q=0.9, */*;q=0.8' \
+  https://hulatu.com/index.xml
+#   期望：200 application/rss+xml
+
+# ③ 周刊那一路同样要通
+curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
+  https://hulatu.com/weekly/index.xml | grep -c 'feed-view-title'
+#   期望：>0（说明拿到的是 /feed/weekly/ 的 HTML，而不是 XML）
+```
+
+⚠️ **前提**：Cloudflare Pages 项目的 **Functions 目录**必须是默认的 `functions`（仓库根）。
+被改过、或 Functions 被关掉，上面 ① 会返回 `application/rss+xml`（浏览器打开 feed 退回 raw XML），
+而**部署与构建都不会报错** —— 这是整套方案唯一的静默故障点，改完务必跑一次上面的核对。
+⚠️ 判据**只认 `Sec-Fetch-Dest: document`**（现代浏览器顶层导航才带的头），`Accept` 只是它缺席
+时的退路。**别**改成「Accept 里含 text/html 就返回 HTML」：有些订阅器会带 text/html，
+那样它们会拿到 HTML —— 静默坏掉，用户完全察觉不到。
+⚠️ 两页在 Hugo 侧设了 `noindex`，函数响应又补了 `X-Robots-Tag: noindex, follow`；别去掉。
+⚠️ 响应头（`Cache-Control` / `Vary`）写在函数代码里 —— `static/_headers` **不作用于函数响应**
+（它只管静态资源）。改了别只改 `_headers` 那一份。
 
 ### CI
 
@@ -263,6 +321,7 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 | 换 favicon / 分享图 | `static/favicon.svg` / `static/images/share.webp`（后者由 `params.images` 引用）。⚠️ 换图后改 `hugo.toml` 的 `params.ogImageWidth` / `ogImageHeight` 跟上（`seo_tags.html` 读这两个参数输出 og 宽高） |
 | 改 SEO 头（keywords / JSON-LD / og / referrer / theme-color） | `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）。⚠️ `theme-color` 那两条在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 与 `input{font-size}` 在第 26 段；`referrer` 在 `baseof.html`。⚠️ 上游那份是「HTML 规范还在 2015 年」的写法，**别回退** |
 | 改图片放大（放大方式 / 键盘可达性） | 结构在 `layouts/_default/_markup/render-image.html`（`--zoom-src` 挂在 figure 上），样式在第 26 段 ④⑤。⚠️ overlay 是**空壳**（只有 `class`，没有 `<img>`）；`.image-zoom-toggle` 那条**必须带 `display`**，只写定位会让上游的 `display:none` 留下、checkbox 又变回不可聚焦 |
+| 改订阅源（feed 字段 / 浏览器打开 feed 时那一页） | ① feed 本身：`layouts/_default/rss.xml`；② 浏览器视图：`layouts/partials/feed-view.html` + `content/feed/`（只有 front matter）+ `custom_head.html` 第 28 段；③ 谁分派：`functions/_middleware.js`。⚠️ ①② 的**页面集合口径必须逐字一致**（`site` / `weekly` 两套），不一致就是「网页比订阅少一篇」且**构建 0 警告**；③ 改完按第 2 节「边缘函数」跑一遍线上核对 —— 它是**静默失效**的 |
 | 改周刊页的计数行 / RSS 订阅入口 | `layouts/_default/list.html`（`$isWeekly` = Kind section + Section weekly；`#post-count` 是 `<span>`、订阅链接在它**外面**）。⚠️ 订阅入口是**普通文字链接，不要加样式**（2026-10-14 用户看过带边框 + 图标的徽章后要求简化）；想让链接在搜索后存活，**只能改 span 的 `textContent`**，用 `innerHTML` 会把它整个覆盖掉 |
 
 ### `scripts/` 现状
@@ -283,10 +342,12 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 
 - 文章 / 周刊：`/posts/YYYY/MM/DD/slug/`（126 条，由 `[permalinks]` 生成）
 - 根级页：`/`、`/about/`、`/now/`、`/roll/`、`/privacy/`、`/archive/`、`/weekly/`、`/donate/`、`/run/`
+- 订阅源浏览器视图：`/feed/`、`/feed/weekly/`（2026-10-15 新增，`noindex`，**不进导航**；
+  线上由 `functions/_middleware.js` 把浏览器导航的 `/index.xml` 分派到这里，订阅器不受影响）
 - 词条页：`/tags/<tag>/`（187）、`/categories/<cat>/`（8）
 - `/posts/` 存在但 `noindex`，且全站没有页面链到它 —— 导航的 `Posts` 指的是 `/archive/`
 
-**验收方式**：改完构建到 `/tmp`，`find . -name '*.html'` 排序后和迁移前基线 `comm` 对比（命令见第 7 节第 3 条）。基线 334 个、现在 332 个：多出来的是 `/donate/` 与 `/run/`，差的 9 个是刻意删除的。
+**验收方式**：改完构建到 `/tmp`，`find . -name '*.html'` 排序后和迁移前基线 `comm` 对比（命令见第 7 节第 3 条）。基线 334 个、迁移后 332 个、2026-10-15 加上 `/feed/` 与 `/feed/weekly/` 又回到 334 个：多出来的是 `/donate/` `/run/` 与订阅源那两页，差的 9 个是刻意删除的。
 
 ### `_redirects`（Cloudflare，首条命中即生效）
 
@@ -308,6 +369,9 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 - `/images/*` 30 天、`/js/*` 一年 immutable（两个文件：giscus + code-copy，文件名带内容哈希）、favicon 7 天。
 - ⚠️ **`/css/*` 已删除**（产物里没有 `/css/` 目录了）。
 - ⚠️ 新增根级内容页记得回来补一条缓存规则（2026-10-12 就为 `/run/` 补了一条）。
+- ⚠️ `/rss.xsl` 那条 **2026-10-15 已删**（XSLT 方案整体撤掉）；新加的是 `/feed/` 与 `/feed/*` 两条 ——
+  它们只对「直接访问 `/feed/`」和本地预览生效：线上主路径是浏览器打开 `/index.xml` 被
+  `functions/_middleware.js` 改写的，**函数响应不吃 `_headers`**，那几条头写在函数代码里。
 
 ---
 
@@ -486,12 +550,12 @@ for f in glob.glob('/tmp/hb-check/**/*.html',recursive=True):
             d=json.loads(b); shapes[d.get('@type','?')]+=1
         except Exception: shapes['PARSE-FAIL']+=1
 print('keywords 页 (应 0):',kw,'| itemprop 页 (应 0):',it,'| pubdate 页 (应 0):',pd)
-print('ld+json 覆盖 (应 332):',ld,'| theme-color (应 332):',tc,'| og:image:width (应 332):',og)
+print('ld+json 覆盖 (应 334):',ld,'| theme-color (应 334):',tc,'| og:image:width (应 334):',og)
 print('旧 referrer 值残留 (应 0):',ref)
 print('JSON-LD 类型分布:',dict(shapes))
-# 期望（2026-10-14 实测）：WebSite 1、WebPage 8（7 个根级独立页 + 404）、
-#   CollectionPage 197（187 标签 + 8 分类 + /posts/ + /weekly/）、BlogPosting 126、
-#   BreadcrumbList 126（文章页每页 2 块，所以块总数 458 > 页数 332，正常）
+# 期望（2026-10-15 实测）：WebSite 1、WebPage 9（7 个根级独立页 + /feed/weekly/ + 404）、
+#   CollectionPage 198（187 标签 + 8 分类 + /posts/ + /weekly/ + /feed/）、BlogPosting 126、
+#   BreadcrumbList 126（文章页每页 2 块，所以块总数 460 > 页数 334，正常）
 #   **零 PARSE-FAIL**（JSON-LD 语法错会让整块失效且构建 0 警告）
 PY
 ```
@@ -502,22 +566,43 @@ PY
 #    ⚠️ 三页必须在**同一批截图**里量：--window-size 高度不同会得出不同数字
 #    （实测过 46px vs 57px 的假差异）；量法：2x 截图后逐行取最暗像素找文本带，换算回 CSS px
 
-# 8) ★ 订阅源：只收文章页 + 带 XSL 样式表
+# 8) ★ 订阅源：只收文章页 + **顶部没有 XSL 样式表** + 浏览器视图与 feed 逐条对齐
 python3 - <<'PY'
-import re
-for f in ['/tmp/hb-check/index.xml','/tmp/hb-check/weekly/index.xml']:
-    s=open(f,encoding='utf-8').read()
-    items=s.split('<lastBuildDate>')[-1]          # 跳过 channel 自己的 <link>
-    links=re.findall(r'<link>([^<]+)</link>',items)
-    print(f,'| 条目',len(links),
-          '| 非文章',sum(1 for l in links if '/posts/' not in l),
-          '| 样式表',bool(re.search(r'<\?xml-stylesheet type="text/xsl" href="[^"]+/rss\.xsl"\?>',s)),
-          '| content:encoded',len(re.findall(r'<content:encoded>',items)),
-          '| atom:updated',len(re.findall(r'<atom:updated>',items)),
-          '| category',len(re.findall(r'<category>',items)))
+import re, html, pathlib
+def xml_items(f):
+    s = pathlib.Path(f).read_text()
+    return ([html.unescape(t) for t in re.findall(r'<item>\s*<title>(.*?)</title>', s, re.S)],
+            re.findall(r'<item>.*?<link>(.*?)</link>', s, re.S),
+            s)
+def html_items(f):
+    s = pathlib.Path(f).read_text()
+    # ⚠️ minify 会剥属性引号 → 引号写成可选，否则恒报 0 条（假阴性）
+    pairs = re.findall(r'<p class=feed-view-title><a href="?([^">]+)"?>(.*?)</a></p>', s, re.S)
+    return ([html.unescape(re.sub(r'<[^>]+>', '', t)) for _, t in pairs], [l for l, _ in pairs])
+
+for xf, hf in [('/tmp/hb-check/index.xml', '/tmp/hb-check/feed/index.html'),
+               ('/tmp/hb-check/weekly/index.xml', '/tmp/hb-check/feed/weekly/index.html')]:
+    xt, xl, s = xml_items(xf)
+    ht, hl = html_items(hf)
+    items = s.split('<lastBuildDate>')[-1]        # 跳过 channel 自己的 <link>
+    links = re.findall(r'<link>([^<]+)</link>', items)
+    print(xf,
+          '| 条目', len(links),
+          '| 非文章', sum(1 for l in links if '/posts/' not in l),
+          '| 样式表(应 False)', bool(re.search(r'<\?xml-stylesheet[^>]*\?>', s)),
+          '| content:encoded', len(re.findall(r'<content:encoded>', items)),
+          '| atom:updated', len(re.findall(r'<atom:updated>', items)),
+          '| category', len(re.findall(r'<category>', items)),
+          '| 视图条目', len(ht),
+          '| 与 feed 标题一致', xt == ht,
+          '| 与 feed 链接一致', [u.replace('https://hulatu.com', '') for u in xl] == hl)
 PY
-# 期望：两个文件都是 条目 20 / 非文章 0 / 样式表 True /
-#       content:encoded 20 / atom:updated 20 / category > 0
+# 期望：两个文件都是 条目 20 / 非文章 0 / 样式表 False /
+#       content:encoded 20 / atom:updated 20 / category > 0 /
+#       视图条目 20 / 标题一致 True / 链接一致 True
+# ⚠️ 最后三项是「网页视图与订阅口径一致」的哨兵：不一致时构建 0 警告、页面照常生成
+# ⚠️ 视图那两页还要 `noindex`：grep -c 'name=robots' 应为 1（minify 会剥引号，别按
+#    `name="robots"` 写）
 
 # 9) ★ 归档页底部标签平铺 + 样式作用域哨兵
 python3 - <<'PY'
@@ -533,17 +618,17 @@ print('a) 归档标签个数 (应 = 标签词条页数 187):',len(tags))
 print('   三类顺序 (应 数字*→英文*→中文*，同类连续):',[k for i,k in enumerate(seq) if i==0 or seq[i-1]!=k])
 print('b) 有 tag-index 块却缺 .tag-index 规则的页 (0):',
       sum(1 for f,s in r if 'class=tag-index' in s and '.tag-index' not in st(s)))
-print('c) 含 header nav 规则的页 (应 = HTML 总数 332):',
+print('c) 含 header nav 规则的页 (应 = HTML 总数 334):',
       sum(1 for f,s in r if re.search(r'header\s+nav\s*\{',st(s))))
 print('d) ★ 残留「裸 nav」选择器的页 (0):',
       sum(1 for f,s in r if re.search(r'(?<![\w.#\-\s])nav\s*\{',st(s))))
 print('e) post-series-ord 带 min-width 的页 (应 127 = 126 长文 + /archive/):',
       sum(1 for f,s in r if re.search(r'\.post-series-ord\s*\{[^}]*min-width',st(s))))
 PY
-# 期望：a) 187，三类顺序 ['英文','中文']（本站没有数字标签），b) 0，c) 332，d) 0，e) 127
+# 期望：a) 187，三类顺序 ['英文','中文']（本站没有数字标签），b) 0，c) 334，d) 0，e) 127
 # ⚠️ 写断言时当心：`'header nav{' in css.replace(' ','')` 是错的
 #    （把 needle 里的空格也去掉了）→ 永远 False；`(?<![\w.#-])nav\s*\{` 漏了空格，
-#    会把 `header nav{` 也当成裸 nav → 永远报 332。**这两条我自己都踩过。**
+#    会把 `header nav{` 也当成裸 nav → 永远报 334。**这两条我自己都踩过。**
 ```
 
 > ⚠️ 原第 10 条「子站页头 / 导航 / 视觉残留」整段断言 **2026-10-12 删除** ——
@@ -567,7 +652,7 @@ PY
 - `/about/`：介绍块纯 Markdown，**没有头像**（全站一张头像都没有），**没有页面标题**，首行间距同 28px
 - `/now/`：**没有页面标题**，无日期行 / 评论区 / TOC；⚠️ `/privacy/` 与 `/donate/` **仍保留页面标题**（用户只点名了 About 和 Now，别顺手统一）
 - `/donate/`：两个收款码并排居中（窄屏一列），**没有**日期行 / TOC / 评论区（**有标题**）
-- `/privacy/` `/posts/` `/donate/` `/404.html` 与全部词条页：`<meta name=robots content="noindex, follow">`（合计 **199 页**）
+- `/privacy/` `/posts/` `/donate/` `/404.html` 与全部词条页：`<meta name=robots content="noindex, follow">`（合计 **199 页**）。⚠️ 2026-10-15 起还要加上 `/feed/` 与 `/feed/weekly/` → **201 页**（那两页的 `noindex` 写在 `content/feed/*.md` 的 front matter 里，别删）
 - `/run/`：`<h1>跑步</h1>` + 导语 + 4 个 `.stats` 格子 + 月度柱状图 + 按年 `<details>` 记录表 + 更新时间行；**没有**面包屑 / TOC / 评论区（走 `layouts/_default/run.html`，不经过 single.html）；数据每天由 CI 的 `sync-garmin.py` 刷新
 
 ---
@@ -578,14 +663,17 @@ PY
 2. **列表页没有页面级 `<h1>`**（有意接受上游行为）；**深色下正文图片描边几乎不可见**。
 3. **sitemap 没排除 noindex 页** —— `/privacy/` `/posts/` `/donate/` 与全部词条页的 meta robots 有，`layouts/sitemap.xml` 没恢复（见第 3 节规矩 3）。
 4. **Cloudflare 后台收尾**（仓库侧无法代劳）：`run.` / `profile.` / `shot.` / `share.` 四个子域名的 CNAME 已删，但 **Pages 项目本身**若还留在后台建议一并删掉 —— 它们指向的 `sites/` 目录已不存在，构建只会失败。
-5. **`~/bearneo-trial`** 可以留着做对照，也可以删（删除它不影响本站）。
-6. **2026-10-14「加载 / 过时写法」审计的落地点已全部实施**（详见 DESIGN.md 第 9 节）：
+5. **⚠️ 确认 Pages 项目的 Functions 目录**（2026-10-15 新增的依赖，仓库侧同样无法代劳）：必须是默认的
+   `functions`（仓库根）。被改过或 Functions 被关掉的话，浏览器打开 `/index.xml` 会退回 raw XML，
+   而**构建与部署都不报错** —— 核对命令见第 2 节「边缘函数」那三条 `curl`。
+6. **`~/bearneo-trial`** 可以留着做对照，也可以删（删除它不影响本站）。
+7. **2026-10-14「加载 / 过时写法」审计的落地点已全部实施**（详见 DESIGN.md 第 9 节）：
    P0 删 `<meta name=keywords>`；P1 修 `input{font-size:14px}`（iOS 聚焦放大整页）与删死掉的微数据
    `itemprop`；P2 删 `pubdate` / `<meta name=title>`、`referrer` 换 `strict-origin-when-cross-origin`、
    补 `og:image:width/height`、`100vw`→`100%`、加两条 `theme-color` 与 `color-scheme`、
    GoatCounter 协议相对 URL 换绝对、`forEach.call` 换原生 `forEach`。
    **顺带做了两件没在清单里的**：`layouts/partials/seo_tags.html` 整份覆盖上游（换按页型分四类的
-   JSON-LD，332 页全有 `ld+json`）、图片放大从「overlay 重复一个 `<img>`」换成「只画背景」
+   JSON-LD，334 页全有 `ld+json`）、图片放大从「overlay 重复一个 `<img>`」换成「只画背景」
    （全站 `<img>` 节点 **644 → 323**，零回流）。
    ⚠️ **两个刻意不做的**（判断依据见 DESIGN.md 第 9.5 节）：① 删主题死 CSS —— 要么改 `themes/`
    违反硬规矩，要么复制等价选择器再否定，净负收益；② 替换非标准 `<content>` —— 全站 +约 600 B

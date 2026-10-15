@@ -142,5 +142,18 @@
 /sitemap.xml
   Cache-Control: public, max-age=0, must-revalidate
 
-/rss.xsl
-  Content-Type: text/xsl; charset=utf-8
+# 订阅源的「浏览器视图」（/feed/ 与 /feed/weekly/，2026-10-15 新增）。
+# ⚠️ 线上访问这两页的**主路径**不是直接打开它们，而是浏览器打开 /index.xml 时
+#    被 functions/_middleware.js 内容协商改写过去 —— 那种响应的头写在函数里，
+#    **不吃下面这两条规则**（函数响应不是静态资源）。
+#    写在这里是为了「直接访问 /feed/」以及本地 hugo server 预览这两种情况。
+/feed/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/feed/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# 这里原本有一条 /rss.xsl（Content-Type: text/xsl）—— 2026-10-15 随 XSLT 方案
+# 整体删除：Chromium 正在移除 XSLT，feed 顶部那行 xml-stylesheet 已去掉，
+# static/rss.xsl 也删了，浏览器视图改由 /feed/ 那两页承担。
+# **别再把它加回来**，完整理由见 DESIGN.md「订阅源」一节。

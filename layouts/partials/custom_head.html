@@ -1873,6 +1873,56 @@
         ⚠️ **别照旧版把它加回来** —— 用户看过带边框 + 图标的版本，明确不要。
            若将来又想要徽章，样式要重新写、并且必须带 `eq .RelPermalink "/weekly/"`
            守卫（那个类名只出现在一个页面上）。 */ -}}
+
+  {{- /* ===============================================================
+       28 订阅源的「浏览器视图」（2026-10-15 新增）
+
+       服务 layouts/partials/feed-view.html 渲染的 /feed/ 与 /feed/weekly/。
+       这两页是「浏览器直接打开 /index.xml 时看到的那一页」的新家
+       （旧版靠 XSLT，Chromium 正在移除，见 layouts/_default/rss.xml 文件头）。
+
+       取值全部走主题已有的 CSS 变量，浅 / 深两套自动跟随：
+         --border-color / --text-color-secondary / --text-color-tertiary
+       ⚠️ 别写死颜色 —— 主题是纯 prefers-color-scheme 两档，写死会在深色下翻车。
+
+       ⚠️ 这一段**按 .Type / .Section 守卫**：只有那两页输出，
+          其余 330 多个页面 0 字节（与第 08 / 12 / 13 / 16 / 25 段同一套做法）。
+          .Section 那半边是保险：section 页与它下面那个普通页的 .Type 都该是
+          "feed"，但少判一个条件会让样式静默消失（不报错，只是页面变回裸列表）。
+       ⚠️ 改类名要两处一起改：这里 + partials/feed-view.html。
+       =============================================================== */ -}}
+  {{- if or (eq .Type "feed") (eq .Section "feed") }}
+  ul.feed-view {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  ul.feed-view > li {
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  ul.feed-view > li:last-child {
+    border-bottom: none;
+  }
+
+  .feed-view-date {
+    margin: 0 0 4px;
+    font-size: var(--font-size-secondary);
+    color: var(--text-color-tertiary);
+  }
+
+  .feed-view-title {
+    margin: 0 0 6px;
+  }
+
+  .feed-view-summary {
+    margin: 0;
+    font-size: 0.9em;
+    color: var(--text-color-secondary);
+  }
+  {{- end }}
 </style>
 
 {{- /* ============================================================

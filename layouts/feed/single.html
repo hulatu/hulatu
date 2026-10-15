@@ -1,0 +1,8 @@
+{{- /* 站点层新增（2026-10-15）：/feed/weekly/ —— 周刊专线的「浏览器视图」。
+       与 layouts/feed/list.html 是同一份内容，只差 `.scope`：
+       section 页（/feed/）走 list.html，普通页（/feed/weekly/）走 single.html，
+       两个文件名都要有，否则周刊那页会掉进 layouts/_default/single.html
+       被渲染成一篇「文章」（会多出日期行、标签行、上下篇导航）。 */ -}}
+{{ define "main" }}
+{{- partial "feed-view.html" (dict "scope" (.Params.feedScope | default "site")) -}}
+{{ end }}

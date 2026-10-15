@@ -1,0 +1,9 @@
+{{- /* 站点层新增（2026-10-15）：/feed/ —— 全站订阅源的「浏览器视图」。
+       内容全在 partials/feed-view.html，这里只是把 section 页挂到 baseof 上。
+
+       ⚠️ 为什么是 section：URL 结构要的是 /feed/ 与 /feed/weekly/ 两页，
+          而 layouts/feed/ 下的模板是按「type = 目录名」命中的。
+       ⚠️ 这一页**没有** RSS 输出（hugo.toml 的 [outputs] section = ["HTML"]）。 */ -}}
+{{ define "main" }}
+{{- partial "feed-view.html" (dict "scope" (.Params.feedScope | default "site")) -}}
+{{ end }}

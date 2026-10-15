@@ -7,7 +7,7 @@
 `shot.` / `share.` 本来就是空壳。仓库里的 `sites/` 目录已整体删除。
 
 > **这份 README 只讲「怎么跑起来」。** 想改站上的具体东西（版式、缓存、脚本、部署、常见故障），看
-> [MAINTENANCE.md](MAINTENANCE.md)；想动视觉，看 [DESIGN.md](DESIGN.md)（那份列了站点层全部 22 个文件的偏离）。
+> [MAINTENANCE.md](MAINTENANCE.md)；想动视觉，看 [DESIGN.md](DESIGN.md)（那份列了站点层全部 25 个文件的偏离）。
 > 两份冲突时以 MAINTENANCE.md 为准。
 >
 > ⚠️ 2026-10-10 晚整站从**自建主题**迁移到了上游 hugo-bearneo。这份 README 是那天同步重写的。
@@ -18,6 +18,14 @@
 >
 > ⚠️ 同日晚些：周刊列表页的计数行加了 RSS 订阅入口（`list.html`，**普通文字链接、
 > 不加样式**，其余页 0 字节）。
+>
+> ⚠️ 2026-10-15：**「浏览器直接打开 RSS」这一页换了实现方式**。Chromium 正在移除 XSLT
+> （打开 `/index.xml` 会弹「This site uses XSLT…」横幅），所以 `static/rss.xsl` 与 feed 顶部
+> 那行 `<?xml-stylesheet?>` 整体撤掉，改由 `functions/_middleware.js` 做内容协商：
+> 浏览器导航 → 站内 HTML 页 `/feed/` 或 `/feed/weekly/`，订阅器 → 原样 XML。
+> **订阅地址一个字没变**，导航最右的 `RSS` 与页脚 `Subscribe via RSS` 仍指 `/index.xml`。
+> 新增 2 个内容页（`content/feed/`）、3 个模板（`layouts/feed/*` + `partials/feed-view.html`）、
+> `custom_head.html` 第 28 段（只在那两页输出）。全站产物 HTML 332 → 334。
 
 ## 功能特点
 
@@ -63,13 +71,16 @@
 - **返回顶部**：只挂长文页。**纯 CSS 滚动驱动动画，零 JS**（⚠️ 同批做过的阅读进度条已按用户要求删除）
 - **订阅**：RSS 2.0 全文输出，主源 `/index.xml` + 周刊专线 `/weekly/index.xml`，每源最多 20 条。
   **两个源都只收文章页**（`/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 一条都不进）。
-  浏览器直接打开 feed 时用 `static/rss.xsl` 渲染成一页 HTML（标题 + 简介 + 标题/日期/摘要列表）
-- **SEO**：canonical、Open Graph、**JSON-LD（332 页全有）**、sitemap、robots、旧链接 301。
+  feed 本身是**纯 XML**（顶部没有 `<?xml-stylesheet?>`）；浏览器直接打开 feed 时，由
+  `functions/_middleware.js`（Cloudflare Pages Functions）做内容协商，改写到站内 HTML 页
+  `/feed/` 与 `/feed/weekly/`（标题 + 简介 + 订阅地址 + 日期/标题/摘要列表），
+  **订阅器不受影响**。⚠️ 2026-10-15 之前用的是 `static/rss.xsl`，因 Chromium 移除 XSLT 而撤掉
+- **SEO**：canonical、Open Graph、**JSON-LD（334 页全有）**、sitemap、robots、旧链接 301。
   站点的 SEO 头在 `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）：
   上游那份还带着 `<meta name=keywords>`（Google 2009 年起就不读）和一套没有 `itemscope`
   祖先、**实际全不生效**的 microdata `itemprop`，两者都已删，改按页型输出 JSON-LD
   （首页 `WebSite` / 文章页 `BlogPosting` / 其他独立页与 404 `WebPage` / section 与词条 `CollectionPage`）。
-  `noindex, follow` 覆盖 **199 页**（187 个标签词条 + 8 个分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404）。
+  `noindex, follow` 覆盖 **201 页**（187 个标签词条 + 8 个分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404 + `/feed/` 那两页）。
   ⚠️ 每页 `og:image` 目前都是同一张 `share.webp`（按 slug 分图的 125 张**已于 2026-10-11 清理删除**，见 DESIGN.md 第 8 节）；宽高走 `hugo.toml` 的 `ogImageWidth` / `ogImageHeight`
 - **子站**：⚠️ **2026-10-12 起本站是单站单仓库，`sites/` 目录已删除。**
   原先的四个独立子站全部下线：`profile`（个人主页 / `Hub`）内容并入 `/about/`、
@@ -91,17 +102,22 @@ blog/
 │   │                           # ⚠️ links.md 2026-10-11 已删：友链并进 roll.md（唯一的链接页）
 │   ├── donate.md               # ↑ 之后的第 6 个独立页：支持页（两个赞赏码），2026-10-11 搬回
 │   ├── run.md                  # ↑ 之后的第 7 个独立页：跑步数据（layout: "run"），2026-10-12 从子站搬回
-├── layouts/                    # ★ 站点层覆盖，只有 20 个文件（+ assets/js 2 个 = 站点层合计 22，见 DESIGN.md 第 5 节）
+│   ├── feed/                   # 订阅源「浏览器视图」的两个壳（只有 front matter）
+│   │                           #   _index.md → /feed/，weekly.md → /feed/weekly/（都 noindex）
+├── layouts/                    # ★ 站点层覆盖，只有 23 个文件（+ assets/js 2 个 = 站点层合计 25，见 DESIGN.md 第 5 节）
 │   ├── index.html              #   首页（上游只有 {{ .Content }}；简介不包 <content>）
 │   ├── _default/baseof.html    #   LanguageCode → Language.Locale + 补回 robots 分支
 │   ├── _default/single.html    #   去 `if eq .Type "blog"` 门槛 + hideDate/hideTitle + 系列带/上下篇 + 评论区
 │   ├── _default/list.html      #   5 处文案英译中 + 删底部标签墙
-│   ├── _default/rss.xml        #   加 pageLimit 上限
+│   ├── _default/rss.xml        #   加 pageLimit 上限；⚠️ 2026-10-15 起不再输出 <?xml-stylesheet?>
 │   ├── _default/archive.html   #   ★ 新增：/archive/ 列表页 + 顶部「系列」横向入口
 │   ├── _default/run.html       #   ★ 新增：/run/ 跑步数据页（读 hugo.Data.runs）
+│   ├── feed/list.html          #   ★ 新增（2026-10-15）：/feed/ 订阅源浏览器视图
+│   ├── feed/single.html        #   ★ 新增（2026-10-15）：/feed/weekly/ 同一个视图
 │   ├── _default/_markup/render-link.html  # ★ 新增：去掉 `</a>` 后面的换行（中文标点前多空格）
 │   └── partials/               #   nav / footer / custom_head / giscus / seo_tags
 │       └── breadcrumbs.html    #   ★ 新增：面包屑 + BreadcrumbList JSON-LD（只给文章页）
+│       └── feed-view.html      #   ★ 新增（2026-10-15）：订阅源浏览器视图的内容（口径同 rss.xml）
 │       └── seo_tags.html       #   ★ 新增（2026-10-14）：SEO 头 —— 覆盖上游同名 partial
 │                               #     （删 keywords / name=title / 微数据，换按页型的 JSON-LD）
 ├── assets/js/giscus.js         # 评论区脚本（只在挂评论的页加载）
@@ -111,12 +127,13 @@ blog/
 ├── data/
 │   ├── runs.json               # 跑步数据（主站 `/run/` 页在读）
 │   └── image-dims.json         # 正文图片真实宽高（喂 render-image.html）
-├── static/                     # 原样发布：_headers / _redirects / 图标 / rss.xsl
+├── static/                     # 原样发布：_headers / _redirects / 图标
 │   └── images/                 # 只剩两个在用：share.webp（全站 og:image）、donate/（2 张赞赏码）
+├── functions/_middleware.js    # ★ Cloudflare Pages Functions（2026-10-15）：订阅源内容协商
 ├── archetypes/                 # hugo new 用的模板（posts / weekly）
 ├── publish.sh                  # 发布：补锚点/刷 lastmod → 提交 → 推 GitHub
 ├── deploy.sh                   # 只在本地干净构建到 public/，不部署
-├── DESIGN.md                   # 设计规范（站点层 22 个文件的偏离 + 已删功能清单）
+├── DESIGN.md                   # 设计规范（站点层 25 个文件的偏离 + 已删功能清单）
 └── MAINTENANCE.md              # 维护手册（文件地图、坑、验收清单）
 ```
 

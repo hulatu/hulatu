@@ -1,0 +1,53 @@
+{{- /* 订阅源的「浏览器视图」（站点层新增，2026-10-15）。
+       ══ 它是什么 ══════════════════════════════════════════════════════════
+       给「浏览器直接打开 /index.xml / /weekly/index.xml」这件事用的页面。
+       以前这件事由 static/rss.xsl + feed 顶部那行 <?xml-stylesheet?> 干，
+       Chromium 正在移除 XSLT，于是改成：feed 保持纯 XML（浏览器会弹横幅），
+       改由 functions/_middleware.js 做内容协商 ——
+       「浏览器地址栏导航」被改写到这里的两个页面，订阅器照旧拿 XML。
+
+       ⚠️ 这个 partial 被 layouts/feed/list.html（/feed/）与
+          layouts/feed/single.html（/feed/weekly/）共用，靠 `.scope` 区分。
+       ⚠️ **页面集合口径必须和 layouts/_default/rss.xml 逐字一致** ——
+          两边算得不一样就会「网页上比订阅里少一篇」，而且构建 0 警告。
+          口径：site   = where site.RegularPages "Type" "in" (slice "posts" "weekly")
+                weekly = 周刊 section 的 .RegularPages
+          条数上限同样取 site.Params.RSS.pageLimit。
+       ⚠️ 这两页都设了 noindex（front matter），别去掉：它们是 /archive/ 的
+          重复内容，旧 XSLT 页面本来就进不了索引（它不是 HTML 页）。
+
+       ⚠️ 样式在 partials/custom_head.html 第 28 段，且**按 .Type/.Section 守卫**，
+          只有这两页输出那几条 CSS（其余页 0 字节）。改类名要两处一起改。 */ -}}
+{{- $scope := .scope | default "site" -}}
+{{- $isWeekly := eq $scope "weekly" -}}
+{{- $limit := site.Params.RSS.pageLimit | default site.Config.Services.RSS.Limit -}}
+{{- $items := site.RegularPages -}}
+{{- if $isWeekly -}}
+  {{- with site.GetPage "section" "weekly" -}}{{- $items = .RegularPages -}}{{- end -}}
+{{- else -}}
+  {{- $items = where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
+{{- end -}}
+{{- if ge $limit 1 -}}{{- $items = $items | first $limit -}}{{- end -}}
+{{- $mainFeed := printf "%sindex.xml" site.BaseURL -}}
+{{- $weeklyFeed := printf "%sweekly/index.xml" site.BaseURL -}}
+<h1>{{ if $isWeekly }}周刊订阅{{ else }}订阅{{ end }}</h1>
+<content>
+  <p>{{ site.Params.description }}</p>
+  <p>把下面这个地址加进你的 RSS 阅读器，新文章发布时就会收到更新。这一页是它在浏览器里打开的样子。</p>
+  <p>订阅地址：<code>{{ if $isWeekly }}{{ $weeklyFeed }}{{ else }}{{ $mainFeed }}{{ end }}</code></p>
+  <p>共 {{ len $items }} {{ if $isWeekly }}期周刊{{ else }}篇文章{{ end }}。</p>
+  <ul class="feed-view">
+    {{- range $items }}
+    <li>
+      <p class="feed-view-date"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format (default "2006-01-02" site.Params.dateFormat) }}</time></p>
+      <p class="feed-view-title"><a href="{{ .RelPermalink }}">{{ partial "orphan-safe.html" .Title }}</a></p>
+      <p class="feed-view-summary">{{ .Summary | plainify | htmlUnescape }}</p>
+    </li>
+    {{- end }}
+  </ul>
+  {{- if $isWeekly }}
+  <p><small>另有一路全站订阅源：<code>{{ $mainFeed }}</code></small></p>
+  {{- else }}
+  <p><small>另有一路周刊专线：<code>{{ $weeklyFeed }}</code></small></p>
+  {{- end }}
+</content>

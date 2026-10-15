@@ -10,12 +10,12 @@ description: >
   自建的 6 个 CSS 模块 / 6 个 JS 全部删除。
   所以下面登记的令牌**全部是上游主题的真值**，唯一真值在
   `themes/hugo-bearneo/layouts/partials/style.html` —— 整份 CSS 内联进每个页面
-  （332 个产物 HTML 各一份，普通页 9237 字节 / 文章页 13172、
+  （334 个产物 HTML 各一份，普通页 9237 字节 / 文章页 13172、
   含代码块的 5 页 15423、`/archive/` 10966、`/donate/` 9663、
-  `/run/` 11071、`/404.html` 10651；改完记得回读体积，别凭印象）。
+  `/run/` 11071、`/404.html` 10651、`/feed/` 那两页 9616；改完记得回读体积，别凭印象）。
   ⚠️ 上表是 **2026-10-14 加了第 26 段之后**的值 —— 每个页型都比当天之前**统一 +562 B**，
   逐值与更早那份基线在「已删除的功能」一节之后的 2026-10-14 小节里对照。
-  站点层只在 22 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
+  站点层只在 25 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
   **改样式前先读那一节**：绝大多数视觉问题应该在上游那一份里改，
   而不是在站点层再叠一层规则 —— 那是上一版自建主题最后变得无法维护的原因。
 
@@ -86,8 +86,8 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 
 # 设计规范 —— hulatu.com
 
-> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 22 个文件的最小偏离。
-> 这份文档的作用不是「描述我们自己的设计系统」，而是**登记那 22 个文件**，
+> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 25 个文件的最小偏离。
+> 这份文档的作用不是「描述我们自己的设计系统」，而是**登记那 25 个文件**，
 > 以及把「为什么不改」的理由留下来 —— 免得下一轮改造又把上游的东西重做一遍。
 
 ---
@@ -110,6 +110,7 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 | 改导航 | `hugo.toml` 的 `[[menu.main]]`，**不用碰模板** |
 | 改页脚 | `layouts/partials/footer.html` + `hugo.toml` 的 `[params] copyright` / `copyrightNote` / `licenseName` / `licenseURL` |
 | 改评论区 | `layouts/partials/giscus.html` + `assets/js/giscus.js` + `custom_head.html` 第 07 段 |
+| 改订阅源（feed 字段 / 浏览器视图） | ① feed 本身：`layouts/_default/rss.xml`；② 浏览器打开 feed 时那一页：`layouts/partials/feed-view.html` + `content/feed/` + `custom_head.html` 第 28 段；③ 谁来分派：`functions/_middleware.js`（见第 4 节「订阅源」） |
 | 改 robots / `noindex` | `layouts/_default/baseof.html` 的 robots 分支（见第 5 节） |
 | 想加回被删的功能 | 先读本文档第 6 节「已删除的功能」——**每一条都写了删它的理由** |
 
@@ -937,7 +938,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 
 ---
 
-## 5. 站点层偏离（22 个文件）+ 改上游 1 处
+## 5. 站点层偏离（25 个文件）+ 改上游 1 处
 
 > ⚠️ **2026-10-14 起多了一类偏离：直接改上游主题本身。**
 > 在此之前 27 个主题文件是逐字节未改的；现在
@@ -955,16 +956,18 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | `layouts/_default/baseof.html` | ① `.Site.LanguageCode` → `.Site.Language.Locale`；② 补回 robots 分支 | ① 前者 Hugo 0.158 起弃用，将来移除会让整站构建失败；② 上游**完全没有** robots 输出，而本站有两类页面本来就该 noindex（见下） |
 | `layouts/_default/single.html` | 去掉 `if eq .Type "blog"` 外层门槛；加 `hideDate` / `hideTitle`；加文末「系列坐标带」+「上一篇 / 下一篇」；加评论区 | 上游把标题日期写死给 `blog` 段；其余都是站点层新增（见第 4 节） |
 | `layouts/_default/list.html` | 5 处界面文案英译中；删底部标签墙 | 上游文案写死英文、没走 i18n；用户不要标签云 |
-| `layouts/_default/rss.xml` | 三处：① 补回 `<?xml-stylesheet?>`（指向 `/rss.xsl`）+ `xmlns:content`；② 首页 feed 改成**只收文章页**（`Type` ∈ `posts`/`weekly`）；③ 补 `atom:updated` / `category` / 摘要式 `description` / 全文 `content:encoded`，并存 `params.RSS.pageLimit` 上限（20） | ① 上游那份（= Hugo 内置模板）不带样式表引用 → 浏览器直接打开 `/index.xml` 只剩 raw XML（用户报「RSS 页面设计没了」）；② 迁移后新增的 `/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 都是 content 根下的普通页，会被一并收进订阅；③ 上游只发全文 `description`、没有「更新于」和分类 |
+| `layouts/_default/rss.xml` | 三处：① `xmlns:content` + **2026-10-15 起顶部不再挂 `<?xml-stylesheet?>`**（旧的 `/rss.xsl` 已删）；② 首页 feed 改成**只收文章页**（`Type` ∈ `posts`/`weekly`）；③ 补 `atom:updated` / `category` / 摘要式 `description` / 全文 `content:encoded`，并存 `params.RSS.pageLimit` 上限（20） | ① 旧版靠浏览器 XSLT 渲染，Chromium 正在移除 XSLT（弹横幅，移除后那页退化成 raw XML）→ 改由 `functions/_middleware.js` 内容协商到 `/feed/`，见第 4 节「订阅源」；② 迁移后新增的 `/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 都是 content 根下的普通页，会被一并收进订阅；③ 上游只发全文 `description`、没有「更新于」和分类 |
 | `layouts/_default/archive.html` | **新增**（且比上游 `list.html` 多一段「系列」横向入口） | `/archive/` 是内容页不是 section，上游无对应模板 |
 | `layouts/_default/run.html` | **新增**（2026-10-12）：跑步数据页。从子站 `sites/run/layouts/index.html` 搬来，去掉子站自己的 `<head>` / `<header>` / `<footer>`，补一个页面级 `<h1>`，数据块包进 `<content>` | 跑步数据要从 `run.hulatu.com` 变成本站的 `/run/` 页，数据来自 `hugo.Data.runs`（`data/runs.json`）—— 上游没有任何读 `data/` 的模板 |
 | `layouts/_default/_markup/render-link.html` | **新增**：`</a>` 后**不留换行** | 上游模板末尾多一个换行，行内链接后紧跟中文标点时会被折叠成一个空格（「花墨 ：点评」）。迁移后实测 **26 页 / 70 处**，其中 `/roll/` 一页 15 处。见下 |
+| `layouts/feed/list.html` + `layouts/feed/single.html` | **新增**（2026-10-15）：把 `/feed/` 与 `/feed/weekly/` 挂到 `baseof` 上，内容全在 `partials/feed-view.html` | 「浏览器直接打开 feed 看到的那一页」的新家（旧版是 `static/rss.xsl`）。⚠️ **两个文件名都要有**：section 页（`/feed/`）走 `list.html`，它下面的普通页（`/feed/weekly/`）走 `single.html`，缺一个就会掉进 `_default/single.html` 被渲染成一篇「文章」（多出日期行、标签行、上下篇导航） |
+| `layouts/partials/feed-view.html` | **新增**（2026-10-15）：订阅源的浏览器视图 —— 标题 + 站点简介 + 订阅地址 + 条目（日期 / 标题 / 摘要）。⚠️ **页面集合口径必须与 `_default/rss.xml` 逐字一致**（`site` = Type ∈ posts/weekly；`weekly` = 周刊 section 的 `.RegularPages`） | 见第 4 节「订阅源」。两边算得不一样 = 「网页上比订阅里少一篇」，而且构建 0 警告 |
 | `layouts/index.html` | **新增**（且简介正文**不包 `<content>`**，与上游不同、与 yinji 一致） | 上游首页只有 `{{ .Content }}`，等于空页；`<content>` 那层见第 4 节「首页」 |
 | `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动 | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架 |
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
 | `layouts/partials/seo_tags.html` | **新增**（2026-10-14）：整份覆盖上游的同名 partial —— ① 删 `<meta name="keywords">` 与 `<meta name="title">`；② 删掉整块微数据（`itemscope` / `itemprop` 那套）；③ 补 `og:image:width` / `height`；④ 换成按页型输出的 JSON-LD | 上游那份是「HTML 规范还在 2015 年」的写法（见第 8 节第 1 条：它原本就是本文件存在的理由）。现在 332 页全部有 `ld+json`、`keywords` / `itemprop` / `pubdate` 全站归零 |
-| `layouts/partials/custom_head.html` | 26 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 全站） | 见下 |
+| `layouts/partials/custom_head.html` | 28 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 / 28 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 全站） | 见下 |
 | `layouts/404.html` | **新增** | 上游默认只有 `<h1>404</h1>` + 一行颜文字 |
 | `layouts/_default/_markup/render-heading.html` | **新增**：标题末尾的 `#` 锚点 | 上游没有这个钩子（Goldmark 只给 id、不给可点入口） |
 | `layouts/partials/orphan-safe.html` | **新增**：标题末 2 字包 `nowrap` | 中文标题的孤行问题（取回旧主题的做法） |
@@ -1003,27 +1006,44 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 与「要不要进订阅」是两件事（`/donate/` 恰好两者都占，但挡住它的是这里的 Type 白名单）。
 ⚠️ 周刊那一路走 `.RegularPages`（本 section 自己的页面），本来就是全文章，不用再过滤。
 
-**② 「RSS 页面」靠 `static/rss.xsl` 渲染。** feed 是给订阅器吃的 RSS 2.0，
-但浏览器直接打开 `/index.xml` 时会**按 feed 顶部那行**去取样式表：
+**② 「浏览器打开 feed 看到的那一页」改由边缘函数分派（2026-10-15）。**
+feed 本身是一份**纯 RSS 2.0** —— 顶部不再有 `<?xml-stylesheet?>`，`static/rss.xsl` 已删除。
+原因是 Chromium 正在移除 XSLT（见本节末尾那条 ⚠️）。现在分成两条腿：
 
-```
-<?xml-stylesheet type="text/xsl" href="https://hulatu.com/rss.xsl"?>
-```
+| 谁在请求 | 拿到什么 |
+| --- | --- |
+| 浏览器地址栏导航（`Sec-Fetch-Dest: document`） | `/feed/` 或 `/feed/weekly/` —— 站点层生成的 HTML 页 |
+| 订阅器 / 聚合站 / curl（不带那个头） | 原样返回 `/index.xml`（RSS 2.0） |
 
-→ 渲染成「大标题 + 一句话简介 + 订阅源 · 共 N 篇 + 每篇标题/日期/摘要」的一页 HTML
-（浅色 / 深色两套，`prefers-color-scheme` 跟随系统）。**少了这行，浏览器给的就是一片 raw XML。**
-⚠️ 地址必须用 `site.BaseURL` 拼**绝对**地址。写成相对的 `rss.xsl`，在 `/weekly/index.xml`
-那边会解析成 `/weekly/rss.xsl` → 404（`rss.xsl` 只放在站点根）。
-⚠️ `rss.xsl` **只读 5 个字段**：`channel/title`、`channel/description`、
-`item` 的 `title` / `link` / `pubDate` / `description`。改 feed 里的字段名要同步改它。
-⚠️ 日期用的是 `substring(pubDate, 6, 11)` —— 依赖「`Mon, 02 Jan 2006`」这个 RFC-822 格式
-（得到 `07 Oct 2026`），换日期格式会连带把它弄坏。
+分派逻辑在 `functions/_middleware.js`（Cloudflare Pages Functions）。⚠️ 它**不在 `layouts/` 里**，
+所以不占「站点层 25 个文件」的名额，但它是这套方案唯一会**静默失效**的一环 ——
+Pages 项目里 Functions 目录被改过或关掉的话，横幅消失、页面却退回 raw XML，构建和部署都不报错。
+判定**只认 `Sec-Fetch-Dest: document`**：那是现代浏览器顶层导航才会带的头，订阅器一律不发；
+头不存在时才退回看 `Accept` 是否以 `text/html` 开头。判定不成立就 `next()` ——
+宁可在浏览器里露出 raw XML，也不让订阅器拿到 HTML（后者是用户察觉不到的故障）。
+
+两页的内容在 `layouts/partials/feed-view.html`：标题 + 站点简介 + **订阅地址（`<code>`，
+刻意不做成链接** —— 点了就会打开 raw XML）+ 条目列表（日期 / 标题 / 摘要，摘要与 feed 的
+`<description>` 同源，都是 `.Summary`）。`content/feed/_index.md` 与 `content/feed/weekly.md`
+只是两个壳，负责给出 URL、`feedScope` 与 `noindex`。
+
+⚠️ **页面集合口径必须与 `rss.xml` 逐字一致**：`site` 用
+`where site.RegularPages "Type" "in" (slice "posts" "weekly")`，`weekly` 用周刊 section 的
+`.RegularPages`，条数上限同样取 `params.RSS.pageLimit`。不一致就是「网页上比订阅里少一篇」，
+而且**构建 0 警告** —— 验收脚本会逐条比对两个视图的标题与链接序列。
+⚠️ 样式在 `custom_head.html` 第 28 段，**按 `.Type` / `.Section` 守卫**：只有那两页输出，
+其余 330 多页 0 字节。
+⚠️ 别把 `<?xml-stylesheet?>` 加回来，也**别把 `/feed/` 挂进导航** —— 它是「浏览器打开 feed」
+的落点，不是一条页面入口；导航最右的 RSS 与页脚 `Subscribe via RSS` 仍然指 `/index.xml`，
+地址一个字没变，所以订阅者与聚合站完全无感。
+⚠️ 两页都设了 `noindex`（`content/feed/*.md` 的 front matter）：它们与 `/archive/` 是同一批
+内容，旧版由 XSLT 渲染时它根本不是 HTML 页，本来就进不了索引。
 
 **③ 条目字段。** 除 `title` / `link` / `pubDate` / `guid` 外还发：
 
 - `atom:updated`（`Lastmod`，RFC3339）—— 文章页有「更新于」靠 `scripts/sync-lastmod.py` 刷，
   feed 只有 `pubDate` 的话订阅端感知不到一篇被修订过。`Lastmod` 等于 `Date` 的也照发。
-- `<category>` —— 分类与标签各来一遍（`rss.xsl` 不渲染它，是给订阅器/聚合站分类用的）。
+- `<category>` —— 分类与标签各来一遍（浏览器视图那两页不渲染它，是给订阅器/聚合站分类用的）。
 - `<description>` = `.Summary | plainify | htmlUnescape`（**摘要**，纯文本）。
 - `<content:encoded>` = `.Content | transform.XMLEscape | safeHTML`（**全文**，HTML 当文本带走）。
   ⚠️ 旧站这里还套过一个 `partials/formula.html` 把 `$$…$$` 换成 `<p class="formula">`，
@@ -1032,10 +1052,14 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 **④ `<lastBuildDate>` 用「最新一篇的 `Lastmod`」，不是构建时间。** 否则每天推送的
 跑步数据 / 依赖同步这类不带新内容的构建，会让订阅端以为 feed 更新了。
 
-⚠️ **Chromium 家族对 XSLT 弹横幅**（`This site uses XSLT; that functionality is being removed…`，
-实测 Chromium 155 有）。**feed 本身不受影响** —— 订阅器根本不看 `<?xml-stylesheet?>`，
-只有「浏览器直接打开」这一种用法有未来风险；Firefox / Safari 目前仍正常。
-真要长期保底，就是把这一页改成一条 `_redirects` 规则指到一个真 HTML 页（尚未做）。
+⚠️ **为什么不用 XSLT 了（2026-10-15）**：Chromium 家族会弹
+`This site uses XSLT; that functionality is being removed from this browser very soon.`
+（实测 Chromium 155）。等它真移除，靠 `<?xml-stylesheet?>` 渲染的那一页就**直接退化成
+raw XML**。旧方案（`static/rss.xsl` + feed 顶部那行）因此整体撤掉，换成上面 ② 的内容协商 ——
+`static/_headers` 里那条 `/rss.xsl` 规则也一并删了。
+Firefox / Safari 目前仍支持 XSLT，但**这套方案已经不需要任何浏览器支持 XSLT**，
+所以那边的支持与否不再影响本站。想回退到旧方案：`git show <本次改动前的提交> -- static/rss.xsl`
+能取回样式表，但**不建议** —— 回退等于把横幅一起带回来。
 
 ### ⚠️ robots / `noindex` 的现状（2026-10-11）
 
@@ -1350,7 +1374,8 @@ for f in 全部产物:
 | `/run/`（跑步数据页） | **10509 / 3006** | 1 | 4085 B |
 | **`/404.html`** | **10089 / 2888** | 1 | 3665 B |
 
-合计 **332 页**。主题自己那块固定 **6424 B**（每页都有）。三档增量的来源：
+合计 **332 页**（⚠️ 这张表是 **2026-10-12** 的口径 —— 第 26 / 28 段与订阅源那两页都还没进来；
+当前值见 MAINTENANCE.md 第 0 节）。主题自己那块固定 **6424 B**（每页都有）。三档增量的来源：
 
 - 长文页 / 归档页 **+1652 B** = 09 段（系列坐标带 + 归档横向入口）+ 10 段（上下篇）
 - 含代码块的页 **+3329 B**（在长文页基础上再 +1677 B）= 12 段的 `--code-*` 变量与
@@ -1373,6 +1398,7 @@ for f in 全部产物:
 
 | 已删 | 原来解决什么 | 为什么现在不需要 |
 | --- | --- | --- |
+| XSLT 渲染的「RSS 页面」（`static/rss.xsl` + feed 顶部那行 `<?xml-stylesheet?>`） | 浏览器直接打开 `/index.xml` 时看到一页设计过的 HTML | ⚠️ **不是删掉，是换掉**（2026-10-15）：Chromium 正在移除 XSLT，所以改成 `functions/_middleware.js` 内容协商到 `/feed/` 那两页。⚠️ **别再回到 XSLT** —— 回去等于把「This site uses XSLT…」横幅一起带回来 |
 | 站内搜索面板（`search-index.json` + `/` 或 `⌘K`） | 334 页里找文章 | 上游有列表页的标题过滤（`postSearch`，当前开启），够用；全文索引要自带一份 JSON + 面板，代价远大于收益 |
 | 深浅色手动切换按钮 | 想手动锁定主题 | 上游 `prefers-color-scheme` 完全跟随系统。**手动开关要记忆选择**（LocalStorage），而「跟随系统」是零配置的正确答案 |
 | 图片灯箱（`lightbox.js` + focus-trap） | 看大图 | 上游有 CSS-only 的 `imageZoom`，零 JS |

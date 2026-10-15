@@ -3,17 +3,22 @@
 
        ══ 这份覆盖做三件事 ══════════════════════════════════════════════════
 
-       一、把「浏览器直接打开 /index.xml 时看到的页面」还给旧站的样子。
-           feed 本身还是一份合法 RSS 2.0，但顶部多挂一行
-               <?xml-stylesheet type="text/xsl" href="https://hulatu.com/rss.xsl"?>
-           浏览器读到这行就会用 static/rss.xsl 把 feed 渲染成一页 HTML
-           （标题 + 一句话简介 + 「订阅源 · 共 N 篇」+ 每篇的标题/日期/摘要）。
-           没有这行，浏览器给的就是一片 raw XML —— 这正是迁移后用户看到的
-           「我的 RSS 页面设计怎么没了」。
-           ⚠️ 样式表用 site.BaseURL 拼绝对地址，不要写成相对路径：
-              相对路径在 /weekly/index.xml 那边会解析成 /weekly/rss.xsl → 404。
-           ⚠️ rss.xsl 只读 channel/title、channel/description、item 的
-              title/link/pubDate/description 五个字段 —— 改这里的字段名要同步改它。
+       一、**不再**用 XSLT 给浏览器渲染这一页（2026-10-15）。
+           feed 是一份纯 RSS 2.0，顶部**没有** <?xml-stylesheet?>。
+           原因：Chromium 正在移除 XSLT，浏览器打开 /index.xml 会弹
+           「This site uses XSLT; that functionality is being removed…」横幅，
+           等它真移除，那一页就从「设计过的 HTML」退化成一片 raw XML。
+           旧的 static/rss.xsl 已随之删除（连带 static/_headers 里那条规则）。
+           现在「浏览器直接打开 feed 看到的页面」由两条腿承担：
+             · 静态侧：/feed/ 与 /feed/weekly/ 两个 HTML 页
+               （content/feed/ + layouts/feed/ + partials/feed-view.html）
+             · 边缘侧：functions/_middleware.js 做内容协商 ——
+               只有「浏览器地址栏导航」（Sec-Fetch-Dest: document）才被改写到
+               上面那两个页面，订阅器 / 聚合站一律原样拿到这份 XML。
+           ⚠️ 订阅器根本不看 <?xml-stylesheet?>，所以这次改动对订阅零影响；
+              也**别把那一行加回来** —— 加回来横幅就跟着回来。
+           ⚠️ /feed/ 那两页的页面集合口径必须和下面的 $pages 逐字一致：
+              两边算得不一样就是「网页上比订阅里少一篇」，而且构建 0 警告。
 
        二、让 feed 只收「文章页」。
            用户要求：新增的 /about/ /now/ /roll/ /privacy/ /donate/ /archive/
@@ -77,7 +82,10 @@
 {{- if ge $limit 1 }}{{ $pages = $pages | first $limit }}{{ end }}
 
 {{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n" | safeHTML }}
-{{- printf "<?xml-stylesheet type=\"text/xsl\" href=\"%srss.xsl\"?>" site.BaseURL | safeHTML }}
+{{- /* 这里原本还输出一行 <?xml-stylesheet type="text/xsl" href="…/rss.xsl"?>，
+       2026-10-15 删除（理由见文件头「一、」）。**别加回来**：
+       Chromium 移除 XSLT 后那行只剩副作用（浏览器弹横幅），
+       而订阅器本来就不读它。浏览器视图改由 /feed/ 那两页承担。 */ -}}
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} - {{ site.Title }}{{ end }}</title>
