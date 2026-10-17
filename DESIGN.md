@@ -266,9 +266,13 @@ hulatu.com（本站：上游主题 + 28 个站点层覆盖文件）
 它不以 `http(s)` 开头，所以 `externalLinksNewTab` 那套不会给它加 `target="_blank"`
 （与页脚那个 RSS 链接行为一致：原地打开）。
 ✅ **2026-10-17 起有「当前页高亮」了**：`nav.html` 输出 `aria-current="page"`，
-样式在第 00b 段 —— 当前项转**主文字色** + 1px 下划线（普通项是蓝字无下划线、
+样式在第 00b 段 —— 当前项转**主文字色**，**不加下划线**（普通项是蓝字无下划线、
 悬停是蓝字带下划线，三态都不改变宽度）。`RSS` 指向 `/index.xml`、不是页面，
 所以它永远不会被点亮。
+⚠️ 下划线那版（「黑字 + 1px 下划线」）是 2026-10-17 的第一版，**当天被用户否掉**：
+导航行看起来像一排链接被点亮，噪音大于信息量。现在只靠颜色区分；代价是色觉障碍
+用户可能分不清，但 `aria-current` 对屏幕阅读器是完整的。
+⚠️ 当前页悬停时**仍然会出现下划线**（主题的 `a:hover`），刻意不压。
 ⚠️ 判断必须**精确相等** `$.RelPermalink`。写成前缀匹配的话，`Posts`（指向 `/archive/`）
 会把每一篇 `/posts/…` 都点亮 —— 而本站 127 篇文章全在那条路径下。
 
@@ -1059,7 +1063,7 @@ CSS 拿不到 location，只能由模板给。
 | `layouts/feed/list.html` + `layouts/feed/single.html` | **新增**（2026-10-15）：把 `/feed/` 与 `/feed/weekly/` 挂到 `baseof` 上，内容全在 `partials/feed-view.html` | 「浏览器直接打开 feed 看到的那一页」的新家（旧版是 `static/rss.xsl`）。⚠️ **两个文件名都要有**：section 页（`/feed/`）走 `list.html`，它下面的普通页（`/feed/weekly/`）走 `single.html`，缺一个就会掉进 `_default/single.html` 被渲染成一篇「文章」（多出日期行、标签行、上下篇导航） |
 | `layouts/partials/feed-view.html` | **新增**（2026-10-15）：订阅源的浏览器视图 —— 标题 + 站点简介 + 订阅地址 + 条目（日期 / 标题 / 摘要）。⚠️ **页面集合口径必须与 `_default/rss.xml` 逐字一致**（`site` = Type ∈ posts/weekly；`weekly` = 周刊 section 的 `.RegularPages`） | 见第 4 节「订阅源」。两边算得不一样 = 「网页上比订阅里少一篇」，而且构建 0 警告 |
 | `layouts/index.html` | **新增**（且简介正文**不包 `<content>`**，与上游不同、与 yinji 一致） | 上游首页只有 `{{ .Content }}`，等于空页；`<content>` 那层见第 4 节「首页」 |
-| `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动；**2026-10-17 加 `aria-current="page"`** | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架。⚠️ 当前页判断必须**精确相等** `$.RelPermalink` —— 按前缀会让每篇文章页点亮 `Posts`（它指向 `/archive/`，而文章在 `/posts/…`）；样式只改颜色 + 下划线，**不改字重**（Verdana 400→700 会让导航折行位置变） |
+| `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动；**2026-10-17 加 `aria-current="page"`** | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架。⚠️ 当前页判断必须**精确相等** `$.RelPermalink` —— 按前缀会让每篇文章页点亮 `Posts`（它指向 `/archive/`，而文章在 `/posts/…`）；样式**只改颜色**（不加下划线，用户 2026-10-17 当天否掉）、**不改字重**（Verdana 400→700 会让导航折行位置变） |
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
 | `layouts/partials/seo_tags.html` | **新增**（2026-10-14）：整份覆盖上游的同名 partial —— ① 删 `<meta name="keywords">` 与 `<meta name="title">`；② 删掉整块微数据（`itemscope` / `itemprop` 那套）；③ 补 `og:image:width` / `height`；④ 换成按页型输出的 JSON-LD | 上游那份是「HTML 规范还在 2015 年」的写法（见第 8 节第 1 条：它原本就是本文件存在的理由）。现在 332 页全部有 `ld+json`、`keywords` / `itemprop` / `pubdate` 全站归零 |

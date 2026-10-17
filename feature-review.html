@@ -219,9 +219,6 @@
   .site nav a:hover { text-decoration: underline; text-underline-offset: 3px; }
   .site nav a[aria-current="page"] {
     color: #1a1a1a;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-thickness: 1px;
   }
   .site .body-text {
     margin: 20px 0 0;
@@ -641,7 +638,7 @@
 
     <hr style="margin:22px 0;">
 
-    <p class="mock-label after">改造后 —— 当前页转主文字色 + 1px 下划线</p>
+    <p class="mock-label after">改造后 —— 当前页转主文字色（不加下划线）</p>
     <div class="site">
       <header>
         <a class="brand" href="#"><h1>胡拉图说</h1></a>
@@ -656,12 +653,14 @@
   </div>
 </div>
 
-<p>为什么是「变黑 + 下划线」而不是加粗、加底色、加圆点：</p>
+<p>为什么是「只变颜色」而不是下划线、加粗、加底色、加圆点：</p>
 
 <ul>
+  <li><b>不加下划线</b>。第一版是「黑字 + 下划线」，2026-10-17 当天被否掉 —— 加了之后导航行看起来像一排链接被点亮，视觉噪音大于它提供的信息量。</li>
   <li><b>不能改字重</b>。Verdana 从 400 变 700 会让这一项宽出 2–3px，7 项导航的折行位置就变了 —— 在 392px 视口下 <code>RSS</code> 本来就已经接近折行临界（<code>DESIGN.md:277-279</code>）。</li>
   <li><b>不能加底色</b>。全站没有第二个「块状底色」的控件，加一个就是新语言。</li>
-  <li>「黑字 + 下划线」和现有三态天然区分：普通项是<b>蓝字无下划线</b>、悬停是<b>蓝字带下划线</b>、当前页是<b>黑字带下划线</b>。三种状态都不改变宽度。</li>
+  <li>三态靠「颜色 + 悬停下划线」区分：普通项<b>蓝字无下划线</b>、悬停<b>蓝字带下划线</b>、当前页<b>黑字无下划线</b>。三种状态都不改变宽度。当前页悬停时仍会出现下划线（主题的 <code>a:hover</code>），刻意不压 —— 鼠标移上去毫无反馈反而像坏了。</li>
+  <li>代价：视觉上只靠颜色区分（蓝 vs 黑），色觉障碍用户可能分不清。但 <code>aria-current="page"</code> 对屏幕阅读器是完整的，语义层没有损失。</li>
 </ul>
 
 <h3>3.2 skip-link 聚焦态</h3>
