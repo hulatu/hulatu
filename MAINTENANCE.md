@@ -16,7 +16,7 @@
 | Hugo | `0.167.0+extended`（本机 / GitHub Actions / Cloudflare 三边一致） |
 | 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
 | 代码高亮 | `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
-| 站点层 | **25 个文件** = `layouts/` × 23 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-15 新增 `feed/list.html` `feed/single.html` `partials/feed-view.html`） |
+| 站点层 | **28 个文件** = `layouts/` × 26 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`） |
 | 页面 | 338 页 → **334 个 HTML** |
 | 内容 | 101 篇文章 + 25 期周刊 = 126 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
 | 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开由 `functions/_middleware.js` 分派到 `/feed/` 那两页，订阅器照旧拿 XML |
@@ -30,20 +30,24 @@
 
 | 档 | 页数 | raw / gzip | 补丁 |
 | --- | --- | --- | --- |
-| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` / 195 词条页 / posts 列表页） | 202 | 9237 / 2734 | 2813 B（+00 +14 +17 +20 +21 +22 +23 +26 段） |
-| 长文页（101 文章 + 25 周刊，无代码块） | 121 | 13172 / 3522 | 6748 B（再 +09 +10 +13 +16 +19 段） |
-| 长文页 + 代码块 | 5 | 15423 / 4015 | 8999 B（再 +12 +18 段） |
-| `/archive/` | 1 | 10966 / 3091 | 4542 B |
-| `/donate/` | 1 | 9663 / 2831 | 3239 B（+08 段） |
-| `/run/` | 1 | 11071 / 3132 | 4647 B（+25 段） |
-| `/404.html` | 1 | 10651 / 3014 | 4227 B（+15 段） |
-| 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 9616 / 2820 | 3192 B（+28 段，2026-10-15 新增） |
+| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` / 197 词条页 / posts 列表页） | 204 | 11671 / 3817 | 5247 B（+00 +14 +17 +20 +21 +22 +23 +26 +29 +30 +31 段） |
+| 长文页（102 文章 + 25 周刊，无代码块） | 122 | 15606 / 4675 | 9182 B（再 +09 +10 +13 +16 +19 段） |
+| 长文页 + 代码块 | 5 | 17857 / 5179 | 11433 B（再 +12 +18 段） |
+| `/archive/` | 1 | 13400 / 4191 | 6976 B |
+| `/donate/` | 1 | 12097 / 3935 | 5673 B（+08 段） |
+| `/run/` | 1 | 13505 / 4230 | 7081 B（+25 段） |
+| `/404.html` | 1 | 13085 / 4094 | 6661 B（+15 段） |
+| 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 12050 / 3909 | 5626 B（+28 段） |
 
-合计 334 页，与 `os.walk` 数出的 HTML 数一致。`/about/` `/now/` `/roll/` `/privacy/` `/weekly/` 与普通页完全一致（03 段头像撤掉后不再输出任何 CSS）。
-⚠️ 上面每一档的**逐值都是 2026-10-14 那次审计的实测值**（`/feed/` 那行是 2026-10-15 新增的）。第 28 段只在 `/feed/` 那两页输出，所以其余各档的 raw / gzip 逐值**未变**；页数合计从 332 变成 334 只是因为多了那两页。
+合计 337 页，与 `os.walk` 数出的 HTML 数一致。`/about/` `/now/` `/roll/` `/privacy/` `/weekly/` 与普通页完全一致（03 段头像撤掉后不再输出任何 CSS）。
+⚠️ 上面每一档的**逐值都是 2026-10-17 第 31 段落地后的实测值**。与当天早些时候（只有第 29/30 段 + 00 段）相比**每档统一 +1089 B raw / +701～792 B gzip（中位约 720）** —— 那是新增的第 31 段（手机端折叠目录），加上第 29 段隐藏清单里补的 `.toc-mobile`。逐项对比见 DESIGN.md 第 10.2 节。
+⚠️ **页数口径已修正**：旧表写 `202 + 121 + 5 + 1 + 1 + 1 + 1 + 2`，合计 334，与同一段说的「合计 337 页」自相矛盾（差 3 页）。这次按 `os.walk` 重分为 `204 + 122 + 5 + … = 337`；长文页 122 + 5 = **127**，与「102 文章 + 25 周刊」对得上。
+⚠️ **第 29 段里约 300 B gzip 是打印样式**，对屏幕用户完全无用却每页都下载。没拆成外部 `media="print"` 样式表的原因：本站 CSS 全内联是既定架构（产物没有 `/css/` 目录），且 `media="print"` 的表浏览器**照样下载**，只是优先级低，省不下请求。
 
 - 第 20–23 段是 2026-10-12 新增的 4 条全站规则（**+428 B raw / +115 B gzip**）：目录断点抬到 1200px、`img{height:auto}`、等宽字体令牌、TOC 链接 transition 收窄。
 - **第 26 段是 2026-10-14 新增的 6 条全站规则，每档统一 +562 B raw / +124 B gzip**（① `input{font-size:16px}` ② `color-scheme` ③ `div.toc` 的 `100vw`→`100%` + `80dvh` ④⑤ 图片放大换背景 + checkbox 可聚焦）。改前基线是 8675 / 12610 / 14861 / 10404 / 9101 / 10509 / 10089，逐值 -562 就是当天之前的样子。
+- **第 29 段（skip-link + 打印）与第 30 段（跨页转场）是 2026-10-17 新增的两条全站规则，加上 00 段末尾的导航高亮，每档统一 +1345 B raw / 约 +377 B gzip**。改前基线是 9237 / 13172 / 15423 / 10966 / 9663 / 11071 / 10651 / 9616，逐值 +1345 就是当天之前的样子。⚠️ 第 29 段里约 300 B gzip 是打印样式，屏幕用户用不到但每页都下载 —— 判断依据见 DESIGN.md 第 10.2 节。
+- **第 31 段（手机端折叠目录）是 2026-10-17 新增的全站规则，每档统一 +1089 B raw / +701～792 B gzip**。改前基线就是上表逐值 −1089。构成：12 条规则本体约 1034 B + `@media screen and (max-width:1200px)` 外层包裹约 44 B + 第 29 段隐藏清单里补的 `.toc-mobile` 11 B。⚠️ 为什么 +1089 raw 只压掉约 370 B：`<style>` 是**每个块单独 gzip** 的，小块压缩率天然偏低，而且这一段里 `var(--…)` 与 `.toc-mobile` 前缀重复很多。
 - 第 24 段（`/archive/` 的 `content-visibility`）评估后**撤回**，只留注释，运行时 +0 B。
 - 第 25 段按 `.RelPermalink` 守卫，**其他页 0 字节**（实测：去掉它重构建，首页 `/now/` `/about/` 的 `<style>` 逐字节不变）。
 - 03 / 06 / 11 三段**刻意留空**（只留注释保段号）；详见 DESIGN.md 第 5 节。
@@ -82,11 +86,21 @@ content/
 archetypes/
   posts.md weekly.md      新建文章的模板（含发布前检查清单）
 
-layouts/                  ★ 站点层覆盖，23 个文件
+layouts/                  ★ 站点层覆盖，26 个文件
   index.html                        首页（上游只有 {{ .Content }}；简介**不包 <content>**）
+  sitemap.xml                       ★ 2026-10-17 新增：按 $noindex 过滤（336 → 134 条）
+                                    ⚠️ 过滤条件必须与 _default/baseof.html 的 $noindex 逐字同口径
+  _partials/opengraph.html          ★ 2026-10-17 新增：覆盖 Hugo **内置**的 _partials 命名空间
+                                    —— 按 slug 取 images/og/<slug>.png，取不到回落 share.webp
+  _partials/twitter_cards.html      ★ 同上（twitter:image 必须与 og:image 同源）
   _default/baseof.html              LanguageCode → Language.Locale + 补回 robots 分支
+                                    + skip-link（2026-10-17）+ <main id="main" tabindex="-1">
+                                    + 长文页的 .print-url
   _default/single.html              去掉 `if eq .Type "blog"` 门槛 + hideDate/hideTitle
                                     + 文末「系列坐标带」与「上一篇/下一篇」+ 评论区
+                                    + 手机端折叠目录（2026-10-17，h2 ≥ 3 且 $tocEnabled 才出）
+                                    ⚠️ `$tocEnabled` 在文件开头定义，末尾的侧栏目录复用它；
+                                       别在末尾再声明一次（同层重复声明直接构建失败）
   _default/list.html                5 处文案英译中 + 删底部标签墙
   _default/rss.xml                  ★ 首页 feed 只收文章页 + atom:updated / category /
                                     摘要 description / 全文 content:encoded + pageLimit 20
@@ -105,14 +119,18 @@ layouts/                  ★ 站点层覆盖，23 个文件
                                     ⚠️ 2026-10-14：overlay 不再重复一个 <img>，
                                     URL 走 figure 上的 --zoom-src 画背景（省一半节点）
   partials/nav.html                 完全由 [[menu.main]] 驱动（7 项）
+                                    + aria-current="page"（2026-10-17，精确匹配 RelPermalink）
   partials/footer.html              版权独立成行 + 订阅行挪到第 3 行
                                     + copyrightNote/licenseName/licenseURL
-  partials/custom_head.html         28 段补丁样式 + GoatCounter
+  partials/custom_head.html         31 段补丁样式 + GoatCounter
                                     （03/06/11 刻意留空，24 撤回）
                                     ⚠️ <style> 之前还有两条 theme-color meta，不占段号
                                     ⚠️ 第 27 段号**刻意不占** —— 当天建当天撤，原因见 DESIGN.md
                                     ⚠️ 第 28 段是订阅源浏览器视图的样式，**只给 /feed/ 那两页**
                                     （守卫 `or (eq .Type "feed") (eq .Section "feed")`）
+                                    ⚠️ 第 29 段 = skip-link + 打印；第 30 段 = 跨页转场（2026-10-17，全站）
+                                    ⚠️ 第 31 段 = 手机端折叠目录（2026-10-17，`@media screen` 限定，
+                                       打印时不显示；类名**不能**叫 `.toc-nav`，会抢走主题 JS 的选择器）
   partials/feed-view.html           ★ 订阅源浏览器视图（2026-10-15）：标题 + 简介 +
                                     订阅地址 + 条目「日期/标题/摘要」
                                     ⚠️ 页面集合口径必须与 _default/rss.xml 逐字一致

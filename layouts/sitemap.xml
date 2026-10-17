@@ -1,0 +1,48 @@
+{{- /* 站点层覆盖：sitemap.xml（2026-10-17 新增）
+
+      上游 / Hugo 内置的那份会**把所有输出页面都列进去**，而本站有整整
+      202 / 336 条（60.1%）的页面本身带 `noindex`：
+
+        · 189 个标签词条页  /tags/<词>/
+        ·   8 个分类词条页  /categories/<词>/
+        · /posts/ /donate/ /privacy/ /feed/ /feed/weekly/
+
+      这些页面在 HTML 里已经输出了 `<meta name="robots" content="noindex, follow">`，
+      但地址仍然被交给爬虫一次 —— Search Console 会持续报「已提交但被 noindex 排除」。
+      爬虫不会收录，但这是明确的**自相矛盾的信号**，对站点质量评分没有好处。
+
+      ⚠️⚠️ 过滤条件必须与 `layouts/_default/baseof.html:31` 的 `$noindex`
+             **逐字同口径**。两处一旦漂移，构建 0 警告、页面照常生成，
+             唯一的症状是「sitemap 里又有 noindex 页了」—— 极难发现。
+             改一处必须回来改另一处。当前两边都是这四项：
+
+               (eq .Data.Plural "tags")
+               (eq .Data.Plural "categories")
+               (eq .Kind "404")
+               (eq .Params.noindex true)
+
+      ⚠️ **只看 `.Params.noindex` 是不够的** —— 197 个词条页的 noindex 不是
+         front matter 给的，是 baseof 按 `.Data.Plural` 判出来的。漏掉前两项
+         会漏掉全部词条页（也就是这次要解决的主要部分）。
+      ⚠️ `.Data.Plural` 在普通页 / 文章页上取到空值，`eq` 比较恒为假，无害
+         —— 与 baseof 里那条注释同义。
+      ⚠️ 404 页本来就不该进 sitemap（Hugo 默认会把它列进去）。
+      ⚠️ 除过滤外**与内置模板逐字一致**：只输出 `<loc>` + `<lastmod>`，
+         不带 `changefreq` / `priority`（Hugo 默认也不输出，本站没有配置它们）。
+         改完核对只需要数 `<loc>` 的条数：应为 336 − 202 = 134。
+*/ -}}
+{{ printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  {{- range .Data.Pages }}
+  {{- $noindex := or (eq .Data.Plural "tags") (eq .Data.Plural "categories") (eq .Kind "404") (eq .Params.noindex true) }}
+  {{- if and .Permalink (not $noindex) }}
+  <url>
+    <loc>{{ .Permalink }}</loc>
+    {{- if not .Lastmod.IsZero }}
+    <lastmod>{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" | safeHTML }}</lastmod>
+    {{- end }}
+  </url>
+  {{- end }}
+  {{- end }}
+</urlset>

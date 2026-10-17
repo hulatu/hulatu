@@ -86,7 +86,7 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 
 # 设计规范 —— hulatu.com
 
-> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 25 个文件的最小偏离。
+> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 28 个文件的最小偏离。
 > 这份文档的作用不是「描述我们自己的设计系统」，而是**登记那 25 个文件**，
 > 以及把「为什么不改」的理由留下来 —— 免得下一轮改造又把上游的东西重做一遍。
 
@@ -128,7 +128,7 @@ hugo-bearneo（上游主题，本站现在用的就是它，逐字节未改）
       ↓ 站点层借鉴
 yinji.org（同样基于 hugo-bearneo，是「别人怎么用这个主题」的现成答案）
       ↓
-hulatu.com（本站：上游主题 + 22 个站点层覆盖文件）
+hulatu.com（本站：上游主题 + 28 个站点层覆盖文件）
 ```
 
 **本站自己的设计主张只剩三条**，全部落在站点层，且都很小：
@@ -264,7 +264,13 @@ hulatu.com（本站：上游主题 + 22 个站点层覆盖文件）
 
 ⚠️ `RSS` 那一项与页脚那行 `Subscribe via RSS` 指向**同一个** `/index.xml`。
 它不以 `http(s)` 开头，所以 `externalLinksNewTab` 那套不会给它加 `target="_blank"`
-（与页脚那个 RSS 链接行为一致：原地打开）。也**没有「当前页高亮」的概念**。
+（与页脚那个 RSS 链接行为一致：原地打开）。
+✅ **2026-10-17 起有「当前页高亮」了**：`nav.html` 输出 `aria-current="page"`，
+样式在第 00b 段 —— 当前项转**主文字色** + 1px 下划线（普通项是蓝字无下划线、
+悬停是蓝字带下划线，三态都不改变宽度）。`RSS` 指向 `/index.xml`、不是页面，
+所以它永远不会被点亮。
+⚠️ 判断必须**精确相等** `$.RelPermalink`。写成前缀匹配的话，`Posts`（指向 `/archive/`）
+会把每一篇 `/posts/…` 都点亮 —— 而本站 127 篇文章全在那条路径下。
 
 ⚠️ **2026-10-12 撤掉了原来的 `Hub` 项**（`https://profile.hulatu.com/`，个人主页子站，
 2026-10-11 加、weight 15 卡在 `Home` 右侧）。用户要求「子站入口只留在 `/about/`」，
@@ -694,8 +700,10 @@ CNAME + 一条 301（重建子站项目，或在 Cloudflare 配 Bulk Redirect）
 
 ⚠️ **SEO 那份不受影响**：JSON-LD 里是**完整的**（首页 / 文章 / 分类 / 当前文章，**4 段**；
 周刊是 3 段）。视觉精简 + 数据完整，两者不冲突。
-实测 126 页的 JSON-LD 全部能被 `json.loads` 解成 `BreadcrumbList` 对象，
+实测 **127** 页的 JSON-LD 全部能被 `json.loads` 解成 `BreadcrumbList` 对象，
 `itemListElement` 长度 = 可见段数 + 1，且 `position` 从 1 连续。
+（2026-10-17 复测：`grep -rl BreadcrumbList public | wc -l` = 127。旧值写 126，是因为当时
+长文页还是 126 篇 —— 后来加了一篇，这里没跟着改。）
 
 **样式**（`custom_head.html` 第 13 段，挂在 `$longForm` 上）：
 字号 `0.85rem`、颜色 `--text-color-tertiary`（**默认不抢眼**，悬停才变 `--link-color`）、
@@ -790,6 +798,34 @@ CNAME + 一条 301（重建子站项目，或在 Cloudflare 配 Bulk Redirect）
 - 这是**用户 2026-10-10 明确选的**「完全照搬：默认隐形」（试运行站里那版常显被否）。
   `custom_head.html` 第 06 段**刻意留空**并写明了这件事（2026-10-12 只改断点，是第 20 段）。
 - 只有一篇文章**正文里有两个以上标题**时才值得挂；`toc: false` 可以逐页关掉。
+
+#### 手机端折叠目录（2026-10-17 新增，方案 C）
+
+侧栏 ≤1200px 整块隐藏之后，**127 篇长文在手机上没有任何目录**。补的形态是正文顶部一个
+`<details>`，只在 `≤1200px` 出现，与侧栏**互斥不重叠**：
+
+```
+（手机，收起态）
+┌────────────────────────────┐
+│ 胡拉图的周刊-第四期           │
+│ 2026-01-11                 │
+│ ▶ 本页目录 · 11 节          │  ← 上下两条虚线，mono 小字
+└────────────────────────────┘
+  收到远方朋友的邮件            ← 正文照常
+```
+
+- **只给 h2 ≥ 3 的页**（`$tocEnabled` 且数出来的 h2 数量 ≥ 3）。1–2 个 h2 的短文，
+  目录本身比正文长，展开反而挡路。这个 3 是唯一的调参点，改 `single.html` 里的 `ge $h2count 3`。
+- **不按页型守卫**（不区分 posts / weekly）。按本文件那条规矩：由「这一页写了什么」
+  决定的东西必须全站同口径 —— 目录条数是内容决定的。所以 `/privacy/` 只要 h2 够多也会出目录。
+- **零 JS**：`<details>` 原生折叠，点链接走浏览器默认跳转。刻意不做「点完自动收起」——
+  跳转后目录已经滚出视野。
+- **类名不能叫 `.toc-nav`**：主题 `partials/toc.html` 的 JS 用 `querySelector('.toc-nav')`
+  只取第一个，而这块排在末尾的侧栏**前面**，同名就会抢走它；且主题给 `.toc-nav a` 设了
+  `color: transparent`，同名的话展开后是一片空白。两个后果都 0 警告。
+- 样式在 `custom_head.html` 第 31 段，**媒体查询带 `screen`**（见第 10.3 节第 5 条）。
+- 实测：337 页里 **55 页**输出，h2 ≥ 3 漏出 0 / h2 < 3 误出 0；每页 `id=TableOfContents`
+  恰好 1 个（手机版那份换成了 `<nav aria-label="本页目录">`，避免与侧栏重复 id）。
 
 ### 评论区 giscus
 
@@ -899,6 +935,66 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 ⚠️ `Privacy` 挂在 `hideSitemap` 这个开关里面：关掉 Sitemap 会连它一起关
 （它们本来就是同一行「站点元信息」，分开管没有意义）。
 
+### 全站装置：skip-link / 打印 / 跨页转场（2026-10-17 新增）
+
+三样都不属于「某个页面的组件」，而是**每一页都挂的装置**，样式都在 `custom_head.html`
+第 29 / 30 段（全站生效），结构改动在 `baseof.html`。
+
+**① skip-link**
+
+```
+（平时在视口外，完全不可见）
+┌──────────┐
+│ 跳到正文  │   ← 只在键盘聚焦时滑入左上角；黑底白字（深色下反转）
+└──────────┘
+```
+
+- 它是 `<body>` 后的第一个元素，目标是 `<main id="main">`。
+- 平时用 `left: -9999px` 藏起来，**不是 `display: none`** —— 后者会让元素不可聚焦，
+  Tab 永远到不了它。这是 skip-link 最常见的写错方式，而且看起来「很正常」。
+- `<main>` 带 `tabindex="-1"`：没有它时点 skip-link 只滚动不移动焦点，
+  下一次 Tab 又回到页头，等于白做。`-1` 让它能被程序化聚焦但不进 Tab 序列。
+- `main:focus { outline: none }` 必须有 —— 焦点环会沿整个 main 画一圈，在整页尺度上
+  看着像渲染错误。
+
+**② 打印（`@media print`）**
+
+| 打印时隐藏 | 为什么 |
+| --- | --- |
+| `header` / `footer` | 7 项导航 + 4 行页脚在纸上没有意义 |
+| `div.toc` | 它是 `position: fixed`，**会叠在正文右上** |
+| `.back-top` / `.giscus-wrap` | 固定定位按钮会印在末页角落；评论区默认展开 |
+| `.breadcrumbs` / `.post-nav` / `.post-series` | 纸上点不了，是导航不是内容 |
+
+其余调整：`@page` 给 16mm / 14mm 边距；`body` 去掉 20px padding（纸边距由 `@page` 给，
+再留就是缩进两遍）但**保留 720px 限宽**（A4 可用宽约 673px，本来就装不满）；
+`content` 行高 1.8 → 1.6（省页，可读性无损）；`pre` 折行 + 透明底 + 自绘边框；
+链接收敛到墨色；标题 `break-after: avoid`，代码块 / 表格 / 图 / 引用 `break-inside: avoid`。
+
+文末那条 URL 来自 `baseof.html` 的 `.print-url`（**只在长文页输出**，屏幕上 `display:none`）——
+CSS 拿不到 location，只能由模板给。
+
+⚠️ **`pre` 压不住 `pre.chroma`**：主题那条是 (0,1,1)，裸 `pre` 是 (0,0,1)。
+必须写 `pre, pre.chroma { … }`，否则打印时代码块底色和主题边框都还在，而**构建 0 警告**。
+
+**③ 跨页转场（View Transitions API）**
+
+```css
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
+}
+```
+
+- 站内跳转有 0.2s 交叉淡入。Chrome 126+ / Safari 18.2+ 支持；Firefox 不支持，
+  但那是**纯渐进增强** —— 不支持时照常瞬时切换，没有降级代码要写。
+- 时长 0.2s 是与站内现有过渡（0.15 / 0.2 / 0.22s）同档：整页淡入比组件慢一档才不显「闪」。
+- ⚠️ **它是文档级 at-rule，没有来源 / 目标限定语法**。「只在列表→文章这一条路径上开」
+  在纯 CSS 里做不到，要按路径控制只能上 JS。所以这是**全站生效**；
+  不喜欢就删掉第 30 段，一行都不用回滚别处。
+- ⚠️ 固定定位的返回顶部按钮会随 root 快照一起淡入淡出 —— 这是**期望行为**，
+  不要给它单独 `view-transition-name`，那会出现「按钮不动、内容在淡」的割裂感。
+
 ### 子站（2026-10-12 全部下线）
 
 ⚠️ **`sites/` 目录已从仓库整体删除** —— 这里曾经有四个独立 Hugo 站点
@@ -938,7 +1034,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 
 ---
 
-## 5. 站点层偏离（25 个文件）+ 改上游 1 处
+## 5. 站点层偏离（28 个文件）+ 改上游 1 处
 
 > ⚠️ **2026-10-14 起多了一类偏离：直接改上游主题本身。**
 > 在此之前 27 个主题文件是逐字节未改的；现在
@@ -953,7 +1049,7 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 
 | 文件 | 偏离 | 为什么 |
 | --- | --- | --- |
-| `layouts/_default/baseof.html` | ① `.Site.LanguageCode` → `.Site.Language.Locale`；② 补回 robots 分支 | ① 前者 Hugo 0.158 起弃用，将来移除会让整站构建失败；② 上游**完全没有** robots 输出，而本站有两类页面本来就该 noindex（见下） |
+| `layouts/_default/baseof.html` | ① `.Site.LanguageCode` → `.Site.Language.Locale`；② 补回 robots 分支；③ **2026-10-17 加 skip-link**（`<body>` 后第一个元素）+ **`<main id="main" tabindex="-1">`** + 长文页的 `.print-url` | ① 前者 Hugo 0.158 起弃用，将来移除会让整站构建失败；② 上游**完全没有** robots 输出，而本站有两类页面本来就该 noindex（见下）；③ 无障碍：原来要按 8 次 Tab 才到正文（WCAG 2.4.1 A 级）。⚠️ skip-link 的目标是 `#main`，**不能**复用 `#top`（那是返回顶部的落点，跳过去等于跳到页头） |
 | `layouts/_default/single.html` | 去掉 `if eq .Type "blog"` 外层门槛；加 `hideDate` / `hideTitle`；加文末「系列坐标带」+「上一篇 / 下一篇」；加评论区 | 上游把标题日期写死给 `blog` 段；其余都是站点层新增（见第 4 节） |
 | `layouts/_default/list.html` | 5 处界面文案英译中；删底部标签墙 | 上游文案写死英文、没走 i18n；用户不要标签云 |
 | `layouts/_default/rss.xml` | 三处：① `xmlns:content` + **2026-10-15 起顶部不再挂 `<?xml-stylesheet?>`**（旧的 `/rss.xsl` 已删）；② 首页 feed 改成**只收文章页**（`Type` ∈ `posts`/`weekly`）；③ 补 `atom:updated` / `category` / 摘要式 `description` / 全文 `content:encoded`，并存 `params.RSS.pageLimit` 上限（20） | ① 旧版靠浏览器 XSLT 渲染，Chromium 正在移除 XSLT（弹横幅，移除后那页退化成 raw XML）→ 改由 `functions/_middleware.js` 内容协商到 `/feed/`，见第 4 节「订阅源」；② 迁移后新增的 `/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 都是 content 根下的普通页，会被一并收进订阅；③ 上游只发全文 `description`、没有「更新于」和分类 |
@@ -963,11 +1059,11 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | `layouts/feed/list.html` + `layouts/feed/single.html` | **新增**（2026-10-15）：把 `/feed/` 与 `/feed/weekly/` 挂到 `baseof` 上，内容全在 `partials/feed-view.html` | 「浏览器直接打开 feed 看到的那一页」的新家（旧版是 `static/rss.xsl`）。⚠️ **两个文件名都要有**：section 页（`/feed/`）走 `list.html`，它下面的普通页（`/feed/weekly/`）走 `single.html`，缺一个就会掉进 `_default/single.html` 被渲染成一篇「文章」（多出日期行、标签行、上下篇导航） |
 | `layouts/partials/feed-view.html` | **新增**（2026-10-15）：订阅源的浏览器视图 —— 标题 + 站点简介 + 订阅地址 + 条目（日期 / 标题 / 摘要）。⚠️ **页面集合口径必须与 `_default/rss.xml` 逐字一致**（`site` = Type ∈ posts/weekly；`weekly` = 周刊 section 的 `.RegularPages`） | 见第 4 节「订阅源」。两边算得不一样 = 「网页上比订阅里少一篇」，而且构建 0 警告 |
 | `layouts/index.html` | **新增**（且简介正文**不包 `<content>`**，与上游不同、与 yinji 一致） | 上游首页只有 `{{ .Content }}`，等于空页；`<content>` 那层见第 4 节「首页」 |
-| `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动 | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架 |
+| `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动；**2026-10-17 加 `aria-current="page"`** | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架。⚠️ 当前页判断必须**精确相等** `$.RelPermalink` —— 按前缀会让每篇文章页点亮 `Posts`（它指向 `/archive/`，而文章在 `/posts/…`）；样式只改颜色 + 下划线，**不改字重**（Verdana 400→700 会让导航折行位置变） |
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
 | `layouts/partials/seo_tags.html` | **新增**（2026-10-14）：整份覆盖上游的同名 partial —— ① 删 `<meta name="keywords">` 与 `<meta name="title">`；② 删掉整块微数据（`itemscope` / `itemprop` 那套）；③ 补 `og:image:width` / `height`；④ 换成按页型输出的 JSON-LD | 上游那份是「HTML 规范还在 2015 年」的写法（见第 8 节第 1 条：它原本就是本文件存在的理由）。现在 332 页全部有 `ld+json`、`keywords` / `itemprop` / `pubdate` 全站归零 |
-| `layouts/partials/custom_head.html` | 28 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 / 28 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 全站） | 见下 |
+| `layouts/partials/custom_head.html` | 31 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 / 28 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 / **29 / 30 / 31** 全站；00b 挂在 00 段末尾） | 见下。⚠️ **第 29 段（skip-link + 打印）、第 30 段（跨页转场）、第 31 段（手机端折叠目录）都是 2026-10-17 新增**，全站生效；第 29/30 段 + 00b 合计每页 +1345 B raw，第 31 段再 +1089 B raw |
 | `layouts/404.html` | **新增** | 上游默认只有 `<h1>404</h1>` + 一行颜文字 |
 | `layouts/_default/_markup/render-heading.html` | **新增**：标题末尾的 `#` 锚点 | 上游没有这个钩子（Goldmark 只给 id、不给可点入口） |
 | `layouts/partials/orphan-safe.html` | **新增**：标题末 2 字包 `nowrap` | 中文标题的孤行问题（取回旧主题的做法） |
@@ -975,6 +1071,9 @@ Subscribe via RSS or just Say hello. · 🚇 开往   Subscribe via RSS or just 
 | `layouts/partials/back-top.html` | **新增**：返回顶部（只长文页） | 上游没有；**纯 CSS 滚动驱动动画，零 JS**。⚠️ 同日曾有过「阅读进度条」，已按用户要求删除 |
 | `layouts/partials/code-copy.html` + `assets/js/code-copy.js` | **新增**：代码块复制按钮（只含代码的页） | 上游没有 |
 | `layouts/partials/giscus.html` + `assets/js/giscus.js` | **新增** | 上游没有评论区 |
+| `layouts/sitemap.xml` | **新增**（2026-10-17）：按 `$noindex` 过滤，336 条 → **134 条** | 内置 sitemap 把 197 个词条页 + `/posts/` `/donate/` `/privacy/` `/feed/` `/feed/weekly/` 一起交给爬虫 —— **202 / 336 = 60.1%** 是自带 noindex 的页。爬虫不会收录，但 Search Console 会持续报「已提交但被 noindex 排除」。⚠️ 过滤条件必须与 `baseof.html` 的 `$noindex` **逐字同口径**（四个判据），两处漂移时构建 0 警告 |
+| `layouts/_partials/opengraph.html` + `layouts/_partials/twitter_cards.html` | **新增**（2026-10-17）：按 slug 取 `images/og/<slug>.png`，**取不到就回落 `share.webp`** | 内置那份只会用 `site.Params.images` 一张图 → 337 页的 `og:image` 全是同一张，分享卡片长得一样（DESIGN.md 第 8 节第 1 条）。⚠️ 两个文件的取图逻辑必须**逐字一致**，否则「微信卡片和 Twitter 卡片不是同一张」；⚠️ 覆盖的是 Hugo **内置**的 `_partials/` 命名空间（0.146+），不是主题的 `partials/` |
+| `scripts/gen-og.js` | **新增**（2026-10-17，整份重写）：sharp 把 SVG 光栅化成 1200×630 PNG，127 张共 **1.47 MB**（平均 11.6 KB） | 旧版（2026-10-11 删除）画的是**「纸账 + 印章」**：纸底 `#f6f6f8`、印章红方块、宋体标题 —— 那套语言 2026-10-10 迁移时**整体作废**（第 1 节）。重画版只用现在的 token：`#fdfdfd` 底 / `#1a1a1a` 墨 / `#8c8c8c` 三级灰 / `#d0d7de` 虚线，**不用链接蓝**（卡片上没有可点的东西，用了会让强调色失去语义） |
 
 ### ⚠️ `render-link.html` 那个换行（2026-10-11 修）
 
@@ -1077,7 +1176,7 @@ Firefox / Safari 目前仍支持 XSLT，但**这套方案已经不需要任何�
 所以 `/privacy/`、`/posts/`、`/donate/` **仍然留在 sitemap 里**。爬虫读到 meta 不会收录，
 但地址仍会先交给它一次。要彻底干净，得再加一份 sitemap 模板把 `not .Params.noindex` 排掉。
 
-### `custom_head.html` 的 26 段
+### `custom_head.html` 的 31 段
 
 | 段 | 内容 | 生效范围 |
 | --- | --- | --- |
@@ -1089,15 +1188,15 @@ Firefox / Safari 目前仍支持 XSLT，但**这套方案已经不需要任何�
 | 06 | **刻意留空**：TOC 不覆盖，保持上游「默认隐形」 | — |
 | 07 | giscus 评论区样式（2026-10-11 简化：去掉所有框；标记换成**实心三角**） | 全站 |
 | 08 | `.donate-*`（`/donate/` 的两个收款码） | **仅 `/donate/`** |
-| 09 | `.post-series` + `.archive-series` / `.series-*`（系列坐标带 + 归档横向入口）<br>＋ **`.tag-index`**（归档页底部的全部标签平铺，2026-10-11 照 yinji 补回） | **长文页 + `/archive/`（126 页）** |
+| 09 | `.post-series` + `.archive-series` / `.series-*`（系列坐标带 + 归档横向入口）<br>＋ **`.tag-index`**（归档页底部的全部标签平铺，2026-10-11 照 yinji 补回） | **长文页 + `/archive/`（128 页）** |
 | 10 | `.post-nav` / `.post-nav-*`（文末上一篇 / 下一篇） | **长文页** |
 | 11 | **刻意留空**：`/roll/` 两组之间的分隔线（第一版是 40px 短横线，现已改用**裸 `<hr>`** 走主题样式） | — |
 | 12 | 代码高亮配色（浅 / 深两套 `--code-*` 变量 + `.highlight` 的那批 token 规则） | **仅含代码块的 5 页** |
-| 13 | `.breadcrumbs`（面包屑；显示「首页 / 栏目 / 分类」） | **仅文章页（126 页）** |
+| 13 | `.breadcrumbs`（面包屑；显示「首页 / 栏目 / 分类」） | **仅文章页（127 页）** |
 | 14 | `content .nowrap` + `.table-wrap`（都是由「内容」决定出不出现的） | **全站**（见下：这类不能按页型守卫） |
-| 19 | `.heading-anchor`（标题锚点 `#`；模板层也只在文章页输出它） | **仅长文页（126 页）** |
+| 19 | `.heading-anchor`（标题锚点 `#`；模板层也只在文章页输出它） | **仅长文页（127 页）** |
 | 15 | `.notfound-*`（404 页两段结构） | **仅 404** |
-| 16 | `.back-top`（返回顶部，含 reduced-motion 覆盖） | **仅长文页（126 页）** |
+| 16 | `.back-top`（返回顶部，含 reduced-motion 覆盖） | **仅长文页（127 页）** |
 | 17 | `html { scroll-behavior: smooth }` + 其 reduced-motion 覆盖 | **全站** |
 | 18 | `.code-copy`（代码块复制按钮） | **仅含代码块的页（5 页）** |
 | 20 | `@media (max-width: 1200px) { div.toc { display: none } }`（目录闸门 800 → 1200）<br>⚠️ **几何修正已挪到第 26 段**（`100vw` → `100%`、补 `width`、`80vh` → `80dvh`） | 全站 |
@@ -1107,6 +1206,10 @@ Firefox / Safari 目前仍支持 XSLT，但**这套方案已经不需要任何�
 | 24 | **刻意留空**：`/archive/` 标签块的 `content-visibility` 评估后撤回（见下方小节） | — |
 | 25 | `.stats` / `.stat-*` / `.chart` / `.month-*` / `.run-year*` / `.updated`（跑步页 `/run/` 的统计格子、月度柱状图、按年折叠的记录表、更新时间行） | **仅 `/run/`** |
 | 26 | **六项小修**（2026-10-14「加载 / 过时写法」审计的落地点）：① `input{font-size:16px}` ② `:root{color-scheme:light dark}` ③ `div.toc` 的 `100vw`→`100%` + 补 `width` + `80dvh` ④ `.image-zoom-*` 换成「overlay 只画背景、不重复 `<img>`」+ checkbox 变可聚焦 | **全站** |
+| 28 | 订阅源浏览器视图（`/feed/` 两页）的版式 | **仅 `/feed/` `/feed/weekly/`** |
+| 29 | `.skip-link` + `main:focus` + `@media print`（含 `.print-url` 的样式） | **全站** |
+| 30 | `@view-transition { navigation: auto }` 跨页转场（包在 `prefers-reduced-motion: no-preference` 里） | **全站** |
+| 31 | `.toc-mobile`（手机端折叠目录；`@media screen and (max-width: 1200px)`，打印时不出） | **全站**（结构只在 h2 ≥ 3 的 **55 页**） |
 | — | 文件末尾：**GoatCounter**（上游 `baseof.html` 没有统计挂载点，只能挂这个钩子） | 全站 |
 
 #### 周刊页的「请订阅 RSS」（2026-10-14 用户要求，当天改为普通链接）
@@ -1474,7 +1577,14 @@ for f in 全部产物:
    - 「每页 og:image 都是同一张 share.webp」→ **仍然成立**，分图那件事**并没有做**
    - 要恢复 per-slug og:image，现在只需在**现有这份** `seo_tags.html` 里加一段按 slug 取图的
      覆盖，**不用再加文件**；但仍需先从 git 历史取回 `gen-og.js` 重跑图片
-   （`git log --diff-filter=D --name-only -- scripts/gen-og.js` 能定位到删除那次提交）。
+     （`git log --diff-filter=D --name-only -- scripts/gen-og.js` 能定位到删除那次提交）。
+   - ✅ **2026-10-17 已解决**。做法与上面那条建议**不一样**，最终走的是「覆盖 Hugo 内置
+     `_partials/`」：新增 `layouts/_partials/opengraph.html` + `twitter_cards.html`，
+     按 `.Slug` 取 `images/og/<slug>.png`（取不到回落 `share.webp`）；
+     `scripts/gen-og.js` 整份重写成 Bear Neo 配色，生成 **127 张 / 1.47 MB**。
+     实测：337 页 `og:image` 有 **128 张不同的图**（127 张专属 + 1 张兜底），
+     210 页走兜底（197 词条 + 7 根级页 + 首页 + 404 + 2 feed + `/posts/`）。
+     ⚠️ `seo_tags.html` **一行没改** —— 图是在内置模板那一层换的。
 2. ~~**`/media/` 的删除留下了孤儿链路**~~ → **2026-10-11 已删除**
    （`scripts/sync-douban.py`、`data/media.json`、`static/images/media/`）。
    ⚠️ 原先还挂着一条「`sites/profile/data/profile.json` 的 `media_recent` 仍指向不存在的页面」——
@@ -1491,14 +1601,20 @@ for f in 全部产物:
    `series` 仍然有效：两个出口是文章页文末的坐标带 + `/archive/` 顶部的横向入口。
    ⚠️ 它仍是**字符串**语义（一篇只能属于一个系列），别改成数组。
 7. **列表页没有页面级 h1**（见第 4 节），SEO / 无障碍上是个小缺口，是有意接受上游行为的代价。
-8. **深色主题下正文图片的描边**用的是 `--border-color`（`#30363d`），在 `#121212` 上几乎看不见 ——
-   上游如此，未改。
+8. ~~**深色主题下正文图片的描边**用的是 `--border-color`（`#30363d`），在 `#121212` 上几乎看不见 ——
+   上游如此，未改。~~ → **2026-10-17 复算后判定「不成立」，不用改代码**。
+   实测（ΔL\*，sRGB → 线性 → Y，低亮度分支不能省）：深色 `#30363d` on `#121212` 是
+   **16.85**（WCAG 1.54），浅色 `#d0d7de` on `#fdfdfd` 是 **13.66**（1.43）——
+   **深色反而比浅色高 3.19**。1px 描边在两种主题下的可见度一致，深色甚至更明显。
+   这条是旧主题时代的印象，随 token 一起变过，别再照着它去「修」。
 9. ~~`static/images/avatar.webp` 又变回孤儿文件~~ → **2026-10-11 已删除**。
    同目录的 `static/images/donate/` 两张赞赏码**仍在用**（`/donate/` 页），**别再当死资源删**。
-10. **`/privacy/` 与 `/posts/` 仍然留在 sitemap 里**：2026-10-11 只恢复了 robots meta
-   （三页已正确输出 `noindex, follow`，覆盖 196 页），**没有**恢复旧站的 `layouts/sitemap.xml`
-   —— 那是用户当时的选择。爬虫读到 meta 不会收录，但地址仍会先交给它一次。
-   要彻底干净，得再加一份 sitemap 模板把 `not .Params.noindex` 排掉。
+10. ~~**`/privacy/` 与 `/posts/` 仍然留在 sitemap 里**~~ → **2026-10-17 已解决**。
+   2026-10-11 只恢复了 robots meta（三页已正确输出 `noindex, follow`，覆盖 196 页），
+   **没有**恢复旧站的 `layouts/sitemap.xml`。爬虫读到 meta 不会收录，但地址仍会先交给它一次。
+   现在新增了 `layouts/sitemap.xml`：过滤条件与 `baseof.html` 的 `$noindex` 同口径，
+   **336 条 → 134 条**（−202，即 197 个词条页 + `/posts/` `/donate/` `/privacy/`
+   `/feed/` `/feed/weekly/` + 404）。剩下 134 = 127 篇文章 + 7 个根级独立页。
 
 ---
 
@@ -1594,3 +1710,90 @@ for f in 全部产物:
 2. **替换非标准的 `<content>` 元素** —— 主题全局在用，全站点替换会 **+约 600 B**，
    同时留下 500 B 删不掉的死码（`.content` 选择器在主题 CSS 里还有 20 多处引用）。
    净负收益，且 `<content>` 目前行为完全正常（`display: block`，语义上等效 `<main>`）。
+
+---
+
+## 10. 2026-10-17：六项功能补齐
+
+用户从一份功能 / 设计提案里点名了六项，要求全部实施。基线 = 本次改动前的干净构建
+（341 pages / 337 HTML / 0 警告）。**六项全部落地，构建仍 0 警告。**
+
+### 10.1 逐项落点
+
+| # | 项 | 级别 | 改了什么 | 实测 |
+| --- | --- | --- | --- | --- |
+| 1 | **导航当前页标识** | P0 | `nav.html` 加 `aria-current="page"`（精确匹配 `$.RelPermalink`）+ `custom_head.html` 第 00b 段 | 6 类页面各点亮 1 项；331 页无高亮（127 文章 + 3 独立页 + `/posts/` + 404 + 2 feed + 197 词条 —— 都对） |
+| 2 | **skip-link** | P0 | `baseof.html` 加 `<a class="skip-link" href="#main">`，`<main id="main" tabindex="-1">`；第 29 段样式 | 337 / 337 页；运行时实测 `left=-9999px`（不可见）、`tabindex=-1`、`main:focus{outline:none}` |
+| 3 | **打印样式** | P1 | 第 29 段 `@media print` + `baseof.html` 的 `.print-url`（长文页才输出） | 337 / 337 有 `@media print`；`.print-url` 恰好 **127** 页；模拟打印实测 8 类装置全部 `display:none` |
+| 4 | **sitemap 排除 noindex** | P1 | 新增 `layouts/sitemap.xml` | **336 → 134 条**（−202）；`lastmod` 的 `+08:00` 用 `safeHTML` 保住，没被转义成 `&#43;` |
+| 5 | **每篇一张分享卡片** | P1 | 新增 `_partials/opengraph.html` + `_partials/twitter_cards.html`；`scripts/gen-og.js` 整份重写 | 127 张 PNG / **1.47 MB**；337 页里 **128 张不同的 og:image**，210 页走兜底 |
+| 6 | **View Transitions** | P2 | 第 30 段 `@view-transition { navigation: auto }` | 运行时 CSSOM 实测解析成 `CSSViewTransitionRule`，规则内容 `@view-transition { navigation: auto; }` |
+| 7 | **手机端折叠目录** | 方案 C | `single.html` 加 `<details class="toc-mobile">`（`$tocEnabled` 且 h2 ≥ 3）；第 31 段样式（`@media screen` 限定）；第 29 段隐藏清单补 `.toc-mobile` | 337 页里 **55 页**输出目录；h2 ≥ 3 漏出 **0** / h2 < 3 误出 **0**；每页 `id=TableOfContents` 恰好 **1** 个；`--print-to-pdf` 首页确认**没有**目录 |
+
+### 10.2 体积回归（实测，Python `gzip.compress(d,9)` 口径）
+
+**第一批：第 29 + 30 段 + 00b，全站**，每档统一 **+1345 B raw / 约 +377 B gzip**：
+
+| 页型 | 改前 | 改后 | Δgzip |
+| --- | --- | --- | --- |
+| 普通页（首页 / `/about/` / `/weekly/`） | 9237 / 2734 | 10582 / 3116 | **+382** |
+| 长文页（无代码块） | 13172 / 3522 | 14517 / 3893 | +371 |
+| 长文页 + 代码块 | 15423 / 4015 | 16768 / 4387 | +372 |
+| `/archive/` | 10966 / 3091 | 12311 / 3466 | +375 |
+| `/donate/` | 9663 / 2831 | 11008 / 3208 | +377 |
+| `/run/` | 11071 / 3132 | 12416 / 3516 | +384 |
+| `404.html` | 10651 / 3014 | 11996 / 3391 | +377 |
+| `/feed/` | 9616 / 2820 | 10961 / 3198 | +378 |
+
+**第二批：第 31 段（手机端折叠目录），全站**，每档统一 **+1089 B raw / +701～792 B gzip**：
+
+| 页型 | 改前 | 改后 | Δgzip |
+| --- | --- | --- | --- |
+| 普通页 | 10582 / 3116 | 11671 / 3817 | +701 |
+| 长文页（无代码块） | 14517 / 3893 | 15606 / 4675 | +782 |
+| 长文页 + 代码块 | 16768 / 4387 | 17857 / 5179 | +792 |
+| `/archive/` | 12311 / 3466 | 13400 / 4191 | +725 |
+| `/donate/` | 11008 / 3208 | 12097 / 3935 | +727 |
+| `/run/` | 12416 / 3516 | 13505 / 4230 | +714 |
+| `404.html` | 11996 / 3391 | 13085 / 4094 | +703 |
+| `/feed/` | 10961 / 3198 | 12050 / 3909 | +711 |
+
+⚠️ 第 31 段 **+1089 raw 只压掉约 370 B**（而第一批 1345 raw 压掉 968 B）—— 因为
+`<style>` 是**每个块单独 gzip** 的，小块的压缩率天然偏低，而这一段里 `var(--…)` 与
+`.toc-mobile` 前缀重复密集。这是「CSS 全内联」架构的固有代价，不是写错了。
+
+**+377 B gzip 里约 300 B 是打印样式**。这部分对屏幕用户完全无用，但每页都要下载。
+之所以仍然放在内联段而不是拆成外部 `media="print"` 样式表：本站 CSS 全内联是既定架构
+（产物没有 `/css/` 目录），为一个 300 B 的块破坏它不划算；且 `media="print"` 的表
+浏览器**照样下载**，只是优先级低，省不下请求。
+
+### 10.3 五个必须记住的坑
+
+1. **`pre` 压不住 `pre.chroma`。** 打印样式里想让代码块透明底 + 自绘边框，写成裸
+   `pre { background: transparent }` **无效** —— 主题那条是 `pre.chroma{...}`，
+   特异性 (0,1,1) 对 (0,0,1)。必须写 `pre, pre.chroma { ... }`。
+   症状：构建 0 警告、屏幕上看不出任何区别，只有真去打印才发现底色还在。
+2. **`.Site.Language.LanguageCode` 也是弃用 API。** 写 `og:locale` 时顺手用了它，
+   构建立刻吐 `WARN deprecated … Use .Language.Locale instead`。本项目对警告零容忍，
+   改用 `.Site.Language.Locale | replaceRE "-" "_"`（→ `zh_CN`）。
+3. **`og:locale` 用下划线，不是连字符。** OG 协议要 `zh_CN`；`zh-CN` 会被部分平台忽略。
+4. **`.Fragments.Headings` 的第一层是 `Level = 0` 的哨兵根，不是 h2 列表。**
+   实测（Hugo 0.168）一篇 11 个 h2 的文章：`len .Fragments.Headings` 是 **1**，
+   结构是 `[0:11]` —— 一个 `Level 0` 的根，11 个 children 才是 h2。
+   所以「只遍历第一层 + 判 `Level 2`」的结果**恒等于 0**，目录永远不渲染，
+   而**构建 0 警告**。正确写法是第一层判 2、否则下钻一层（`single.html` 里那段）。
+   ⚠️ 这个坑和 `pre` 那条同类：**0 警告、0 报错，只是功能静默不生效**。
+5. **`@media print` 也会匹配 `max-width`。** A4 的 CSS 宽度约 793px < 1200px，
+   裸的 `@media (max-width: 1200px)` 在**打印时同样成立** → 手机端折叠目录会被印在
+   纸的最上方。必须写 `@media screen and (max-width: 1200px)`；第 29 段的隐藏清单里
+   也补了 `.toc-mobile` 作双保险。验证方式是 `--print-to-pdf` + `sips` 转首页 PNG
+   —— **本机没有 ghostscript，`magick` 转 PDF 会失败，`sips` 可以**。
+
+### 10.4 顺带确认的一件事
+
+**`@view-transition` 是文档级 at-rule，没有来源 / 目标限定语法。** 所以「只在
+列表→文章这一条路径上开」在纯 CSS 里做不到，要按路径控制只能上 JS（`pageswap` /
+`pagereveal`）。本次按用户要求全站开；不喜欢就删掉第 30 段，**一行都不用回滚别处**。
+
+⚠️ 它包在 `@media (prefers-reduced-motion: no-preference)` 里 —— 整页尺度的动效
+比组件级严重得多，这个守卫不能省。

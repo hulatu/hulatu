@@ -96,6 +96,32 @@
   header nav a {
     margin-right: 0;
   }
+
+  /* ---------------------------------------------------------------
+     00b 导航当前页标识（2026-10-17 新增）
+
+         nav.html 输出 `aria-current="page"`，这里只负责它的样子。
+
+         ── 为什么是「黑字 + 下划线」，不是加粗 / 加底色 / 加圆点 ──────────
+           · **不能改字重**：Verdana 400→700 会让这一项宽 2~3px，而 7 项导航
+             在 392px 视口下是 346.5px / 内容宽 352px，只余 5.5px
+             （第 00 段实测），一改字重就折行。
+           · **不能加底色**：全站没有第二个块状底色的控件，加一个就是新语言。
+           · 三态天然可分，且都不改变宽度：
+               普通项  蓝字、无下划线
+               悬停    蓝字、带下划线
+               当前页  **主文字色**、带下划线
+         ⚠️ `text-decoration-thickness: 1px` 要显式写：不写时 Chrome 会按字号
+            自动加粗到 2px，和悬停那条看起来不是同一个下划线。
+         ⚠️ 别写成 `header nav a.active` 之类的类名方案 —— 属性选择器让
+            「语义（aria-current）」和「样式」共用同一个钩子，少一处可能漂移的约定。
+      --------------------------------------------------------------- */
+  header nav a[aria-current="page"] {
+    color: var(--text-color-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
   /* ---------------------------------------------------------------
      01 字体：上游只有 `Verdana, sans-serif`，中文全靠浏览器兜底。
          Verdana 本身不含汉字，中文字形其实一直是「系统默认」，
@@ -1923,6 +1949,305 @@
     color: var(--text-color-secondary);
   }
   {{- end }}
+
+  /* ---------------------------------------------------------------
+     29 无障碍与输出形态（2026-10-17 新增）：skip-link + 打印
+
+         ── 为什么加 skip-link ────────────────────────────────────────────
+         全站原来 0 / 337 页有它。键盘用户按 Tab 的第一次焦点落在站名链接，
+         要连按 8 次（站名 + 7 项导航）才到正文；文章页还有面包屑和目录，
+         实际更多。WCAG 2.4.1（Bypass Blocks）是 **A 级**要求。
+
+         ⚠️ 平时必须**完全不可见**：`left: -9999px` 而不是 `display: none`
+            —— 后者会让元素不可聚焦，Tab 永远到不了它（这是 skip-link 最常见的
+            写错方式，且看起来「很正常」）。
+         ⚠️ 负方向溢出**不会**产生横向滚动条（浏览器只对右侧/下方溢出滚动）。
+         ⚠️ 聚焦时的 `left: 20px` 要和 `body` 的 `padding: 20px` 对齐，
+            否则它比正文左边界偏一点，看着像没对齐。
+         ⚠️ `a:hover { text-decoration: underline }` 的特异性是 (0,1,1)，
+            比 `.skip-link` 的 (0,1,0) 高 —— 所以下面那条 `:hover` 不能省。
+
+         ── 为什么 main 要 tabindex="-1" ─────────────────────────────────
+         没有它时，点 skip-link 只**滚动**不移动焦点，下一次 Tab 又回到页头，
+         等于白做。`-1` 让它可以被程序化聚焦，但**不进** Tab 序列（那是 `0`）。
+         `main:focus { outline: none }` 也是必须的：焦点环会沿整个 main 画一圈，
+         在整页尺度上看着像渲染错误。
+
+         ── 打印 ──────────────────────────────────────────────────────────
+         全站原来 0 / 337 页有 `@media print`。不写的话按 Cmd+P 会印出：
+         7 项导航、面包屑、右侧目录（fixed，会**叠在正文右上**）、
+         4 行页脚、返回顶部按钮、默认展开的评论区。
+
+         ⚠️ `div.toc` 是 `position: fixed`，只写 `position: static` 会让它
+            跑到正文**前面**占掉一整页 —— 必须 `display: none`。
+         ⚠️ `pre` 在屏幕上靠横向滚动看长行，纸上没有滚动条，长行会被**直接裁掉**。
+            所以必须 `white-space: pre-wrap`。
+         ⚠️ 纸上链接点不了，全站链接色要收敛到墨色，否则整页淡蓝一片。
+         ⚠️ 文末那条 URL 来自 baseof.html 的 `.print-url`（屏幕上 display:none）——
+            CSS 拿不到 location，只能由模板给。
+      --------------------------------------------------------------- */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    padding: 8px 14px;
+    border-radius: 4px;
+    background: var(--text-color-primary);
+    color: var(--bg-color-primary);
+    font-size: 0.9em;
+    text-decoration: none;
+  }
+
+  .skip-link:focus {
+    left: 20px;
+    top: 8px;
+  }
+
+  .skip-link:hover {
+    text-decoration: none;
+  }
+
+  main:focus {
+    outline: none;
+  }
+
+  .print-url {
+    display: none;
+  }
+
+  @media print {
+    @page {
+      margin: 16mm 14mm;
+    }
+
+    /* 页面装置：纸上没有意义 */
+    header,
+    footer,
+    .skip-link,
+    .breadcrumbs,
+    div.toc,
+    .toc-mobile,
+    .back-top,
+    .giscus-wrap,
+    .post-nav,
+    .post-series {
+      display: none;
+    }
+
+    /* ⚠️ 这里**不覆盖 max-width**。主题的 720px 在 A4 上本来就装不满
+       （210mm − 16mm×2 边距 ≈ 178mm ≈ 673px），所以纸宽自己会成为约束；
+       反而写 `max-width: none` 会让 A3 / 横向打印时行宽拉到不可读。
+       `padding: 0` 是必须的 —— 纸边距由上面的 `@page` 给，
+       再留 20px padding 会让正文缩进两遍。 */
+    body {
+      padding: 0;
+      font-size: 11pt;
+      color: #000;
+      background: #fff;
+    }
+
+    /* 1.8 是屏幕上的舒适值；纸上 1.6 更省页，可读性没有损失 */
+    content {
+      line-height: 1.6;
+    }
+
+    /* 标题不要孤零零留在页底 */
+    h1,
+    h2,
+    h3,
+    h4 {
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    /* 代码块 / 表格 / 图 / 引用不要被页面切断 */
+    pre,
+    table,
+    figure,
+    blockquote {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* 屏幕上是横向滚动，纸上没有滚动条 —— 不折行就是直接裁掉。
+       ⚠️⚠️ 选择器**必须带 `pre.chroma`**：主题那条是
+          `pre.chroma { background-color: … ; border: 1px solid var(--border-color) }`，
+          特异性 (0,1,1)，而裸 `pre` 只有 (0,0,1) —— 压不住。
+          压不住的表现是「打印时底色和主题边框还在」，**构建 0 警告**，
+          只有真去打印（或像这样模拟）才发现。 */
+    pre,
+    pre.chroma {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: transparent;
+      border: 1px solid #bbb;
+    }
+
+    /* 代码块底色印不出来（浏览器默认不印背景），靠边框保留边界。
+       ⚠️ 同理：主题有 `div.highlight code { background-color: … }` (0,1,1)。 */
+    div.highlight code {
+      background: transparent;
+    }
+
+    code {
+      background: transparent;
+      border-color: #ddd;
+    }
+
+    a {
+      color: #000;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .print-url {
+      display: block;
+      margin-top: 1.5em;
+      padding-top: 0.5em;
+      border-top: 1px dashed #999;
+      font-family: var(--font-secondary);
+      font-size: 9pt;
+      color: #555;
+      word-break: break-all;
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     30 跨页转场（2026-10-17 新增，View Transitions API）
+
+         一行 `navigation: auto` 让站内跳转有交叉淡入。Chrome 126+ /
+         Safari 18.2+ 支持，Firefox 不支持 —— 但那是**纯渐进增强**：
+         不支持时页面照常瞬时切换，没有任何降级代码要写。
+
+         ⚠️ 必须包在 `prefers-reduced-motion: no-preference` 里。
+            不包的话前庭敏感用户会被整页闪动影响，而且这是**整页**尺度，
+            比组件级动效严重得多。站内已有的动效都做了同样的守卫。
+         ⚠️ 时长取 0.2s：站内现有过渡是 0.15s（颜色）/ 0.2s（背景）/ 0.22s
+            （缩放）。整页淡入比组件慢一档才不显「闪」，0.2s 与多数值同档。
+         ⚠️ **做不到「只在列表→文章这一条路径上开」** —— `@view-transition`
+            是文档级 at-rule，没有来源/目标的限定语法。要按路径控制只能上 JS
+            （pageswap / pagereveal），那与「零依赖」的取舍冲突。所以这里是
+            全站生效；不喜欢就删掉这一段，一行都不用回滚别处。
+         ⚠️ 固定定位的返回顶部按钮会随 root 快照一起淡入淡出 —— 这是**期望行为**
+            （整页一个整体），不要给它单独 `view-transition-name`，那样反而会
+            出现「按钮不动、内容在淡」的割裂感。
+      --------------------------------------------------------------- */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+      navigation: auto;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.2s;
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     31 手机端折叠目录（2026-10-17 新增，方案 C）
+
+         背景：侧栏 div.toc 在 ≤1200px 整块 `display: none`（第 20 段），
+         127 篇长文在手机上没有任何目录。这一块补的就是那个缺口。
+
+         断点与第 20 段**取同一个 1200px**，所以两者正好互补、不会同时出现：
+           >1200px → 侧栏显示，这块 display:none
+           ≤1200px → 侧栏 display:none，这块显示
+
+         ⚠️⚠️ 类名**绝不能叫 `.toc-nav`**。主题 partials/toc.html 里的 JS 是
+            `document.querySelector('.toc-nav')` —— 只取**第一个**。这块在正文
+            顶部、排在文件末尾的侧栏前面，一旦同名就抢走它，侧栏立刻失去
+            滚动高亮。而且主题给 `.toc-nav a` 设了 `color: transparent`
+            （默认隐形、hover 整个侧栏才显形），同名的话展开后是**一片空白**。
+            两个后果都**构建 0 警告**，只有真在手机上点开才看得见。
+         ⚠️ 这块**不需要任何 JS**：<details> 原生折叠，点链接走浏览器默认跳转。
+            也刻意不做「点完自动收起」—— 跳转后目录已经滚出视野。
+         ⚠️ 上下用**虚线**而不是实线框：站点的分隔语言是虚线（hr / 系列带），
+            整框会显得像个「卡片」，与「克制」相冲。
+         ⚠️ 展开后限高 55vh：长文目录可能几十条，撑爆视口就失去意义。
+         ⚠️⚠️ 媒体查询**必须带 `screen`**。A4 的 CSS 宽度约 793px，裸的
+            `max-width: 1200px` 在**打印时同样匹配** → 目录会被印在纸的最上方，
+            正是第 29 段要消灭的那类「界面跟着一起印」。加了 `screen` 之后，
+            打印退回基础规则 `display: none`。第 29 段的隐藏清单里也补了
+            `.toc-mobile` 作双保险（清单的完整性，以及防止将来有人把这里
+            改回裸 `@media`）。
+      --------------------------------------------------------------- */
+  .toc-mobile {
+    display: none;
+  }
+
+  @media screen and (max-width: 1200px) {
+    .toc-mobile {
+      display: block;
+      margin: 0 0 1.6em;
+      border-top: 1px dashed var(--border-color);
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .toc-mobile > summary {
+      cursor: pointer;
+      padding: 0.6em 0.1em;
+      font-family: var(--font-secondary);
+      font-size: 0.78em;
+      letter-spacing: 0.04em;
+      color: var(--text-color-tertiary);
+      user-select: none;
+    }
+
+    .toc-mobile > summary:hover {
+      color: var(--text-color-primary);
+    }
+
+    /* 展开后，标题行下面再补一条虚线，把「开关」和「内容」分开 */
+    .toc-mobile[open] > summary {
+      border-bottom: 1px dashed var(--border-color);
+      color: var(--text-color-secondary);
+    }
+
+    .toc-mobile nav {
+      max-height: 55vh;
+      overflow-y: auto;
+      padding: 0.7em 0.1em 0.9em;
+      font-size: 0.92em;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .toc-mobile nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .toc-mobile nav li {
+      margin: 0 0 0.45em;
+      line-height: 1.5;
+    }
+
+    .toc-mobile nav a {
+      color: var(--text-color-secondary);
+      text-decoration: none;
+    }
+
+    .toc-mobile nav a:hover {
+      color: var(--link-color);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* h3 缩进一格、降一档灰 —— 层级差与侧栏的「小横线长度」是同一套语言 */
+    .toc-mobile nav ul ul {
+      margin: 0.45em 0 0 1.1em;
+    }
+
+    .toc-mobile nav ul ul a {
+      color: var(--text-color-tertiary);
+      font-size: 0.95em;
+    }
+  }
 </style>
 
 {{- /* ============================================================

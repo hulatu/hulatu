@@ -63,11 +63,26 @@
        语义上也正是「文档顶部」，不需要为它多插一个空元素。
        ⚠️ 别删这个 id：删了返回顶部就变成「点了没反应」，而且**不报错**。 */ -}}
 <body id="top">
+  {{- /* skip-link（2026-10-17 新增，WCAG 2.4.1 A 级）。
+         键盘用户第一次按 Tab 就能跳过站名 + 7 项导航直达正文；
+         鼠标用户看不见它（平时在视口外，聚焦才滑入）。样式在 custom_head.html 第 29 段。
+         ⚠️ 目标必须是 `<main>` 上的 `#main`，**不能**复用 `#top` ——
+            后者是返回顶部的落点，跳过去等于「跳到页头」，正是要绕开的东西。 */}}
+  <a class="skip-link" href="#main">跳到正文</a>
   <header>
     {{- partial "header.html" . -}}
   </header>
-  <main>
+  {{- /* `tabindex="-1"` 让 `#main` 能被**程序化聚焦** —— 没有它时，浏览器只滚动
+         不移动焦点，下一次 Tab 又会回到页头，skip-link 等于白做。
+         它不会把 main 加进 Tab 序列（那是 tabindex="0"）。焦点环由第 29 段关掉。 */}}
+  <main id="main" tabindex="-1">
     {{- block "main" . }}{{- end }}
+    {{- /* 打印时在文末输出当前页地址（屏幕上 display:none，零布局影响）。
+           为什么要一个元素而不是 CSS：CSS 拿不到 location，`content: attr()` 也没有源。
+           ⚠️ 只在长文页输出 —— 独立页 / 列表页打印时不需要出处，且这样少写 210 个空元素。 */}}
+    {{- if and .IsPage (in (slice "posts" "weekly") .Type) }}
+    <p class="print-url">{{ .Permalink }}</p>
+    {{- end }}
   </main>
   <footer>
     {{- partial "footer.html" . -}}

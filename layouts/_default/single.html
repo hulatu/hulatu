@@ -6,6 +6,33 @@
        评论区都只挂在这两类上，所以提到最前面算一次，后面复用。
        ⚠️ 别在下面再写一次 `$longForm :=` —— 同一层作用域重复声明会直接构建失败。 */ -}}
 {{- $longForm := and .IsPage (in (slice "posts" "weekly") .Type) -}}
+{{- /* 目录开关。原本在文件末尾才定义，2026-10-17 提到最前面 ——
+       手机端折叠目录（下面）和末尾的侧栏目录**必须共用同一个开关**，
+       否则会出现「侧栏关了、手机上却有目录」这种自相矛盾的状态。
+       `default` 的参数顺序是 `default 默认值 实际值`：
+       front matter 没写 `toc:` 就吃站点配置 hugo.toml 的 `toc = true`。 */ -}}
+{{- $tocEnabled := default .Site.Params.toc .Params.toc -}}
+{{- /* 数正文里 h2 的个数。用它决定要不要出手机端折叠目录（方案 C：h2 ≥ 3）。
+       ⚠️⚠️ **实测（Hugo 0.168）：`.Fragments.Headings` 的第一层不是 h2 列表**，
+          而是一个 `Level = 0` 的**哨兵根节点**，真正的 h2 在它的 `.Headings` 里。
+          实测：一篇 11 个 h2 的文章，`len .Fragments.Headings` 是 **1**，
+          调试输出是 `[0:11]`（Level 0，11 个 children）。
+          所以「只遍历第一层 + 判 Level 2」的结果**恒等于 0**，目录永远不渲染，
+          而且**构建 0 警告** —— 2026-10-17 第一次就是这么写错的。
+          下面兼容两种结构：第一层直接是 h2，或第一层是根、children 才是 h2。
+       ⚠️ 按 `.Level 2` 过滤而不是「第一层长度」，是为了和 hugo.toml 的
+          `startLevel = 2` 逐字对齐 —— 正文里万一写了 `# 一级标题`，
+          它不会被 `.TableOfContents` 渲染，也就不该算进「值不值得给目录」。 */ -}}
+{{- $h2count := 0 -}}
+{{- range .Fragments.Headings -}}
+  {{- if eq .Level 2 -}}
+    {{- $h2count = add $h2count 1 -}}
+  {{- else -}}
+    {{- range .Headings -}}
+      {{- if eq .Level 2 -}}{{- $h2count = add $h2count 1 -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 {{- /* 面包屑（站点层 partial，只对文章页输出）。放在 <h1> 之前 ——
        它是「当前位置」的指示，必须在标题上面。见 partials/breadcrumbs.html。 */ -}}
 {{- partial "breadcrumbs.html" . -}}
@@ -51,6 +78,36 @@
      ⚠️ 没有表格的页面也走这两个 `replaceRE`（空转），代价是两次正则扫描 —— 可忽略。
         全站只有 1 篇文章有表格（《工科研究生用 Mac，也可以很完美》，3 列）。 */ -}}
 {{- $content := .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table>" "</table></div>" -}}
+{{- /* ---------- 手机端折叠目录（2026-10-17 新增，方案 C）----------------
+     背景：右侧目录 div.toc 在 ≤1200px 整块 `display:none`（custom_head.html
+     第 20 段，2026-10-12 拍板的方案 A）。代价是 **127 篇长文在手机上没有任何
+     目录**，而手机恰恰最需要「跳到第 4 节」。
+
+     形态：正文顶部一个 <details>，只在 ≤1200px 出现（样式在第 31 段），
+     与侧栏**互斥不重叠** —— 侧栏 >1200px 显示，这块 ≤1200px 显示。
+
+     ⚠️ 守卫只两条：`$tocEnabled` 和 `h2 ≥ 3`。**不按页型**（posts/weekly）挡。
+        按 DESIGN.md 那条规矩：由「这一页写了什么」决定的东西必须全站同口径 ——
+        目录条数是内容决定的，不是页型决定的。所以 /privacy/ 只要 h2 够多
+        也会出目录，那是**正确**的，不是 bug。
+     ⚠️ 3 这个数是「值不值得给目录」的分界：1–2 个 h2 的短文，目录本身就比
+        正文长，展开反而挡路。要调就改这一个数字。
+     ⚠️ **不需要任何 JS**：<details> 原生折叠，点链接是浏览器默认跳转。
+        刻意没做「点完自动收起」—— 跳转后目录已经滚出视野，收不收看不见。
+     ⚠️⚠️ `.TableOfContents` 自带 `<nav id="TableOfContents">`，而文件末尾的
+        侧栏**已经输出过一个同名 id**。直接插就是**全页重复 id**，
+        `#TableOfContents` 这个锚点会指向第一个（也就是这块），侧栏的
+        变成死锚点。这里把 id 换成 aria-label：语义不变，不再重复。
+     ⚠️ `replaceRE` 会把 `.TableOfContents` 从 template.HTML **降级成普通
+        string**（和上面 `$content` 同一个坑），末尾必须 `safeHTML` 还原，
+        否则整段目录会被转义成可见的标签文本。
+     ------------------------------------------------------------------- */ -}}
+{{- if and $tocEnabled (ge $h2count 3) }}
+<details class="toc-mobile">
+  <summary>本页目录 · {{ $h2count }} 节</summary>
+  {{- .TableOfContents | replaceRE "<nav id=\"TableOfContents\">" "<nav aria-label=\"本页目录\">" | safeHTML }}
+</details>
+{{- end }}
 <content> {{ $content | safeHTML }} </content>
 
 {{- /* ---------- 标签行（2026-10-11 改回单行）---------------------------
@@ -202,7 +259,9 @@
 {{- end }}
 
 <!-- Place the TOC at the end to ensure the article content loads first. -->
-{{ $tocEnabled := default .Site.Params.toc .Params.toc }}
+{{- /* ⚠️ `$tocEnabled` 2026-10-17 已提到文件开头（第 14 行）—— 手机端折叠目录
+       和这里必须共用同一个开关。**别在这里再声明一次**：同一层作用域重复
+       声明会直接构建失败（和 $longForm 那条注释同一个道理）。 */ -}}
 {{ if $tocEnabled }} 
 <div class="toc">
 {{ partial "toc.html" . }}

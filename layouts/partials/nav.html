@@ -10,11 +10,33 @@
       ⚠️ 标签是英文（用户指定），页面内容仍是中文。
 
       除「不再写死链接」外，外链开新窗口的逻辑与上游逐字一致。 */ -}}
+{{- /* ---------------------------------------------------------------
+       2026-10-17：当前页标识（aria-current="page"）
+
+       背景：DESIGN.md 第 4 节把「/about/ /now/ /roll/ 三页藏掉页面标题」的理由
+       写成「导航里那项 About 已经在指示你在哪一页」—— 而实现里从来没有高亮。
+       这三页于是既无标题也无高亮，用户只能看 URL 判断位置。这次补上。
+
+       ⚠️⚠️ **必须精确相等，不能按前缀**。
+          `Posts` 指向 `/archive/`，而文章页在 `/posts/…` —— 一旦写成
+          `hasPrefix $current .URL`，每一篇文章页都会点亮 Posts。
+          同理 `/weekly/` 也不能用前缀（周刊文章同样落在 `/posts/…`）。
+       ⚠️ 首页那项 `.URL` 就是 `/`，与首页的 `.RelPermalink`（`/`）相等，
+          不需要特判；但也正因为如此，**绝不能**改成前缀匹配。
+       ⚠️ `RSS` 指向 `/index.xml`，永远匹配不到页面，天然不会被点亮。
+       ⚠️ 高亮样式**只改颜色与下划线，不改字重** —— Verdana 400→700 会让这一项
+          宽出 2~3px，7 项导航在 392px 视口下本来就贴着折行临界
+          （第 00 段的注释里有实测：346.5px vs 内容宽 352px）。
+       ⚠️ 这里只输出属性，样式在 custom_head.html 第 00 段末尾。
+      --------------------------------------------------------------- */ -}}
 {{- $newTabEnabled := .Site.Params.externalLinksNewTab | default false -}}
+{{- $current := .RelPermalink -}}
 {{- range .Site.Menus.main -}}
 {{- $isExternal := or (hasPrefix .URL "http://") (hasPrefix .URL "https://") -}}
 {{- if and $isExternal $newTabEnabled -}}
 <a href="{{ .URL }}" target="_blank" rel="noopener noreferrer">{{ .Name }}</a>
+{{- else if eq .URL $current -}}
+<a href="{{ .URL }}" aria-current="page">{{ .Name }}</a>
 {{- else -}}
 <a href="{{ .URL }}">{{ .Name }}</a>
 {{- end -}}

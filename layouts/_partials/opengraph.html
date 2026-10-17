@@ -1,0 +1,53 @@
+{{- /* 站点层覆盖 Hugo 内置的 `_partials/opengraph.html`（2026-10-17 新增）
+
+       ── 为什么要覆盖 ────────────────────────────────────────────────
+       内置那份的取图顺序是：
+         ① front matter 的 `images`（本站 127 篇一篇都没写）
+         ② 页面资源里名字带 feature / cover / thumbnail 的图（本站没有 page bundle）
+         ③ `site.Params.images` 的第一张（= images/share.webp）
+       于是 337 个页面的 `og:image` **全是同一张 share.webp**。任何一篇文章
+       被分享到微信 / 群 / Twitter，卡片长得一模一样 —— 这是「专业感」上
+       最外显的一处缺失（DESIGN.md 第 8 节第 1 条记了很久）。
+
+       ── 改法：按 slug 取图，取不到就回落 ──────────────────────────────
+       只在**长文页**（posts / weekly）上找 `images/og/<slug>.png`
+       （由 scripts/gen-og.js 生成，127 张，1200×630）。找不到就照旧用
+       site.Params.images 那张 —— 所以「图还没生成」不会变成 404，
+       只会退回原来的行为，构建与部署都不报错。
+
+       ⚠️ `fileExists` 查的是**磁盘上的文件**，不是 URL。路径相对项目根，
+          所以必须写 `static/...`。漏了 `static/` 会永远返回 false，
+          症状是「图生成了但页面还用兜底图」，而构建 0 警告。
+       ⚠️ 图名用 `.Slug`，与 scripts/gen-og.js 里 `hugo list all` 的 slug 列同源。
+          若某篇 front matter 写了 `slug:`，两边都会跟着它走 —— 不要在这边
+          改成 `.File.TranslationBaseName`，那会在有 slug 覆盖时对不上。
+       ⚠️ **字段与顺序照 2026-10-17 的产物逐字对齐**（og:url / site_name /
+          title / description / locale / type / image）。Hugo 若在将来的版本里
+          给内置模板加字段，这份覆盖不会自动获得 —— 升级 Hugo 后要 diff 一次。
+       ⚠️ `og:locale` 要 `zh_CN` 而不是 `zh-CN`：OG 协议用下划线。
+          取值来自 hugo.toml 的 `locale = "zh-CN"`。
+       ⚠️ 宽高（`og:image:width` / `height`）不在这里输出 —— 它们在
+          seo_tags.html 里、紧跟在本模板之后，值来自 hugo.toml。
+          卡片统一 1200×630，所以那两行不用改。
+       ============================================================ */ -}}
+{{- $ogImage := "" -}}
+{{- if and .IsPage (in (slice "posts" "weekly") .Type) -}}
+  {{- $rel := printf "images/og/%s.png" .Slug -}}
+  {{- if fileExists (printf "static/%s" $rel) -}}
+    {{- $ogImage = $rel | absURL -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $ogImage -}}
+  {{- with .Site.Params.images -}}
+    {{- $ogImage = index . 0 | absURL -}}
+  {{- end -}}
+{{- end -}}
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:site_name" content="{{ .Site.Title }}">
+<meta property="og:title" content="{{ .Title }}">
+<meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ if .IsPage }}{{ .Summary }}{{ else }}{{ with .Site.Params.Description }}{{ . }}{{ end }}{{ end }}{{ end }}">
+<meta property="og:locale" content="{{ .Site.Language.Locale | replaceRE "-" "_" }}">
+<meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+{{- with $ogImage }}
+<meta property="og:image" content="{{ . }}">
+{{- end }}
