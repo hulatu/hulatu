@@ -284,14 +284,23 @@
   <p>本页与 feature-review.html <b>不重复</b>：那一页是「该加什么」，本页是「已经在坏的」和「没被量过的」。凡是 DESIGN.md 已写明「有意不做」的（全站搜索、<code>/media/</code>、<code>/stats/</code>、标签云），本页一条都不报。</p>
 </div>
 
+<div class="done">
+  <p class="dh">本轮 · 已实施（2026-10-18 收尾）</p>
+  <p><b>P0-1 撤回</b> —— 实测导航<b>已经会折行</b>。之前的「360px 溢出」是测量方法错了：macOS 上无头 Chromium 的窗口有最小宽度，<code>--window-size</code> 给 320–392 时布局视口<b>一律被夹到 392px</b>，而截图仍按 360 裁切，于是「一行的导航」被切掉右边一截。改用 <code>html{width:320px}</code> 强制布局宽度后：320px → 2 行（<code>Home About Now Links Weekly</code> / <code>Posts RSS</code>），375px → 2 行，392px → 1 行，<b>任何宽度都不溢出</b>。代码一行未改。</p>
+  <p><b>P0-2 已接自动化</b> —— <code>sync-image-dims.py</code> 与 <code>gen-og.js</code> 都进了 <code>publish.sh</code>，敲 <code>up</code> 就跑。实测：图片尺寸 321/323 → <b>323/323</b>；分享卡 127 → <b>128 张</b>（128 篇 / 128 张，兜底只剩 <code>/posts/</code> <code>/weekly/</code> 两个列表页）。</p>
+  <p><b>P1-1 已解决</b> —— 新增站点层 <code>layouts/partials/header.html</code>，站名从 <code>&lt;h1&gt;</code> 换成 <code>&lt;p class="title"&gt;</code>。改后实测：<code>{0 个 h1: 210 页, 1 个: 134 页, 2+ 个: 0 页}</code>；首页改前改后 <code>magick compare -metric AE</code> = <b>0</b>。</p>
+  <p><b>P1-2 已解决</b> —— 浅色 <code>--text-color-tertiary</code> 从 <code>#8c8c8c</code> 提到 <code>#6e6e6e</code>（纸底 <b>5.01:1</b>、代码块底 <b>4.63:1</b>，都过 AA），深色原值不动。</p>
+  <p><b>P1-3 未动</b> —— <code>preconnect</code> 与首图 <code>fetchpriority</code> 这次没有点名，一行未改；P2 三项同样未动。</p>
+</div>
+
 <h2>1. 三句话摘要</h2>
 
 <table class="wrap-first">
   <tr><th>级别</th><th>问题</th><th class="num">已经发生</th></tr>
   <tr>
-    <td><span class="tag solid">P0</span></td>
-    <td><b>导航在 360px 视口下不可达</b> —— RSS 被截成「RS」，320px 下 Posts 也看不见。7 个链接总宽 351.42px，而 360px 视口只有 320px 可用。</td>
-    <td class="num">全站每页</td>
+    <td><span class="tag">已撤回</span></td>
+    <td><s><b>导航在 360px 视口下不可达</b> —— RSS 被截成「RS」，320px 下 Posts 也看不见。7 个链接总宽 351.42px，而 360px 视口只有 320px 可用。</s><br><b>测量方法错了</b>：导航本来就会折行，是截图被裁切。见第 2 节的更正。</td>
+    <td class="num">—</td>
   </tr>
   <tr>
     <td><span class="tag solid">P0</span></td>
@@ -315,7 +324,15 @@
   </tr>
 </table>
 
-<h2>2. P0-1 导航在 360px 下不可达</h2>
+<h2>2. ~~P0-1 导航在 360px 下不可达~~ → 撤回：测量方法错了</h2>
+
+<div class="done">
+  <p class="dh">更正 · 2026-10-18</p>
+  <p><b>结论撤回，代码一行未改。</b>导航从 2026-10-11 起就有 <code>header nav { display:flex; flex-wrap:wrap; column-gap:8px }</code>，本来就会折行。</p>
+  <p>错误出在测量：macOS 上无头 Chromium 的窗口有<b>最小宽度</b>，<code>--window-size</code> 给 320 / 360 / 375 时，<code>document.body.getBoundingClientRect().width</code> 实测<b>一律是 392</b>；而 <code>--screenshot</code> 仍按请求的宽度裁切 —— 于是「392px 下排成一行的导航」被切掉右边一截，看起来像溢出。</p>
+  <p>正确测法：用 <code>html{width:320px}</code> 强制布局宽度（或直接用 JS 读 body 宽度核对）。实测结果：<b>280px → 2 行</b>、<b>320px → 2 行</b>（<code>Home About Now Links Weekly</code> / <code>Posts RSS</code>）、<b>375px → 2 行</b>、<b>392px → 1 行</b>，<code>scrollWidth</code> 与 <code>clientWidth</code> 每一档都相等，<b>零溢出</b>。</p>
+  <p>下面保留当时的分析原文（<b>字体度量是对的，只有结论错了</b>），当作「别再用 <code>--window-size</code> 的窄值判断响应式」的反面教材。</p>
+</div>
 
 <div class="item p0">
   <div class="item-head">
@@ -390,7 +407,7 @@
   <p>三个方案都<b>不能</b>单独解决 320px，320px 只能靠折行。</p>
 </div>
 
-<h2>3. P0-2 派生数据靠手动，已经开始漏</h2>
+<h2>3. P0-2 派生数据靠手动，已经开始漏 <span class="tag">已接 publish.sh</span></h2>
 
 <div class="item p0">
   <div class="item-head">
@@ -416,7 +433,7 @@
   </p>
 </div>
 
-<h2>4. P1-1 每篇文章有两个 <code>&lt;h1&gt;</code></h2>
+<h2>4. P1-1 每篇文章有两个 <code>&lt;h1&gt;</code> <span class="tag">已解决</span></h2>
 
 <div class="item">
   <div class="item-head">
@@ -458,7 +475,7 @@
   ⚠️ 视觉零变化的前提：主题对 <code>.title h1</code> 的样式要一起搬到 <code>.title p</code>，否则字号会掉
 </p>
 
-<h2>5. P1-2 浅色模式的元信息太淡</h2>
+<h2>5. P1-2 浅色模式的元信息太淡 <span class="tag">已解决</span></h2>
 
 <div class="item">
   <div class="item-head">

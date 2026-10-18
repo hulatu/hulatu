@@ -16,7 +16,7 @@
  *
  *   底    #fdfdfd  (--bg-color-primary)
  *   墨    #1a1a1a  (--text-color-primary)
- *   三级  #8c8c8c  (--text-color-tertiary)
+ *   三级  #6e6e6e  (--text-color-tertiary，2026-10-18 浅色提亮后的值)
  *   线    #d0d7de  (--border-color)
  *
  * ⚠️ **刻意不用 `--link-color`（#0066cc）**。那个蓝在站点里只表示「这是个链接」，
@@ -60,7 +60,7 @@ const OUT_DIR = path.join(ROOT, 'static', 'images', 'og');
 /* ── 设计 token（与 themes/hugo-bearneo/layouts/partials/style.html 的 :root 一一对应）── */
 const PAPER = '#fdfdfd';
 const INK = '#1a1a1a';
-const MUTED = '#8c8c8c';
+const MUTED = '#6e6e6e';
 const LINE = '#d0d7de';
 
 const SANS = 'Verdana, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif';

@@ -16,7 +16,7 @@
 | Hugo | `0.167.0+extended`（本机 / GitHub Actions / Cloudflare 三边一致） |
 | 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
 | 代码高亮 | `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
-| 站点层 | **28 个文件** = `layouts/` × 26 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`） |
+| 站点层 | **29 个文件** = `layouts/` × 27 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`；2026-10-18 新增 `layouts/partials/header.html`） |
 | 页面 | 338 页 → **334 个 HTML** |
 | 内容 | 101 篇文章 + 25 期周刊 = 126 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
 | 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开由 `functions/_middleware.js` 分派到 `/feed/` 那两页，订阅器照旧拿 XML |
@@ -30,24 +30,25 @@
 
 | 档 | 页数 | raw / gzip | 补丁 |
 | --- | --- | --- | --- |
-| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` / 197 词条页 / posts 列表页） | 204 | 11671 / 3817 | 5247 B（+00 +14 +17 +20 +21 +22 +23 +26 +29 +30 +31 段） |
-| 长文页（102 文章 + 25 周刊，无代码块） | 122 | 15606 / 4675 | 9182 B（再 +09 +10 +13 +16 +19 段） |
-| 长文页 + 代码块 | 5 | 17857 / 5179 | 11433 B（再 +12 +18 段） |
-| `/archive/` | 1 | 13400 / 4191 | 6976 B |
-| `/donate/` | 1 | 12097 / 3935 | 5673 B（+08 段） |
-| `/run/` | 1 | 13505 / 4230 | 7081 B（+25 段） |
-| `/404.html` | 1 | 13085 / 4094 | 6661 B（+15 段） |
-| 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 12050 / 3909 | 5626 B（+28 段） |
+| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` `/posts/` / 203 词条页） | 210 | 11753 / 3849 | 5329 B（+00 +00c +14 +17 +20 +21 +22 +23 +26 +29 +30 +31 +32 段） |
+| 长文页（103 文章 + 25 周刊，无代码块） | 123 | 15688 / 4703 | 9264 B（再 +09 +10 +13 +16 +19 段） |
+| 长文页 + 代码块 | 5 | 17939 / 5206 | 11515 B（再 +12 +18 段） |
+| `/archive/` | 1 | 13482 / 4220 | 7058 B |
+| `/donate/` | 1 | 12179 / 3964 | 5755 B（+08 段） |
+| `/run/` | 1 | 13587 / 4260 | 7163 B（+25 段） |
+| `/404.html` | 1 | 13167 / 4122 | 6743 B（+15 段） |
+| 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 12132 / 3940 | 5708 B（+28 段） |
 
-合计 337 页，与 `os.walk` 数出的 HTML 数一致。`/about/` `/now/` `/roll/` `/privacy/` `/weekly/` 与普通页完全一致（03 段头像撤掉后不再输出任何 CSS）。
-⚠️ 上面每一档的**逐值都是 2026-10-17 第 31 段落地后的实测值**。与当天早些时候（只有第 29/30 段 + 00 段）相比**每档统一 +1089 B raw / +701～792 B gzip（中位约 720）** —— 那是新增的第 31 段（手机端折叠目录），加上第 29 段隐藏清单里补的 `.toc-mobile`。逐项对比见 DESIGN.md 第 10.2 节。
-⚠️ **页数口径已修正**：旧表写 `202 + 121 + 5 + 1 + 1 + 1 + 1 + 2`，合计 334，与同一段说的「合计 337 页」自相矛盾（差 3 页）。这次按 `os.walk` 重分为 `204 + 122 + 5 + … = 337`；长文页 122 + 5 = **127**，与「102 文章 + 25 周刊」对得上。
+合计 344 页，与 `os.walk` 数出的 HTML 数一致。`/about/` `/now/` `/roll/` `/privacy/` `/weekly/` 与普通页完全一致（03 段头像撤掉后不再输出任何 CSS）。
+⚠️ 上面每一档的**逐值都是 2026-10-18 第 32 段 + 00c 段落地后的实测值**。与当天之前相比**每档统一 +164 B raw / +41～45 B gzip** —— 那是新增的第 32 段（浅色三级文字色 `#6e6e6e`）与 00c 段（页头站名 `<h1>`→`<p>` 的外观补偿）。逐项对比见 DESIGN.md 第 11.2 节。
+⚠️ **页数口径**：2026-10-18 重新按 `os.walk` 分为 `210 + 123 + 5 + 1 + 1 + 1 + 1 + 2 = 344`；长文页 123 + 5 = **128**（已发布文章；`content/` 里还有 2 篇 draft 不产出页面）。
 ⚠️ **第 29 段里约 300 B gzip 是打印样式**，对屏幕用户完全无用却每页都下载。没拆成外部 `media="print"` 样式表的原因：本站 CSS 全内联是既定架构（产物没有 `/css/` 目录），且 `media="print"` 的表浏览器**照样下载**，只是优先级低，省不下请求。
 
 - 第 20–23 段是 2026-10-12 新增的 4 条全站规则（**+428 B raw / +115 B gzip**）：目录断点抬到 1200px、`img{height:auto}`、等宽字体令牌、TOC 链接 transition 收窄。
 - **第 26 段是 2026-10-14 新增的 6 条全站规则，每档统一 +562 B raw / +124 B gzip**（① `input{font-size:16px}` ② `color-scheme` ③ `div.toc` 的 `100vw`→`100%` + `80dvh` ④⑤ 图片放大换背景 + checkbox 可聚焦）。改前基线是 8675 / 12610 / 14861 / 10404 / 9101 / 10509 / 10089，逐值 -562 就是当天之前的样子。
 - **第 29 段（skip-link + 打印）与第 30 段（跨页转场）是 2026-10-17 新增的两条全站规则，加上 00 段末尾的导航高亮，每档统一 +1345 B raw / 约 +377 B gzip**。改前基线是 9237 / 13172 / 15423 / 10966 / 9663 / 11071 / 10651 / 9616，逐值 +1345 就是当天之前的样子。⚠️ 第 29 段里约 300 B gzip 是打印样式，屏幕用户用不到但每页都下载 —— 判断依据见 DESIGN.md 第 10.2 节。
 - **第 31 段（手机端折叠目录）是 2026-10-17 新增的全站规则，每档统一 +1089 B raw / +701～792 B gzip**。改前基线就是上表逐值 −1089。构成：12 条规则本体约 1034 B + `@media screen and (max-width:1200px)` 外层包裹约 44 B + 第 29 段隐藏清单里补的 `.toc-mobile` 11 B。⚠️ 为什么 +1089 raw 只压掉约 370 B：`<style>` 是**每个块单独 gzip** 的，小块压缩率天然偏低，而且这一段里 `var(--…)` 与 `.toc-mobile` 前缀重复很多。
+- **第 32 段（浅色三级文字色 `#6e6e6e`）+ 00c 段（页头站名 `<h1>`→`<p>` 的外观补偿）是 2026-10-18 新增的全站规则，每档统一 +164 B raw / +41～45 B gzip**。改前基线就是上表逐值 −164。两段都很短（minify 后 32 段约 73 B、00c 约 91 B），所以 gzip 只压掉约 42 B。
 - 第 24 段（`/archive/` 的 `content-visibility`）评估后**撤回**，只留注释，运行时 +0 B。
 - 第 25 段按 `.RelPermalink` 守卫，**其他页 0 字节**（实测：去掉它重构建，首页 `/now/` `/about/` 的 `<style>` 逐字节不变）。
 - 03 / 06 / 11 三段**刻意留空**（只留注释保段号）；详见 DESIGN.md 第 5 节。
@@ -86,7 +87,7 @@ content/
 archetypes/
   posts.md weekly.md      新建文章的模板（含发布前检查清单）
 
-layouts/                  ★ 站点层覆盖，26 个文件
+layouts/                  ★ 站点层覆盖，27 个文件
   index.html                        首页（上游只有 {{ .Content }}；简介**不包 <content>**）
   sitemap.xml                       ★ 2026-10-17 新增：按 $noindex 过滤（336 → 134 条）
                                     ⚠️ 过滤条件必须与 _default/baseof.html 的 $noindex 逐字同口径
@@ -120,9 +121,14 @@ layouts/                  ★ 站点层覆盖，26 个文件
                                     URL 走 figure 上的 --zoom-src 画背景（省一半节点）
   partials/nav.html                 完全由 [[menu.main]] 驱动（7 项）
                                     + aria-current="page"（2026-10-17，精确匹配 RelPermalink）
+  partials/header.html              ★ 2026-10-18 新增：站名从 <h1> 换成 <p class="title">
+                                    —— 文章页原本有**两个 h1**（站名 + 文章标题，134/344 页）
+                                    ⚠️ <p> 与 <h1> 的默认样式差四处（color/font-size/
+                                       font-weight/margin），全靠 custom_head 第 00c 段补
+                                    ⚠️ 别给 <a> 加 display:block，会改变点击区域
   partials/footer.html              版权独立成行 + 订阅行挪到第 3 行
                                     + copyrightNote/licenseName/licenseURL
-  partials/custom_head.html         31 段补丁样式 + GoatCounter
+  partials/custom_head.html         32 段补丁样式 + GoatCounter
                                     （03/06/11 刻意留空，24 撤回）
                                     ⚠️ <style> 之前还有两条 theme-color meta，不占段号
                                     ⚠️ 第 27 段号**刻意不占** —— 当天建当天撤，原因见 DESIGN.md
@@ -131,6 +137,11 @@ layouts/                  ★ 站点层覆盖，26 个文件
                                     ⚠️ 第 29 段 = skip-link + 打印；第 30 段 = 跨页转场（2026-10-17，全站）
                                     ⚠️ 第 31 段 = 手机端折叠目录（2026-10-17，`@media screen` 限定，
                                        打印时不显示；类名**不能**叫 `.toc-nav`，会抢走主题 JS 的选择器）
+                                    ⚠️ 第 32 段 = 浅色三级文字色提亮到 #6e6e6e（2026-10-18，
+                                       包在 `@media (prefers-color-scheme: light)` 里 ——
+                                       裸 `:root` 会把深色主题一起覆盖）
+                                    ⚠️ 00b = 导航当前页（只改颜色）、00c = 页头站名（2026-10-18），
+                                       两者都没有独立段号，挂在 00 段之后
   partials/feed-view.html           ★ 订阅源浏览器视图（2026-10-15）：标题 + 简介 +
                                     订阅地址 + 条目「日期/标题/摘要」
                                     ⚠️ 页面集合口径必须与 _default/rss.xml 逐字一致
@@ -155,8 +166,10 @@ static/
                           全站没有任何 <link rel=manifest>，整链不可达）
                           ⚠️ rss.xsl 2026-10-15 已删 —— 它是 XSLT 方案的一部分，
                             feed 顶部那行 xml-stylesheet 也一起去掉了（见第 2 节末）
-  images/                 **只剩两个在用**：share.webp（全站唯一 og:image，params.images 引用）
+  images/                 **三类在用**：share.webp（兜底 og:image，params.images 引用）
+                          + og/（128 张按 slug 的分享卡，2026-10-17 起）
                           + donate/（2 张收款码，/donate/ 在用）
+                          ⚠️ og/ 是**离线生成、提交进仓库**的派生数据，publish.sh 每次重画
 
 functions/                ★ Cloudflare Pages Functions（2026-10-15 新增）
   _middleware.js            订阅源的内容协商：浏览器导航 /index.xml → /feed/ 的 HTML，
@@ -164,7 +177,7 @@ functions/                ★ Cloudflare Pages Functions（2026-10-15 新增）
 
 data/                     runs.json（/run/ 页在读）+ image-dims.json（喂 render-image.html）
                           ⚠️ 两个都别当孤儿删
-scripts/                  8 个脚本，见第 4 节
+scripts/                  10 个脚本，见第 4 节
 .github/workflows/        build.yml（构建校验）/ sync-garmin.yml（每日同步跑步数据）
 ```
 
@@ -221,10 +234,30 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 ./publish.sh    # git 提交 + 推送（终端敲 up 同效）
 ```
 
-`publish.sh` 在 `git add` 前依次跑（失败都不阻断发布）：`add-heading-anchors.py` → `sync-lastmod.py`。
+`publish.sh` 在 `git add` 前依次跑四个脚本（失败都不阻断发布）：
+
+```
+add-heading-anchors.py   中文标题补 {#pinyin}
+sync-lastmod.py          刷改过的文章的 lastmod
+sync-image-dims.py       补抓新图尺寸 → data/image-dims.json      ← 2026-10-18 接入
+gen-og.js                全量重画分享卡 → static/images/og/       ← 2026-10-18 接入
+```
+
 ⚠️ `sync-lastmod.py` 已无可见产出（`lastmod` 只喂 RSS / sitemap），保留调用而已。
-⚠️ 2026-10-11 删掉了原来排最前的 `fetch-image-dims.py`（脚本也删了）—— 它抓的 `data/image_dims.json` 上游模板根本不读，**别照旧文档加回来**。
+⚠️ 后两个是「**离线生成、提交进仓库**」的派生数据，**没有构建期钩子**：Hugo 拿不到图床图片的尺寸，也算不出分享卡。漏跑时**构建 0 警告**，只是静默降级（分享卡退回通用图 / `<img>` 缺宽高）。2026-10-18 实测到过真实的漏：129 篇文章只有 127 张卡。
+⚠️ 为什么**不**放进 `deploy.sh`：`sync-image-dims.py` 要联网抓图床，而「构建零网络依赖」是本站的架构底线（图床挂了也要能构建）。
+⚠️ 2026-10-11 删掉了原来排最前的 `fetch-image-dims.py`（脚本也删了）—— 它抓的 `data/image_dims.json` 上游模板根本不读，**别照旧文档加回来**。注意它与现在在用的 `sync-image-dims.py` **不是同一个东西**（后者喂的是站点层 `render-image.html`，键名 `image-dims.json`）。
 ⚠️ 2026-10-12 删掉了 `fetch-profile-content.py`（随 profile 子站一起删）—— 它刷的「花园页」快照已不存在。
+
+### 新建文章
+
+```bash
+new posts/我的新文章       # = bash scripts/new-post.sh posts/我的新文章
+new weekly/周刊-27
+```
+
+`scripts/new-post.sh` 会套 `archetypes/` 模板（`draft: true`）、同名文件**不覆盖只打开**、然后用 `open` 走系统默认应用。
+⚠️ 命令 `new` 是 `~/.config/zsh/.zshrc` 里的一个函数（不在仓库里）—— 换机器要重新加一次；脚本本体在仓库里，可以直接 `bash scripts/new-post.sh …`。
 
 ### 边缘函数（Cloudflare Pages Functions）
 
@@ -297,7 +330,8 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 1. **加根级独立页时写 `hideDate: true` + `toc: false`**（短页面挂目录是纯噪音）；纯工具页再加 `noindex: true`；新页别忘了回 `static/_headers` 补一条缓存规则。
 2. **中文标题显式写锚点** `## 习惯 {#xi-guan}`，否则分享链接是 `#%e4%b9%a0%e6%83%af`。漏了跑 `python3 scripts/add-heading-anchors.py`（需要 macOS 拼音库）。
 3. **`noindex: true` 是生效的**（站点层 `baseof.html` 有 robots 分支，上游没有），覆盖 199 页 = 187 标签词条 + 8 分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404。
-   ⚠️ **但这几页仍在 sitemap 里**（当时只恢复了 meta，没恢复旧站的 `layouts/sitemap.xml`）—— 已知缺口，别以为 sitemap 也排除了。
+   ✅ **2026-10-17 起 sitemap 也排除了**：`layouts/sitemap.xml` 的四个判据与 `baseof.html` 的 `$noindex` 同口径，336 条 → 134 条。
+   ⚠️ 两处的判据**必须逐字一致** —— 漂移时构建 0 警告，只是「提交给爬虫的地址」和「页面上的 noindex」对不上。
 
 ---
 
@@ -336,7 +370,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 加根级独立页 | `content/xxx.md`（`hideDate` + `toc: false`）+ 回 `static/_headers` 补缓存规则 |
 | 加 301 | `static/_redirects`（**首条命中即生效**，splat 要排在精确路径之后） |
 | 改响应头 / 缓存 | `static/_headers` |
-| 换 favicon / 分享图 | `static/favicon.svg` / `static/images/share.webp`（后者由 `params.images` 引用）。⚠️ 换图后改 `hugo.toml` 的 `params.ogImageWidth` / `ogImageHeight` 跟上（`seo_tags.html` 读这两个参数输出 og 宽高） |
+| 换 favicon / 分享图 | `static/favicon.svg` / `static/images/share.webp`（后者只是**兜底** `og:image`，由 `params.images` 引用；文章页各有一张 `static/images/og/<slug>.png`，由 `scripts/gen-og.js` 生成，`publish.sh` 每次重画）。⚠️ 换兜底图后改 `hugo.toml` 的 `params.ogImageWidth` / `ogImageHeight` 跟上（`seo_tags.html` 读这两个参数输出 og 宽高） |
 | 改 SEO 头（keywords / JSON-LD / og / referrer / theme-color） | `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）。⚠️ `theme-color` 那两条在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 与 `input{font-size}` 在第 26 段；`referrer` 在 `baseof.html`。⚠️ 上游那份是「HTML 规范还在 2015 年」的写法，**别回退** |
 | 改图片放大（放大方式 / 键盘可达性） | 结构在 `layouts/_default/_markup/render-image.html`（`--zoom-src` 挂在 figure 上），样式在第 26 段 ④⑤。⚠️ overlay 是**空壳**（只有 `class`，没有 `<img>`）；`.image-zoom-toggle` 那条**必须带 `display`**，只写定位会让上游的 `display:none` 留下、checkbox 又变回不可聚焦 |
 | 改订阅源（feed 字段 / 浏览器打开 feed 时那一页） | ① feed 本身：`layouts/_default/rss.xml`；② 浏览器视图：`layouts/partials/feed-view.html` + `content/feed/`（只有 front matter）+ `custom_head.html` 第 28 段；③ 谁分派：`functions/_middleware.js`。⚠️ ①② 的**页面集合口径必须逐字一致**（`site` / `weekly` 两套），不一致就是「网页比订阅少一篇」且**构建 0 警告**；③ 改完按第 2 节「边缘函数」跑一遍线上核对 —— 它是**静默失效**的 |
@@ -349,7 +383,9 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | `add-heading-anchors.py` | ✅ 在用（CI 也跑 `--check`） |
 | `sync-garmin.py` / `garmin-token.py` | ✅ 在用（每日 CI 同步跑步数据 → `data/runs.json`） |
 | `sync-lastmod.py` | ⚠️ 半废（`lastmod` 只喂 RSS / sitemap） |
-| `sync-image-dims.py` | ✅ 在用（HTTP 探测图床图片真实宽高 → `data/image-dims.json`，供 `render-image.html` 消费）。⚠️ **不在 `publish.sh` 里，加了新图后手工跑一次** |
+| `sync-image-dims.py` | ✅ 在用（HTTP 探测图床图片真实宽高 → `data/image-dims.json`，供 `render-image.html` 消费）。**2026-10-18 起在 `publish.sh` 里自动跑**，只补缺的 |
+| `gen-og.js` | ✅ 在用（2026-10-17 重写，2026-10-18 接入 `publish.sh`）：每篇文章一张 1200×630 分享卡 → `static/images/og/`。⚠️ 依赖 sharp，`publish.sh` 会自己找 `node` 与 `NODE_PATH`；**每次都全量重画**（改过标题的卡片要跟着变） |
+| `new-post.sh` | ✅ 在用（2026-10-18）：`new posts/xxx` 建文件 + 用系统默认应用打开。配套的 `new()` 函数在 `~/.config/zsh/.zshrc`，不在仓库里 |
 | `backup-blog.sh` / `cleanup-junk.sh` / `_frontmatter.py` | ✅ 工具 |
 
 ---
@@ -678,8 +714,8 @@ PY
 ## 8. 待办 / 已知缺口
 
 1. **`scripts/sync-lastmod.py` 半废** → `lastmod` 只喂 RSS / sitemap，页面无可见产出。
-2. **列表页没有页面级 `<h1>`**（有意接受上游行为）；**深色下正文图片描边几乎不可见**。
-3. **sitemap 没排除 noindex 页** —— `/privacy/` `/posts/` `/donate/` 与全部词条页的 meta robots 有，`layouts/sitemap.xml` 没恢复（见第 3 节规矩 3）。
+2. **列表页没有页面级 `<h1>`**（有意接受上游行为；2026-10-18 起站名不再是 h1，所以**所有非文章页**都是 0 个 h1，见 DESIGN.md 第 11 节）。~~深色下正文图片描边几乎不可见~~ → 2026-10-17 复算判定不成立（ΔL\* 深色 16.85 > 浅色 13.66）。
+3. ~~**sitemap 没排除 noindex 页**~~ → ✅ 2026-10-17 已解决，`layouts/sitemap.xml` 336 → 134 条（见第 3 节规矩 3）。
 4. **Cloudflare 后台收尾**（仓库侧无法代劳）：`run.` / `profile.` / `shot.` / `share.` 四个子域名的 CNAME 已删，但 **Pages 项目本身**若还留在后台建议一并删掉 —— 它们指向的 `sites/` 目录已不存在，构建只会失败。
 5. **⚠️ 确认 Pages 项目的 Functions 目录**（2026-10-15 新增的依赖，仓库侧同样无法代劳）：必须是默认的
    `functions`（仓库根）。被改过或 Functions 被关掉的话，浏览器打开 `/index.xml` 会退回 raw XML，
