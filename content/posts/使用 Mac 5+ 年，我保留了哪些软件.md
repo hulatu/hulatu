@@ -1,7 +1,7 @@
 ---
 title: "使用 Mac 5+ 年，我保留了哪些软件"
 date: 2026-10-24T21:14:28+08:00
-lastmod: 2026-10-24T21:14:28+08:00
+lastmod: 2026-10-24T21:41:54+08:00
 slug: "apple-app-recommendations"
 summary: "工具，是拿来用的，用得顺手，就行。"
 description: "这篇文章，分享了我使用 Mac 5 年多以来，至今留下的一些应用，包含了我日常主力使用的应用软件，还有一些辅助的应用工具，目的就是为了更好的满足自己学习和写东西的需求，并且满足自己极简主义、长期主义的最久，能符合开源精神，就更好了。希望大家在我的这份软件分享清单里，找到属于自己的思路，搭建好适合自己的软件工具，让电脑，更好的服务于自己。"
@@ -48,7 +48,9 @@ draft: false
 我也希望我们能有一款像 Signal 这样的通讯软件，成为国民级的应用。真正做到 1 个工具，干干净净只做好 1 件事。
 
 软件官网：https://mac.weixin.qq.com/ 
+
 Homebrew 安装方式：`brew install --cask wechat` 
+
 App Store 下载链接：[WeChat for Mac](https://apps.apple.com/us/app/wechat/id836500024?mt=12)
 
 **Office** 💰
@@ -86,6 +88,7 @@ App Store 下载链接：[Microsoft 365（包含 Word、Excel、PowerPoint 等�
 ![Typora](https://img.hulatu.com/post/mGDppQ.png)
 
 软件官网：https://typora.io/ 
+
 Homebrew 安装方式：`brew install --cask typora`  
 
 **Apple 备忘录** 🆓
@@ -113,6 +116,7 @@ Apple 备忘录虽然对 Markdown 的支持不够友好，但这和我使用它�
 Mac 端的 PS，可以这么理解，但是远比 PS 易上手、轻量美观。我平时其实很少有修图的需求，但有时候科研画机理图、做 PPT、文章封面图等等，需要抠图、调整图片，这个应用很好用。
 
 软件官网：https://www.pixelmator.com/pro/ 
+
 App Store 下载链接：[Pixelmator Pro](https://apps.apple.com/us/app/pixelmator-pro/id1289583905?mt=12)
 
 **Keynote** 🆓
@@ -128,6 +132,7 @@ Mac 端系统自带的 PPT 软件，我已经不止一次夸赞过它。它不�
 推荐资源：[江湖人称小 AE，用 Keynote 1 小时搞定平面动画](https://www.bilibili.com/video/BV11anUz7EBw/?vd_source=faa4a04597a50c1354e7975248079b6f)
 
 软件官网：https://www.apple.com/keynote/ 
+
 App Store 下载链接：[Keynote for Mac](https://apps.apple.com/us/app/keynote/id409183694?mt=12)
 
 **NetNewsWire** 🆓
@@ -137,6 +142,7 @@ App Store 下载链接：[Keynote for Mac](https://apps.apple.com/us/app/keynote
 ![RSS 订阅](https://img.hulatu.com/post/0oXGBS.png)
 
 软件官网：https://netnewswire.com/ 
+
 Homebrew 安装方式：`brew install --cask netnewswire`  
 
 **Helium** 🆓
@@ -148,6 +154,7 @@ Homebrew 安装方式：`brew install --cask netnewswire`
 ![干净的浏览器](https://img.hulatu.com/post/cXkI7W.png)
 
 软件官网：https://helium.computer/ 
+
 Homebrew 安装方式：`brew install --cask helium-browser`  
 
 **Firefox** 🆓
@@ -155,6 +162,7 @@ Homebrew 安装方式：`brew install --cask helium-browser`
 因为 Firefox 在 Mac 上自带 Profile 的功能——能在浏览器中分区、数据分隔、互不影响。我有一个「Media」分区用来登录保留我的一些自媒体账号，方便发布内容。另一个分区是「World」，用来作为我浏览外网的庇护所。我一般就这些用处。
 
 软件官网：https://www.firefox.com/ 
+
 Homebrew 安装方式：`brew install --cask firefox`  
 
 **Safari** 🆓
@@ -185,6 +193,8 @@ Homebrew 安装方式：`brew install --cask firefox`
 
 我还保留在电脑上，但其实有了 Workbuddy 后，我已经很久没打开 Codex 了，Workbuddy 已经能够满足我日常的需求。
 
+不推荐国内用户下载、折腾这个 Codex。
+
 **Mimestream** 💰
 
 我的 Gmail 客户端，省得我收邮件还需要每次打开 Gmail 网页。
@@ -196,6 +206,7 @@ Homebrew 安装方式：`brew install --cask firefox`
 ![Mimestream 使用](https://img.hulatu.com/post/vPpkYM.png)
 
 软件官网：https://mimestream.com/ 
+
 Homebrew 安装方式：`brew install --cask mimestream`  
 
 ## 辅助工具 {#fu-zhu-gong-ju}
@@ -211,6 +222,7 @@ Raycast 还有很多好用、实用的功能，我用得多的，就以上这些
 ![Raycast 启动 APP](https://img.hulatu.com/post/3oO7Eh.png)
 
 软件官网：https://www.raycast.com/ 
+
 Homebrew 安装方式：`brew install --cask raycast`  
 
 **Maccy** 🆓
@@ -220,7 +232,9 @@ Homebrew 安装方式：`brew install --cask raycast`
 ![Maccy 粘贴板](https://img.hulatu.com/post/WcbsnG.png)
 
 软件官网：https://maccy.app/ 
+
 Homebrew 安装方式：`brew install --cask maccy` 
+
 App Store 下载链接：[Maccy](https://apps.apple.com/us/app/maccy/id1527619437?mt=12)（App Store 版本付费；官网提供可免费下载的版本）。
 
 **Keka** 🆓
@@ -228,7 +242,9 @@ App Store 下载链接：[Maccy](https://apps.apple.com/us/app/maccy/id152761943
 一款无感的压缩、解压缩应用，好用够用。并且解压缩软件，也是电脑的必备软件。
 
 软件官网：https://www.keka.io/en/ 
+
 Homebrew 安装方式：`brew install --cask keka` 
+
 App Store 下载链接：[Keka](https://apps.apple.com/us/app/keka/id470158793?mt=12)（App Store 版本付费；官网提供免费下载版本）。
 
 **IINA** 🆓
@@ -238,20 +254,21 @@ App Store 下载链接：[Keka](https://apps.apple.com/us/app/keka/id470158793?m
 虽然有时候播放我之前下载的 4K 高码率电影（《星际穿越》《沉默的羔羊》）会有一些轻微的掉帧卡顿，但毕竟用来看 4K 高码率的资源本来就少，所以这也不是个问题。
 
 软件官网：https://iina.io/ 
+
 Homebrew 安装方式：`brew install --cask iina`  
 
 **Vista** 🆓
 
 一款免费、简洁、果味十足的看图 APP，把我需要的「看图、找图」这件事做得挺不错。没有过多的花哨功能，设计也很简约大方。
 
-软件官网/下载页面：[Vista — Just open the image](https://apps.apple.com/us/app/vista-just-open-the-image/id6760483098?mt=12) 
-App Store 下载链接：[Vista — Just open the image](https://apps.apple.com/us/app/vista-just-open-the-image/id6760483098?mt=12)
+App Store 下载链接：[Vista](https://apps.apple.com/us/app/vista-just-open-the-image/id6760483098?mt=12)
 
 **MonitorControl** 🆓
 
 如果你的 Mac 外接显示器，这个开源软件值得拥有，可以直接用 Mac 的亮度调节按键，调节外接显示器的亮度。
 
 软件官网：https://monitorcontrol.app/ 
+
 Homebrew 安装方式：`brew install --cask monitorcontrol`  
 
 **DarkModeBuddy** 🆓
@@ -259,6 +276,7 @@ Homebrew 安装方式：`brew install --cask monitorcontrol`
 一款开源、简洁的自动切换明暗模式的小工具，可以自己调节在多少强度的光照下、持续多久，就切换为「黑暗/明亮模式」，弥补了 Mac（我的 macOS 15）上不能自动切换明暗模式的缺陷。
 
 软件官网/项目主页：https://github.com/insidegui/DarkModeBuddy 
+
 Homebrew 安装方式：`brew install --cask darkmodebuddy` 
 
 **Transmission** 🆓
@@ -266,6 +284,7 @@ Homebrew 安装方式：`brew install --cask darkmodebuddy`
 一款开源、简洁的磁力下载工具，有时候有些资源的下载，需要用到「磁力下载器」，实在不喜欢国产迅雷之流的 APP，这款软件简单清爽，用来以备不时之需。
 
 软件官网：https://transmissionbt.com/ 
+
 Homebrew 安装方式：`brew install --cask transmission`  
 
 **Clash Verge Rev** 🆓
@@ -273,6 +292,7 @@ Homebrew 安装方式：`brew install --cask transmission`
 我的网络代理客户端，不多说，大家懂的都懂。PC 端，网络代理我首推这款软件。
 
 软件官网/项目主页：https://clash-verge-rev.github.io/ 
+
 Homebrew 安装方式：`brew install --cask clash-verge-rev`  
 
 **ImageOptim** 🆓
@@ -282,6 +302,7 @@ Homebrew 安装方式：`brew install --cask clash-verge-rev`
 对于我这样有一些「数字洁癖」的人来说，挺有意义的。
 
 软件官网：https://imageoptim.com/mac 
+
 Homebrew 安装方式：`brew install --cask imageoptim` 
 
 **提醒事项** 🆓
@@ -301,7 +322,9 @@ CotEditor 很适合我这种非重度代码选手，有时候需要简单地修�
 ![轻量的博客信息更改](https://img.hulatu.com/post/KFnqQx.png)
 
 软件官网：https://coteditor.com/ 
+
 Homebrew 安装方式：`brew install --cask coteditor` 
+
 App Store 下载链接：[CotEditor](https://apps.apple.com/app/coteditor/id1024640650)
 
 **VS Code** 🆓
@@ -315,6 +338,7 @@ App Store 下载链接：[CotEditor](https://apps.apple.com/app/coteditor/id1024
 所以这是一个可以把复杂的活变得简单的工具，推荐大家用用、折腾折腾。
 
 软件官网：https://code.visualstudio.com/ 
+
 Homebrew 安装方式：`brew install --cask visual-studio-code`  
 
 **iMovie 剪辑** 🆓
@@ -326,6 +350,7 @@ Homebrew 安装方式：`brew install --cask visual-studio-code`
 ![iMovie](https://img.hulatu.com/post/QhSMza.png)
 
 软件官网：https://www.apple.com/imovie/ 
+
 App Store 下载链接：[iMovie for Mac](https://apps.apple.com/us/app/imovie/id408981434?mt=12)
 
 **Ice** 🆓
@@ -335,6 +360,7 @@ App Store 下载链接：[iMovie for Mac](https://apps.apple.com/us/app/imovie/i
 我用 Ice，主要是因为有时候微信这种软件需要长时间地挂载在后台，因为关闭后登录要用到手机，所以我就经常性地让微信停在后台。但是微信的菜单栏图标不能隐藏。以至于有时候微信有新消息，弹出数字 1、2、3……，我觉得对我的专注有不好的影响，于是我用 Ice 把微信等一些我不太需要显示在菜单栏的图标都隐藏了，感觉很好。
 
 软件官网：https://icemenubar.app/ 
+
 Homebrew 安装方式：`brew install --cask jordanbaird-ice`  
 
 **Telegram** 🆓
@@ -346,7 +372,9 @@ Homebrew 安装方式：`brew install --cask jordanbaird-ice`
 ![Telegram 当作收藏夹、中转站](https://img.hulatu.com/post/bMfKUJ.png)
 
 软件官网：https://telegram.org/apps 
+
 Homebrew 安装方式：`brew install --cask telegram` 
+
 App Store 下载链接：[Telegram for Mac](https://apps.apple.com/us/app/telegram/id747648890)
 
 **Capso** 🆓
@@ -356,6 +384,7 @@ Capso 其实是大名鼎鼎的 CleanShot X 的平替、开源软件。但 Capso 
 软件也不大、内存占用也不高。
 
 软件官网/项目主页：https://github.com/lzhgus/Capso 
+
 Homebrew 安装方式： `brew install --cask capso`。  
 
 **Easydict** 🆓
@@ -363,6 +392,7 @@ Homebrew 安装方式： `brew install --cask capso`。
 一款全局（在哪都能唤醒）的英文翻译软件，支持键入翻译、划词翻译、截图翻译，很轻量、好用。我最常用的就是 2 个场合。输入 `⌥ + A`，然后输入我不会用英文表达的中文，就会出来单词、词组或者简单的英文句；还有一个场合就是我在看英文内容的时候，有不懂的「部分内容」，我会用光标选中，然后 `⌥ + D`，就会自动出来翻译。`⌥ + S` 是留给截图翻译的快捷键，主要是用来读取 PDF 和照片上的不认识的英文内容。
 
 软件官网/项目主页：https://github.com/tisfeng/Easydict 
+
 Homebrew 安装方式：`brew install --cask easydict`  
 
 ## 命令行工具 {#ming-ling-xing-gong-ju}
@@ -390,6 +420,7 @@ Homebrew 安装方式：`brew install --cask easydict`
 ![Mole](https://img.hulatu.com/post/vn2pAo.png)
 
 软件官网：https://mole.fit/ 
+
 Homebrew 安装方式：命令行工具：`brew install mole`；如果需要图形界面版本：`brew install --cask mole-app`。 
 
 ## Homebrew 安装命令汇总 {#homebrew-an-zhuang-ming-ling-hui}
