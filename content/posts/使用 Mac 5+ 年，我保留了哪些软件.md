@@ -1,7 +1,7 @@
 ---
 title: "使用 Mac 5+ 年，我保留了哪些软件"
 date: 2026-10-24T21:14:28+08:00
-lastmod: 2026-10-24T22:19:23+08:00
+lastmod: 2026-10-24T22:27:32+08:00
 slug: "apple-app-recommendations"
 summary: "工具，是拿来用的，用得顺手，就行。"
 description: "这篇文章，分享了我使用 Mac 5 年多以来，至今留下的一些应用，包含了我日常主力使用的应用软件，还有一些辅助的应用工具，目的就是为了更好的满足自己学习和写东西的需求，并且满足自己极简主义、长期主义的最久，能符合开源精神，就更好了。希望大家在我的这份软件分享清单里，找到属于自己的思路，搭建好适合自己的软件工具，让电脑，更好的服务于自己。"
@@ -75,7 +75,9 @@ Excel 可能是我最陌生的一个工具，我其实没用到过什么 Excel �
 除此之外，Mac 上我留存的其他 APP，我都还挺喜欢的，因为可以根据我自己的喜好选择。
 
 软件官网：[Microsoft 365 for Mac](https://www.microsoft.com/zh-cn/microsoft-365/mac/microsoft-365-for-mac) 
+
 Homebrew 安装方式：`brew install --cask microsoft-office` 
+
 App Store 下载链接：[Microsoft 365（包含 Word、Excel、PowerPoint 等）](https://apps.apple.com/us/app-bundle/microsoft-365/id1450038993?mt=12&platform=mac)
 
 ## 主力 APP {#zhu-li-app}
