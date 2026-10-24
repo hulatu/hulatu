@@ -1,7 +1,7 @@
 ---
 title: "使用 Mac 5+ 年，我保留了哪些软件"
 date: 2026-10-24T21:14:28+08:00
-lastmod: 2026-10-24T22:27:32+08:00
+lastmod: 2026-10-24T23:22:00+08:00
 slug: "apple-app-recommendations"
 summary: "工具，是拿来用的，用得顺手，就行。"
 description: "这篇文章，分享了我使用 Mac 5 年多以来，至今留下的一些应用，包含了我日常主力使用的应用软件，还有一些辅助的应用工具，目的就是为了更好的满足自己学习和写东西的需求，并且满足自己极简主义、长期主义的最久，能符合开源精神，就更好了。希望大家在我的这份软件分享清单里，找到属于自己的思路，搭建好适合自己的软件工具，让电脑，更好的服务于自己。"
@@ -418,6 +418,8 @@ Homebrew 安装方式：`brew install --cask easydict`
 
 ——出处《知乎「金牛肖马」的推荐》
 
+视频教程：[Mac 特有的软件安装方式，既神秘又强大](https://www.bilibili.com/video/BV1dR4y1b7e1/?vd_source=faa4a04597a50c1354e7975248079b6f)
+
 **Mole**
 
 这是一个很推荐的用来清理垃圾、卸载软件的命令行工具，我觉得很好用，也很够用。
@@ -426,7 +428,21 @@ Homebrew 安装方式：`brew install --cask easydict`
 
 软件官网：https://mole.fit/ 
 
-Homebrew 安装方式：命令行工具：`brew install mole`；如果需要图形界面版本：`brew install --cask mole-app`。 
+Homebrew 安装方式：`brew install mole`；
+
+**oh-my-zsh**
+
+一款 Mac 终端的美化、强化工具，配合上几个插件，可以自动补全代码、记忆代码等等。对于我这种编程小白、记不住代码的菜鸟来说，可以简化很多问题。
+
+项目地址：https://github.com/ohmyzsh/ohmyzsh
+
+**sci-env**
+
+我的终端科研环境，因为我需要用到 Python、R 语言搭配一些第三方库做数据处理、分析以及科研图表的绘制，所以我搭建了一个「虚拟环境」，与我系统自带的 Python 环境分离开、独立管理。
+
+我还挺自豪的，因为一步步摸索，该遇到的问题，也都遇到过，比如不设置虚拟环境、会与系统自带的 Python、官网安装的 Python、Brew 安装的 Python 弄乱，搞得很不干净。后来亲手搭建了这个「sci-env」虚拟环境，用 conda 工具，不会乱，并且接入了 Vs code ，可以在 Vs code 里调用 sci-env 环境，我还挺骄傲的，骄傲一下自己的动手能力。
+
+可以借助 AI 工具，辅助自己搭建一个这样的环境，一步步询问、一步步提问就可以了，很快就能搭建好。这样的成就感，你们也可以获得！
 
 ## Homebrew 安装命令汇总 {#homebrew-an-zhuang-ming-ling-hui}
 
