@@ -3,6 +3,16 @@
        除这 5 处文案外一字未改。 */ -}}
 {{ define "main" }}
 <content>
+  {{- /* 页面级 <h1>（2026-10-25 新增，a11y / 语义）。
+         背景：站名在 2026-10-18 从 <h1> 降级成 <p class="title">（为了修「双 h1」），
+         于是列表页 /posts/ /weekly/ 变成**整页一个 h1 都没有** —— 屏幕阅读器按标题
+         跳转时直接落到按年份分组的 <h3>，大纲从三级标题开始。
+         ⚠️ 只给 section 页加：词条页（/tags/xxx/、/categories/xxx/）走下面
+            `.Data.Singular` 分支，那一页的标题是「筛选：X」，形态不同，别混进来。
+         ⚠️ 用 `.Title`（「文章」/「周刊」），与 <title> 里那个词保持同一说法。 */ -}}
+  {{ if not .Data.Singular }}
+  <h1>{{ .Title }}</h1>
+  {{ end }}
   {{- /* 周刊页的计数行要带一个 RSS 订阅按钮（2026-10-14 用户要求把「共 N 篇。」
        改成「共 N 期周刊内容，请订阅 RSS」）。
        判断条件用 Kind + Section：Kind "section" 只命中 /weekly/ 这一页本身，
@@ -23,14 +33,14 @@
   </small>
   {{ end }}
   {{ if .Site.Params.postSearch }}
-  <input id="search-input" type="text" placeholder="搜索标题…" style="margin-top: 16px" />
+  <input id="search-input" type="search" placeholder="搜索标题…" aria-label="搜索文章标题" style="margin-top: 16px" />
   <script>
     // 等待 DOM 完全加载后执行
     document.addEventListener('DOMContentLoaded', function () {
       // 缓存 DOM 元素
       const searchInput = document.getElementById('search-input');
       const posts = document.querySelectorAll('.blog-posts li');
-      const years = document.querySelectorAll('.blog-posts h3');
+      const years = document.querySelectorAll('.blog-posts h2');
 
       // 更新搜索结果
       function updateSearchResults(searchTerm) {
@@ -103,7 +113,7 @@
     {{ if .Site.Params.groupByYear }}
     {{ $year := .Date.Year }}
     {{ if ne $year $currentYear }}
-    <h3>{{ $year }}</h3>
+    <h2>{{ $year }}</h2>
     {{ $currentYear = $year }}
     {{ end }}
     {{ end }}

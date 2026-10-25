@@ -38,11 +38,20 @@
 {{- partial "breadcrumbs.html" . -}}
 {{ if not .Params.menu }}
 {{- /* 标题行。front matter 写 `hideTitle: true` 可以**整行**藏掉 ——
-       目前只有 /roll/ 用它：那一页照 yinji.org/roll 做成一条平铺的收藏清单，
+       目前 /about/ /now/ /roll/ 用它：那几页照 yinji.org 做成无标题的独立页，
        页面上不出标题（标题只留在 <title> 和导航高亮里）。
-       ⚠️ 和 hideDate 是两个开关，互不影响：/roll/ 两个都开了。 */ -}}
+       ⚠️ 和 hideDate 是两个开关，互不影响：/roll/ 两个都开了。
+
+       ⚠️ 2026-10-25：藏掉标题时**仍然输出一个视觉隐藏的 <h1>**（`.sr-only`）。
+          原因：站名在 2026-10-18 从 <h1> 降级成 <p class="title"> 之后，
+          这三页就变成整页一个标题都没有 —— 屏幕阅读器按标题跳转时**无处可落**，
+          SEO 上也少一个主标题。隐藏起来是为了不改动「无标题」这个视觉决定：
+          `.sr-only` 走的是 clip 方案，元素仍在无障碍树里、只是看不见。
+          ⚠️ 别改成 `display:none` / `hidden` 属性 —— 那样会连读屏一起藏掉。 */ -}}
 {{ if not .Params.hideTitle }}
 <h1>{{ partial "orphan-safe.html" .Title }}</h1>
+{{ else }}
+<h1 class="sr-only">{{ partial "orphan-safe.html" .Title }}</h1>
 {{ end }}
 {{- /* 日期行。front matter 写 `hideDate: true` 可以只藏掉这一行 ——
        目前 /about/ 用了它（独立页挂一个「最后修改于某天」的日期没有意义）。

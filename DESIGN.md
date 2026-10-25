@@ -1069,7 +1069,7 @@ CSS 拿不到 location，只能由模板给。
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
 | `layouts/partials/seo_tags.html` | **新增**（2026-10-14）：整份覆盖上游的同名 partial —— ① 删 `<meta name="keywords">` 与 `<meta name="title">`；② 删掉整块微数据（`itemscope` / `itemprop` 那套）；③ 补 `og:image:width` / `height`；④ 换成按页型输出的 JSON-LD | 上游那份是「HTML 规范还在 2015 年」的写法（见第 8 节第 1 条：它原本就是本文件存在的理由）。现在 332 页全部有 `ld+json`、`keywords` / `itemprop` / `pubdate` 全站归零 |
-| `layouts/partials/custom_head.html` | 32 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 / 28 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 / **29 / 30 / 31 / 32** 全站；00b / 00c 挂在 00 段之后） | 见下。⚠️ **第 29 段（skip-link + 打印）、第 30 段（跨页转场）、第 31 段（手机端折叠目录）都是 2026-10-17 新增**，全站生效；第 29/30 段 + 00b 合计每页 +1345 B raw，第 31 段再 +1089 B raw。**第 32 段（浅色三级文字色）+ 00c（页头站名）是 2026-10-18 新增**，两段合计每页 **+164 B raw / 约 +42 B gzip**（实测 8 个页型逐值一致） |
+| `layouts/partials/custom_head.html` | 33 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 / 28 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 / **29 / 30 / 31 / 32 / 33** 全站；00b / 00c 挂在 00 段之后） | 见下。⚠️ **第 29 段（skip-link + 打印）、第 30 段（跨页转场）、第 31 段（手机端折叠目录）都是 2026-10-17 新增**，全站生效；第 29/30 段 + 00b 合计每页 +1345 B raw，第 31 段再 +1089 B raw。**第 32 段（浅色三级文字色）+ 00c（页头站名）是 2026-10-18 新增**，两段合计每页 **+164 B raw / 约 +42 B gzip**（实测 8 个页型逐值一致） |
 | `layouts/404.html` | **新增** | 上游默认只有 `<h1>404</h1>` + 一行颜文字 |
 | `layouts/_default/_markup/render-heading.html` | **新增**：标题末尾的 `#` 锚点 | 上游没有这个钩子（Goldmark 只给 id、不给可点入口） |
 | `layouts/partials/orphan-safe.html` | **新增**：标题末 2 字包 `nowrap` | 中文标题的孤行问题（取回旧主题的做法） |
@@ -1182,7 +1182,7 @@ Firefox / Safari 目前仍支持 XSLT，但**这套方案已经不需要任何�
 所以 `/privacy/`、`/posts/`、`/donate/` **仍然留在 sitemap 里**。爬虫读到 meta 不会收录，
 但地址仍会先交给它一次。要彻底干净，得再加一份 sitemap 模板把 `not .Params.noindex` 排掉。
 
-### `custom_head.html` 的 32 段
+### `custom_head.html` 的 33 段
 
 | 段 | 内容 | 生效范围 |
 | --- | --- | --- |
@@ -1217,11 +1217,12 @@ Firefox / Safari 目前仍支持 XSLT，但**这套方案已经不需要任何�
 | 30 | `@view-transition { navigation: auto }` 跨页转场（包在 `prefers-reduced-motion: no-preference` 里） | **全站** |
 | 31 | `.toc-mobile`（手机端折叠目录；`@media screen and (max-width: 1200px)`，打印时不出） | **全站**（结构只在 h2 ≥ 3 的 **56 页**） |
 | 32 | 浅色下 `--text-color-tertiary` 提亮到 `#6e6e6e`（包在 `@media (prefers-color-scheme: light)` 里，深色原值不动） | **全站** |
+| 33 | **页面级 h1 配套**（2026-10-25，四条）：<br>`33-a .sr-only` —— 视觉隐藏但**留在无障碍树里**（给 `/about/` `/now/` `/roll/` 的隐藏 h1；用 clip 方案，不是 `display:none`）<br>`33-b #hi{font-size:1.5em}` —— 首页「Hi!」由 h2 升 h1 后把字号钉回 1.5em<br>`33-c ul.blog-posts h2{font-size:1.17em;margin:1.9em 0 .6em}` —— 列表页年份分组 h3→h2，**字号和边距都要还原**（`content h2` 与 `content h3` 的边距本来就不是一个值）<br>`33-d .recent-posts-head{font-size:1.17em}` —— 首页「Recent Posts:」h3→h2 后补字号 | **全站**（33-b / 33-d 实际只在首页生效，但 CSS 全内联，每页都带这 243 B） |
 | — | 文件末尾：**GoatCounter**（上游 `baseof.html` 没有统计挂载点，只能挂这个钩子） | 全站 |
 
 > 00 段之后还挂着两条**没有独立段号**的规则：`00b` 导航当前页标识（`aria-current="page"` 只改颜色）、
 > `00c` 页头站名（`<p class="title">` 补回 `<h1>` 的四处默认样式，2026-10-18）。
-> 用字母后缀而不是新号，是为了不打乱 01–32 的既有编号 —— 文档、注释、验收清单里引用的都是这些号。
+> 用字母后缀而不是新号，是为了不打乱 01–33 的既有编号 —— 文档、注释、验收清单里引用的都是这些号。
 
 #### 周刊页的「请订阅 RSS」（2026-10-14 用户要求，当天改为普通链接）
 
@@ -2088,3 +2089,86 @@ grep -rc "%!d" public --include="*.html" | grep -v ":0"     # 应为空（float6
 含图文章 **+845 B gzip**（15 张图 × 3 个 srcset URL）；无图文章 +331 B（相关文章 + CSS）；
 首页 +29 B；归档页 / `/now/` **0 B**（守卫挡住）。
 换来的是图片流量省一半以上。
+
+---
+
+## 14. 2026-10-25：页面级 h1、搜索框无障碍、分类合并
+
+起因是全站复检（构建 363 页 / 359 HTML / 0 警告）后剩下的三条 P1/P2：
+分类包含关系、7 个可索引页面没有 `<h1>`、搜索框没有可访问名。
+
+### 14.1 为什么是「7 个」而不是「221 个」
+
+复检时数出 **221 个页面没有 `<h1>`**，但拆开看完全不是一回事：
+
+| 页面类型 | 数量 | 是否可索引 | 处理 |
+| --- | --- | --- | --- |
+| 标签词条页 `/tags/*/` | 205 | **否**（`noindex, follow`） | 不动 |
+| 分类词条页 `/categories/*/` | 9 → 8 | **否** | 不动 |
+| 首页 / `/posts/` / `/weekly/` / `/now/` / `/roll/` / `/about/` / `/archive/` | **7** | **是** | **本次全部补上** |
+
+`/run/` `/donate/` `/privacy/` 本来就有 h1（走 `single.html`），不在名单里。
+
+### 14.2 逐页落点
+
+| 页面 | 改法 | 视觉 |
+| --- | --- | --- |
+| `/` | `content/_index.md` 的 `## Hi!` → `# Hi!`（页面主标题就是 h1） | **逐像素 AE = 0** |
+| `/posts/` `/weekly/` | `list.html` 在 `<content>` 顶部加 `{{ if not .Data.Singular }}<h1>{{ .Title }}</h1>{{ end }}` | 多一行标题，正文下移 90px |
+| `/archive/` | `archive.html` 加 `<h1>{{ .Title }}</h1>`（=「归档」） | 同上，下移 89px |
+| `/about/` `/now/` `/roll/` | `single.html` 在 `hideTitle: true` 时输出 `<h1 class="sr-only">` | **逐像素 AE = 0** |
+| 三处搜索框 | `type="text"` → `type="search"` + `aria-label="搜索文章标题"` | **逐像素 AE = 0**（Chromium 未套用 searchfield 外观，不需要补 CSS） |
+
+⚠️ **`/about/` `/now/` `/roll/` 的标题是「视觉隐藏」而不是「显示出来」**：那三页
+`hideTitle: true` 是照 yinji.org 做的刻意设计（页面上不出标题），本次不推翻它，
+只把语义补回去。`.sr-only` 用 **clip 方案**，元素仍在无障碍树里 —— 换成
+`display:none` 或 `hidden` 属性会连读屏一起藏掉，等于没加。
+
+### 14.3 三个必须记住的坑
+
+**① 只加 h1 会造成 `h1 → h3` 跳级，反而把 a11y 审计弄挂。**
+列表页原本整页只有 `<h3>` 年份分组（`h3 → h3 → h3`，`heading-order` 是**通过**的）。
+只加 h1 不变年份层级，就变成 `h1 → h3`（升级 +2），axe / Lighthouse 的
+`heading-order` 直接判失败。所以年份分组同步降到 h2，大纲成为 `h1 → h2 → h2 …`。
+⚠️ 首页同理：`Hi!` 升 h1 后，`Recent Posts:` 必须从 h3 降到 h2，否则也是跳级。
+
+**② 换标题层级 = 字号和边距都要逐条核，少一条都能看出来。**
+这和 2026-10-18「站名 `<h1>` → `<p>` 变蓝」是同一个坑，只是那次是 `color`、这次是字号与边距：
+
+- **字号**：主题**没有**给标题设 `font-size`（只有 `margin:16px 0` 和统一 color），
+  所以字号吃 UA 默认值 —— h1 = 2em、h2 = 1.5em、h3 = 1.17em。
+- **边距**：`<ul class="blog-posts">` 在 `<content>` 里面，真正生效的不是主题那条，
+  而是站点层第 21 段给正文标题单独写的两条 —— **h2 和 h3 不是一个值**：
+  `content h2 { margin: 2.2em 0 .7em }` / `content h3 { margin: 1.9em 0 .6em }`。
+  只补字号不补边距，每个年份标题会比原来高约 **7.5px**（0.3em 上 + 0.1em 下）。
+
+⚠️ 这条**第一次就漏了**：只写 `font-size:1.17em` 时，`magick compare` 在 `/archive/`
+上报「h1 以下整段 5% 像素差」，`-trim` 出差异盒才定位到年份标题那几行。
+
+**③ `--screenshot` 的纵向偏移不是整数，别用「加一行就是 +90px」去套。**
+实测同一个 h1 在 `/archive/` 上让内容下移 **89px**、在 `/posts/` `/weekly/` 上是 **90px**
+（h1 行盒 2em × 1.8 = 57.6px + 上下 16px 边距 = 89.6px，落到不同元素上取整方向不同）。
+比对时必须先量出偏移，不能假设。
+
+### 14.4 分类合并
+
+`跑步`（1 篇：《为何很多人重启，从跑步开始》）并入 `运动`（11 → 12 篇）。
+分类从 **9 个降到 8 个**，`/categories/跑步/` 词条页随之消失，总页数 363 → **362**、
+HTML 359 → **358**。
+
+⚠️ 只改了 `categories:`，那篇文章的 `tags: [..., "运动", ...]` 与 `series: "跑步"` **没动**：
+`series` 是连载坐标，与分类是两套东西；标签与分类在 `[related]` 里权重不同（200 / 50），
+冗余不构成问题。
+
+### 14.5 验收
+
+| 项 | 结果 |
+| --- | --- |
+| 构建 | 362 页 / **358 HTML / 0 警告** |
+| h1 分布 | `{0 个: 213 页, 1 个: 145 页}`，**多 h1 = 0** |
+| `heading-order` 跳级 | **0 页**（改前把 h1 单独加上时是 1 页，见 14.3 ①） |
+| 站内链接 | 5564 条，**失效 0** |
+| 重复 id | **0 页** |
+| 空 `alt` | **0** |
+| 视觉回归 | 首页 / `/about/` / `/now/` / `/roll/` **AE = 0**；`/archive/` `/posts/` 去掉 89/90px 偏移后 **AE = 0**；`/weekly/` 最后一个年份组有 **1px 亚像素取整差**（目视不可见） |
+| 体积 | 每档 **+243 B raw / +62～65 B gzip**（全站 358 页，见 MAINTENANCE 第 0 节） |

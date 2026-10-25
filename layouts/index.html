@@ -36,7 +36,17 @@
 {{- $posts := where .Site.RegularPages "Section" "in" (slice "posts" "weekly") }}
 {{- $posts = $posts.ByDate.Reverse | first $n }}
 <hr>
-<h3>Recent Posts:</h3>
+{{- /* ⚠️ 2026-10-25：h3 → h2，并且**必须带 `.recent-posts-head` 这个类**。
+       原因：首页正文那个「Hi!」在这一天从 h2 升成了 h1（见 content/_index.md），
+       于是这里如果还是 h3，大纲就成了 h1 → h3（跳级），axe / Lighthouse 的
+       `heading-order` 会判失败 —— 而改动之前 h2 → h3 是连续的。
+       降到 h2 之后是 h1 → h2，正常。
+       ⚠️ 类名不是装饰：h2 的 UA 默认字号是 1.5em、h3 是 1.17em，而这条标题在
+          `<content>` **外面**（首页不包 content），拿不到 `content h2` 那条
+          边距规则，能变的只有字号 —— 所以由 `custom_head.html` 第 33 段
+          用 `.recent-posts-head { font-size: 1.17em }` 把字号按 h3 的原值钉回去。
+          删掉类名 = 这行标题立刻大一号（1.17em → 1.5em）。 */ -}}
+<h2 class="recent-posts-head">Recent Posts:</h2>
 <ul class="recent-posts">
   {{- range $posts }}
   <li>

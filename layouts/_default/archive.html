@@ -17,25 +17,28 @@
           2026-10-11 用户要求照 yinji 补回 → 现在重新铺上了，见该处那段注释。
           **「不要标签云」说的是按篇数分档字号那种，平铺不在其中。**
 
-       ⚠️ 这一页**没有页面级 <h1>** —— 与上游 list.html 一致。全站的 <h1> 来自
-          baseof → header.html 里的站名，那是 BearNeo 的设计（Bear Blog 同款）。
-          想加回页面标题：在 <content> 里补一行
-          `{{ if not .Params.hide_title }}<h1>{{ .Title }}</h1>{{ end }}`。
+       ⚠️ 页面级 <h1>：**2026-10-25 已补上**（`<h1>{{ .Title }}</h1>`，标题取自
+          content/archive.md 的 `title: "归档"`）。此前这一页没有 h1 —— 那时的理由
+          是「全站的 <h1> 来自 header 里的站名」，但站名已在 2026-10-18 降级成
+          `<p class="title">`，那条理由**不再成立**，于是这一页（以及 /posts/ /weekly/）
+          变成整页无 h1、大纲从 `<h3>` 年份分组开始。
+          ⚠️ 别再把它删掉，也别改回「靠站名当 h1」—— 那会和文章页的标题 h1 撞成双 h1。
 
        ⚠️ 别把这一页改成 section（content/archive/_index.md）—— section 的 .Pages
           是它自己的子页，空数组，列表会渲染成「No posts yet」。 */ -}}
 {{ define "main" }}
 {{- $posts := (where site.RegularPages "Type" "in" (slice "posts" "weekly")).ByDate.Reverse -}}
 <content>
+  <h1>{{ .Title }}</h1>
   {{ if .Site.Params.postSearch }}
-  <input id="search-input" type="text" placeholder="搜索标题…" style="margin-top: 16px" />
+  <input id="search-input" type="search" placeholder="搜索标题…" aria-label="搜索文章标题" style="margin-top: 16px" />
   <script>
     // 等待 DOM 完全加载后执行
     document.addEventListener('DOMContentLoaded', function () {
       // 缓存 DOM 元素
       const searchInput = document.getElementById('search-input');
       const posts = document.querySelectorAll('.blog-posts li');
-      const years = document.querySelectorAll('.blog-posts h3');
+      const years = document.querySelectorAll('.blog-posts h2');
 
       // 更新搜索结果
       function updateSearchResults(searchTerm) {
@@ -129,7 +132,7 @@
     {{ if .Site.Params.groupByYear }}
     {{ $year := .Date.Year }}
     {{ if ne $year $currentYear }}
-    <h3>{{ $year }}</h3>
+    <h2>{{ $year }}</h2>
     {{ $currentYear = $year }}
     {{ end }}
     {{ end }}
