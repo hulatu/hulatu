@@ -102,7 +102,7 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 | 改关于页的介绍块 | `content/about.md`（**纯 Markdown，没有头像、也没有页面标题**）|
 | 改支持页 / 换收款码 | `content/donate.md`（结构 + 文案）+ `custom_head.html` 第 08 段（样式） |
 | 改跑步页 `/run/` | `content/run.md`（导语）+ `layouts/_default/run.html`（结构）+ `custom_head.html` 第 25 段（样式）。数据读 `data/runs.json`，**别在页面里写数字** |
-| 改文末「系列」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html` + `custom_head.html` 第 09 / 10 段 |
+| 改文末「系列」/「相关文章」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html`（①②③ 三段）+ `custom_head.html` 第 09 / 10 段。⚠️ 相关文章的**权重与阈值**在 `hugo.toml` 的 `[related]`，不在模板里 |
 | 改 `/roll/` 两组之间的分隔线 | `content/roll.md` 里那条**裸 `<hr>`**（不要加 class，样式走主题的 `hr`） |
 | 改代码块配色 | `custom_head.html` 第 12 段（浅/深两套）。⚠️ 前提是 `hugo.toml` 的 `[markup.highlight] noClasses = false`，改回 true 会让代码块变成看不见 |
 | 改归档页「系列」横向入口 | 模板 `layouts/_default/archive.html` + `custom_head.html` 第 09 段 |
@@ -1073,7 +1073,7 @@ CSS 拿不到 location，只能由模板给。
 | `layouts/404.html` | **新增** | 上游默认只有 `<h1>404</h1>` + 一行颜文字 |
 | `layouts/_default/_markup/render-heading.html` | **新增**：标题末尾的 `#` 锚点 | 上游没有这个钩子（Goldmark 只给 id、不给可点入口） |
 | `layouts/partials/orphan-safe.html` | **新增**：标题末 2 字包 `nowrap` | 中文标题的孤行问题（取回旧主题的做法） |
-| `layouts/_default/_markup/render-image.html` | **新增**（2026-10-12）：正文图片补 `width` / `height`。⚠️ **2026-10-14 改了放大方案**：overlay 里原本还重复渲染一个 `<img>`，现在整段删掉、URL 改走 figure 上的 `--zoom-src` 自定义属性（见下） | 上游只输出 `src` / `alt`，图片加载前高度为 0 → 页面跳动（CLS）。宽高取自 `data/image-dims.json`（`scripts/sync-image-dims.py` 采集）。⚠️ 必须配第 21 段的 `img { height: auto }`，否则 `height` 会当硬高度生效、图被**竖向拉伸** |
+| `layouts/_default/_markup/render-image.html` | **新增**（2026-10-12）：正文图片补 `width` / `height`。⚠️ **2026-10-14 改了放大方案**：overlay 里原本还重复渲染一个 `<img>`，现在整段删掉、URL 改走 figure 上的 `--zoom-src` 自定义属性（见下）。⚠️ **2026-10-25 又加了三样**：`srcset` + `sizes`（400/720/1080 三档）、图床边缘转换前缀、首图 `fetchpriority="high"` | 上游只输出 `src` / `alt`，图片加载前高度为 0 → 页面跳动（CLS）。宽高取自 `data/image-dims.json`（`scripts/sync-image-dims.py` 采集）。⚠️ 必须配第 21 段的 `img { height: auto }`，否则 `height` 会当硬高度生效、图被**竖向拉伸**。**2026-10-25 的 srcset 走 Cloudflare Image Resizing**（`/cdn-cgi/image/width=W,format=auto,quality=82/`），实测省 47–71%，理由见第 13 节 |
 | `layouts/partials/back-top.html` | **新增**：返回顶部（只长文页） | 上游没有；**纯 CSS 滚动驱动动画，零 JS**。⚠️ 同日曾有过「阅读进度条」，已按用户要求删除 |
 | `layouts/partials/code-copy.html` + `assets/js/code-copy.js` | **新增**：代码块复制按钮（只含代码的页） | 上游没有 |
 | `layouts/partials/giscus.html` + `assets/js/giscus.js` | **新增** | 上游没有评论区 |
@@ -2018,3 +2018,73 @@ xmllint --noout public/index.xml public/weekly/index.xml
 那它显示的会是 Gravatar 上那张图 —— 与本站无关，只能去 Gravatar 换图或删图。
 本站侧能做的（`<image>` + 五条 link）已经做完。
 
+
+## 13. 2026-10-25：图片管线（边缘转换 + srcset + 首图优先）
+
+### 13.1 为什么动
+
+全站 342 张正文图，此前是「单尺寸 + 全部 lazy + 图床无长缓存」：
+340 张来自 `img.hulatu.com`，`srcset` **一个都没有**，抽样 14 张平均 **94.7 KB**，
+最重的一篇（《周刊 10》）21 张图合计 **1.74 MB**。
+手机和桌面下载的是同一张原图 —— 而正文内容区实测只有 **680px** 宽。
+
+### 13.2 关键发现：图床本来就跑在 Cloudflare Image Resizing 上
+
+响应头带 `cf-resized`，说明它接在 Cloudflare 的图片处理链路上。
+实测 `/cdn-cgi/image/` 前缀**可直接用**，不需要改图床配置、不需要重新上传：
+
+| 请求 | 体积 | 相对原图 |
+|---|---|---|
+| 原图 `post/UHYgCr.jpeg` | 111 KB | 100% |
+| `width=720,format=auto,quality=80` | 46 KB | **41%** |
+| `width=400`（Accept 带 avif 时） | 16 KB | **14%** |
+
+4 张抽样省 47–71%；《周刊 10》整篇 1.74 MB → **0.85 MB（省 51%）**。
+
+⚠️ 这**不破坏「构建零网络依赖」**：URL 是在模板里拼字符串，不在构建期抓图。
+图床挂了照样能构建，只是图片 404。
+
+### 13.3 落地的四件事（全在 `render-image.html` 与 `custom_head.html`）
+
+1. **边缘转换**：`https://img.hulatu.com/cdn-cgi/image/width=W,format=auto,quality=82/<原路径>`
+2. **`srcset` + `sizes`**：三档 400 / 720 / 1080，`sizes="(max-width: 760px) calc(100vw - 40px), 680px"`
+3. **首图 `fetchpriority="high"`**：每页第一张图**不加 `loading="lazy"`**（两者冲突，同时写 high 会被忽略），其余 lazy + `decoding="async"`
+4. **`<link rel="preconnect" href="https://img.hulatu.com">`**：只给含图的 74 页（用 `.Content` 判断）
+
+### 13.4 三个参数为什么是这些值
+
+- **`quality=82`**：目视比过 75 / 82 / 90 三档，深色文字截图上肉眼无差；
+  82 是原图的 26%，75 是 22%，90 是 35%。**别调到 70 以下** —— 本站多截图类
+  图片，纯色区会出色带。
+- **`sizes` 里的 `680px`**：`body` 是 `max-width:720px` + `padding:20px`，
+  内容区就是 680。写大了会让浏览器多下一档、写小了会糊。
+- **候选宽度只保留 ≤ 原图宽的档位**：避免向图床要一张会被放大回去的图。
+  原图 ≤ 720px 的（本站 8 张）**只转格式、不缩宽** —— 480px 缩到 400 再放进
+  680px 容器是二次缩小，字会糊。
+
+### 13.5 顺带修掉的一个误判
+
+**73 个 `.webp` 文件实际是 `image/jpeg`**（`content-type` 实测）。
+当年「转格式」只改了扩展名、没真转码，所以这批图一点压缩收益都没拿到。
+现在统一走边缘转换，扩展名叫什么已经不重要了。
+
+### 13.6 验收
+
+```bash
+hugo --cleanDestinationDir                                  # 必须 0 警告
+grep -c "srcset" public/posts/2026/10/24/*/index.html       # 应等于该页图片数
+grep -rl "preconnect href=https://img.hulatu.com" public --include="*.html" | wc -l   # 应为 74
+grep -rc "%!d" public --include="*.html" | grep -v ":0"     # 应为空（float64 陷阱）
+```
+
+⚠️ 用 Python/正则检查 `src` 时，`width=1080` 会出现在 **URL 内部**，
+`\bwidth=` 会误匹配成 HTML 的 width 属性 —— 用「按空格切属性」的方式解析，别用 `\b`。
+⚠️ `srcset` 的 URL 里含逗号（`width=400,format=auto,...`），
+**用 `split(",")` 检查档位会数错**。浏览器解析没问题（URL 一直读到空格为止），
+实测 `img.currentSrc` 正确落在 720 档。
+
+### 13.7 体积代价
+
+含图文章 **+845 B gzip**（15 张图 × 3 个 srcset URL）；无图文章 +331 B（相关文章 + CSS）；
+首页 +29 B；归档页 / `/now/` **0 B**（守卫挡住）。
+换来的是图片流量省一半以上。

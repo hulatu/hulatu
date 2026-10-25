@@ -1,7 +1,7 @@
 ---
 title: "AI 时代，也应该拥抱英语"
 date: 2026-09-17T08:26:56+08:00
-lastmod: 2026-09-28T16:26:14+08:00
+lastmod: 2026-10-25T11:54:05+08:00
 slug: "embrace-english"
 
 summary: "学好英语，一直都很重要。"
@@ -18,7 +18,7 @@ draft: false
 
 我特意查阅了 [全球热门网站排行榜](https://zh.wikipedia.org/zh-hans/%E6%9C%80%E5%8F%97%E6%AC%A2%E8%BF%8E%E7%BD%91%E7%AB%99%E5%88%97%E8%A1%A8) ，如下：
 
-![](https://img.hulatu.com/post/jIBUDw.webp)
+![全球热门网站](https://img.hulatu.com/post/jIBUDw.webp)
 
 睁眼看世界，不仅是晚清的口号，也是如今每个人需要拥有的一种能力。
 

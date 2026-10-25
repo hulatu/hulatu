@@ -17,31 +17,35 @@
 | 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
 | 代码高亮 | `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
 | 站点层 | **30 个文件** = `layouts/` × 28 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`；2026-10-18 新增 `layouts/partials/header.html`；2026-10-25 新增 `layouts/partials/favicon.html`） |
-| 页面 | 338 页 → **334 个 HTML** |
-| 内容 | 101 篇文章 + 25 期周刊 = 126 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
+| 页面 | 363 页 → **359 个 HTML** |
+| 内容 | 106 篇文章 + 28 期周刊 = 134 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
 | 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开由 `functions/_middleware.js` 分派到 `/feed/` 那两页，订阅器照旧拿 XML |
-| 词条页 | 标签 187 + 分类 8（索引页 `/tags/` `/categories/` 已关） |
+| 词条页 | 标签 205 + 分类 9（索引页 `/tags/` `/categories/` 已关，词条页全部 `noindex, follow`） |
 | CSS | **全部内联**，无 `/css/` 目录 |
 | JS | 两个：giscus（指纹化长缓存）+ 代码块复制按钮 |
 | 构建 | 干净构建 **0 警告** |
 | URL | 与迁移前逐条一致（126 个 `/posts/…` 全保留），仅 8 个刻意删除的地址有 301 |
 
-内联 CSS 分档（Python `gzip.compress(d,9)` 口径；「补丁」= 该档全页 `<style>` 合计减去主题固定的 6424 B）：
+内联 CSS 分档（口径：把该页**所有 `<style>` 合并后**一次 `gzip.compress(d,9)`；「补丁」= 合计减去主题固定的 6424 B）：
 
 | 档 | 页数 | raw / gzip | 补丁 |
 | --- | --- | --- | --- |
-| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` `/posts/` / 203 词条页） | 210 | 11753 / 3849 | 5329 B（+00 +00c +14 +17 +20 +21 +22 +23 +26 +29 +30 +31 +32 段） |
-| 长文页（103 文章 + 25 周刊，无代码块） | 123 | 15688 / 4703 | 9264 B（再 +09 +10 +13 +16 +19 段） |
-| 长文页 + 代码块 | 5 | 17939 / 5206 | 11515 B（再 +12 +18 段） |
-| `/archive/` | 1 | 13482 / 4220 | 7058 B |
-| `/donate/` | 1 | 12179 / 3964 | 5755 B（+08 段） |
-| `/run/` | 1 | 13587 / 4260 | 7163 B（+25 段） |
-| `/404.html` | 1 | 13167 / 4122 | 6743 B（+15 段） |
-| 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 12132 / 3940 | 5708 B（+28 段） |
+| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` `/posts/` / 214 词条页） | 221 | 11751 / 3356 | 5327 B（+00 +00c +14 +17 +20 +21 +22 +23 +26 +29 +30 +31 +32 段） |
+| 长文页（106 文章 + 28 周刊，无代码块） | 126 | 16246 / 4193 | 9822 B（再 +09 +10 +13 +16 +19 段，**含 2026-10-25 的 `.post-related`**） |
+| 长文页 + 代码块 | 6 | 18497 / 4684 | 12073 B（再 +12 +18 段） |
+| `/archive/` | 1 | 13480 / 3708 | 7056 B |
+| `/donate/` | 1 | 12177 / 3450 | 5753 B（+08 段） |
+| `/run/` | 1 | 13583 / 3752 | 7159 B（+25 段） |
+| `/404.html` | 1 | 13165 / 3621 | 6741 B（+15 段） |
+| 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 12130 / 3438 | 5706 B（+28 段） |
 
-合计 344 页，与 `os.walk` 数出的 HTML 数一致。`/about/` `/now/` `/roll/` `/privacy/` `/weekly/` 与普通页完全一致（03 段头像撤掉后不再输出任何 CSS）。
-⚠️ 上面每一档的**逐值都是 2026-10-18 第 32 段 + 00c 段落地后的实测值**。与当天之前相比**每档统一 +164 B raw / +41～45 B gzip** —— 那是新增的第 32 段（浅色三级文字色 `#6e6e6e`）与 00c 段（页头站名 `<h1>`→`<p>` 的外观补偿）。逐项对比见 DESIGN.md 第 11.2 节。
-⚠️ **页数口径**：2026-10-18 重新按 `os.walk` 分为 `210 + 123 + 5 + 1 + 1 + 1 + 1 + 2 = 344`；长文页 123 + 5 = **128**（已发布文章；`content/` 里还有 2 篇 draft 不产出页面）。
+合计 359 页，与 `os.walk` 数出的 HTML 数一致。
+⚠️ 上面每一档的**逐值都是 2026-10-25 的实测值**。与 10-18 相比：
+· 普通页 raw 几乎没动（11753 → 11751），**gzip 从 3849 降到 3356** —— 那是口径修正：
+  以前是「每个 `<style>` 块分别 gzip 再相加」，块数越多虚高越多；现在是合并后一次压。
+· 长文页补丁 **+558 B raw**（9264 → 9822），即 2026-10-25 新增的 `.post-related` 六条规则。
+  它被 `{{ if $longForm }}` 单独守卫，**归档页拿不到**（实测归档页 CSS 仍是 13480 B，零增量）。
+⚠️ **页数口径**：`221 + 126 + 6 + 1 + 1 + 1 + 1 + 2 = 359`；长文页 126 + 6 = **132**。
 ⚠️ **第 29 段里约 300 B gzip 是打印样式**，对屏幕用户完全无用却每页都下载。没拆成外部 `media="print"` 样式表的原因：本站 CSS 全内联是既定架构（产物没有 `/css/` 目录），且 `media="print"` 的表浏览器**照样下载**，只是优先级低，省不下请求。
 
 - 第 20–23 段是 2026-10-12 新增的 4 条全站规则（**+428 B raw / +115 B gzip**）：目录断点抬到 1200px、`img{height:auto}`、等宽字体令牌、TOC 链接 transition 收窄。
@@ -121,6 +125,10 @@ layouts/                  ★ 站点层覆盖，28 个文件
                                     （读 data/image-dims.json）
                                     ⚠️ 2026-10-14：overlay 不再重复一个 <img>，
                                     URL 走 figure 上的 --zoom-src 画背景（省一半节点）
+                                    ⚠️ 2026-10-25：加 srcset(400/720/1080) + 图床
+                                    边缘转换(/cdn-cgi/image/width=W,format=auto,
+                                    quality=82/) + 首图 fetchpriority=high。
+                                    实测省 47–71%，详见 DESIGN.md 第 13 节
   partials/nav.html                 完全由 [[menu.main]] 驱动（7 项）
                                     + aria-current="page"（2026-10-17，精确匹配 RelPermalink）
   partials/header.html              ★ 2026-10-18 新增：站名从 <h1> 换成 <p class="title">
@@ -383,6 +391,8 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 换 favicon / 站点图标 / 分享图 | **只改 `static/favicon.svg`**，然后按 DESIGN.md 第 12.3 节重跑一遍 → 生成 `icon-512/192.png`、`apple-touch-icon.png`、`favicon.ico`、`images/feed-icon.png`（feed `<image>` 用，路径在 `hugo.toml` 的 `params.feedIcon`，宽高在 `rss.xml` 里写死 144）。⚠️ 光栅图**别手工裁**，会和 SVG 分叉；⚠️ 改完阅读器要手动刷新图标（订阅时抓一次就长期缓存）。分享图是 `static/images/share.webp`（只是**兜底** `og:image`，由 `params.images` 引用；文章页各有一张 `static/images/og/<slug>.png`，由 `scripts/gen-og.js` 生成，`publish.sh` 每次重画）。⚠️ 换兜底图后改 `hugo.toml` 的 `params.ogImageWidth` / `ogImageHeight` 跟上（`seo_tags.html` 读这两个参数输出 og 宽高） |
 | 改 SEO 头（keywords / JSON-LD / og / referrer / theme-color） | `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）。⚠️ `theme-color` 那两条在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 与 `input{font-size}` 在第 26 段；`referrer` 在 `baseof.html`。⚠️ 上游那份是「HTML 规范还在 2015 年」的写法，**别回退** |
 | 改图片放大（放大方式 / 键盘可达性） | 结构在 `layouts/_default/_markup/render-image.html`（`--zoom-src` 挂在 figure 上），样式在第 26 段 ④⑤。⚠️ overlay 是**空壳**（只有 `class`，没有 `<img>`）；`.image-zoom-toggle` 那条**必须带 `display`**，只写定位会让上游的 `display:none` 留下、checkbox 又变回不可聚焦 |
+| 改文末「相关文章」 | 模板 `single.html` 的 ② 段 + 第 09 段的 `.post-related*` 六条规则 + **`hugo.toml` 的 `[related]`**（权重 / 阈值都在那）。⚠️ 改阈值前先数产物里 `.post-related` 有几个 —— 2026-10-05 那次就是吃默认 `threshold = 80` 导致**一条都推不出来**、构建 0 警告。现在 20，132/133 篇有推荐 |
+| 改图片加载（srcset / 边缘转换 / 首图优先） | `layouts/_default/_markup/render-image.html`（一个文件搞定四件事，理由见 DESIGN.md 第 13 节）+ `custom_head.html` 顶部的 `preconnect`。⚠️ `quality=82` 是目视比过的，别往 70 以下调（截图类图片会出色带）；⚠️ 首图 `fetchpriority="high"` **不能同时带 `loading="lazy"`**，同时写 high 会被忽略；⚠️ `sizes` 里的 `680px` = `body` 的 720 减左右各 20 padding，改布局宽度要回来改它 |
 | 改订阅源（feed 字段 / 浏览器打开 feed 时那一页） | ① feed 本身：`layouts/_default/rss.xml`；② 浏览器视图：`layouts/partials/feed-view.html` + `content/feed/`（只有 front matter）+ `custom_head.html` 第 28 段；③ 谁分派：`functions/_middleware.js`。⚠️ ①② 的**页面集合口径必须逐字一致**（`site` / `weekly` 两套），不一致就是「网页比订阅少一篇」且**构建 0 警告**；③ 改完按第 2 节「边缘函数」跑一遍线上核对 —— 它是**静默失效**的 |
 | 改周刊页的计数行 / RSS 订阅入口 | `layouts/_default/list.html`（`$isWeekly` = Kind section + Section weekly；`#post-count` 是 `<span>`、订阅链接在它**外面**）。⚠️ 订阅入口是**普通文字链接，不要加样式**（2026-10-14 用户看过带边框 + 图标的徽章后要求简化）；想让链接在搜索后存活，**只能改 span 的 `textContent`**，用 `innerHTML` 会把它整个覆盖掉 |
 
@@ -394,6 +404,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | `sync-garmin.py` / `garmin-token.py` | ✅ 在用（每日 CI 同步跑步数据 → `data/runs.json`） |
 | `sync-lastmod.py` | ⚠️ 半废（`lastmod` 只喂 RSS / sitemap） |
 | `sync-image-dims.py` | ✅ 在用（HTTP 探测图床图片真实宽高 → `data/image-dims.json`，供 `render-image.html` 消费）。**2026-10-18 起在 `publish.sh` 里自动跑**，只补缺的 |
+| `check-cache.sh` | ✅ 在用（2026-10-25 新增，**手动跑**）。自查线上首页是否被边缘缓存锁住：打 `/` 与 `/?cb=随机` 对比 `cf-cache-status` + 内容指纹，命中就打印后台 Purge / Edge TTL 的操作路径。退出码 0=正常 / 1=被锁 / 2=网络拿不到。⚠️ 不进 `publish.sh` —— 它依赖外网，而发布流程要能离线跑 |
 | `gen-og.js` | ✅ 在用（2026-10-17 重写，2026-10-18 接入 `publish.sh`）：每篇文章一张 1200×630 分享卡 → `static/images/og/`。⚠️ 依赖 sharp，`publish.sh` 会自己找 `node` 与 `NODE_PATH`；**每次都全量重画**（改过标题的卡片要跟着变） |
 | `new-post.sh` | ✅ 在用（2026-10-18）：`new posts/xxx` 建文件 + 用系统默认应用打开。配套的 `new()` 函数在 `~/.config/zsh/.zshrc`，不在仓库里 |
 | `backup-blog.sh` / `cleanup-junk.sh` / `_frontmatter.py` | ✅ 工具 |
@@ -436,6 +447,36 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 - ⚠️ `/rss.xsl` 那条 **2026-10-15 已删**（XSLT 方案整体撤掉）；新加的是 `/feed/` 与 `/feed/*` 两条 ——
   它们只对「直接访问 `/feed/`」和本地预览生效：线上主路径是浏览器打开 `/index.xml` 被
   `functions/_middleware.js` 改写的，**函数响应不吃 `_headers`**，那几条头写在函数代码里。
+
+### ⚠️⚠️ 首页 `/` 被边缘缓存锁住（2026-10-18 / 10-25 两次复发）
+
+**症状**：改了 CSS 或首页文案，本地构建正常、源站也新，但访客看到的还是旧页。
+**判据**：
+
+```bash
+curl -sI https://hulatu.com/ | grep -iE "cf-cache-status|^age|cache-control"
+#   cache-control: public, max-age=0, must-revalidate   ← 源站说「别缓存」
+#   cf-cache-status: HIT                                ← 边缘说「我缓存了」
+#   age: 5888                                           ← 98 分钟前那份
+curl -s "https://hulatu.com/?cb=$RANDOM" -o /dev/null -D - | grep cf-cache-status
+#   DYNAMIC = 源站已经是新的，只有边缘是旧的
+```
+
+**为什么 `_headers` 管不住**：`max-age=0, must-revalidate` 是**源站**的头，
+Cloudflare 后台的 **Cache Rule / Edge TTL** 在它之上，会覆盖掉。
+其它页面（`/posts/`、`/archive/`、`/feed/`）实测全是 `DYNAMIC`，**只有 `/` 被单独锁住**。
+
+**根治（只能后台点，仓库里没有任何 purge 手段）**：
+Cloudflare 后台 → 选 `hulatu.com` → **Caching → Cache Rules** → 找到匹配 `/` 的那条
+→ 把 **Edge TTL** 改成 **Respect origin TTL**（或直接把 HTML 的 Cache Rule 排除
+`text/html`）。改完立刻用上面两条命令复核。
+
+**临时处置**：Caching → **Purge Cache → Custom Purge** → 填 `https://hulatu.com/`。
+
+⚠️ 仓库里**没有** wrangler、没有 `CF_API_TOKEN`，`deploy.sh` / `publish.sh` 都**不 purge** ——
+别指望「推上去就生效」。
+⚠️ 本机到这个 POP 经常 timeout，**别把请求失败当成没上线**，用带随机查询串的方式才准。
+⚠️ `functions/_middleware.js` 对这条**无能为力**：缓存命中时请求根本进不到函数层。
 
 ---
 

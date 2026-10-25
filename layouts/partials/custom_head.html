@@ -10,6 +10,25 @@
 <link rel="dns-prefetch" href="https://giscus.app">
 {{- end }}
 
+{{- /* 图床预连（2026-10-25 新增）。
+       正文图片全部来自 img.hulatu.com，是一个**跨域主机** —— 不预连的话，
+       浏览器要等 HTML 解析到第一个 <img> 才开始 DNS + TCP + TLS。
+       实测该主机 TLS 0.63–0.86 s、首字节 1.6–2.1 s，这段延迟完全落在首屏上。
+
+       ⚠️ 用 `.Content` 判断「这一页到底有没有图床图片」，而不是全站无脑加：
+          359 页里只有 **74 页**含图，其余 285 页连了也用不上，白建一个
+          连到 10 秒后自动关闭的空连接。`.Content` 在这里调用是安全的 ——
+          Hugo 会缓存渲染结果，body 里再取不会重跑渲染钩子。
+       ⚠️ **不要加 crossorigin**：`<img src>` 是 no-cors 请求，匹配的是
+          **不带** crossorigin 的 preconnect 连接池。写了 crossorigin 反而
+          建出一个用不上的 CORS 连接池，等于没预连。 */ -}}
+{{- with .Content -}}
+  {{- if strings.Contains . "img.hulatu.com" }}
+<link rel="preconnect" href="https://img.hulatu.com">
+<link rel="dns-prefetch" href="https://img.hulatu.com">
+  {{- end -}}
+{{- end }}
+
 {{- /* ---------------------------------------------------------------
        移动端地址栏 / 任务切换器配色。
 
@@ -617,6 +636,66 @@
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+
+  {{- /* ── 文末「相关文章」（2026-10-25 新增）──────────────────────────
+       模板在 layouts/_default/single.html 的 ② 段。
+
+       视觉**刻意与 .post-series 完全同构**：发丝线分节、小字灰标题、
+       每行一条、标题过长单行省略、日期靠右。不加底色、不加卡片、不加圆角
+       —— 文末连着出现「相关文章 / 上一篇下一篇」两块，如果长得不一样，
+       会显得是两个不相干的功能。
+
+       ⚠️ 单独用 `if $longForm` 守卫，**不并进上面那个 `or $longForm …`
+          的守卫**：归档页虽然也在上面那个守卫里，但归档页没有文末，
+          这 300 字节它一个字都用不上。
+       ⚠️ 日期用 `margin-left: auto` 靠右，不用 `justify-content: space-between`
+          —— 后者会让标题被推着居中，长标题省略时右边距看着不齐。 */ -}}
+  {{- if $longForm }}
+  .post-related {
+    margin-top: 2.4rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .post-related-head {
+    margin: 0 0 0.7rem;
+    font-size: 0.9rem;
+    color: var(--text-color-tertiary);
+  }
+
+  .post-related-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .post-related-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  /* ⚠️ `flex: 0 1 auto` + `min-width: 0` 两个都要：只写 overflow 的话
+     flex 子项的默认 `min-width: auto` 会按内容撑开，省略号永远不出现。 */
+  .post-related-link {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .post-related-date {
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: var(--text-color-tertiary);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+  {{- end }}
 
   {{- /* ── 归档页的「系列」入口（2026-10-11 二次改版）────────────────────
        用户原话：「我的归档页的『系列』，请不要有分割线等多余的设计，

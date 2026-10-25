@@ -203,7 +203,36 @@
   </nav>
   {{- end -}}
 
-  {{- /* ---------- ② 全站「上一篇 / 下一篇」 ------------------------------
+  {{- /* ---------- ② 相关文章（2026-10-25 新增）------------------------------
+       动机：全站 133 篇里 120 篇正文 0 条站内链接，文末只有「按日期排的
+       上下篇」。读者从搜索结果落进来，下一篇只能靠「碰巧日期相邻」。
+
+       口径：`site.RegularPages.Related` 用 hugo.toml 的 [related] 算分
+       （tags 200 / categories 50 / threshold 20，为什么是这些数写在那边）。
+       ⚠️ 取页池时**必须限定 posts + weekly** —— 不限定的话 /about/、/now/、
+          /roll/ 这些根级单页会混进推荐位（它们也带 tags）。
+       ⚠️ 权重与阈值见 hugo.toml；**改之前先数产物里 `.post-related` 有几个**，
+          2026-10-05 那次就是 threshold 吃默认 80 导致「一条都推不出来」。
+       ⚠️ 只有 `$longForm`（posts + weekly）才渲染，和上面两段同一个守卫。
+
+       位置刻意放在「上一篇/下一篇」**之前**：读者此刻想要的是「还有什么
+       类似的」，而不是「按时间下一篇是谁」。 */ -}}
+  {{- $relPool := where site.RegularPages "Type" "in" (slice "posts" "weekly") -}}
+  {{- with first 4 ($relPool.Related .) }}
+  <nav class="post-related" aria-label="相关文章">
+    <p class="post-related-head">相关文章</p>
+    <ul class="post-related-list">
+      {{- range . }}
+      <li class="post-related-item">
+        <a class="post-related-link" href="{{ .RelPermalink }}">{{ .Title }}</a>
+        <span class="post-related-date">{{ .Date.Format site.Params.dateFormat }}</span>
+      </li>
+      {{- end }}
+    </ul>
+  </nav>
+  {{- end }}
+
+  {{- /* ---------- ③ 全站「上一篇 / 下一篇」 ------------------------------
        2026-10-05 曾经删过一次（当时的理由是它和相关文章 if/else 互斥、从没渲染过，
        且「按顺序连载」交给 series 就够了）；2026-10-11 用户要求加回来 ——
        这次**和系列带并存**，不互斥：系列带管「组内」，这条管「时间线前后」。

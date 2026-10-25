@@ -1,43 +1,53 @@
 {{- /* ============================================================
        图片渲染钩子（站点层覆盖主题同名文件）
-       —— 2026-10-12 为修 P2-⑤「图片没有预留尺寸」而建
 
-       ── 覆盖主题的哪一份 ──────────────────────────────────────────────
-       主题：themes/hugo-bearneo/layouts/_default/_markup/render-image.html
-       本文件结构**与主题逐字一致**，只多了两类属性（见下）。主题那份保持
-       「逐字节未改」，将来同步上游不会冲突。
+       ── 这个文件负责四件事 ──────────────────────────────────────────
+       ① `width` / `height`（预留尺寸，治 CLS）
+       ② `srcset` + `sizes`（响应式，手机不下桌面尺寸）
+       ③ 图床的**边缘转换**（Cloudflare Image Resizing，省 47–71%）
+       ④ 首图 `fetchpriority="high"`，其余 `loading="lazy"`
 
-       ── 为什么需要它（实测，不是推测）──────────────────────────────
+       ── ①② 的历史 ─────────────────────────────────────────────────
        本站图片全部托管在图床，Hugo 构建期拿不到尺寸 → 产出的 <img> 既没有
        width/height 也没有 aspect-ratio。图片没到之前它**高度只有 2px**，
        到了之后撑开到 540px 左右，把下面所有内容往下推。
-
-       实测（`--no-sandbox` 无头浏览器，1440×900，图床指向死端口以模拟未加载）：
+       实测（`--no-sandbox` 无头浏览器，1440×900，图床指向死端口模拟未加载）：
          · 全站 68 个含图页面里，**31 个页面的第一张图落在首屏内**（top < 786px）
          · 未加载时图高 2px；加载后按 720px 宽算，1200×900 的图高 540px
          → 首屏内容会被推下 ~538px，CLS 直接进「Poor」区间（>0.25）
        ⚠️ 直接量 CLS 会**得到 0**，因为无头 Chromium 不等图片就渲染（不遵守 lazy）。
           所以这条只能靠几何量，不能靠 CLS 量。
 
-       ── 尺寸从哪来 ───────────────────────────────────────────────────
-       `data/image-dims.json`（321 条，由 `scripts/sync-image-dims.py` 离线抓一次
-       后提交进仓库）。**刻意不用 Hugo 的 resources.GetRemote** ——
+       尺寸来自 `data/image-dims.json`（340 条，由 `scripts/sync-image-dims.py`
+       离线抓一次后提交进仓库）。**刻意不用 Hugo 的 resources.GetRemote** ——
        那会让构建依赖网络（图床挂了/断网就构建不了），而「构建零网络依赖」
        是本站的架构底线。代价：**加了新图要重跑一次那个脚本**。
 
-       ── 新增的属性和结构 ──────────────────────────────────────────
-       ① `width` / `height`（只有**一个** <img>，见下面「overlay 空壳」）
-          查得到就输出；查不到**静默不输出**（不报错、不破版），
-          与「新加图片忘了跑脚本」这个已知代价对应。
-          ⚠️⚠️ **必须同时有 `img { height: auto }`**（见 custom_head.html）。
-             主题的 `img` 规则只有 `max-width: 100%`、**没有 `height: auto`** ——
-             此时 height 属性会当成 height:900px 生效，而 max-width 把宽压到 720，
-             结果图被**竖向拉伸变形**（实测 902px 高）。这不是可选项。
+       ── ③ 边缘转换（2026-10-25 新增）──────────────────────────────
+       图床响应带 `cf-resized` 头，说明它跑在 Cloudflare 的图片处理链路上，
+       所以 `/cdn-cgi/image/width=W,format=auto,quality=82/<原路径>` 是可用的。
+       实测（2026-10-25，四张抽样 + 一篇 21 图周刊）：
+         · 720px 档省 47–71%（111→46 KB / 153→64 KB / 66→31 KB / 65→35 KB）
+         · 《周刊 10》21 张合计 1.74 MB → 0.85 MB（省 51%）
+         · 400px 档按 Accept 自动选 AVIF，只有原图的 14–20%
+       ⚠️ 这**不破坏「构建零网络依赖」**：URL 是在模板里拼字符串，
+          不在构建期抓图。图床挂了照样能构建，只是图片 404。
+       ⚠️ quality 取 82 是目视比过的：75 / 82 / 90 三档在深色文字截图上
+          肉眼无差，82 是原图的 26%（75 是 22%，90 是 35%）。
+          本站多截图类图片，别往下调到 70 以下 —— 纯色区会出色带。
+       ⚠️ 路径**原样拼接**，不做 urlquery：本站有中文文件名（`鸡蛋beSQLQ.webp`）
+          和 `%20`，两种形式实测都能 200（中文由浏览器自动编码）。
+          若哪天 Markdown 里出现**裸空格**的文件名，原图 URL 本身就会失败，
+          不是这一段的问题。
 
-       ② `loading="lazy"`
-          放在唯一那个内联 `<img>` 上。原来 overlay 里也有一份、也带 lazy，
-          已随 overlay 一起删掉（overlay 本来就是 `display:none` + `position:fixed`，
-          它加不加 lazy 对 CLS / 带宽都没有影响 —— 见下面「overlay 空壳」）。
+       ── ④ 首图优先（2026-10-25 新增）──────────────────────────────
+       原来 342 张图**全部** lazy，连首屏那张也要等布局算完才开始下。
+       现在每页第一张图给 `fetchpriority="high"` 且**不加 lazy**（两者冲突，
+       同时写 high 会被忽略），其余保持 lazy + `decoding="async"`。
+       ⚠️ 用 `.Page.Store` 计数，每页第一次渲染为真。**别改成 .Scratch** ——
+          同一层作用域里两个 API 混用容易读串，Store 是 0.120 起的正式接口。
+       ⚠️ 首页/列表页不渲染正文图片，所以 Store 不会被「summary 先渲染一次」
+          污染；若将来首页改成带缩略图的列表，这里要改成按 .Ordinal 判断。
 
        ── overlay 是空壳（2026-10-14 起）─────────────────────────────
        以前每张正文图输出**两个** `<img>`（内联一份 + overlay 一份，src 相同）。
@@ -51,27 +61,22 @@
        四条性质：DOM 里 <img> 从 2N 降到 N；内联那个 **不离流 → 零回流**；
        **仍是 0 个 JS**；主题那 17 条 `.image-zoom-*` 规则一条都没失效
        （`::before` 的 ✕ 圆、`::after` 的 ✕、`cursor: zoom-out` 全保留）。
-       ⚠️ 「放大后那张图是 background 而不是 <img>」的代价：它不再撑开文档高度，
-          也无法被「图片另存为」以外的方式复制 —— 本站认为这是可接受的
-          （放大态本来就是全屏 Modal）。
+       ⚠️ 放大态用的是**原图 URL**（`$dest`），不是 720 档 —— 放大就是要看清，
+          多下一次原图是读者主动点开的代价，可接受。
 
-       ── 三处容易写错的地方 ──────────────────────────────────────────
+       ── 四处容易写错的地方 ──────────────────────────────────────────
        ① `hugo.Data` 里带连字符的 key 要用 `index`：
               {{ $dims := index hugo.Data "image-dims" }}
           写成 `hugo.Data.image-dims` 会**静默取不到**（解析成减法）。
-          ⚠️ 用 `hugo.Data` 而**不是** `.Site.Data` —— 后者在 Hugo 0.156 起已弃用，
-             用它会多一条 `WARN deprecated`，而本仓的验收标准是**构建 0 告警**。
-             改之前实测踩过：用 `.Site.Data` 构建照样出页面，只有那条 WARN 在提示。
        ② ⚠️⚠️ **JSON 里的数字是 `float64`，`printf "%d"` 会输出
              `width="%!d(float64=1200)"`** —— 不报错、不中断构建，
              只是产物里多出一个坏属性（实测踩过）。
              所以必须先 `int` 转换再 `%d`（或者干脆用 `%v`）。
              验证：产物里搜 `%!d` 应该一条都没有。
-       ② `.Destination` 是 Markdown 里原样写的 URL。本仓有**中文文件名**
-          （`鸡蛋beSQLQ.webp`）和 `%20`（`IMG_0709%202VEGC0R.webp`），
-          数据文件的 key 也按原样存，所以能直接对上。若对不上会静默退化成
-          「不输出尺寸」—— 验证时看产物里那两张图有没有 width/height 即可。
-       ③ `$dims` 为 nil 时 `index` 会报错，所以外面套一层 `with`。
+       ③ `.Destination` 是 Markdown 里原样写的 URL。本仓有**中文文件名**
+          和 `%20`，数据文件的 key 也按原样存，所以能直接对上。若对不上会
+          静默退化成「不输出尺寸」—— 验证时看产物里那两张图有没有 width/height。
+       ④ `$dims` 为 nil 时 `index` 会报错，所以外面套一层 `with`。
           ⚠️ 但 `with` 会**重绑定 `.`** —— 里面再写 `.Destination` 就废了。
              所以先 `$dest := .Destination` 存下来（本站栽过这个坑）。
        ============================================================ */ -}}
@@ -79,17 +84,69 @@
 {{- $alt := .Text -}}
 {{- $id := printf "img-%s" (substr (md5 $dest) 0 8) -}}
 {{- $zoom := $.Page.Site.Params.imageZoom -}}
+
+{{- /* ① 原图尺寸 */ -}}
+{{- $w := 0 -}}
 {{- $dim := "" -}}
 {{- with index hugo.Data "image-dims" -}}
   {{- with index . $dest -}}
+    {{- $w = int (index . 0) -}}
     {{- $dim = printf ` width="%d" height="%d"` (int (index . 0)) (int (index . 1)) -}}
   {{- end -}}
-{{- end }}
+{{- end -}}
+
+{{- /* ② 边缘转换 + srcset。只有图床的图才拼前缀，外站图原样输出。 */ -}}
+{{- $src := $dest -}}
+{{- $srcsetAttr := "" -}}
+{{- if strings.HasPrefix $dest "https://img.hulatu.com/" -}}
+  {{- $path := strings.TrimPrefix "https://img.hulatu.com/" $dest -}}
+  {{- $fmtW := "https://img.hulatu.com/cdn-cgi/image/width=%d,format=auto,quality=82/%s" -}}
+  {{- $fmtF := "https://img.hulatu.com/cdn-cgi/image/format=auto,quality=82/%s" -}}
+  {{- if and $w (le $w 720) -}}
+    {{- /* 原图本身就不比显示区宽：**只转格式、不缩宽**。
+           ⚠️ 这里别再套 width=400 —— 480px 的原图缩到 400 再放进 680px 的
+              内容区，等于二次缩小，字会糊。转格式（→ WebP/AVIF）已经能省
+              30–50%，缩宽对这类图只有坏处。 */ -}}
+    {{- $src = printf $fmtF $path -}}
+  {{- else -}}
+    {{- /* 候选宽度只保留 ≤ 原图宽的档位，避免向图床要一张会被放大回去的图。
+           $w 为 0（尺寸表里没这条）时全保留，退化成三档。 */ -}}
+    {{- $cands := slice -}}
+    {{- range (slice 400 720 1080) -}}
+      {{- if or (eq $w 0) (le . $w) -}}{{- $cands = $cands | append . -}}{{- end -}}
+    {{- end -}}
+    {{- if ge (len $cands) 2 -}}
+      {{- $parts := slice -}}
+      {{- range $cands -}}
+        {{- $parts = $parts | append (printf "%s %dw" (printf $fmtW . $path) .) -}}
+      {{- end -}}
+      {{- $srcsetAttr = printf ` srcset="%s" sizes="(max-width: 760px) calc(100vw - 40px), 680px"` (delimit $parts ", ") | safeHTMLAttr -}}
+      {{- /* src 是 srcset 的兜底，取最大可用档（720 或 1080）。
+             正文内容区实测 680px（body max-width 720 减左右各 20 padding），
+             所以 720 档在 DPR 1 下够用、DPR 2 下浏览器会自动选 1080。 */ -}}
+      {{- $src = printf $fmtW (index $cands (sub (len $cands) 1)) $path -}}
+    {{- else if eq (len $cands) 1 -}}
+      {{- /* 防御分支：按当前逻辑走不到这里（$w > 720 时 $cands 至少有
+             400 / 720 两档，$w ≤ 720 已被上面的 fmtF 拦掉）。留着是怕
+             以后调候选宽度表（比如只留 [720]）时这里静默输出空 src。 */ -}}
+      {{- $src = printf $fmtW (index $cands 0) $path -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* ③ 首图 high、其余 lazy。两者互斥，别同时写。 */ -}}
+{{- $loadAttr := ` loading="lazy" decoding="async"` -}}
+{{- if not (.Page.Store.Get "imgFirst") -}}
+  {{- $loadAttr = ` fetchpriority="high" decoding="async"` -}}
+  {{- .Page.Store.Set "imgFirst" true -}}
+{{- end -}}
+
 {{- /* `--zoom-src`：2026-10-14 起 overlay 不再重复一个 <img>，URL 改走这个
        自定义属性，由 custom_head.html 第 26 段用 background-image 画。
        ⚠️ 单引号包住是因为要写进 style 属性；URL 里若真出现单引号（本站 0 处）
           就**整段放弃**（不输出），退化表现是「遮罩 + ✕ 仍在、只是没有放大的图」，
-          不会破版、也不会把 HTML 属性撑破。 */ -}}
+          不会破版、也不会把 HTML 属性撑破。
+       ⚠️ 这里刻意用**原图** `$dest` 而不是 `$src`（720 档）—— 见头部说明。 */ -}}
 {{- $zoomStyle := "" -}}
 {{- if and $zoom (not (strings.Contains $dest "'")) -}}
   {{- $zoomStyle = printf ` style="--zoom-src:url('%s')"` $dest | safeHTMLAttr -}}
@@ -97,7 +154,7 @@
 <figure class="image-caption{{ if $zoom }} image-zoom-container{{ end }}"{{ $zoomStyle }}>
     {{- if $zoom }}
     <input type="checkbox" id="{{ $id }}" class="image-zoom-toggle" aria-label="放大图片：{{ $alt }}" />
-    <label for="{{ $id }}" class="image-zoom-label"><img src="{{ $dest | safeURL }}" alt="{{ $alt }}"{{ $dim | safeHTMLAttr }} loading="lazy" class="zoomable-image" /></label>
+    <label for="{{ $id }}" class="image-zoom-label"><img src="{{ $src | safeURL }}"{{ $srcsetAttr }} alt="{{ $alt }}"{{ $dim | safeHTMLAttr }}{{ $loadAttr | safeHTMLAttr }} class="zoomable-image" /></label>
     <!-- overlay：**内容是空的**。原来这里是**第二个 <img>**（和内联那份 src 完全
          相同），2026-10-14 删掉 —— URL 走 figure 上的 --zoom-src，
          由 custom_head.html 第 26 段画成背景图。三条收益：
@@ -107,7 +164,7 @@
          主题那 17 条 .image-zoom-* 规则一条都没失效（✕ 按钮、zoom-out 光标全在）。 -->
     <label for="{{ $id }}" class="image-zoom-overlay"></label>
     {{- else }}
-    <img src="{{ $dest | safeURL }}" alt="{{ $alt }}"{{ $dim | safeHTMLAttr }} loading="lazy" />
+    <img src="{{ $src | safeURL }}"{{ $srcsetAttr }} alt="{{ $alt }}"{{ $dim | safeHTMLAttr }}{{ $loadAttr | safeHTMLAttr }} />
     {{- end }}
     <figcaption>{{ $alt }}</figcaption>
 </figure>
