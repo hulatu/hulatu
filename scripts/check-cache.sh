@@ -26,8 +26,14 @@ TIMEOUT=15
 fetch() {
   curl -s -m "$TIMEOUT" -D - -o /dev/null "$1" 2>/dev/null \
     | tr -d '\r' \
-    | grep -vi 'connection established'
+    | grep -vi 'connection established' \
+    | grep -v '^HTTP/[0-9.]* 1[0-9][0-9]' \
+    | grep -v '^link: <https://img\.hulatu\.com>; rel=preconnect'
 }
+# ⚠️ 上面第 3 行滤掉 **1xx 中间响应**：Cloudflare 开着 Early Hints，
+#    首页会先回一条 `HTTP/2 103` + `link: rel=preconnect`，再回 200。
+#    不滤掉的话输出里会冒出一行 `HTTP/2 103`，看着像出错，其实是**好事**
+#    （提前一个 RTT 把图床 preconnect 推给浏览器）。
 
 # val <headers> <header-name>  →  取某个头的值（小写名，含冒号）
 val() {
@@ -59,18 +65,28 @@ AGE_ROOT=$(val "$H_ROOT" 'age:')
 
 # 内容指纹：DYNAMIC 响应**不带** last-modified，所以「边缘是否比源站旧」只能比内容。
 # ⚠️ macOS 是 md5、Linux 是 md5sum，两个都兜一下（这脚本可能被 CI 复用）。
-hash_of() {
-  if command -v md5 >/dev/null 2>&1; then printf '%s' "$1" | md5 -q
-  else printf '%s' "$1" | md5sum | awk '{print $1}'; fi
+hash_stdin() {
+  if command -v md5 >/dev/null 2>&1; then md5 -q
+  else md5sum | awk '{print $1}'; fi
+}
+# ⚠️⚠️ 必须先把 Cloudflare 注入的 bot 检测脚本剥掉再算指纹。
+# 那段 `<script>(function(){function c(){…}})();</script>` 里嵌着**每次请求都不同**的
+# `window.__CF$cv$params={r:'<ray id>',t:'<时间戳>'}` —— 不剥掉的话两次指纹永远不相等，
+# 会稳定误报成「边缘给的是旧页」（2026-10-25 实测：同一份内容两次 md5 分别是 3ba3679…/2473d5e…）。
+# 匹配串刻意写得够窄（`(function(){function c(){` 开头），不会误伤站内自己的内联脚本。
+strip_cf() {
+  perl -0pe 's{<script>\(function\(\)\{function c\(\).*?</script>}{}gs'
 }
 BODY_ROOT=$(curl -s -m "$TIMEOUT" "$HOST/" 2>/dev/null)
 BODY_CB=$(curl -s -m "$TIMEOUT" "$HOST/?cb=$RANDOM$RANDOM" 2>/dev/null)
-HASH_ROOT=$(hash_of "$BODY_ROOT")
-HASH_CB=$(hash_of "$BODY_CB")
+HASH_ROOT=$(printf '%s' "$BODY_ROOT" | strip_cf | hash_stdin)
+HASH_CB=$(printf '%s' "$BODY_CB" | strip_cf | hash_stdin)
 
 header "结论"
-if [ -z "$BODY_CB" ]; then
-  echo "    ⚠️  源站那一次没拿到响应（网络抖动），只报缓存状态、不比对内容。"
+# ⚠️ 两个 body 都要非空才比指纹：只判 BODY_CB 时，BODY_ROOT 空掉会打印
+#    d41d8cd9…（空串的 md5），看着像「边缘给了个空页面」，其实是那次请求 timeout 了。
+if [ -z "$BODY_CB" ] || [ -z "$BODY_ROOT" ]; then
+  echo "    ⚠️  有一边没拿到响应（网络抖动），只报缓存状态、不比对内容。"
 else
   echo "    边缘副本指纹：${HASH_ROOT:-?}"
   echo "    源站当前指纹：${HASH_CB:-?}"
@@ -95,6 +111,19 @@ if [ "$ST_ROOT" = "HIT" ] && [ -n "${AGE_ROOT:-}" ] && [ "$AGE_ROOT" -gt 60 ] 2>
 elif [ "$ST_ROOT" = "DYNAMIC" ] || [ "$ST_ROOT" = "MISS" ] || [ "$ST_ROOT" = "EXPIRED" ] || [ "$ST_ROOT" = "BYPASS" ]; then
   # BYPASS = Cache Rule 里给 HTML 设了「绕过缓存」，这是**目标状态**，不是异常。
   echo "    ✅ 首页没被边缘锁住（cf-cache-status: ${ST_ROOT}）"
+  echo
+  if [ "$ST_ROOT" = "BYPASS" ]; then
+    echo "    BYPASS = 规则确实在生效，以后不会再被锁。"
+  else
+    # DYNAMIC 有两个来源，光看这一次**分不出来**：
+    #   (a) 根本没匹配到任何缓存规则 —— 这是 max-age=0 的天然结果；
+    #       但如果之前让它变 HIT 的那个设置还在，过一阵会**重新变 HIT**。
+    #   (b) 规则在，但设的是「符合缓存条件 + 边缘 TTL = 0 / Respect origin」。
+    # 所以真正的验收是「下一次发布之后**仍然是** DYNAMIC」，不是这一次。
+    echo "    ⚠️  注意：${ST_ROOT} ≠ BYPASS。它只说明「这一次没走缓存」，"
+    echo "       不代表那个让它变 HIT 的设置已经改掉 —— Purge 后的空窗期也是 ${ST_ROOT}。"
+    echo "       真验收：等下一次发布（或 1–2 小时）再跑一次，age 头一直不出现才算根治。"
+  fi
   exit 0
 else
   echo "    ⚠️  状态不明：cf-cache-status=${ST_ROOT:-空} age=${AGE_ROOT:-空}"
