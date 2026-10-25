@@ -87,10 +87,13 @@ if [ "$ST_ROOT" = "HIT" ] && [ -n "${AGE_ROOT:-}" ] && [ "$AGE_ROOT" -gt 60 ] 2>
   echo
   echo "    临时：Cloudflare 后台 → Caching → Purge Cache → Custom Purge"
   echo "          填 https://hulatu.com/"
-  echo "    根治：Caching → Cache Rules → 匹配 / 的那条 → Edge TTL 改 Respect origin TTL"
+  echo "    根治：Caching → Cache Rules → 新建 bypass_cache_for_html"
+  echo "          条件 = 主机名等于 hulatu.com And (URI 路径等于 / Or URI 路径结尾为 /)"
+  echo "          动作 = 缓存资格 → 绕过缓存（生效后这里会显示 BYPASS）"
   echo "    （完整说明见 MAINTENANCE.md 第 5 节「首页 / 被边缘缓存锁住」）"
   exit 1
-elif [ "$ST_ROOT" = "DYNAMIC" ] || [ "$ST_ROOT" = "MISS" ] || [ "$ST_ROOT" = "EXPIRED" ]; then
+elif [ "$ST_ROOT" = "DYNAMIC" ] || [ "$ST_ROOT" = "MISS" ] || [ "$ST_ROOT" = "EXPIRED" ] || [ "$ST_ROOT" = "BYPASS" ]; then
+  # BYPASS = Cache Rule 里给 HTML 设了「绕过缓存」，这是**目标状态**，不是异常。
   echo "    ✅ 首页没被边缘锁住（cf-cache-status: ${ST_ROOT}）"
   exit 0
 else

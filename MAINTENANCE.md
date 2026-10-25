@@ -467,9 +467,33 @@ Cloudflare 后台的 **Cache Rule / Edge TTL** 在它之上，会覆盖掉。
 其它页面（`/posts/`、`/archive/`、`/feed/`）实测全是 `DYNAMIC`，**只有 `/` 被单独锁住**。
 
 **根治（只能后台点，仓库里没有任何 purge 手段）**：
-Cloudflare 后台 → 选 `hulatu.com` → **Caching → Cache Rules** → 找到匹配 `/` 的那条
-→ 把 **Edge TTL** 改成 **Respect origin TTL**（或直接把 HTML 的 Cache Rule 排除
-`text/html`）。改完立刻用上面两条命令复核。
+Cloudflare 后台 → 选 `hulatu.com` → **Caching → Cache Rules → 创建规则**：
+
+| 项 | 填什么 |
+| --- | --- |
+| 规则名称 | `bypass_cache_for_html` |
+| 匹配条件 | `主机名` **等于** `hulatu.com` **And** `URI 路径` **等于** `/` **Or** `URI 路径` **结尾为** `/` |
+| 缓存资格 | **绕过缓存**（Bypass cache）——**不要**去动下面的「边缘 TTL」 |
+
+表达式预览应当正好长这样：
+
+```
+(http.host eq "hulatu.com" and (http.request.uri.path eq "/" or ends_with(http.request.uri.path, "/")))
+```
+
+**为什么用「结尾为 `/`」而不是 `text/html`**：Cache Rules 只能匹配**请求**，
+匹配不到响应头，所以拿不到 Content-Type；而 Hugo 的产物是 `/posts/foo/index.html`，
+浏览器请求的是 `/posts/foo/` —— 用路径结尾判据等价于「所有 HTML」。
+
+**这条表达式的实测覆盖（2026-10-25 按 `public/` 全量核对）**：
+命中 **358 / 359** 个 HTML，**非 HTML 误伤 0 个**；唯一漏掉的是 `/404.html`
+（它没有结尾斜杠，本来就该让边缘缓存，**别去补**）。
+
+⚠️ **顺序**：先点右下角 **部署（Deploy）**，再回头 **Purge** 一次 `/` ——
+旧副本不会因为新规则自动失效。
+⚠️ 已有的那条 `img.hulatu.com` + `/cdn-cgi/image/` 规则**保持不动**：它是图片管线
+（`/cdn-cgi/image/width=…`）能吃边缘缓存 1 年的前提，删了图片就退回直连原图。
+⚠️ 规则生效后首页的 `cf-cache-status` 会从 `HIT` 变成 **`BYPASS`**，这是**目标状态**。
 
 **临时处置**：Caching → **Purge Cache → Custom Purge** → 填 `https://hulatu.com/`。
 
