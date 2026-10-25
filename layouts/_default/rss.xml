@@ -108,6 +108,33 @@
     {{- with .OutputFormats.Get "RSS" }}
     {{ printf "<atom:link href=%q rel=\"self\" type=%q />" .Permalink .MediaType | safeHTML }}
     {{- end }}
+    {{- /* 站点图标（2026-10-25 新增）
+
+           RSS 2.0 的 <image> 是**订阅端唯一有明文依据**的图标来源。没有它，
+           阅读器只能去猜：按 /favicon.ico 约定取、读 head 的 <link rel=icon>、
+           或者退回自己的字母头像 / 地球图标 —— 猜不到就出现
+           「订阅里的头像和网站不一样」。
+
+           ⚠️ url 必须是**光栅图**（PNG）。SVG 在多数阅读器的图标管线里
+              不被接受，指向 favicon.svg 等于没写这一段。
+           ⚠️ width / height 必须与文件真实尺寸一致（当前 images/feed-icon.png
+              是 144×144）。RSS 2.0 规范对 width 的上限就是 144，改大不会报错，
+              但严格实现会忽略整块 —— 要换大图就同时改这两行和那张 PNG。
+           ⚠️ 这段走 `site.Params.feedIcon`，图换了只改 hugo.toml 一处；
+              参数缺失时整块不输出（不会吐出半截 XML）。
+           ⚠️ 位置必须在 <item> 之前：规范要求 image 属于 channel 级字段，
+              塞进 item 里读者一律忽略。
+      */ -}}
+    {{- with site.Params.feedIcon }}
+    <image>
+      <url>{{ . | absURL }}</url>
+      <title>{{ site.Title }}</title>
+      <link>{{ site.BaseURL }}</link>
+      <width>144</width>
+      <height>144</height>
+      <description>{{ site.Params.description }}</description>
+    </image>
+    {{- end }}
     {{- range $pages }}
     <item>
       <title>{{ .Title }}</title>

@@ -1,0 +1,44 @@
+{{- /* 站点层覆盖：themes/hugo-bearneo/layouts/partials/favicon.html
+
+       ══ 为什么覆盖（2026-10-25）════════════════════════════════════════
+
+       上游这个片段只输出一条：
+         <link rel="shortcut icon" href="{{ .Site.Params.favicon | absURL }}">
+       本站的 favicon 参数指向 favicon.svg，于是全站 head 里**只有一条 SVG**。
+       后果不在浏览器（现代浏览器都认 SVG），而在**站外取图的一方**：
+
+         · RSS 阅读器 / 图标聚合服务（Feedly、Inoreader、Follow、
+           DuckDuckGo、Google s2 …）的图标管线基本只吃 PNG / ICO；
+         · 老浏览器与部分系统分享面板只认 /favicon.ico 这个约定路径。
+
+       两样都没有 ⇒ 订阅端拿不到图标，退回自己的兜底（字母头像 / 地球图标），
+       表现就是「订阅里看到的头像和网站不一样」。站内看着一切正常，
+       所以这个问题**只会在站外暴露**，构建 0 警告、本地截图也看不出来。
+
+       ══ 五个文件的用途（都在 static/ 根下）════════════════════════════
+
+         favicon.svg          矢量，浏览器标签页首选（深色下由内部 <style> 反白）
+         icon-512.png         图标服务 / PWA 大图
+         icon-192.png         Android 主屏、部分聚合服务
+         apple-touch-icon.png iOS 主屏（180×180，**白底**）
+         favicon.ico          约定路径兜底（48/32/16 三尺寸）
+
+       ⚠️ 光栅四件套**全部由 static/favicon.svg 生成**，改图标只改 SVG，
+          再按 DESIGN.md 第 12 节那三行命令重跑一次；直接改 PNG 会让矢量版与
+          光栅版分叉，标签页和订阅端从此长得不一样。
+
+       ⚠️ **白底不是随便定的**：这个图标是藏青（#061161）笔画，透明底在深色
+          阅读器 / 深色壁纸上几乎不可见（和没图标一样）。SVG 版靠内部
+          prefers-color-scheme 反白解决，光栅版做不到，只能垫白底。
+
+       ⚠️ 别把 `rel="shortcut icon"` 指回 favicon.svg —— 这个名字是给
+          「只认 .ico 的老客户端」准备的，指回 SVG 等于没兜底。
+
+       ⚠️ 顺序有意义：SVG 在前。Chrome / Firefox 会按 type + sizes 自己挑，
+          但「先声明矢量」能让不支持 SVG 的客户端在解析时直接落到后面的 PNG。
+      --------------------------------------------------------------- */ -}}
+<link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | absURL }}">
+<link rel="icon" type="image/png" sizes="512x512" href="{{ "icon-512.png" | absURL }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ "icon-192.png" | absURL }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | absURL }}">
+<link rel="shortcut icon" href="{{ "favicon.ico" | absURL }}">

@@ -40,6 +40,13 @@ disableKinds = ["taxonomy"]
 
   # 主题的 favicon 参数（主题里默认是 img/favicon.png，这里指到 static 根下的 svg）
   favicon = "favicon.svg"
+
+  # RSS <image> 用的站点图标（layouts/_default/rss.xml 读它）。
+  # ⚠️ 必须是 **PNG 光栅图**，且尺寸与模板里写死的 144×144 一致：
+  #    阅读器的图标管线基本不吃 SVG，指向 favicon.svg 等于没写这一段。
+  # ⚠️ 这张图由 static/favicon.svg 生成（白底，理由见 DESIGN.md 第 12 节），
+  #    换图标时重跑那条命令，别手工裁一张。
+  feedIcon = "images/feed-icon.png"
   images = ["images/share.webp"]
 
   # og:image / twitter:image 的宽高（share.webp 实测 1200×630，lossless VP8）。

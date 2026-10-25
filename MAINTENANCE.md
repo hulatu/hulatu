@@ -16,7 +16,7 @@
 | Hugo | `0.167.0+extended`（本机 / GitHub Actions / Cloudflare 三边一致） |
 | 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
 | 代码高亮 | `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
-| 站点层 | **29 个文件** = `layouts/` × 27 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`；2026-10-18 新增 `layouts/partials/header.html`） |
+| 站点层 | **30 个文件** = `layouts/` × 28 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`；2026-10-18 新增 `layouts/partials/header.html`；2026-10-25 新增 `layouts/partials/favicon.html`） |
 | 页面 | 338 页 → **334 个 HTML** |
 | 内容 | 101 篇文章 + 25 期周刊 = 126 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
 | 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开由 `functions/_middleware.js` 分派到 `/feed/` 那两页，订阅器照旧拿 XML |
@@ -87,7 +87,7 @@ content/
 archetypes/
   posts.md weekly.md      新建文章的模板（含发布前检查清单）
 
-layouts/                  ★ 站点层覆盖，27 个文件
+layouts/                  ★ 站点层覆盖，28 个文件
   index.html                        首页（上游只有 {{ .Content }}；简介**不包 <content>**）
   sitemap.xml                       ★ 2026-10-17 新增：按 $noindex 过滤（336 → 134 条）
                                     ⚠️ 过滤条件必须与 _default/baseof.html 的 $noindex 逐字同口径
@@ -105,6 +105,8 @@ layouts/                  ★ 站点层覆盖，27 个文件
   _default/list.html                5 处文案英译中 + 删底部标签墙
   _default/rss.xml                  ★ 首页 feed 只收文章页 + atom:updated / category /
                                     摘要 description / 全文 content:encoded + pageLimit 20
+                                    + <image> 站点图标（2026-10-25，144×144 PNG，走
+                                    params.feedIcon；必须在 <item> 之前）
                                     ⚠️ 2026-10-15 起**不再输出 <?xml-stylesheet?>**（旧的
                                     static/rss.xsl 已删），浏览器视图改由 /feed/ 承担
   _default/archive.html             ★ /archive/ 列表页 + 顶部「系列」横向入口
@@ -126,6 +128,14 @@ layouts/                  ★ 站点层覆盖，27 个文件
                                     ⚠️ <p> 与 <h1> 的默认样式差四处（color/font-size/
                                        font-weight/margin），全靠 custom_head 第 00c 段补
                                     ⚠️ 别给 <a> 加 display:block，会改变点击区域
+  partials/favicon.html             ★ 2026-10-25 新增：head 里输出 5 条图标 link
+                                    （SVG / 512 / 192 / apple-touch / ico）
+                                    ⚠️ 上游只输出 1 条 shortcut icon，且本站指向 SVG
+                                       ⇒ 订阅端与图标聚合服务拿不到图（不吃 SVG、
+                                       /favicon.ico 又是 404），表现为「订阅里的头像
+                                       和网站不一样」，站内完全看不出来
+                                    ⚠️ 光栅四件套全部由 static/favicon.svg 生成，
+                                       改图标只改 SVG 再跑 DESIGN.md 第 12.3 节那几行
   partials/footer.html              版权独立成行 + 订阅行挪到第 3 行
                                     + copyrightNote/licenseName/licenseURL
   partials/custom_head.html         32 段补丁样式 + GoatCounter
@@ -370,7 +380,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 加根级独立页 | `content/xxx.md`（`hideDate` + `toc: false`）+ 回 `static/_headers` 补缓存规则 |
 | 加 301 | `static/_redirects`（**首条命中即生效**，splat 要排在精确路径之后） |
 | 改响应头 / 缓存 | `static/_headers` |
-| 换 favicon / 分享图 | `static/favicon.svg` / `static/images/share.webp`（后者只是**兜底** `og:image`，由 `params.images` 引用；文章页各有一张 `static/images/og/<slug>.png`，由 `scripts/gen-og.js` 生成，`publish.sh` 每次重画）。⚠️ 换兜底图后改 `hugo.toml` 的 `params.ogImageWidth` / `ogImageHeight` 跟上（`seo_tags.html` 读这两个参数输出 og 宽高） |
+| 换 favicon / 站点图标 / 分享图 | **只改 `static/favicon.svg`**，然后按 DESIGN.md 第 12.3 节重跑一遍 → 生成 `icon-512/192.png`、`apple-touch-icon.png`、`favicon.ico`、`images/feed-icon.png`（feed `<image>` 用，路径在 `hugo.toml` 的 `params.feedIcon`，宽高在 `rss.xml` 里写死 144）。⚠️ 光栅图**别手工裁**，会和 SVG 分叉；⚠️ 改完阅读器要手动刷新图标（订阅时抓一次就长期缓存）。分享图是 `static/images/share.webp`（只是**兜底** `og:image`，由 `params.images` 引用；文章页各有一张 `static/images/og/<slug>.png`，由 `scripts/gen-og.js` 生成，`publish.sh` 每次重画）。⚠️ 换兜底图后改 `hugo.toml` 的 `params.ogImageWidth` / `ogImageHeight` 跟上（`seo_tags.html` 读这两个参数输出 og 宽高） |
 | 改 SEO 头（keywords / JSON-LD / og / referrer / theme-color） | `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）。⚠️ `theme-color` 那两条在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 与 `input{font-size}` 在第 26 段；`referrer` 在 `baseof.html`。⚠️ 上游那份是「HTML 规范还在 2015 年」的写法，**别回退** |
 | 改图片放大（放大方式 / 键盘可达性） | 结构在 `layouts/_default/_markup/render-image.html`（`--zoom-src` 挂在 figure 上），样式在第 26 段 ④⑤。⚠️ overlay 是**空壳**（只有 `class`，没有 `<img>`）；`.image-zoom-toggle` 那条**必须带 `display`**，只写定位会让上游的 `display:none` 留下、checkbox 又变回不可聚焦 |
 | 改订阅源（feed 字段 / 浏览器打开 feed 时那一页） | ① feed 本身：`layouts/_default/rss.xml`；② 浏览器视图：`layouts/partials/feed-view.html` + `content/feed/`（只有 front matter）+ `custom_head.html` 第 28 段；③ 谁分派：`functions/_middleware.js`。⚠️ ①② 的**页面集合口径必须逐字一致**（`site` / `weekly` 两套），不一致就是「网页比订阅少一篇」且**构建 0 警告**；③ 改完按第 2 节「边缘函数」跑一遍线上核对 —— 它是**静默失效**的 |

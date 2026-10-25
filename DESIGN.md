@@ -15,7 +15,7 @@ description: >
   `/run/` 11071、`/404.html` 10651、`/feed/` 那两页 9616；改完记得回读体积，别凭印象）。
   ⚠️ 上表是 **2026-10-14 加了第 26 段之后**的值 —— 每个页型都比当天之前**统一 +562 B**，
   逐值与更早那份基线在「已删除的功能」一节之后的 2026-10-14 小节里对照。
-  站点层只在 29 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
+  站点层只在 30 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
   **改样式前先读那一节**：绝大多数视觉问题应该在上游那一份里改，
   而不是在站点层再叠一层规则 —— 那是上一版自建主题最后变得无法维护的原因。
 
@@ -86,7 +86,7 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 
 # 设计规范 —— hulatu.com
 
-> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 29 个文件的最小偏离。
+> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 30 个文件的最小偏离。
 > 这份文档的作用不是「描述我们自己的设计系统」，而是**登记那 25 个文件**，
 > 以及把「为什么不改」的理由留下来 —— 免得下一轮改造又把上游的东西重做一遍。
 
@@ -1038,7 +1038,7 @@ CSS 拿不到 location，只能由模板给。
 
 ---
 
-## 5. 站点层偏离（29 个文件）+ 改上游 1 处
+## 5. 站点层偏离（30 个文件）+ 改上游 1 处
 
 > ⚠️ **2026-10-14 起多了一类偏离：直接改上游主题本身。**
 > 在此之前 27 个主题文件是逐字节未改的；现在
@@ -1056,7 +1056,7 @@ CSS 拿不到 location，只能由模板给。
 | `layouts/_default/baseof.html` | ① `.Site.LanguageCode` → `.Site.Language.Locale`；② 补回 robots 分支；③ **2026-10-17 加 skip-link**（`<body>` 后第一个元素）+ **`<main id="main" tabindex="-1">`** + 长文页的 `.print-url` | ① 前者 Hugo 0.158 起弃用，将来移除会让整站构建失败；② 上游**完全没有** robots 输出，而本站有两类页面本来就该 noindex（见下）；③ 无障碍：原来要按 8 次 Tab 才到正文（WCAG 2.4.1 A 级）。⚠️ skip-link 的目标是 `#main`，**不能**复用 `#top`（那是返回顶部的落点，跳过去等于跳到页头） |
 | `layouts/_default/single.html` | 去掉 `if eq .Type "blog"` 外层门槛；加 `hideDate` / `hideTitle`；加文末「系列坐标带」+「上一篇 / 下一篇」；加评论区 | 上游把标题日期写死给 `blog` 段；其余都是站点层新增（见第 4 节） |
 | `layouts/_default/list.html` | 5 处界面文案英译中；删底部标签墙 | 上游文案写死英文、没走 i18n；用户不要标签云 |
-| `layouts/_default/rss.xml` | 三处：① `xmlns:content` + **2026-10-15 起顶部不再挂 `<?xml-stylesheet?>`**（旧的 `/rss.xsl` 已删）；② 首页 feed 改成**只收文章页**（`Type` ∈ `posts`/`weekly`）；③ 补 `atom:updated` / `category` / 摘要式 `description` / 全文 `content:encoded`，并存 `params.RSS.pageLimit` 上限（20） | ① 旧版靠浏览器 XSLT 渲染，Chromium 正在移除 XSLT（弹横幅，移除后那页退化成 raw XML）→ 改由 `functions/_middleware.js` 内容协商到 `/feed/`，见第 4 节「订阅源」；② 迁移后新增的 `/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 都是 content 根下的普通页，会被一并收进订阅；③ 上游只发全文 `description`、没有「更新于」和分类 |
+| `layouts/_default/rss.xml` | 四处：① `xmlns:content` + **2026-10-15 起顶部不再挂 `<?xml-stylesheet?>`**（旧的 `/rss.xsl` 已删）；② 首页 feed 改成**只收文章页**（`Type` ∈ `posts`/`weekly`）；③ 补 `atom:updated` / `category` / 摘要式 `description` / 全文 `content:encoded`，并存 `params.RSS.pageLimit` 上限（20）；④ **2026-10-25 补 `<image>`**（144×144 PNG，走 `params.feedIcon`） | ① 旧版靠浏览器 XSLT 渲染，Chromium 正在移除 XSLT（弹横幅，移除后那页退化成 raw XML）→ 改由 `functions/_middleware.js` 内容协商到 `/feed/`，见第 4 节「订阅源」；② 迁移后新增的 `/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 都是 content 根下的普通页，会被一并收进订阅；③ 上游只发全文 `description`、没有「更新于」和分类；④ `<image>` 是订阅端**唯一有明文依据**的图标来源，缺了它阅读器只能猜（见第 12 节） |
 | `layouts/_default/archive.html` | **新增**（且比上游 `list.html` 多一段「系列」横向入口） | `/archive/` 是内容页不是 section，上游无对应模板 |
 | `layouts/_default/run.html` | **新增**（2026-10-12）：跑步数据页。从子站 `sites/run/layouts/index.html` 搬来，去掉子站自己的 `<head>` / `<header>` / `<footer>`，补一个页面级 `<h1>`，数据块包进 `<content>` | 跑步数据要从 `run.hulatu.com` 变成本站的 `/run/` 页，数据来自 `hugo.Data.runs`（`data/runs.json`）—— 上游没有任何读 `data/` 的模板 |
 | `layouts/_default/_markup/render-link.html` | **新增**：`</a>` 后**不留换行** | 上游模板末尾多一个换行，行内链接后紧跟中文标点时会被折叠成一个空格（「花墨 ：点评」）。迁移后实测 **26 页 / 70 处**，其中 `/roll/` 一页 15 处。见下 |
@@ -1065,6 +1065,7 @@ CSS 拿不到 location，只能由模板给。
 | `layouts/index.html` | **新增**（且简介正文**不包 `<content>`**，与上游不同、与 yinji 一致） | 上游首页只有 `{{ .Content }}`，等于空页；`<content>` 那层见第 4 节「首页」 |
 | `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动；**2026-10-17 加 `aria-current="page"`** | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架。⚠️ 当前页判断必须**精确相等** `$.RelPermalink` —— 按前缀会让每篇文章页点亮 `Posts`（它指向 `/archive/`，而文章在 `/posts/…`）；样式**只改颜色**（不加下划线，用户 2026-10-17 当天否掉）、**不改字重**（Verdana 400→700 会让导航折行位置变） |
 | `layouts/partials/header.html` | **新增**（2026-10-18）：站名从 `<h1>` 降级成 `<p class="title">`，外观由 `custom_head.html` 第 00c 段补回 | 上游把站名写成 h1，而文章页的正文标题也是 h1 → **每篇文章页两个 h1**（实测 134 / 344 页）。改成 `<p>` 后文章页唯一 h1 = 文章标题；首页 / `/about/` / `/now/` / `/roll/` / 列表页变成 0 个 h1 —— 与第 8 节第 7 条「列表页本来就不要大标题」一致。⚠️ `<p>` 与 `<h1>` 的默认样式差**四处**（color / font-size / font-weight / margin），少补哪一条都看不出来但页面会变；验收是改前改后各截一张首页跑 `magick compare -metric AE` = **0** |
+| `layouts/partials/favicon.html` | **新增**（2026-10-25）：一条 `shortcut icon` 扩成五条（SVG / 512 / 192 / apple-touch / ico） | 上游只输出 `params.favicon` **一条**，本站指向 SVG ⇒ head 里只有 SVG。而 RSS 阅读器与图标聚合服务的取图管线基本不吃 SVG，`/favicon.ico` 这个约定路径又不存在 → 订阅端拿不到图标、退回字母头像或地球图标，表现就是「订阅里的头像和网站不一样」；站内一切正常、构建 0 警告、本地截图也看不出来。见第 12 节 |
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
 | `layouts/partials/seo_tags.html` | **新增**（2026-10-14）：整份覆盖上游的同名 partial —— ① 删 `<meta name="keywords">` 与 `<meta name="title">`；② 删掉整块微数据（`itemscope` / `itemprop` 那套）；③ 补 `og:image:width` / `height`；④ 换成按页型输出的 JSON-LD | 上游那份是「HTML 规范还在 2015 年」的写法（见第 8 节第 1 条：它原本就是本文件存在的理由）。现在 332 页全部有 `ld+json`、`keywords` / `itemprop` / `pubdate` 全站归零 |
@@ -1927,4 +1928,91 @@ new weekly/周刊-27
 
 ⚠️ 函数名 `new` 注册在 `~/.config/zsh/.zshrc`（不在仓库里），
 所以换机器要重新加一次；脚本本体在仓库里，可以单独跑 `bash scripts/new-post.sh posts/xxx`。
+
+---
+
+## 12. 2026-10-25：站点图标体系与 feed 图标
+
+### 12.1 问题：订阅端看到的头像和网站不一样
+
+现象只在站外出现 —— 站内标签页、本地截图、构建日志全都正常。
+
+根因有三条，缺一条都不会出问题，凑齐了就必现：
+
+1. **head 里只有一条 `rel="shortcut icon"`，指向 `favicon.svg`**。
+   上游 `partials/favicon.html` 只输出 `params.favicon` 这一条。
+2. **`/favicon.ico` 不存在**（404）。这是所有「不认识 `<link rel=icon>`」的
+   客户端与图标聚合服务的约定路径。
+3. **RSS 里没有 `<image>`**。这是 RSS 2.0 给订阅端的唯一明文图标声明。
+
+于是阅读器的取图顺序（读 `<image>` → 读 head → 试 `/favicon.ico` → 用自家缓存
+→ 兜底字母头像 / 地球图标）每一层都落空，最后显示的是兜底图。
+**2019–2026-10-13 之间 `static/` 里是有 `icon-192/512.png`、`apple-touch-icon.png`
+和 `site.webmanifest` 的**（迁移上游主题那次一并删了，`c73b308`），所以更早订阅的
+读者可能还缓存着那一版 —— 这也是「有人看着一样、有人看着不一样」的原因。
+
+### 12.2 落点
+
+| 位置 | 内容 |
+| --- | --- |
+| `static/favicon.svg` | 矢量母版，**唯一需要手工维护的图标文件**（藏青 `#061161`） |
+| `static/icon-512.png` / `icon-192.png` | 透明底，浏览器 / PWA / 图标服务 |
+| `static/apple-touch-icon.png` | 180×180，**白底**，iOS 主屏 |
+| `static/favicon.ico` | 48 / 32 / 16 三尺寸，约定路径兜底 |
+| `static/images/feed-icon.png` | 144×144，**白底**，RSS `<image>` 用 |
+| `layouts/partials/favicon.html` | 站点层覆盖（第 30 个文件），head 里输出五条 link |
+| `layouts/_default/rss.xml` | channel 级 `<image>`，位置在 `<item>` 之前 |
+| `hugo.toml` → `params.feedIcon` | 图路径单点配置，模板里宽高写死 144 |
+
+### 12.3 重新生成（改图标只改 SVG，然后跑这三行）
+
+```bash
+cd ~/Blog
+M="/opt/homebrew/bin/magick"
+$M -background none -density 600 static/favicon.svg -resize 512x512 -depth 8 -strip static/icon-512.png
+$M static/icon-512.png -resize 192x192 -depth 8 -strip static/icon-192.png
+$M -background '#ffffff' -density 600 static/favicon.svg -resize 180x180 -flatten -depth 8 -strip static/apple-touch-icon.png
+$M -background '#ffffff' -density 600 static/favicon.svg -resize 144x144 -flatten -depth 8 -strip static/images/feed-icon.png
+$M -background none -density 1200 static/favicon.svg -filter Lanczos -resize 48x48 -depth 8 -strip /tmp/i48.png
+$M -background none -density 1200 static/favicon.svg -filter Lanczos -resize 32x32 -depth 8 -strip /tmp/i32.png
+$M -background none -density 1200 static/favicon.svg -filter Lanczos -resize 16x16 -depth 8 -strip /tmp/i16.png
+$M /tmp/i48.png /tmp/i32.png /tmp/i16.png static/favicon.ico
+```
+
+⚠️ **ico 要逐尺寸单独渲染再拼**，别用 `-define icon:auto-resize`：
+后者是从 256px 降采样，16px 那档的笔画会糊成一团。
+⚠️ `-density 600` 不能省：不指定时 ImageMagick 按 SVG 自带的 `width="200"`
+光栅化，再放大回 512 就是二次采样。
+⚠️ **别手工裁 PNG**：光栅四件套与 SVG 一旦分叉，标签页和订阅端就长得不一样了。
+
+### 12.4 为什么光栅图标是白底
+
+图标本身是**藏青笔画 + 透明底**。透明底在深色阅读器 / 深色壁纸上几乎不可见
+（等于没有图标）。SVG 版靠文件内部那段
+`@media (prefers-color-scheme: dark){path{fill:#fff}}` 反白解决，
+**光栅版做不到这件事**，只能垫白底。
+
+所以分工是：SVG 走透明（浏览器标签页，会自己处理深浅色），
+`apple-touch-icon` 与 `feed-icon` 走白底（出现在别人的界面里，底色不可控）。
+`icon-192/512` 与 `favicon.ico` 保持透明 —— 它们分别给 Android 遮罩和标签页兜底。
+
+### 12.5 验收
+
+```bash
+hugo --cleanDestinationDir                      # 必须 0 警告
+grep -o '<link rel=[^>]*>' public/index.html    # 应有 5 条图标 link
+sed -n '/<image>/,/<\/image>/p' public/index.xml
+xmllint --noout public/index.xml public/weekly/index.xml
+```
+
+⚠️ `minify` 会剥掉属性引号 → 用 `rel="[^"]*"` 这种带引号的模式 grep 会**假阴性**
+（本次就差点以为四条 link 没输出）。
+⚠️ 改完还要**在阅读器里手动刷新一次图标**：多数阅读器在订阅时抓一次就长期缓存，
+发版不会自动更新；有的要退订重订。
+
+### 12.6 还没覆盖的一种可能
+
+若阅读器是按**作者邮箱取 Gravatar**（`hello@hulatu.com`）而不是取站点图标，
+那它显示的会是 Gravatar 上那张图 —— 与本站无关，只能去 Gravatar 换图或删图。
+本站侧能做的（`<image>` + 五条 link）已经做完。
 
