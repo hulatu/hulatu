@@ -1,7 +1,7 @@
 ---
 title: "使用 Mac 5+ 年，我保留了哪些软件"
 date: 2026-10-24T21:14:28+08:00
-lastmod: 2026-10-24T23:22:56+08:00
+lastmod: 2026-10-25T08:35:36+08:00
 slug: "apple-app-recommendations"
 summary: "工具，是拿来用的，用得顺手，就行。"
 description: "这篇文章，分享了我使用 Mac 5 年多以来，至今留下的一些应用，包含了我日常主力使用的应用软件，还有一些辅助的应用工具，目的就是为了更好的满足自己学习和写东西的需求，并且满足自己极简主义、长期主义的最久，能符合开源精神，就更好了。希望大家在我的这份软件分享清单里，找到属于自己的思路，搭建好适合自己的软件工具，让电脑，更好的服务于自己。"
@@ -390,7 +390,7 @@ Capso 其实是大名鼎鼎的 CleanShot X 的平替、开源软件。但 Capso 
 
 软件官网/项目主页：https://github.com/lzhgus/Capso 
 
-Homebrew 安装方式： `brew install --cask capso`。  
+Homebrew 安装方式： `brew install --cask capso`
 
 **Easydict** 🆓
 
@@ -405,8 +405,6 @@ Homebrew 安装方式：`brew install --cask easydict`
 **Homebrew**
 
 必装的一款命令行工具！用来安装、卸载、管理软件的必要工具，甚至比 App Store 还要推荐，尤其是安装一些 AI 工具、开源软件、命令行工具，太好用了。
-
-教程推荐：[Mac 特有的软件安装方式，既神秘又强大](https://www.bilibili.com/video/BV1dR4y1b7e1/?vd_source=faa4a04597a50c1354e7975248079b6f)
 
 软件官网：https://brew.sh/  
 
@@ -428,7 +426,7 @@ Homebrew 安装方式：`brew install --cask easydict`
 
 软件官网：https://mole.fit/ 
 
-Homebrew 安装方式：`brew install mole`；
+Homebrew 安装方式：`brew install mole`
 
 **oh-my-zsh**
 
