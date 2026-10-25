@@ -1973,14 +1973,16 @@ $M -background none -density 600 static/favicon.svg -resize 512x512 -depth 8 -st
 $M static/icon-512.png -resize 192x192 -depth 8 -strip static/icon-192.png
 $M -background '#ffffff' -density 600 static/favicon.svg -resize 180x180 -flatten -depth 8 -strip static/apple-touch-icon.png
 $M -background '#ffffff' -density 600 static/favicon.svg -resize 144x144 -flatten -depth 8 -strip static/images/feed-icon.png
-$M -background none -density 1200 static/favicon.svg -filter Lanczos -resize 48x48 -depth 8 -strip /tmp/i48.png
-$M -background none -density 1200 static/favicon.svg -filter Lanczos -resize 32x32 -depth 8 -strip /tmp/i32.png
-$M -background none -density 1200 static/favicon.svg -filter Lanczos -resize 16x16 -depth 8 -strip /tmp/i16.png
+$M -background none -density 1200 static/favicon.svg -filter Mitchell -resize 48x48 -depth 8 -strip /tmp/i48.png
+$M -background none -density 1200 static/favicon.svg -filter Mitchell -resize 32x32 -depth 8 -strip /tmp/i32.png
+$M -background none -density 1200 static/favicon.svg -filter Mitchell -resize 16x16 -depth 8 -strip /tmp/i16.png
 $M /tmp/i48.png /tmp/i32.png /tmp/i16.png static/favicon.ico
 ```
 
 ⚠️ **ico 要逐尺寸单独渲染再拼**，别用 `-define icon:auto-resize`：
 后者是从 256px 降采样，16px 那档的笔画会糊成一团。
+⚠️ **小尺寸要用 `-filter Mitchell`，别用 Lanczos**：Lanczos 在「藏青笔画 / 透明」
+这种硬边上有振铃，32px 会出现**白色毛边**，铺在深色界面里就是一圈白刺。
 ⚠️ `-density 600` 不能省：不指定时 ImageMagick 按 SVG 自带的 `width="200"`
 光栅化，再放大回 512 就是二次采样。
 ⚠️ **别手工裁 PNG**：光栅四件套与 SVG 一旦分叉，标签页和订阅端就长得不一样了。
