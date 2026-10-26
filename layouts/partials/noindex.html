@@ -1,0 +1,23 @@
+{{- /* noindex 判定的**唯一**来源（2026-10-26 抽出）
+
+      ── 为什么抽出来 ────────────────────────────────────────────────
+      这个条件原本在 `_default/baseof.html` 与 `sitemap.xml` 里各写一份，
+      两份文件的注释里都写着「必须逐字同口径，两处一旦漂移，构建 0 警告，
+      唯一症状是 sitemap 里又混进 noindex 页 —— 极难发现」。
+      2026-10-26 分类页放行时又要动它，于是收成这个 partial，两边都调它。
+
+      ── 当前口径 ────────────────────────────────────────────────────
+        ① 标签词条页 /tags/<词>/            → noindex（212 个，74% 只对应 1 篇）
+        ② 404 页                            → noindex
+        ③ front matter 写 `noindex: true`   → noindex
+           （/posts/ /privacy/ /donate/ 三个用它）
+
+      ⚠️ **分类词条页 /categories/<词>/ 已经不在这个名单里**（2026-10-26 用户
+         决定全部放行）。它们现在可索引、进 sitemap，并各自有
+         `content/categories/<词>/_index.md` 提供 title / description。
+         想退回 noindex：在这里加回 `(eq .Data.Plural "categories")` 即可，
+         baseof 与 sitemap 会同时生效 —— 这正是抽成 partial 的意义。
+      ⚠️ `.Data.Plural` 在普通页 / 文章页上取到空值，`eq` 比较恒为假，无害。
+      ⚠️ `return` 之前不能有任何输出（下面全是 `{{- -}}`）。
+      ============================================================ */ -}}
+{{- return (or (eq .Data.Plural "tags") (eq .Kind "404") (eq .Params.noindex true)) -}}

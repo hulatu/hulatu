@@ -85,10 +85,20 @@
        面包屑另有 `BreadcrumbList` 一段（在 partials/breadcrumbs.html，
        只给文章页输出）—— 两者互不冲突，Google 支持同一页多段 JSON-LD。
        --------------------------------------------------------------- */ -}}
-{{- $img := "" -}}
-{{- with .Site.Params.images -}}
-  {{- $img = index . 0 -}}
-{{- end -}}
+{{- /* 分享卡片图（JSON-LD 用）。
+       2026-10-26 起取自 `layouts/partials/og-image.html` —— 与 og:image /
+       twitter:image **同一张、同一套取值逻辑**（按 slug 找
+       images/og/<slug>.png，取不到回落 share.webp）。
+
+       ⚠️ 这里以前用的是 `site.Params.images` 的第一张，于是 133 篇文章的
+          JSON-LD `image` 全是同一张 share.webp，而 og:image 早就逐篇不同了。
+          后果不是报错，而是**白丢差异化缩略图**：Google 的 Article 富媒体
+          结果与 Discover 读的是 JSON-LD，不是 og:image。
+       ⚠️ partial 返回的是**绝对 URL**，下面直接用 `slice $img`，
+          **不要**再套 absURL（二次处理）。
+       ⚠️ `$img` 为空时 `slice ""` 会得到 `[""]`。本站 hugo.toml 配了
+          `params.images`，走不到这个分支；真要清空配置，先看这里。 */ -}}
+{{- $img := partial "og-image.html" . -}}
 {{- if .IsHome -}}
   {{- $ld := dict "@context" "https://schema.org" "@type" "WebSite"
       "name" .Site.Title "url" .Site.BaseURL "inLanguage" .Site.Language.Locale
@@ -112,7 +122,7 @@
       "wordCount" .WordCount
       "author" (dict "@type" "Person" "name" .Site.Params.author.name "url" .Site.BaseURL)
       "publisher" (dict "@type" "Organization" "name" .Site.Title)
-      "image" (slice (absURL $img)) -}}
+      "image" (slice $img) -}}
   {{- with .Date -}}
     {{- $ld = merge $ld (dict "datePublished" (.Format "2006-01-02T15:04:05-07:00")) -}}
   {{- end -}}

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google 收录审查 · hulatu.com</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --text: #1c1c1e;
+    --muted: #6b6b70;
+    --faint: #8e8e93;
+    --border: #e5e5e3;
+    --accent: #1e3a5f;
+    --p1: #b42318;
+    --p1bg: #fef3f2;
+    --p2: #b54708;
+    --p2bg: #fffaeb;
+    --p3: #5c5c66;
+    --p3bg: #f4f4f2;
+    --ok: #067647;
+    --okbg: #ecfdf3;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 48px 24px 96px;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.75 -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  header { margin-bottom: 40px; }
+  .kicker {
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 12px;
+  }
+  h1 {
+    font-size: 30px; line-height: 1.35; margin: 0 0 14px;
+    letter-spacing: -.01em; font-weight: 700;
+  }
+  .lede { font-size: 17px; color: var(--muted); margin: 0; max-width: 72ch; }
+
+  .meta {
+    margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--faint);
+    display: flex; flex-wrap: wrap; gap: 8px 22px;
+  }
+  .meta b { color: var(--muted); font-weight: 600; }
+
+  h2 {
+    font-size: 20px; margin: 52px 0 6px; font-weight: 700;
+    letter-spacing: -.005em;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  h2 .num {
+    font-size: 13px; color: var(--faint); font-weight: 600;
+    margin-right: 10px; font-family: var(--mono);
+  }
+  h3 { font-size: 16px; margin: 28px 0 8px; font-weight: 650; }
+  p { margin: 12px 0; }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px 24px; margin: 18px 0;
+  }
+  .card > :first-child { margin-top: 0; }
+  .card > :last-child { margin-bottom: 0; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-size: 14.5px; background: var(--card);
+  }
+  th, td {
+    text-align: left; padding: 10px 12px;
+    border-bottom: 1px solid var(--border); vertical-align: top;
+  }
+  th {
+    font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--faint); font-weight: 600; background: #fafaf8;
+    border-bottom: 1px solid var(--border);
+  }
+  tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.boxed { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+
+  code {
+    font-family: var(--mono); font-size: .88em;
+    background: #f0f0ee; padding: 1px 5px; border-radius: 4px;
+    color: #333;
+  }
+  pre {
+    background: #fbfbfa; border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; margin: 14px 0;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+    color: #2b2b2b;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  .badge {
+    display: inline-block; font-size: 11.5px; font-weight: 700;
+    padding: 2px 9px; border-radius: 999px; letter-spacing: .02em;
+    vertical-align: 1px;
+  }
+  .b1 { color: var(--p1); background: var(--p1bg); }
+  .b2 { color: var(--p2); background: var(--p2bg); }
+  .b3 { color: var(--p3); background: var(--p3bg); }
+  .bok { color: var(--ok); background: var(--okbg); }
+
+  .finding {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px 24px; margin: 20px 0;
+    border-left: 3px solid var(--border);
+  }
+  .finding.p1 { border-left-color: var(--p1); }
+  .finding.p2 { border-left-color: var(--p2); }
+  .finding.p3 { border-left-color: #c9c9c4; }
+  .finding > h3 { margin-top: 0; }
+
+  ul, ol { margin: 12px 0; padding-left: 22px; }
+  li { margin: 6px 0; }
+
+  .callout {
+    background: #f4f7fa; border: 1px solid #dbe4ee; border-radius: 8px;
+    padding: 14px 18px; margin: 18px 0; font-size: 14.5px;
+  }
+  .callout.warn { background: #fffbf2; border-color: #f0e0c0; }
+  .callout strong { color: var(--accent); }
+  .callout.warn strong { color: var(--p2); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  footer {
+    margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--faint);
+  }
+  .del { color: var(--p1); }
+  .add { color: var(--ok); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">Technical SEO Audit</p>
+  <h1>Google 收录审查</h1>
+  <p class="lede">
+    对 hulatu.com 的抓取、索引、结构化数据与站内链接做一次全量实测。
+    结论先行：<strong>技术层几乎没有错误</strong>，真正影响收录的是<strong>结构</strong>——
+    全站没有可索引的主题聚合页，且正文几乎不做站内互链。
+  </p>
+  <div class="meta">
+    <span><b>审查时间</b> 2026-10-26</span>
+    <span><b>构建</b> Hugo 370 页 / 366 HTML / 0 警告</span>
+    <span><b>可索引</b> 140 页</span>
+    <span><b>noindex</b> 226 页</span>
+  </div>
+</header>
+
+<h2><span class="num">01</span>结论</h2>
+
+<p>
+  先说最重要的一句：你在 Search Console 里看到的<strong>大部分「异常」不是故障</strong>。
+  本站有 226 个页面带 <code>noindex</code>（212 个标签页、8 个分类页、<code>/posts/</code>、
+  <code>/privacy/</code>、<code>/donate/</code>、两个 feed 视图、404），它们会稳定地出现在
+  「已排除」里。这是设计意图，不是问题。
+</p>
+
+<p>实测下来，技术层是干净的：</p>
+
+<table class="boxed">
+  <tr><th>检查项</th><th>结果</th><th class="num">判定</th></tr>
+  <tr><td>sitemap 与 noindex 是否冲突</td><td>140 条 URL，与 140 个可索引页<strong>逐条一致</strong>，冲突 0</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>canonical</td><td>366 / 366 全部自指，无多值、无指向他页</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>重复 URL 形态</td><td><code>/index.html</code>→308、<code>/about</code>→308、<code>www</code>→301、<code>http</code>→301</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>robots.txt</td><td>有 <code>Sitemap:</code> 指令，无任何 <code>Disallow</code></td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>sitemap 的 <code>lastmod</code></td><td>连续两次构建取值不变（不随构建漂移）</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>结构化数据</td><td>BlogPosting 必填四项齐全 + BreadcrumbList 正确</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>可索引页标题重复</td><td>0 组</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>图片</td><td>352 张，<code>alt</code> 空值 0、<code>width/height</code> 352</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>404</td><td>真 404（非软 404），带完整导航</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>抓取深度</td><td>每篇文章入链 <strong>最低 7 次 / 中位 13 次</strong>，全部 2 跳可达</td><td class="num"><span class="badge bok">通过</span></td></tr>
+</table>
+
+<p>所以下面只谈三件真正能改变收录结果的事，按影响排序。</p>
+
+<h2><span class="num">02</span>P1 · 分类页全部 noindex，全站没有主题聚合页</h2>
+
+<div class="finding p1">
+  <h3><span class="badge b1">P1</span> 唯一的「主题枢纽」被自己关掉了</h3>
+
+  <p>8 个分类页的实测文章数：</p>
+
+  <table>
+    <tr><th>分类</th><th class="num">文章数</th><th>当前状态</th></tr>
+    <tr><td>思考</td><td class="num">38</td><td><code>noindex, follow</code>，不在 sitemap</td></tr>
+    <tr><td>周刊</td><td class="num">27</td><td><code>noindex, follow</code>，不在 sitemap</td></tr>
+    <tr><td>工具</td><td class="num">19</td><td><code>noindex, follow</code>，不在 sitemap</td></tr>
+    <tr><td>记录</td><td class="num">18</td><td><code>noindex, follow</code>，不在 sitemap</td></tr>
+    <tr><td>运动</td><td class="num">12</td><td><code>noindex, follow</code>，不在 sitemap</td></tr>
+    <tr><td>学习科研</td><td class="num">10</td><td><code>noindex, follow</code>，不在 sitemap</td></tr>
+    <tr><td>饮食</td><td class="num">5</td><td><code>noindex, follow</code>，不在 sitemap</td></tr>
+    <tr><td>健康</td><td class="num">4</td><td><code>noindex, follow</code>，不在 sitemap</td></tr>
+  </table>
+
+  <p><strong>后果有三层：</strong></p>
+  <ol>
+    <li><strong>没有可排名的落地页。</strong>「工具」「思考」这类词本来可以由分类页承接，
+        现在 Google 手上只有 133 篇单文，没有一个「某主题下全部文章」的入口。</li>
+    <li><strong>权重只能汇到一个点。</strong>唯一可索引的列表页是 <code>/archive/</code>，
+        它把 133 篇平铺成一条时间线，没有主题语义。所有内链权重都流向它，无法按主题分流。</li>
+    <li><strong>标签页顶不上。</strong>212 个标签页里 158 个（74%）只对应 1 篇文章，
+        单个标签页和那篇文章本身几乎同构，做不了聚合。</li>
+  </ol>
+
+  <h3>建议：按文章数分级放行</h3>
+  <p>
+    ≥ 10 篇的 5 个分类改为可索引，&lt; 10 篇的 3 个维持 noindex。
+    阈值取 10 的理由是：低于 10 篇的分类页内容量接近单篇文章的目录，容易被判
+    「已抓取 - 尚未编入索引」，反而多一条负面记录。
+  </p>
+
+  <p>判定逻辑在 <code>layouts/_default/baseof.html</code> 第 31 行，当前是「分类一律 noindex」：</p>
+
+<pre><code>{{- $noindex := or (eq .Data.Plural "tags") (eq .Data.Plural "categories")
+                    (eq .Kind "404") (eq .Params.noindex true) -}}</code></pre>
+
+  <p>改成：</p>
+
+<pre><code>{{- $noindex := or (eq .Data.Plural "tags") (eq .Kind "404") (eq .Params.noindex true) -}}
+{{- if and (eq .Data.Plural "categories") (lt (len .Pages) 10) -}}
+  {{- $noindex = true -}}
+{{- end -}}</code></pre>
+
+  <div class="callout warn">
+    <strong>⚠️ 这个改动必须同时改两个文件。</strong>
+    <code>layouts/sitemap.xml</code> 里有一份<strong>逐字相同</strong>的 <code>$noindex</code> 判定，
+    两处一旦漂移，构建 0 警告、页面照常生成，唯一症状是「sitemap 里又混进了 noindex 页」。
+    文件注释里已经写了这条警告，但靠人记不可靠 —— 见下一节的根治办法。
+  </div>
+
+  <h3>配套：给这 5 个分类页写 description</h3>
+  <p>
+    分类页目前复用站点描述（实测 <strong>225 个页面共用同一句</strong>）。放行后必须各自有摘要，
+    否则会变成「同标题同描述的一批列表页」。新增 5 个文件即可：
+  </p>
+<pre><code>content/categories/思考/_index.md
+---
+title: "思考"
+description: "关于选择、习惯与长期主义的 38 篇记录。"
+---</code></pre>
+</div>
+
+<h2><span class="num">03</span>P2 · 两处结构化数据缺口</h2>
+
+<div class="finding p2">
+  <h3><span class="badge b2">P2</span> JSON-LD 的 <code>image</code> 全站共用一张图</h3>
+
+  <p>实测：133 篇文章的 JSON-LD 里，<code>image</code> 取值集合只有一个元素。</p>
+
+<pre><code>抽样 40 篇，JSON-LD image 取值集合:
+{('https://hulatu.com/images/share.webp',)}</code></pre>
+
+  <p>
+    但同一批页面的 <code>og:image</code> 是<strong>每篇独立</strong>的：
+    <code>/images/og/apple-app-recommendations.png</code> 这种，133 张全部存在、全部 1200×630。
+  </p>
+
+  <p>
+    <strong>为什么这是问题：</strong>Google 的 Article 富媒体结果与 Discover 读的是
+    <strong>JSON-LD</strong>，不是 <code>og:image</code>。现在 133 篇文章在 Google 眼里
+    共用一张通用图，等于放弃了逐篇缩略图的差异化。
+  </p>
+
+  <p>
+    修法很轻：<code>layouts/partials/seo_tags.html</code> 里现在是这样取图的 ——
+  </p>
+<pre><code>{{- $img := "" -}}
+{{- with .Site.Params.images -}}
+  {{- $img = index . 0 -}}
+{{- end -}}</code></pre>
+
+  <p>改成与 <code>layouts/_partials/opengraph.html</code> 同一套逻辑即可（那段已经验证过）：</p>
+
+<pre><code>{{- $img := "" -}}
+{{- if and .IsPage (in (slice "posts" "weekly") .Type) -}}
+  {{- $rel := printf "images/og/%s.png" .Slug -}}
+  {{- if fileExists (printf "static/%s" $rel) -}}
+    {{- $img = $rel | absURL -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $img -}}
+  {{- with .Site.Params.images -}}{{- $img = index . 0 | absURL -}}{{- end -}}
+{{- end -}}</code></pre>
+
+  <div class="callout">
+    <strong>注意：</strong>这里用了 <code>fileExists</code>，查的是磁盘上的
+    <code>static/...</code>，不是 URL。漏写 <code>static/</code> 会永远返回 false，
+    症状是「图生成了但页面仍用兜底图」，而且构建 0 警告。
+  </div>
+</div>
+
+<div class="finding p2">
+  <h3><span class="badge b2">P2</span> <code>article:*</code> 系列 OG 标签全站为 0</h3>
+
+  <p>
+    <code>og:type</code> 已经是 <code>article</code>，但配套的四项一个都没有：
+  </p>
+
+  <table>
+    <tr><th>标签</th><th>现状</th><th>影响</th></tr>
+    <tr><td><code>article:published_time</code></td><td>全站 0 处</td><td>微信 / 聚合器 / 部分阅读器取不到发布时间</td></tr>
+    <tr><td><code>article:modified_time</code></td><td>全站 0 处</td><td>同上，且无法体现「已更新」</td></tr>
+    <tr><td><code>article:author</code></td><td>全站 0 处</td><td>作者归属信号缺失</td></tr>
+    <tr><td><code>article:section</code> / <code>article:tag</code></td><td>全站 0 处</td><td>主题分类信号缺失</td></tr>
+  </table>
+
+  <p>
+    根因是站点层覆盖了 <code>layouts/_partials/opengraph.html</code>，而那份覆盖只输出了
+    7 个字段，没有跟着 Hugo 内置模板输出 <code>article:*</code>。
+  </p>
+
+  <p>
+    <strong>优先级说明：</strong>Google 的收录<strong>不依赖</strong>这四项（日期以 JSON-LD 为准，
+    已确认 <code>datePublished</code> 正确输出为 ISO 8601）。所以这是「顺手补齐」级别，
+    不是收录障碍。
+  </p>
+</div>
+
+<h2><span class="num">04</span>P3 · 内容层（改动量大，但影响最持久）</h2>
+
+<div class="finding p3">
+  <h3><span class="badge b3">P3</span> 正文内链：133 篇里 120 篇（90%）是 0 条</h3>
+
+  <p>实测（只统计正文里指向站内的 Markdown 链接，不含图片、不含锚点）：</p>
+
+  <table>
+    <tr><th>指标</th><th class="num">数值</th></tr>
+    <tr><td>正文 0 条站内链接的文章</td><td class="num">120 / 133（90%）</td></tr>
+    <tr><td>平均每篇站内链接</td><td class="num">0.26 条</td></tr>
+    <tr><td>≥ 3 条的文章</td><td class="num">3 篇</td></tr>
+  </table>
+
+  <p>
+    <strong>先澄清一个容易误判的点：</strong>这不影响抓取。每篇文章的入链最低 7 次、
+    中位 13 次（靠 <code>/posts/</code>、<code>/weekly/</code>、<code>/archive/</code> 三个列表页），
+    全部 2 跳可达。
+  </p>
+
+  <p>
+    它影响的是<strong>相关性</strong>：站内链接是主题信号的主要通道。现在 133 篇文章之间
+    唯一的关联是「同标签」，而 74% 的标签只对应 1 篇文章 —— 等于绝大多数文章之间
+    <strong>没有任何主题关联</strong>，只能靠 <code>.post-related</code> 的算法推荐兜底。
+  </p>
+
+  <p>
+    这是纯内容活，没有代码可改。成本最低的做法：每周挑 5 篇旧文，各补 1–2 条指向相关旧文的正文链接。
+  </p>
+</div>
+
+<div class="finding p3">
+  <h3><span class="badge b3">P3</span> 标签体系：213 个标签，158 个（74%）只用一次</h3>
+
+  <table>
+    <tr><th>使用次数</th><th class="num">标签数</th><th class="num">占比</th></tr>
+    <tr><td>仅 1 次</td><td class="num">158</td><td class="num">74%</td></tr>
+    <tr><td>2 次</td><td class="num">24</td><td class="num">11%</td></tr>
+    <tr><td>≥ 3 次</td><td class="num">31</td><td class="num">15%</td></tr>
+    <tr><td>≥ 5 次</td><td class="num">13</td><td class="num">6%</td></tr>
+  </table>
+
+  <p>
+    标签页全部 noindex，所以<strong>不伤 SEO</strong>。但两个副作用是真的：
+  </p>
+  <ul>
+    <li><strong>抓取预算。</strong>212 个 noindex 标签页，每篇正文底部链出 5–8 个 →
+        爬虫每次都要多抓 200 多个「读了也不收录」的页面。</li>
+    <li><strong>相关文章燃料不足。</strong><code>hugo.toml</code> 里 <code>tags</code> 权重 200，
+        但只用过一次的标签对算分<strong>零贡献</strong>。</li>
+  </ul>
+
+  <p>
+    建议合并到 50–60 个：把 <code>睡眠 / 精力管理 / 早起</code> 并成 <code>睡眠</code>，
+    <code>写作工具 / 排版 / 美化</code> 并成 <code>写作</code>。
+    合并后 ≥3 次的标签会明显变多，<code>.post-related</code> 的质量随之上升。
+  </p>
+</div>
+
+<div class="finding p3">
+  <h3><span class="badge b3">P3</span> 8 个页面 description 过短</h3>
+
+  <table>
+    <tr><th class="num">字数</th><th>页面</th><th>现有内容</th></tr>
+    <tr><td class="num">12</td><td><code>/now/</code></td><td>记录胡拉图此刻在做的事。</td></tr>
+    <tr><td class="num">25</td><td><code>/weekly/</code></td><td>每周天更新：值得一读的文章、好用的工具、只言片语。</td></tr>
+    <tr><td class="num">33</td><td><code>/roll/</code></td><td>胡拉图常读的博客与认识的朋友…</td></tr>
+    <tr><td class="num">41</td><td><code>/run/</code></td><td>来自 Garmin 的跑步数据…</td></tr>
+    <tr><td class="num">42</td><td>《周刊 3》</td><td>第 3 期周刊：冬天皮肤干到起皮…</td></tr>
+    <tr><td class="num">44</td><td>《周刊 1》</td><td>第 1 期周刊，也就是这个栏目的起点…</td></tr>
+    <tr><td class="num">49</td><td>《军训，什么时候能取消》</td><td>站在一个普通学生和公民的视角…</td></tr>
+  </table>
+
+  <p>
+    另外《使用 Mac 5+ 年，我保留了哪些软件》的 description 是 <strong>169 字</strong>，
+    会在结果页被截断成半句，建议压到 110–120 字。
+  </p>
+
+  <p>
+    参照：Google 中文结果页大约显示 <strong>78 个汉字</strong>（约 156 字节）后截断。
+    建议区间 <strong>60–110 字</strong>。
+  </p>
+</div>
+
+<h2><span class="num">05</span>需要你去 Search Console 确认的四件事</h2>
+
+<p>
+  有几件事在站点外部，我无法从代码侧判定。按重要性排列：
+</p>
+
+<div class="card">
+  <h3>① 抓取统计信息 → Googlebot 拿到的 HTTP 状态码</h3>
+  <p>
+    这一条<strong>最值得先看</strong>。我实测发现本站对非浏览器 UA 有拦截行为：
+  </p>
+<pre><code>curl 默认 UA  → https://hulatu.com/posts/.../  → 403
+Googlebot UA  → 同一地址                      → 无响应（000）</code></pre>
+  <p>
+    这两个结果<strong>不能</strong>直接推出「Googlebot 被拦」——Cloudflare 会按反向 DNS
+    校验伪造的 Googlebot，我用普通 IP 冒充必然失败。但它说明站前确实存在
+    <strong>UA 维度的访问控制</strong>。
+  </p>
+  <p>
+    去 GSC 看「设置 → 抓取统计信息 → 按响应」：如果出现 403 或 5xx 的明显占比，
+    就是 Cloudflare 的 Bot Fight Mode / WAF 在拦真实爬虫，这会导致<strong>大面积不收录</strong>，
+    必须立刻在 Cloudflare 后台放行 Verified Bots。
+  </p>
+</div>
+
+<div class="card">
+  <h3>② 网页编入索引 → 已排除清单</h3>
+  <p>预期会看到（<strong>这些都是正常的</strong>）：</p>
+  <table>
+    <tr><th>原因</th><th class="num">预期条数</th><th>是否要处理</th></tr>
+    <tr><td>已提交但被 noindex 排除 / noindex</td><td class="num">226</td><td>否，设计意图</td></tr>
+    <tr><td>网页会自动重定向</td><td class="num">2</td><td>否（<code>/tags/</code> <code>/categories/</code> → <code>/archive/</code>）</td></tr>
+    <tr><td>已抓取 - 尚未编入索引</td><td class="num">?</td><td><strong>要</strong>，见下</td></tr>
+    <tr><td>已发现 - 尚未编入索引</td><td class="num">?</td><td><strong>要</strong>，见下</td></tr>
+  </table>
+  <p>
+    后两项如果数量超过 10，且落在<strong>正文文章</strong>上，说明内容被判为低价值或重复。
+    本站正文中位数 2294 字、最短 348 字，<strong>只有 2 篇低于 500 字</strong>
+    （《剪辑生活Vlog》348 字、《假期余额归零，我已到校》411 字），不构成批量问题。
+  </p>
+</div>
+
+<div class="card">
+  <h3>③ 网址检查：抽 3 篇看实际状态</h3>
+  <p>
+    建议抽最新的、最老的、以及一篇周刊。若显示「已抓取 - 尚未编入索引」，
+    说明 Google 认可抓取但不认可价值 —— 那就回到第 4 节（内链 + 标签合并）。
+  </p>
+</div>
+
+<div class="card">
+  <h3>④ 增强功能 → 文章</h3>
+  <p>
+    本站 BlogPosting 的必填四项（<code>headline</code> / <code>image</code> /
+    <code>datePublished</code> / <code>author</code>）实测齐全，应当显示为「有效」。
+    如果这里报错，先看 <code>image</code> 是否被拒（当前是 <code>share.webp</code>）。
+  </p>
+</div>
+
+<h2><span class="num">06</span>不建议改的三处</h2>
+
+<p>避免过度优化，这三点我实测后认为<strong>不该动</strong>：</p>
+
+<table class="boxed">
+  <tr><th>项</th><th>现状</th><th>为什么不改</th></tr>
+  <tr>
+    <td><code>/posts/</code> 是 noindex</td>
+    <td>正文页，且不在 sitemap</td>
+    <td>它与 <code>/archive/</code> 的 133 条链接<strong>100% 重叠</strong>，
+        导航也不链它。让它 noindex 正好避免两个近重复列表页。已核对：sitemap 里确实没有它。</td>
+  </tr>
+  <tr>
+    <td><code>/tags/</code> <code>/categories/</code> 返回 301</td>
+    <td>→ <code>/archive/</code></td>
+    <td>这两个索引页被 <code>disableKinds = ["taxonomy"]</code> 关掉了。
+        301 比 404 好（保留任何历史外链的权重），且它们不在 sitemap、不被链接。</td>
+  </tr>
+  <tr>
+    <td>CSS 全内联（18 KB / 页）</td>
+    <td>每页都带完整样式</td>
+    <td>这是刻意取舍。首屏无额外请求，gzip 后整页中位数 12 KB，实测不是瓶颈。</td>
+  </tr>
+</table>
+
+<p class="sub">
+  附带一个不影响收录、但值得知道的事实：<code>static/images/share.webp</code> 的实际字节是
+  <strong>JPEG</strong>（服务端返回 <code>image/jpeg</code>）。文件名与内容不一致，
+  但 Google 与社交平台都按内容嗅探，不影响展示。
+</p>
+
+<h2><span class="num">07</span>建议的执行顺序</h2>
+
+<table class="boxed">
+  <tr><th class="num">顺序</th><th>动作</th><th>工作量</th><th>预期效果</th></tr>
+  <tr>
+    <td class="num">1</td>
+    <td>GSC 查抓取统计信息（第 5 节 ①）</td>
+    <td>10 分钟</td>
+    <td>排除「系统性拦截」这个最大风险</td>
+  </tr>
+  <tr>
+    <td class="num">2</td>
+    <td>分类页分级放行 + 5 篇 description</td>
+    <td>约 1 小时</td>
+    <td>新增 5 个可索引主题枢纽，内链可按主题分流</td>
+  </tr>
+  <tr>
+    <td class="num">3</td>
+    <td>JSON-LD <code>image</code> 改用逐篇 OG 图</td>
+    <td>15 分钟</td>
+    <td>133 篇文章的富媒体缩略图差异化</td>
+  </tr>
+  <tr>
+    <td class="num">4</td>
+    <td>标签 213 → 50–60 合并</td>
+    <td>2–3 小时</td>
+    <td>相关文章质量上升、抓取预算回落</td>
+  </tr>
+  <tr>
+    <td class="num">5</td>
+    <td>正文内链补齐（每周 5 篇）</td>
+    <td>持续</td>
+    <td>主题相关性信号，长期收益最大</td>
+  </tr>
+</table>
+
+<footer>
+  <p>
+    全部数据来自 2026-10-26 的本地构建产物（<code>public/</code>，370 页 / 366 HTML / 0 警告）
+    与线上实测（<code>curl</code> 对 <code>https://hulatu.com</code>）。
+    凡标「实测」的数字均可复现。
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

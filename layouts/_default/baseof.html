@@ -28,8 +28,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   {{- partial "favicon.html" . -}}
   <title>{{- block "title" . }}{{ with .Title }}{{ . }} | {{ end }}{{ .Site.Title }}{{- end }}</title>
-  {{- $noindex := or (eq .Data.Plural "tags") (eq .Data.Plural "categories") (eq .Kind "404") (eq .Params.noindex true) -}}
-  {{- if $noindex }}
+  {{- /* 判定逻辑已抽到 `layouts/partials/noindex.html`（2026-10-26）。
+        原来这里和 sitemap.xml 各写一份同样的 `or(...)`，两份文件的注释
+        都写着「必须逐字一致」—— 现在只有一份，改口径只改 partial。 */ -}}
+  {{- if partial "noindex.html" . }}
   <meta name="robots" content="noindex, follow">
   {{- end }}
 

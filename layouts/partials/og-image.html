@@ -1,0 +1,35 @@
+{{- /* 分享卡片图的**唯一**取值来源（2026-10-26 抽出）
+
+      ── 为什么抽出来 ────────────────────────────────────────────────
+      这套「按 slug 找 images/og/<slug>.png，找不到回落 share.webp」的逻辑
+      原本在 `_partials/opengraph.html` 与 `_partials/twitter_cards.html`
+      各写了一份，两份文件的注释里都写着「必须逐字一致，否则分享卡片不一样」。
+      2026-10-26 给 JSON-LD 的 `image` 也用同一张图时，它会变成**第三份** ——
+      三处逐字对齐靠人记不可靠，于是收成这个 partial，三处都调它。
+
+      ── 取值顺序 ────────────────────────────────────────────────────
+        ① 长文页（posts / weekly）→ images/og/<slug>.png（scripts/gen-og.js 生成）
+        ② 取不到 → site.Params.images 的第一张（images/share.webp）
+      返回**绝对 URL**。调用方不要再套 absURL，否则是二次处理。
+
+      ⚠️ `fileExists` 查的是**磁盘文件**，路径相对项目根，所以必须写 `static/`。
+         漏了 `static/` 会永远返回 false，症状是「图生成了但页面仍用兜底图」，
+         而构建 0 警告。
+      ⚠️ 用 `.Slug`，与 scripts/gen-og.js 里 `hugo list all` 的 slug 列同源。
+         不要改成 `.File.TranslationBaseName` —— 某篇 front matter 写了 `slug:`
+         时两边会对不上。
+      ⚠️ `return` 之前不能有任何输出（下面全是 `{{- -}}`），否则返回值会被拼进 HTML。
+      ============================================================ */ -}}
+{{- $img := "" -}}
+{{- if and .IsPage (in (slice "posts" "weekly") .Type) -}}
+  {{- $rel := printf "images/og/%s.png" .Slug -}}
+  {{- if fileExists (printf "static/%s" $rel) -}}
+    {{- $img = $rel | absURL -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $img -}}
+  {{- with .Site.Params.images -}}
+    {{- $img = index . 0 | absURL -}}
+  {{- end -}}
+{{- end -}}
+{{- return $img -}}
