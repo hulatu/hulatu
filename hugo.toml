@@ -246,7 +246,10 @@ disableKinds = ["taxonomy"]
 # 会直接多出 140 个 .xml。这几行把它们压回 HTML-only，
 # 只有首页主源和周刊（content/weekly/_index.md 里单独开了 outputs）出 feed。
 [outputs]
-  home = ["HTML", "RSS"]
+  # 2026-10-26：home 加了 "JSON" —— 列表页的搜索框要能搜正文，
+  # 索引由 `layouts/index.json` 生成，产物是 `/index.json`（约 1.03 MB / gzip 442 KB，
+  # 前端只在用户开始输入时懒加载一次）。模板里有详细说明与体积实测。
+  home = ["HTML", "RSS", "JSON"]
   section = ["HTML"]
   taxonomy = ["HTML"]
   term = ["HTML"]

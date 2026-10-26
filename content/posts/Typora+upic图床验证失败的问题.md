@@ -3,6 +3,7 @@ title: "Typora + Upic图床验证失败的问题"
 categories: ["工具"]
 tags: ["写作", "图片"]
 date: 2026-01-18T22:08:48+08:00
+lastmod: 2026-10-26T12:45:08+08:00
 slug: "image-hosting-service-blog"
 
 draft: false
@@ -39,6 +40,6 @@ uPic/{random}{.suffix}
 
 ![推荐设置 + 验证图片上传](https://img.hulatu.com/post/bBq6LU.png)
 
-![成功](https://img.hulatu.com/post/SR2cfS.png)
+![Typora 里 uPic 图床验证成功的提示](https://img.hulatu.com/post/SR2cfS.png)
 
 希望对大家有帮助，谢谢！

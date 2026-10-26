@@ -73,6 +73,8 @@
           而 `og:description` 已经带着同一句话，Google / 社交卡片读的是它。
           → JSON-LD 只留 headline / url / 日期 / image / author / wordCount，
             不重复一份长文本。
+            （2026-10-26 补了 inLanguage / articleSection / keywords 三个**短值**，
+              仍然不含任何长文本 —— 这条原则没破。别往里加 description。）
 
        ⚠️⚠️ 三个坑与 `layouts/partials/breadcrumbs.html` 的 JSON-LD 完全相同：
        ① 必须 `| jsonify | safeJS`，否则 Go 的 html/template 把整段包成
@@ -115,11 +117,28 @@
            而这批页面 fallback 到旧的 itemprop 只有 6 个短 meta ≈ 400 B，
            极简 WebPage ≈ 120 B，反而比改之前**更小**。 */ -}}
   {{- if in (slice "posts" "weekly") .Type -}}
+  {{- /* 2026-10-26 补三个字段：articleSection / keywords / inLanguage。
+        都是**短值**，不会把「不重复长文本」这条原则破掉：
+          · articleSection = 分类（一个词，如「工具」）
+          · keywords       = 标签逗号拼接（Schema.org 允许逗号分隔的字符串，
+                             也允许重复属性；Google 的 Article 文档两种都收）
+          · inLanguage     = 站点 locale（zh-CN）
+        ⚠️ `with` 会重绑定 `.`，所以两个值都**先取进具名变量**再进 dict，
+           否则 `index . 0` 里的 `.` 已经不是页面了（本仓踩过同类坑）。
+        ⚠️ 分类和标签都可能为空（比如根级独立页走不到这个分支，但周刊早期
+           有几篇没写 categories），所以两个都用 `merge` 条件追加，
+           不能直接塞进 `dict` —— 塞空值会输出 `"articleSection":""`，
+           Google 的富媒体测试会报「字段为空」。 */ -}}
+  {{- $section := "" -}}
+  {{- with .Params.categories }}{{ $section = index . 0 }}{{ end -}}
+  {{- $keywords := "" -}}
+  {{- with .Params.tags }}{{ $keywords = delimit . ", " }}{{ end -}}
   {{- $ld := dict "@context" "https://schema.org" "@type" "BlogPosting"
       "headline" .Title
       "url" .Permalink
       "mainEntityOfPage" (dict "@type" "WebPage" "@id" .Permalink)
       "wordCount" .WordCount
+      "inLanguage" .Site.Language.Locale
       "author" (dict "@type" "Person" "name" .Site.Params.author.name "url" .Site.BaseURL)
       "publisher" (dict "@type" "Organization" "name" .Site.Title)
       "image" (slice $img) -}}
@@ -128,6 +147,12 @@
   {{- end -}}
   {{- with .Lastmod -}}
     {{- $ld = merge $ld (dict "dateModified" (.Format "2006-01-02T15:04:05-07:00")) -}}
+  {{- end -}}
+  {{- with $section -}}
+    {{- $ld = merge $ld (dict "articleSection" .) -}}
+  {{- end -}}
+  {{- with $keywords -}}
+    {{- $ld = merge $ld (dict "keywords" .) -}}
   {{- end -}}
 <script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>
   {{- else -}}

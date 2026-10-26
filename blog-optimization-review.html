@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>还能优化什么 · hulatu.com</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --text: #1c1c1e;
+    --muted: #6b6b70;
+    --faint: #8e8e93;
+    --border: #e5e5e3;
+    --accent: #1e3a5f;
+    --p1: #b42318;
+    --p1bg: #fef3f2;
+    --p2: #b54708;
+    --p2bg: #fffaeb;
+    --p3: #5c5c66;
+    --p3bg: #f4f4f2;
+    --ok: #067647;
+    --okbg: #ecfdf3;
+    --thbg: #fafaf8;
+    --codebg: #f0f0ee;
+    --prebg: #fbfbfa;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17171a;
+      --card: #1e1e22;
+      --text: #ececef;
+      --muted: #a1a1a8;
+      --faint: #86868e;
+      --border: #2e2e34;
+      --accent: #9dc0e8;
+      --p1: #ff8b80;
+      --p1bg: #3a1d1a;
+      --p2: #f5c169;
+      --p2bg: #3a2c14;
+      --p3: #a5a5ad;
+      --p3bg: #26262b;
+      --ok: #6ee7a8;
+      --okbg: #16311f;
+      --thbg: #232328;
+      --codebg: #2a2a30;
+      --prebg: #202024;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 48px 24px 96px;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.75 -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  header { margin-bottom: 40px; }
+  .kicker {
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 12px;
+  }
+  h1 {
+    font-size: 30px; line-height: 1.35; margin: 0 0 14px;
+    letter-spacing: -.01em; font-weight: 700;
+  }
+  .lede { font-size: 17px; color: var(--muted); margin: 0; max-width: 72ch; }
+
+  .meta {
+    margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--faint);
+    display: flex; flex-wrap: wrap; gap: 8px 22px;
+  }
+  .meta b { color: var(--muted); font-weight: 600; }
+
+  h2 {
+    font-size: 20px; margin: 52px 0 6px; font-weight: 700;
+    letter-spacing: -.005em;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  h2 .num {
+    font-size: 13px; color: var(--faint); font-weight: 600;
+    margin-right: 10px; font-family: var(--mono);
+  }
+  h3 { font-size: 16px; margin: 28px 0 8px; font-weight: 650; }
+  p { margin: 12px 0; }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px 24px; margin: 18px 0;
+  }
+  .card > :first-child { margin-top: 0; }
+  .card > :last-child { margin-bottom: 0; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-size: 14.5px; background: var(--card);
+  }
+  th, td {
+    text-align: left; padding: 10px 12px;
+    border-bottom: 1px solid var(--border); vertical-align: top;
+  }
+  th {
+    font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--faint); font-weight: 600; background: var(--thbg);
+    border-bottom: 1px solid var(--border);
+  }
+  tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.boxed { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+
+  code {
+    font-family: var(--mono); font-size: .88em;
+    background: var(--codebg); padding: 1px 5px; border-radius: 4px;
+  }
+  pre {
+    background: var(--prebg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; margin: 14px 0;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  .badge {
+    display: inline-block; font-size: 11.5px; font-weight: 700;
+    padding: 2px 9px; border-radius: 999px; letter-spacing: .02em;
+    vertical-align: 1px;
+  }
+  .b1 { color: var(--p1); background: var(--p1bg); }
+  .b2 { color: var(--p2); background: var(--p2bg); }
+  .b3 { color: var(--p3); background: var(--p3bg); }
+  .bok { color: var(--ok); background: var(--okbg); }
+
+  .finding {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px 24px; margin: 20px 0;
+    border-left: 3px solid var(--border);
+  }
+  .finding.p1 { border-left-color: var(--p1); }
+  .finding.p2 { border-left-color: var(--p2); }
+  .finding.p3 { border-left-color: #c9c9c4; }
+  .finding > h3 { margin-top: 0; }
+
+  ul, ol { margin: 12px 0; padding-left: 22px; }
+  li { margin: 6px 0; }
+
+  .callout {
+    background: var(--thbg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 18px; margin: 18px 0; font-size: 14.5px;
+  }
+  .callout strong { color: var(--accent); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  footer {
+    margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--faint);
+  }
+  .tick { color: var(--ok); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">Site Optimization Review</p>
+  <h1>还能优化什么</h1>
+  <p class="lede">
+    前几轮把<strong>技术层</strong>基本做完了：sitemap 与 noindex 零冲突、canonical 全自指、
+    每页恰好一个 h1、图片管线带 srcset、分类页放行、JSON-LD 逐篇取图。
+    这次实测下来，剩下的问题<strong>几乎全在内容侧</strong>——模板不用再动，动的是文章和 front matter。
+  </p>
+  <div class="meta">
+    <span><b>实测时间</b> 2026-10-26 11:50</span>
+    <span><b>构建</b> 370 页 / 366 HTML / 0 警告</span>
+    <span><b>可索引</b> 148 页</span>
+    <span><b>noindex</b> 218 页</span>
+  </div>
+</header>
+
+<h2><span class="num">01</span>先确认：这些已经没问题了</h2>
+
+<p>
+  避免把「已经做完的事」再提一遍，先把实测通过项列清楚。下面这些<strong>本轮不需要动</strong>。
+</p>
+
+<table class="boxed">
+  <tr><th>检查项</th><th>实测</th><th class="num">判定</th></tr>
+  <tr><td>h1</td><td>366 页<strong>每页恰好 1 个</strong>，跳级 0</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>sitemap</td><td>148 条，与 218 个 noindex 页<strong>零交集</strong></td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>可发现性</td><td>133 篇入链<strong>最低 7 / 中位 13</strong>，无孤儿页</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>相关文章</td><td>133 个文章页<strong>全部</strong>渲染出推荐块</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>图片</td><td>353 张：<code>alt</code> 空值 <strong>0</strong>、<code>width+height</code> <strong>353</strong>、<code>decoding=async</code> <strong>353</strong>、<code>srcset</code> <strong>342</strong>、<code>lazy</code> 279（74 张首图刻意不 lazy）</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>描述覆盖</td><td>365 页中 364 页有，中位 <strong>60 字</strong>、均值 61.6</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>结构化数据</td><td>BlogPosting 有 headline / datePublished / dateModified / author / image / wordCount；BreadcrumbList 正确</td><td class="num"><span class="badge bok">通过</span></td></tr>
+  <tr><td>页面体积</td><td>HTML 中位 <strong>17.4 KB</strong>、最大 81.4 KB（gzip 26.6 KB）；首页 gzip <strong>6.0 KB</strong></td><td class="num"><span class="badge bok">通过</span></td></tr>
+</table>
+
+<p>
+  所以下面只列<strong>真的还有空间</strong>的十项，按「做了之后能感觉到」排序。
+</p>
+
+<h2><span class="num">02</span>P1 · 正文内链：90% 的文章一条都没有</h2>
+
+<div class="finding p1">
+  <h3><span class="badge b1">P1</span> 文章之间是「并列」的，不是「网状」的</h3>
+
+  <p>实测 133 篇文章的正文（<code>&lt;content&gt;</code> 内部）指向其他文章的链接：</p>
+
+  <table>
+    <tr><th>指标</th><th class="num">值</th></tr>
+    <tr><td>正文内链为 <strong>0</strong> 的文章</td><td class="num"><strong>120 / 133（90%）</strong></td></tr>
+    <tr><td>有内链的文章</td><td class="num">13 篇，最多的一篇 11 条</td></tr>
+    <tr><td>全站正文内链总数</td><td class="num"><strong>34 条</strong></td></tr>
+  </table>
+
+  <p>
+    <strong>注意这不是「孤儿页」问题。</strong>每篇文章的入链中位数是 13 次，全部来自
+    <code>/posts/</code>、<code>/archive/</code>、首页和相关文章块——Google 爬得到，两天内就能收录。
+    缺的是<strong>语义关联</strong>：
+  </p>
+
+  <ol>
+    <li><strong>权重无法按主题聚拢。</strong>列表页给的链接是「按时间排的」，没有主题信号；
+        一篇文章提到「降噪耳机」，另一篇讲「通勤装备」，两者之间没有链接，Google 就不知道它们相关。</li>
+    <li><strong>相关文章块是模板算的，不是作者指的。</strong>它按共享标签打分（阈值 20），
+        标签本身有 74% 只用过一次，所以推荐质量受限于标签质量——这跟第 03 节是同一个根因。</li>
+    <li><strong>读者的阅读路径断了。</strong>读完一篇想顺着看下去，只能回列表页重新挑。</li>
+  </ol>
+
+  <h3>为什么不能「批量补」</h3>
+  <p>
+    一次性给 120 篇各塞 3 条链接，会造出大量「见《xxx》」式的空洞锚文本，
+    既不像人写的，也容易被判为链接农场。这件事只能<strong>顺着写作节奏做</strong>：
+  </p>
+
+  <div class="callout">
+    <strong>可执行的做法（按性价比排）</strong>
+    <ol style="margin-bottom:0">
+      <li><strong>新文章发布时补两条</strong>：写完先别发，从旧文里挑 2 篇真正相关的，
+          在正文里自然引用一次（锚文本用那句话本身的词，不要写「点击这里」）。一次两分钟，一年下来就是 260 条。</li>
+      <li><strong>老文章「回链」</strong>：新文提到旧文时，顺手去旧文里补一句「后来在《新文》里又聊过」。
+          单向链变双向链，是内链里最值钱的一种。</li>
+      <li><strong>每季度挑 20 篇补一轮</strong>：优先补「入链最少」的那批——
+          当前最低的 6 篇是 <code>good-news-and-good-feelings</code>、<code>partner</code>、
+          <code>talk-about-topics</code>、<code>personal-profile</code>、
+          <code>music-sharing</code>、<code>trip</code>（各 7–8 条，全部来自列表页）。</li>
+    </ol>
+  </div>
+
+  <p>
+    如果愿意，我可以写一个 <code>scripts/suggest-links.py</code>：输入一篇文章，
+    按「共享标签数 + 分类相同 + 时间接近」排出 5 篇最该链的旧文，写新文时跑一下就有候选。
+    它只读 front matter，不改任何文件。
+  </p>
+</div>
+
+<h2><span class="num">03</span>P1 · 标签长尾：212 个里 157 个只用过一次</h2>
+
+<div class="finding p1">
+  <h3><span class="badge b1">P1</span> 标签在当「关键词」用，而不是当「主题」用</h3>
+
+  <table>
+    <tr><th>使用次数</th><th class="num">标签数</th><th class="num">占比</th></tr>
+    <tr><td>1 次</td><td class="num"><strong>157</strong></td><td class="num">74%</td></tr>
+    <tr><td>2 次</td><td class="num">24</td><td class="num">11%</td></tr>
+    <tr><td>3 次</td><td class="num">12</td><td class="num">6%</td></tr>
+    <tr><td>≥ 4 次</td><td class="num">19</td><td class="num">9%</td></tr>
+  </table>
+
+  <p>
+    标签页现在是 <code>noindex</code>（这个判断是对的：157 个标签页各自只有 1 篇文章，
+    和文章本身几乎同构，放行只会给 Search Console 添一堆「已抓取 - 尚未编入索引」）。
+    但标签还有<strong>第二个用途</strong>——它是相关文章打分的唯一输入。
+    74% 的标签只出现一次，等于<strong>大部分标签对推荐毫无贡献</strong>。
+  </p>
+
+  <h3>建议：157 个单次标签里有 10 组明显的同义簇</h3>
+
+  <p>这些标签是同一个话题的不同说法，归并后话题密度立刻上来：</p>
+
+  <table class="boxed">
+    <tr><th>簇</th><th>可归并的标签</th></tr>
+    <tr><td><strong>数码设备</strong></td><td>android、iphone、平板、手表、耳机、电脑、硬盘、设备、装备、扩展、设置</td></tr>
+    <tr><td><strong>饮食减脂</strong></td><td>饮食、减脂、蛋白、鸡蛋、零食、解馋、大餐、汉堡、喝茶、体重</td></tr>
+    <tr><td><strong>情绪状态</strong></td><td>忧郁、情绪、摆烂、安静、矛盾、自我、自由、欲望、无欲、掌控感、自信、幸福感、状态</td></tr>
+    <tr><td><strong>写作与工具</strong></td><td>写作工具、排版、美化、作图、剪辑、摄影、图片、文件、文献管理、浏览器、聚合器、开源</td></tr>
+    <tr><td><strong>求职职场</strong></td><td>简历、面试、求职、职业、项目、运营、开会、沟通、讨论</td></tr>
+    <tr><td><strong>读书学习</strong></td><td>读书、读者、看书、知识、总结、复盘、方法论</td></tr>
+    <tr><td><strong>金钱消费</strong></td><td>储蓄、金钱观、财富、资产、性价比、付费、杠杆、红利、小狗钱钱</td></tr>
+    <tr><td><strong>出行旅游</strong></td><td>南昌、河南、日本、游记、旅游、漫游、风景、出去、返校</td></tr>
+    <tr><td><strong>健康作息</strong></td><td>健康、生病、新冠、睡眠、呼吸、早起、精力管理、戒色、自律</td></tr>
+    <tr><td><strong>人际社交</strong></td><td>朋友、室友、交往、交流、请客、聚餐、鼓励、平凡、普通人</td></tr>
+  </table>
+
+  <p>
+    这 10 组覆盖约 <strong>95 个</strong>单次标签。归并后总量大致是
+    <code>10（新簇）+ 24（2 次）+ 12（3 次）+ 19（≥4 次）≈ 65</code>，
+    正好落在「标签有意义」的区间。单篇 2–4 个标签的写作习惯不用改。
+  </p>
+
+  <div class="callout">
+    <strong>⚠️ 两个技术前提</strong>
+    <ol style="margin-bottom:0">
+      <li><strong>改的是文章 front matter 的 <code>tags</code> 数组</strong>，不是建新文件。
+          旧的 <code>/tags/&lt;词&gt;/</code> 页会随之消失（它们本来就 noindex，SEO 无损），
+          但会留下 157 个 404 —— 要顺手在 <code>static/_redirects</code> 里加 301 到新簇。</li>
+      <li><strong>不要一次改完。</strong>先挑 2–3 组（比如「数码设备」「饮食减脂」）试一遍，
+          看相关文章块的推荐质量有没有变化，再决定要不要继续。</li>
+    </ol>
+  </div>
+</div>
+
+<h2><span class="num">04</span>P2 · 分享卡片缺 <code>article:*</code> 四件套</h2>
+
+<div class="finding p2">
+  <h3><span class="badge b2">P2</span> 分享到 Slack / Telegram / LinkedIn 看不到日期和作者</h3>
+
+  <p>文章页当前的 OG 标签实测只有 9 个：</p>
+
+<pre><code>og:title  og:description  og:type  og:url
+og:image  og:image:width  og:image:height  og:locale  og:site_name</code></pre>
+
+  <p>
+    缺 <code>article:published_time</code>、<code>article:modified_time</code>、
+    <code>article:author</code>、<code>article:tag</code>。
+    全站 366 页里这四项<strong>出现 0 次</strong>。Facebook / LinkedIn / Slack / Telegram
+    的 unfurl 都会读它们，缺了就只显示一个光秃秃的标题。
+  </p>
+
+  <p>
+    数据是现成的——JSON-LD 里已经有 <code>datePublished</code>、<code>dateModified</code>、
+    <code>author</code>、标签列表，只是没往 OG 里写。改一个文件：
+    <code>layouts/_partials/opengraph.html</code>，在 <code>og:type</code> 后面补四行。
+  </p>
+
+  <p class="sub">
+    顺带两个同类小缺口：<code>og:image:alt</code>（0 处，图片无障碍读屏要用）、
+    <code>twitter:site</code>（0 处，有这个才会在卡片上显示 @账号）。
+  </p>
+</div>
+
+<h2><span class="num">05</span>P2 · 五个根级页的 description 只有一两句话</h2>
+
+<div class="finding p2">
+  <h3><span class="badge b2">P2</span> 文章页没问题，独立页偏短</h3>
+
+  <p>
+    先说结论：<strong>文章页的描述是健康的</strong>，中位 60 字、均值 61.6，
+    对中文来说正好是 Google 摘要的舒适区。真正偏短的只有 5 个根级页：
+  </p>
+
+  <table>
+    <tr><th>页面</th><th class="num">description 字数</th><th>现状</th></tr>
+    <tr><td><code>/now/</code></td><td class="num"><strong>12</strong></td><td>最短，几乎等于没写</td></tr>
+    <tr><td><code>/weekly/</code></td><td class="num">25</td><td>偏短</td></tr>
+    <tr><td><code>/roll/</code></td><td class="num">33</td><td>偏短</td></tr>
+    <tr><td><code>/run/</code></td><td class="num">41</td><td>偏短</td></tr>
+    <tr><td><code>/donate/</code></td><td class="num">46</td><td>偏短</td></tr>
+  </table>
+
+  <p>
+    这 5 页里<strong>只有 <code>/donate/</code> 是 <code>noindex</code></strong>，
+    另外 4 个（<code>/now/</code>、<code>/weekly/</code>、<code>/roll/</code>、<code>/run/</code>）
+    全部在 sitemap 里、是可索引的落地页，值得各写满 60 字左右。
+    改的是各页 front matter 的 <code>description</code>，不用动模板。
+  </p>
+</div>
+
+<h2><span class="num">06</span>P2 · 页面上不显示「更新于」，但数据是有的</h2>
+
+<div class="finding p2">
+  <h3><span class="badge b2">P2</span> 长期维护的博客，这个信息对读者有用</h3>
+
+  <p>
+    JSON-LD 里 <code>dateModified</code> 一直是对的（例如
+    <code>2026-10-26T11:21:44+08:00</code>），sitemap 的 148 条也全部带 <code>lastmod</code>。
+    但文章页面上<strong>只显示发布日期</strong>，读者看不到「这篇最近改过」。
+  </p>
+
+  <p>
+    对一个「电子产品清单」这类会过期的文章来说，这个信号挺重要。
+    做法：在 <code>layouts/_default/single.html</code> 的日期行加一个条件——
+    <code>dateModified</code> 比 <code>date</code> 晚 1 天以上才显示「更新于 …」，
+    否则只显示发布日期，避免每篇都挂两个日期。
+  </p>
+</div>
+
+<h2><span class="num">07</span>P3 · 五项打磨，一次做完不费事</h2>
+
+<table class="boxed">
+  <tr><th>项</th><th>实测</th><th>改哪儿</th></tr>
+  <tr>
+    <td><strong>图片 alt 是数字</strong></td>
+    <td>71 张图的 alt 是 <code>1</code>…<code>7</code> 或长度 ≤ 2 的残词，涉及 25 个页面（相册类文章为主）</td>
+    <td>正文里的图片 alt 文案。读屏用户和图片搜索都吃这个</td>
+  </tr>
+  <tr>
+    <td><strong>没有 webmanifest</strong></td>
+    <td>已有 <code>favicon.svg</code> + 5 个光栅件（含 <code>icon-192/512</code>、<code>apple-touch-icon</code>），但缺 <code>manifest.webmanifest</code></td>
+    <td>新建 <code>static/manifest.webmanifest</code> + head 里一行 <code>link</code>。加完安卓「添加到主屏」才有正经图标与名称</td>
+  </tr>
+  <tr>
+    <td><strong>搜索只搜标题</strong></td>
+    <td>实现是 <code>title.includes(term)</code>，正文不参与</td>
+    <td>想搜正文就要生成 <code>search.json</code> 索引（约 133 条 × 摘要）。当前 133 篇搜标题够用，属于「想清楚再做」</td>
+  </tr>
+  <tr>
+    <td><strong><code>/posts/</code> 不分页</strong></td>
+    <td>单页 107 条，39.8 KB / gzip 10.9 KB</td>
+    <td><strong>建议不动</strong>——见第 08 节</td>
+  </tr>
+  <tr>
+    <td><strong>BlogPosting 缺三项</strong></td>
+    <td>没有 <code>articleSection</code>（分类）、<code>keywords</code>（标签）、<code>inLanguage</code></td>
+    <td><code>layouts/partials/seo_tags.html</code>，数据都现成。属于「更规范」，不是「更有效」</td>
+  </tr>
+</table>
+
+<h2><span class="num">08</span>不建议做的（免得来回折腾）</h2>
+
+<p>这几件事我考虑过，结论是<strong>保持现状更好</strong>，理由都写在这里，以后不必再评估一遍。</p>
+
+<div class="card">
+  <h3 style="margin-top:0">① 给标签页开索引</h3>
+  <p>
+    157 个标签只对应 1 篇文章。开索引等于凭空多 157 个「和文章几乎重复」的薄页面，
+    只会把 Search Console 的「已抓取 - 尚未编入索引」从 0 撑到三位数。<strong>先做第 03 节的标签归并</strong>，
+    等出现 ≥ 10 篇文章的标签，再考虑像分类页那样分级放行。
+  </p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">② 给 <code>/posts/</code> 加分页 / 无限滚动</h3>
+  <p>
+    107 条全部渲染出来只有 39.8 KB，gzip 后 <strong>10.9 KB</strong>，一次请求就到位。
+    加分页会变成 11 次请求，无限滚动还要引入 JS 与滚动监听——纯亏。
+    <code>/archive/</code> 同理：133 条 gzip 15.2 KB，是可索引页里最省的一个。
+  </p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">③ 加一个深色/浅色切换按钮</h3>
+  <p>
+    现在跟随系统（<code>prefers-color-scheme</code>），两套配色都完整。加手动切换要处理
+    首屏闪烁（FOUC）、<code>localStorage</code> 同步、按钮的无障碍标签，
+    而收益只是「系统是浅色但我想看深色」这一种情况。
+  </p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">④ 把内联 CSS 拆成外部文件</h3>
+  <p>
+    CSS 全内联是既定架构（产物没有 <code>/css/</code> 目录），首页 gzip 后 CSS 只占 3.4 KB。
+    拆出去会多一个请求 + 一次往返，在 TTFB 本来就慢的链路上是负优化。
+  </p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">⑤ Service Worker / 离线阅读</h3>
+  <p>
+    博客不需要离线。加了要维护缓存版本号，改版后用户可能看到旧页面——
+    这正是首页 Edge 缓存那件事已经踩过的坑。
+  </p>
+</div>
+
+<h2><span class="num">09</span>当前基线（下次改完拿来对比）</h2>
+
+<table class="boxed">
+  <tr><th>指标</th><th class="num">当前值</th><th>说明</th></tr>
+  <tr><td>页面 / HTML</td><td class="num">370 / 366</td><td>干净构建 0 警告</td></tr>
+  <tr><td>可索引 / noindex</td><td class="num">148 / 218</td><td>零交集</td></tr>
+  <tr><td>文章 / 周刊</td><td class="num">106 / 27</td><td>共 133 个内容页</td></tr>
+  <tr><td>分类 / 标签</td><td class="num">8 / 212</td><td>分类全部可索引；标签全部 noindex</td></tr>
+  <tr><td>正文内链为 0 的文章</td><td class="num">120 / 133</td><td>本节第 02 项的目标值：降到 &lt; 60</td></tr>
+  <tr><td>单次标签</td><td class="num">157 / 212</td><td>第 03 项的目标值：归并到 &lt; 30</td></tr>
+  <tr><td>每篇入链</td><td class="num">7 / 13 / 13.8</td><td>最低 / 中位 / 均值</td></tr>
+  <tr><td>图片</td><td class="num">353</td><td>空 alt 0；alt 过短 71</td></tr>
+  <tr><td>首页 CSS</td><td class="num">11996 / 3419</td><td>raw（<strong>字节</strong>）/ gzip</td></tr>
+  <tr><td>首页 HTML</td><td class="num">18028 / 5977</td><td>raw / gzip</td></tr>
+</table>
+
+<footer>
+  实测基于 <code>hugo --cleanDestinationDir</code> 的干净构建，统计脚本直接读产物 HTML，
+  不依赖任何外部服务。文中每个数字都可以用 <code>/tmp</code> 下的同款脚本复现。
+</footer>
+
+</div>
+</body>
+</html>

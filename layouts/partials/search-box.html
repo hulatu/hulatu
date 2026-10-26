@@ -1,0 +1,116 @@
+{{- /* ============================================================
+       列表页搜索框 + 过滤脚本（2026-10-26 抽出）
+
+       ── 为什么抽成 partial ──────────────────────────────────────────
+       同一段脚本原本**逐字抄在** `layouts/_default/list.html` 和
+       `layouts/_default/archive.html` 里，两边只有「计数文案」不同
+       （「共 N 篇。」vs「共 N 期周刊内容」）。改搜索逻辑要改两处，
+       而这两处一旦漂移，症状是「/archive/ 搜得出、/posts/ 搜不出」——
+       不会报错，只会让人以为索引坏了。收成一份就不可能漂。
+
+       ── 2026-10-26 改了什么：从「只搜标题」到「标题 + 正文」──────
+       原来只做 `title.includes(term)`。133 篇文章里很多标题是比喻式的
+       （「角落里的学生」「过早引用」），搜「降噪耳机」这种正文词一个字
+       都出不来。现在额外读 `/index.json`（`layouts/index.json` 生成，
+       含每篇的标题 / 标签 / 正文纯文本）。
+
+       ── 三个必须知道的约束 ──────────────────────────────────────────
+       ⚠️ **索引是懒加载的**：只有用户真的在框里打了字才 fetch。
+          索引 1.03 MB / gzip 442 KB（133 篇正文合计 36 万字），
+          在列表页一进来就拉等于每页多下 442 KB —— 那是不能接受的。
+       ⚠️ **它只过滤「当前这一页已有的条目」**，不会跨页检索。
+          这是刻意保持原行为：/archive/ 一页装全部 133 篇，所以在那页
+          等于全站检索；/weekly/ 只有 27 条，就只在这 27 条里搜。
+          想做「全站结果面板」得另写一套 UI，不在这次范围内。
+       ⚠️ **索引拿不到就退回只搜标题**（`state === 'failed'`）。
+          fetch 失败、被拦截、JSON 损坏 —— 任何一种都不该让搜索框变成
+          「什么都不出来」，那比只搜标题更糟。
+       ⚠️ 匹配是**小写后的裸子串**（`indexOf`），没有分词、没有拼音、
+          没有同义词。中文按字匹配已经够用；英文是大小写不敏感的子串。
+       ⚠️ 路径要对得上：`li` 里的链接是**绝对 URL**（`.Permalink`），
+          索引里的 `u` 是 `.RelPermalink`。所以先 `new URL().pathname`
+          归一化，并且**预先算一次存进 `paths`**，不要每次按键重算。
+
+       ── 参数 ────────────────────────────────────────────────────────
+       `countLabel`：计数行里「共 N ___」的后半句。默认「篇。」，
+       周刊页传「期周刊内容」。
+       ============================================================ */ -}}
+{{- $countLabel := .countLabel | default "篇。" -}}
+<input id="search-input" type="search" placeholder="搜索标题或正文…" aria-label="搜索文章标题或正文" style="margin-top: 16px" />
+<script>
+(function () {
+  var input = document.getElementById('search-input');
+  if (!input) return;
+
+  var INDEX_URL = {{ "index.json" | relURL }};
+  var COUNT_LABEL = {{ $countLabel }};
+  var GROUP_BY_YEAR = {{ if site.Params.groupByYear }}true{{ else }}false{{ end }};
+
+  var posts = Array.prototype.slice.call(document.querySelectorAll('.blog-posts li'));
+  var years = Array.prototype.slice.call(document.querySelectorAll('.blog-posts h2'));
+  var countEl = document.getElementById('post-count');
+
+  // 预先归一化路径：li 的 href 是绝对 URL，索引里存的是站内路径
+  var paths = posts.map(function (li) {
+    var a = li.querySelector('a');
+    if (!a) return '';
+    try { return new URL(a.href, location.origin).pathname; } catch (e) { return ''; }
+  });
+
+  var index = null;     // Map<站内路径, 小写全文>
+  var state = 'idle';   // idle | loading | ready | failed
+  var lastTerm = '';
+
+  function loadIndex() {
+    if (state !== 'idle') return;
+    state = 'loading';
+    fetch(INDEX_URL, { credentials: 'same-origin' })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (list) {
+        index = new Map();
+        list.forEach(function (it) {
+          var tags = (it.g && it.g.length) ? it.g.join(' ') : '';
+          index.set(it.u, (it.t + ' ' + tags + ' ' + it.d).toLowerCase());
+        });
+        state = 'ready';
+        if (lastTerm) apply(lastTerm);
+      })
+      .catch(function () { state = 'failed'; });
+  }
+
+  function apply(term) {
+    var visible = 0;
+    var shownYears = {};
+    for (var i = 0; i < posts.length; i++) {
+      var li = posts[i];
+      var a = li.querySelector('a');
+      var title = a ? a.textContent.toLowerCase() : '';
+      var hit = !term || title.indexOf(term) !== -1;
+      if (!hit && index) {
+        var body = index.get(paths[i]);
+        if (body && body.indexOf(term) !== -1) hit = true;
+      }
+      li.style.display = hit ? '' : 'none';
+      if (hit) {
+        visible++;
+        var t = li.querySelector('time');
+        if (t) shownYears[t.getAttribute('datetime').slice(0, 4)] = 1;
+      }
+    }
+    if (GROUP_BY_YEAR) {
+      years.forEach(function (y) {
+        y.style.display = shownYears[y.textContent.trim()] ? '' : 'none';
+      });
+    }
+    // ⚠️ 只用 textContent —— /weekly/ 的 #post-count 是个 <span>，
+    //    后面的「请订阅 RSS」链接在它**外面**；用 innerHTML 会把链接冲掉。
+    if (countEl) countEl.textContent = '共 ' + visible + ' ' + COUNT_LABEL;
+  }
+
+  input.addEventListener('input', function () {
+    lastTerm = this.value.toLowerCase().trim();
+    if (lastTerm) loadIndex();
+    apply(lastTerm);
+  });
+})();
+</script>

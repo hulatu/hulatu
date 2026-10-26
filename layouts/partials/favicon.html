@@ -42,3 +42,37 @@
 <link rel="icon" type="image/png" sizes="192x192" href="{{ "icon-192.png" | absURL }}">
 <link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | absURL }}">
 <link rel="shortcut icon" href="{{ "favicon.ico" | absURL }}">
+
+{{- /* ── Web App Manifest（2026-10-26 新增）──────────────────────────────
+       加它的唯一理由：**安卓 Chrome 的「添加到主屏幕」**。没有 manifest 时
+       Android 会把网页当书签处理，桌面图标用一张自动截图、名字取 <title>，
+       点开还是浏览器界面。有了 manifest 才会用 icon-192/512、按 short_name
+       起名、以 standalone 模式打开（没有地址栏）。
+
+       ⚠️ 文件是 `static/manifest.webmanifest`，**手写的 JSON、不能写注释**
+          —— JSON 规范不支持注释，加了会让浏览器整份 manifest 解析失败，
+          而且失败是**静默的**（DevTools 的 Application 面板才会报）。
+          所以所有取舍理由都写在这里，改那个文件前先读这段。
+
+       ⚠️ `purpose` 只声明 `any`，**故意不加 `maskable`**。
+          maskable 的图标会被系统裁成圆形/水滴形，规范要求图形落在中心
+          80% 的安全区内；本站图标是「藏青笔画 + 白底」，笔画贴着画布边缘，
+          标成 maskable 会被裁掉一圈笔画。真要加，得先按 DESIGN.md 第 12 节
+          重生成一张四周留白 10% 的专用图，再单独声明一个条目。
+
+       ⚠️ `theme_color` 取 `#061161`（图标的藏青色），不是纸底 —— 它管的是
+          安卓状态栏与任务切换卡的着色，取浅色会让状态栏图标看不见。
+          `background_color` 取 `#fdfdfd`（主题 `--bg-color-primary` 的浅色值），
+          它是**启动瞬间**那一屏的底色，必须和首屏一致，否则会闪一下黑。
+          ⚠️ 深色模式下没有对应的 manifest 字段（规范只有一个 background_color），
+             所以深色用户启动时仍会闪一下浅色 —— 这是规范限制，不是配置错误。
+
+       ⚠️ `id` 与 `start_url` 都写 `/`：manifest 的 id 一旦发布就别再改，
+          改了等于换了一个应用，用户的「已安装」记录会断掉。
+
+       ⚠️ 扩展名必须是 `.webmanifest`（Cloudflare Pages 会发
+          `application/manifest+json`）。改成 `.json` 也能用，但拿不到正确的
+          Content-Type，部分浏览器会拒收。
+      --------------------------------------------------------------- */ -}}
+<link rel="manifest" href="{{ "manifest.webmanifest" | absURL }}">
+

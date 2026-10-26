@@ -16,10 +16,11 @@
 | Hugo | `0.167.0+extended`（本机 / GitHub Actions / Cloudflare 三边一致） |
 | 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
 | 代码高亮 | `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
-| 站点层 | **32 个文件** = `layouts/` × 30 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`；2026-10-18 新增 `layouts/partials/header.html`；2026-10-25 新增 `layouts/partials/favicon.html`；2026-10-26 新增 `layouts/partials/og-image.html`、`layouts/partials/noindex.html` —— 两个都是**把原本复制在 2–3 处的逻辑收成一份**） |
-| 页面 | 370 页 → **366 个 HTML** |
+| 站点层 | **34 个文件** = `layouts/` × 32 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`；2026-10-18 新增 `layouts/partials/header.html`；2026-10-25 新增 `layouts/partials/favicon.html`；2026-10-26 新增 `layouts/partials/og-image.html`、`layouts/partials/noindex.html` —— 两个都是**把原本复制在 2–3 处的逻辑收成一份**；同日再新增 `layouts/index.json`、`layouts/partials/search-box.html` —— 后者也是收重复：搜索脚本原本在 `list.html` 与 `archive.html` 各一份） |
+| 页面 | 371 页 → **366 个 HTML**（第 371 页是 `/index.json`，搜索索引，不是 HTML） |
 | 内容 | 106 篇文章 + 27 期周刊 = 133 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
 | 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开由 `functions/_middleware.js` 分派到 `/feed/` 那两页，订阅器照旧拿 XML |
+| 站内搜索 | 列表页的搜索框，**2026-10-26 起标题 + 正文都搜**：索引 `/index.json`（`layouts/index.json` 生成，133 条，**1.03 MB / gzip 442 KB**），前端 `layouts/partials/search-box.html`，**只在开始输入时懒加载**。⚠️ 它只过滤**当前页已有的条目**（`/archive/` 一页装 133 篇 = 全站检索） |
 | 词条页 | 标签 212（`noindex, follow`）+ 分类 8（**2026-10-26 起全部放行，可索引、进 sitemap**，各配 `content/categories/<词>/_index.md`）。索引页 `/tags/` `/categories/` 已关 |
 | sitemap | **148 条** = 133 篇文章 + 7 个根级/列表页 + 8 个分类页；与 218 个 noindex 页**零交集** |
 | CSS | **全部内联**，无 `/css/` 目录 |
@@ -57,6 +58,10 @@
 ⚠️ 词条页这次**单独成档**（220 页）：CSS 与普通页逐字节相同，只是页数口径更清楚。
   10-25 的表把 214 个词条页混在「普通页 221」里。
 ⚠️ **页数口径**：`7 + 220 + 127 + 6 + 1 + 1 + 1 + 1 + 2 = 366`；长文页 127 + 6 = **133**。
+⚠️ **2026-10-26 第三轮（OG `article:*` / 「更新于」/ manifest / 搜索正文 / JSON-LD 三字段 / 71 张 alt）
+一条 CSS 都没加**，所以上表逐值**不变**，不需要重测。那一轮增加的是 HTML：
+gzip 首页 **+28 B**、文章页 **+195 B**、`/archive/` **+387 B**、`/weekly/` **+369 B**、`/about/` **+25 B**
+（列表页涨得多是因为搜索脚本变长，且它从两个模板收进了一个 partial）。
 ⚠️ **词条页 220 = 212 标签 + 8 分类**。分类页 2026-10-26 起可索引。
 ⚠️ **第 29 段里约 300 B gzip 是打印样式**，对屏幕用户完全无用却每页都下载。没拆成外部 `media="print"` 样式表的原因：本站 CSS 全内联是既定架构（产物没有 `/css/` 目录），且 `media="print"` 的表浏览器**照样下载**，只是优先级低，省不下请求。
 
@@ -118,7 +123,7 @@ content/
 archetypes/
   posts.md weekly.md      新建文章的模板（含发布前检查清单）
 
-layouts/                  ★ 站点层覆盖，30 个文件
+layouts/                  ★ 站点层覆盖，32 个文件
   index.html                        首页（上游只有 {{ .Content }}；简介**不包 <content>**）
   sitemap.xml                       ★ 2026-10-17 新增：按 $noindex 过滤（336 → 134 条）
                                     ⚠️ 过滤条件必须与 _default/baseof.html 的 $noindex 逐字同口径
@@ -419,11 +424,15 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 改 SEO 头（keywords / JSON-LD / og / referrer / theme-color） | `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）。⚠️ `theme-color` 那两条在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 与 `input{font-size}` 在第 26 段；`referrer` 在 `baseof.html`。⚠️ 上游那份是「HTML 规范还在 2015 年」的写法，**别回退** |
 | 改分享卡片图 / JSON-LD 的 `image` | **`layouts/partials/og-image.html`**（2026-10-26 起是唯一取值处，`og:image` / `twitter:image` / JSON-LD `image` 三处都调它）。⚠️ 返回的是**绝对 URL**，调用方不要再套 `absURL` |
 | 改分类页的标题 / 描述 | `content/categories/<词>/_index.md`（8 个，2026-10-26 新增）。⚠️ `title` 必须写，否则 `<title>` 会退化成「 \| 胡拉图说」；标签页没有对应文件（它们仍是 noindex） |
+| 改站内搜索（索引内容 / 匹配规则 / 触发时机） | 索引 `layouts/index.json`（字段 `t/u/g/d`，`hugo.toml` 的 `[outputs] home` 含 `"JSON"`），前端 `layouts/partials/search-box.html`。⚠️ 索引 **1.03 MB / gzip 442 KB**，前端只在用户开始输入时 fetch，**别改成进页面就拉**；⚠️ 拿不到索引必须退回「只搜标题」，不能变成搜不出东西；⚠️ 它只过滤**当前页已有的条目**（`/archive/` = 全站）。理由见 DESIGN.md 第 16.4 节 |
+| 改分享卡上的日期 / 作者 / 标签（`article:*`） | `layouts/_partials/opengraph.html`。⚠️ 只对 `posts` / `weekly` 输出，首页与列表页的 `og:type` 是 `website`，挂 `article:*` 非法；⚠️ `article:author` 按协议是**作者主页 URL**（本站指 `/about/`），不是名字 |
+| 改「更新于」的显示条件 | `layouts/_default/single.html` 日期行（`$showUpdated`）。⚠️ 判据是「`lastmod` 晚于 `date` **且** 日历日不同」，不是「差 24 小时」——当天发当天改的两个日期长得一样，显示出来是噪音；⚠️ 这一行**没有配套 CSS**，改样式要自己在 `custom_head.html` 加段 |
+| 改 Web App Manifest（名称 / 图标 / 主题色） | `static/manifest.webmanifest`。⚠️ 它是**手写 JSON、不能写注释**（加了整份解析失败且静默），所有取舍理由写在 `layouts/partials/favicon.html` 那段注释里；⚠️ `purpose` 别加 `maskable`（图标笔画贴边会被裁）；⚠️ `id` 一旦发布别再改 |
 | 改图片放大（放大方式 / 键盘可达性） | 结构在 `layouts/_default/_markup/render-image.html`（`--zoom-src` 挂在 figure 上），样式在第 26 段 ④⑤。⚠️ overlay 是**空壳**（只有 `class`，没有 `<img>`）；`.image-zoom-toggle` 那条**必须带 `display`**，只写定位会让上游的 `display:none` 留下、checkbox 又变回不可聚焦 |
 | 改文末「相关文章」 | 模板 `single.html` 的 ② 段 + 第 09 段的 `.post-related*` 六条规则 + **`hugo.toml` 的 `[related]`**（权重 / 阈值都在那）。⚠️ 改阈值前先数产物里 `.post-related` 有几个 —— 2026-10-05 那次就是吃默认 `threshold = 80` 导致**一条都推不出来**、构建 0 警告。现在 20，132/133 篇有推荐 |
 | 改图片加载（srcset / 边缘转换 / 首图优先） | `layouts/_default/_markup/render-image.html`（一个文件搞定四件事，理由见 DESIGN.md 第 13 节）+ `custom_head.html` 顶部的 `preconnect`。⚠️ `quality=82` 是目视比过的，别往 70 以下调（截图类图片会出色带）；⚠️ 首图 `fetchpriority="high"` **不能同时带 `loading="lazy"`**，同时写 high 会被忽略；⚠️ `sizes` 里的 `680px` = `body` 的 720 减左右各 20 padding，改布局宽度要回来改它 |
 | 改订阅源（feed 字段 / 浏览器打开 feed 时那一页） | ① feed 本身：`layouts/_default/rss.xml`；② 浏览器视图：`layouts/partials/feed-view.html` + `content/feed/`（只有 front matter）+ `custom_head.html` 第 28 段；③ 谁分派：`functions/_middleware.js`。⚠️ ①② 的**页面集合口径必须逐字一致**（`site` / `weekly` 两套），不一致就是「网页比订阅少一篇」且**构建 0 警告**；③ 改完按第 2 节「边缘函数」跑一遍线上核对 —— 它是**静默失效**的 |
-| 改周刊页的计数行 / RSS 订阅入口 | `layouts/_default/list.html`（`$isWeekly` = Kind section + Section weekly；`#post-count` 是 `<span>`、订阅链接在它**外面**）。⚠️ 订阅入口是**普通文字链接，不要加样式**（2026-10-14 用户看过带边框 + 图标的徽章后要求简化）；想让链接在搜索后存活，**只能改 span 的 `textContent`**，用 `innerHTML` 会把它整个覆盖掉 |
+| 改周刊页的计数行 / RSS 订阅入口 | `layouts/_default/list.html`（`$isWeekly` = Kind section + Section weekly；`#post-count` 是 `<span>`、订阅链接在它**外面**）。⚠️ 订阅入口是**普通文字链接，不要加样式**（2026-10-14 用户看过带边框 + 图标的徽章后要求简化）；想让链接在搜索后存活，**只能改 span 的 `textContent`**，用 `innerHTML` 会把它整个覆盖掉。⚠️ 2026-10-26 起过滤脚本不在这个文件里了 —— 它在 `layouts/partials/search-box.html`，本文件只传一个 `countLabel`（「篇。」/「期周刊内容」） |
 
 ### `scripts/` 现状
 

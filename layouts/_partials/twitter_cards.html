@@ -17,11 +17,17 @@
        ⚠️ 本模板只输出 4 个字段，与 2026-10-17 的产物逐字对齐。
           内置模板没有 `twitter:site` / `twitter:creator`（本站没有账号配置），
           这里也不编一个。
+          ⚠️ 2026-10-26 复查：这一条**仍然成立**，别为了「补齐标签」去填一个
+             假的 @handle —— `twitter:site` 必须是真实存在的 X 账号，
+             填错不会报错，只会让卡片署名指向别人。哪天有了账号再回来加。
+       ⚠️ 2026-10-26 新增 `twitter:image:alt`：X 的卡片图同样有替代文本，
+          缺了它读屏软件只会念一句「图片」。
        ============================================================ */ -}}
 {{- $ogImage := partial "og-image.html" . -}}
 <meta name="twitter:card" content="summary_large_image">
 {{- with $ogImage }}
 <meta name="twitter:image" content="{{ . }}">
+<meta name="twitter:image:alt" content="{{ $.Title }}">
 {{- end }}
 <meta name="twitter:title" content="{{ .Title }}">
 <meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ if .IsPage }}{{ .Summary }}{{ else }}{{ with .Site.Params.Description }}{{ . }}{{ end }}{{ end }}{{ end }}">

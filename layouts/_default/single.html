@@ -60,11 +60,32 @@
           现在 `datetime` 一个属性就是完整的语义（微数据那条路本站也不再走，
           见 layouts/partials/seo_tags.html 的 JSON-LD）。 */ -}}
 {{ if and .Date (not .Params.hideDate) }}
+{{- /* 「更新于」只在**真的改过**的时候出现（2026-10-26 新增）。
+       ── 判据为什么是「日期不同」而不是「差 ≥ 24 小时」──────────────
+         · 本站 133 篇文章里 **82 篇**的 `lastmod` 与 `date` 不同（实测），
+           其中大部分是几天到几个月后的小修，但也有「当天发、当天改」的。
+         · 当天改的那种，两个日期长得一模一样，并排显示成
+           「2026-10-26 · 更新于 2026-10-26」—— 纯噪音。
+         · 所以判据取**日历日不同**：`Format "2006-01-02"` 之后比较字符串。
+           它天然等价于「跨了一天以上」，又不用做时长相减
+           （Go 模板里 `gt` 比 int64 与无类型常量容易报类型不匹配）。
+       ⚠️ 必须同时要求 `.Lastmod.After .Date`：万一 front matter 把
+          `lastmod` 写成了早于 `date` 的值，光比字符串会显示成「更新于更早的日期」。
+       ⚠️ `lastmod` 没写的文章，Hugo 会把它设成等于 `date`（本站没开
+          `enableGitInfo`），所以这一整块对那 51 篇**不会输出任何东西**，
+          也就不会每篇都挂两个日期。
+       ⚠️ 视觉上不加任何 CSS：整段仍然在同一个 `<i>` 里，
+          继承的 `time{font-size:15px}` 与正文字色都跟原来一致。
+          加一条新规则会让每页 CSS 变大，而这里只需要一个分隔符。 */ -}}
+{{- $showUpdated := and .Lastmod (.Lastmod.After .Date) (ne (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02")) -}}
 <p>
   <i>
     <time datetime='{{ .Date.Format "2006-01-02" }}'>
       {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
     </time>
+    {{- if $showUpdated }}
+    · 更新于 <time datetime='{{ .Lastmod.Format "2006-01-02" }}'>{{ .Lastmod.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}</time>
+    {{- end }}
   </i>
 </p>
 {{ end }}

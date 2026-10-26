@@ -3,6 +3,7 @@ title: 用 HuggingFace + MongoDb 搭建 Twikoo 评论系统
 categories: ["工具"]
 tags: ["Hugo", "Twikoo", "评论", "博客"]
 date: 2026-01-26T10:19:41+08:00
+lastmod: 2026-10-26T12:45:08+08:00
 slug: "set-up-twikoo-comment-system"
 
 summary: “缺少评论系统的博客，总觉得缺少点灵魂。“
@@ -25,13 +26,13 @@ comments: true
 
 第一步，这两个网站的账号，你得先注册，有一个自己的账号。
 
-![新建](https://img.hulatu.com/post/pG97hv.png)
+![MongoDB Atlas 控制台里新建项目](https://img.hulatu.com/post/pG97hv.png)
 
 ![任意填一个名称](https://img.hulatu.com/post/uiR6fY.png)
 
 ![下一步](https://img.hulatu.com/post/8ZYyde.png)
 
-![新建](https://img.hulatu.com/post/3a3ACh.png)
+![MongoDB Atlas 里新建集群](https://img.hulatu.com/post/3a3ACh.png)
 
 ![必须要和我选择一样](https://img.hulatu.com/post/rp9z5k.png)
 

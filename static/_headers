@@ -132,8 +132,21 @@
 
 # 订阅源 / 站点地图同理：发布完就该是新的，
 # 条件请求的开销比「订阅里少一篇」小得多
-# （这里原本还有一条 /search-index.json —— 站内搜索随迁移删除了，索引文件不再产出。）
+#
+# ⚠️ 2026-10-26：站内搜索索引**回来了**，但路径换了 —— 现在是 `/index.json`
+#    （`layouts/index.json` 生成，home 输出格式加了 "JSON"）。
+#    历史上那条 `/search-index.json` 是自建主题时代的东西，迁移时随搜索一起删了；
+#    **别再把它加回来**，那个文件已经不产出。
+#
+#    缓存策略是 `max-age=0, must-revalidate` 而不是长缓存，理由：
+#    这个文件 1.03 MB（gzip 442 KB），但只要它没变，浏览器发的是条件请求、
+#    服务端回 304（几百字节），**不会重新下载正文**。
+#    反过来若给 1 小时 max-age，发完新文章的最初一小时里搜索会搜不到它 ——
+#    和「首页 Edge 缓存」那类「发了看不到」的坑同源，不值得。
 /index.xml
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.json
   Cache-Control: public, max-age=0, must-revalidate
 
 /weekly/index.xml

@@ -1038,7 +1038,7 @@ CSS 拿不到 location，只能由模板给。
 
 ---
 
-## 5. 站点层偏离（32 个文件）+ 改上游 1 处
+## 5. 站点层偏离（34 个文件）+ 改上游 1 处
 
 > ⚠️ **2026-10-14 起多了一类偏离：直接改上游主题本身。**
 > 在此之前 27 个主题文件是逐字节未改的；现在
@@ -1054,7 +1054,7 @@ CSS 拿不到 location，只能由模板给。
 | 文件 | 偏离 | 为什么 |
 | --- | --- | --- |
 | `layouts/_default/baseof.html` | ① `.Site.LanguageCode` → `.Site.Language.Locale`；② 补回 robots 分支；③ **2026-10-17 加 skip-link**（`<body>` 后第一个元素）+ **`<main id="main" tabindex="-1">`** + 长文页的 `.print-url` | ① 前者 Hugo 0.158 起弃用，将来移除会让整站构建失败；② 上游**完全没有** robots 输出，而本站有两类页面本来就该 noindex（见下）；③ 无障碍：原来要按 8 次 Tab 才到正文（WCAG 2.4.1 A 级）。⚠️ skip-link 的目标是 `#main`，**不能**复用 `#top`（那是返回顶部的落点，跳过去等于跳到页头） |
-| `layouts/_default/single.html` | 去掉 `if eq .Type "blog"` 外层门槛；加 `hideDate` / `hideTitle`；加文末「系列坐标带」+「上一篇 / 下一篇」；加评论区 | 上游把标题日期写死给 `blog` 段；其余都是站点层新增（见第 4 节） |
+| `layouts/_default/single.html` | 去掉 `if eq .Type "blog"` 外层门槛；加 `hideDate` / `hideTitle`；加文末「系列坐标带」+「上一篇 / 下一篇」；加评论区；**2026-10-26 日期行加「更新于」**（`lastmod` 与 `date` 不是同一天才显示） | 上游把标题日期写死给 `blog` 段；其余都是站点层新增（见第 4 节）。「更新于」的判据取**日历日不同**而不是「差 24 小时」—— 当天发当天改的两个日期长得一样，并排显示是噪音。133 篇里 82 篇 `lastmod` 有变，实际输出 80 页（`/now/` `/run/` 也吃到了）。见第 16 节 |
 | `layouts/_default/list.html` | 5 处界面文案英译中；删底部标签墙 | 上游文案写死英文、没走 i18n；用户不要标签云 |
 | `layouts/_default/rss.xml` | 四处：① `xmlns:content` + **2026-10-15 起顶部不再挂 `<?xml-stylesheet?>`**（旧的 `/rss.xsl` 已删）；② 首页 feed 改成**只收文章页**（`Type` ∈ `posts`/`weekly`）；③ 补 `atom:updated` / `category` / 摘要式 `description` / 全文 `content:encoded`，并存 `params.RSS.pageLimit` 上限（20）；④ **2026-10-25 补 `<image>`**（144×144 PNG，走 `params.feedIcon`） | ① 旧版靠浏览器 XSLT 渲染，Chromium 正在移除 XSLT（弹横幅，移除后那页退化成 raw XML）→ 改由 `functions/_middleware.js` 内容协商到 `/feed/`，见第 4 节「订阅源」；② 迁移后新增的 `/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 都是 content 根下的普通页，会被一并收进订阅；③ 上游只发全文 `description`、没有「更新于」和分类；④ `<image>` 是订阅端**唯一有明文依据**的图标来源，缺了它阅读器只能猜（见第 12 节） |
 | `layouts/_default/archive.html` | **新增**（且比上游 `list.html` 多一段「系列」横向入口） | `/archive/` 是内容页不是 section，上游无对应模板 |
@@ -1065,12 +1065,14 @@ CSS 拿不到 location，只能由模板给。
 | `layouts/index.html` | **新增**（且简介正文**不包 `<content>`**，与上游不同、与 yinji 一致） | 上游首页只有 `{{ .Content }}`，等于空页；`<content>` 那层见第 4 节「首页」 |
 | `layouts/partials/nav.html` | 完全由 `[[menu.main]]` 驱动；**2026-10-17 加 `aria-current="page"`** | 上游把 `Home` / `Blog` 写死，和 `[menu]` 语义打架。⚠️ 当前页判断必须**精确相等** `$.RelPermalink` —— 按前缀会让每篇文章页点亮 `Posts`（它指向 `/archive/`，而文章在 `/posts/…`）；样式**只改颜色**（不加下划线，用户 2026-10-17 当天否掉）、**不改字重**（Verdana 400→700 会让导航折行位置变） |
 | `layouts/partials/header.html` | **新增**（2026-10-18）：站名从 `<h1>` 降级成 `<p class="title">`，外观由 `custom_head.html` 第 00c 段补回 | 上游把站名写成 h1，而文章页的正文标题也是 h1 → **每篇文章页两个 h1**（实测 134 / 344 页）。改成 `<p>` 后文章页唯一 h1 = 文章标题；首页 / `/about/` / `/now/` / `/roll/` / 列表页变成 0 个 h1 —— 与第 8 节第 7 条「列表页本来就不要大标题」一致。⚠️ `<p>` 与 `<h1>` 的默认样式差**四处**（color / font-size / font-weight / margin），少补哪一条都看不出来但页面会变；验收是改前改后各截一张首页跑 `magick compare -metric AE` = **0** |
-| `layouts/partials/favicon.html` | **新增**（2026-10-25）：一条 `shortcut icon` 扩成五条（SVG / 512 / 192 / apple-touch / ico） | 上游只输出 `params.favicon` **一条**，本站指向 SVG ⇒ head 里只有 SVG。而 RSS 阅读器与图标聚合服务的取图管线基本不吃 SVG，`/favicon.ico` 这个约定路径又不存在 → 订阅端拿不到图标、退回字母头像或地球图标，表现就是「订阅里的头像和网站不一样」；站内一切正常、构建 0 警告、本地截图也看不出来。见第 12 节 |
+| `layouts/partials/favicon.html` | **新增**（2026-10-25）：一条 `shortcut icon` 扩成五条（SVG / 512 / 192 / apple-touch / ico）；**2026-10-26 再加一条 `rel="manifest"`** | 上游只输出 `params.favicon` **一条**，本站指向 SVG ⇒ head 里只有 SVG。而 RSS 阅读器与图标聚合服务的取图管线基本不吃 SVG，`/favicon.ico` 这个约定路径又不存在 → 订阅端拿不到图标、退回字母头像或地球图标，表现就是「订阅里的头像和网站不一样」；站内一切正常、构建 0 警告、本地截图也看不出来。见第 12 节。manifest 是为了安卓「添加到主屏幕」——没有它，桌面图标是自动截图、名字取 `<title>`、点开还是浏览器界面（见第 16 节） |
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
-| `layouts/partials/seo_tags.html` | **新增**（2026-10-14）：整份覆盖上游的同名 partial —— ① 删 `<meta name="keywords">` 与 `<meta name="title">`；② 删掉整块微数据（`itemscope` / `itemprop` 那套）；③ 补 `og:image:width` / `height`；④ 换成按页型输出的 JSON-LD | 上游那份是「HTML 规范还在 2015 年」的写法（见第 8 节第 1 条：它原本就是本文件存在的理由）。现在 332 页全部有 `ld+json`、`keywords` / `itemprop` / `pubdate` 全站归零 |
+| `layouts/partials/seo_tags.html` | **新增**（2026-10-14）：整份覆盖上游的同名 partial —— ① 删 `<meta name="keywords">` 与 `<meta name="title">`；② 删掉整块微数据（`itemscope` / `itemprop` 那套）；③ 补 `og:image:width` / `height`；④ 换成按页型输出的 JSON-LD；⑤ **2026-10-26 BlogPosting 补 `inLanguage` / `articleSection` / `keywords`** | 上游那份是「HTML 规范还在 2015 年」的写法（见第 8 节第 1 条：它原本就是本文件存在的理由）。现在 **366 页**全部有 `ld+json`、`keywords` / `itemprop` / `pubdate` 全站归零。⑤ 三个都是**短值**（分类一个词、标签逗号拼接、locale），不破「JSON-LD 不放长文本」这条原则 —— 分类/标签为空时走 `merge` 条件追加，**不能塞空串**，否则富媒体测试会报「字段为空」 |
 | `layouts/partials/og-image.html` | **新增**（2026-10-26）：分享卡片图的**唯一**取值来源 —— 长文页按 `.Slug` 找 `images/og/<slug>.png`，取不到回落 `site.Params.images` 第一张；返回**绝对 URL** | 这段逻辑原本在 `_partials/opengraph.html` 与 `_partials/twitter_cards.html` 各写一份、靠注释提醒「必须逐字一致」；2026-10-26 给 JSON-LD 的 `image` 也用同一张图时正好会变成第三份，于是收成一份。见第 15 节 |
 | `layouts/partials/noindex.html` | **新增**（2026-10-26）：`noindex` 判定的**唯一**来源（`tags` / `404` / `.Params.noindex`），返回 bool | 同上：原本 `_default/baseof.html` 与 `sitemap.xml` 各写一份 `or(...)`，漂移的后果是「sitemap 里混进 noindex 页」而构建 0 警告。分类页 2026-10-26 放行时正好要动它，于是收成一份。见第 15 节 |
+| `layouts/index.json` | **新增**（2026-10-26）：首页的 JSON 输出视图，产物 `/index.json` —— 133 篇的 `{t,u,g,d}`（标题 / 站内路径 / 标签 / 正文纯文本） | 列表页搜索原来只 `title.includes`，搜正文里的词一条都出不来。⚠️ 文件名**必须**是 `index.json`：home 的输出格式按 `layouts/index.<ext>` 找模板，找不到会退到 `_default/list.<ext>`，那份带分页变量、结构也不对。⚠️ 体积 1.03 MB / gzip 442 KB，所以前端**只在用户开始输入时才 fetch**。见第 16 节 |
+| `layouts/partials/search-box.html` | **新增**（2026-10-26）：列表页搜索框 + 过滤脚本 | 同一段脚本原本在 `_default/list.html` 与 `_default/archive.html` **各抄一份**，只差计数文案（「共 N 篇。」/「共 N 期周刊内容」）。改一处漏一处 = 「/archive/ 搜得出、/posts/ 搜不出」，构建 0 警告。见第 16 节 | | 见下。⚠️ **第 29 段（skip-link + 打印）、第 30 段（跨页转场）、第 31 段（手机端折叠目录）都是 2026-10-17 新增**，全站生效；第 29/30 段 + 00b 合计每页 +1345 B raw，第 31 段再 +1089 B raw。**第 32 段（浅色三级文字色）+ 00c（页头站名）是 2026-10-18 新增**，两段合计每页 **+164 B raw / 约 +42 B gzip**（实测 8 个页型逐值一致）。|
 | `layouts/partials/custom_head.html` | 33 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 / 28 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 / **29 / 30 / 31 / 32 / 33** 全站；00b / 00c 挂在 00 段之后） | 见下。⚠️ **第 29 段（skip-link + 打印）、第 30 段（跨页转场）、第 31 段（手机端折叠目录）都是 2026-10-17 新增**，全站生效；第 29/30 段 + 00b 合计每页 +1345 B raw，第 31 段再 +1089 B raw。**第 32 段（浅色三级文字色）+ 00c（页头站名）是 2026-10-18 新增**，两段合计每页 **+164 B raw / 约 +42 B gzip**（实测 8 个页型逐值一致）。|
 | `layouts/404.html` | **新增** | 上游默认只有 `<h1>404</h1>` + 一行颜文字 |
 | `layouts/_default/_markup/render-heading.html` | **新增**：标题末尾的 `#` 锚点 | 上游没有这个钩子（Goldmark 只给 id、不给可点入口） |
@@ -2276,3 +2278,120 @@ axe `heading-order` 判失败。后面的年份分组是 `h2`，所以最终大�
 | 视觉回归 | 首页 / `/archive/` / 文章页 **AE = 0**（词条页标题按设计变大，见 15.2） |
 | 指向 `/posts/`（noindex）的内链 | **220 → 0**；同一批改为指向 `/archive/` |
 | 体积 | 与 10-25 晚**逐值相同**（第 34 段已删，见 MAINTENANCE 第 0 节） |
+
+---
+
+## 16. 2026-10-26（第三轮）：OG 四件套 / 「更新于」/ manifest / 搜索能搜正文
+
+这一轮的共同点：**六项全是「数据本来就有、只是没输出」**，没有一项需要改设计。
+上一轮（第 15 节）动的是收录与卡片图，这一轮动的是**分享卡上的元信息、页面上看得见的信息、以及搜索能不能用**。
+
+### 16.1 OG 的 `article:*` 四件套
+
+实测改前全站 366 页里 `article:*` **出现 0 次**。缺了它们，Slack / Telegram / LinkedIn / Discord
+的 unfurl 只拿到标题和图，卡片上没有日期、没有作者、没有标签。数据一直在 JSON-LD 里
+（`datePublished` / `dateModified` / `author` / `tags`），只是没往 OG 写。
+
+改 `layouts/_partials/opengraph.html`，在 `og:type` 之后补：
+
+| 标签 | 取值 | 备注 |
+| --- | --- | --- |
+| `article:published_time` | `.Date` | 格式 `2006-01-02T15:04:05-07:00`，**必须带时区偏移** |
+| `article:modified_time` | `.Lastmod` | 同上 |
+| `article:author` | `about/` 的绝对 URL | OG 协议要的是**作者主页 URL**，不是名字 |
+| `article:section` | `categories` 的第一个 | 本站分类全是单值 |
+| `article:tag` | `tags` 逐个 range | 协议允许重复该属性 |
+
+⚠️ **只对 `posts` / `weekly` 输出**。首页和列表页的 `og:type` 是 `website`，
+挂 `article:*` 是非法组合，Facebook 调试器会报 warning。
+⚠️ `article:author` 写成名字（很多博客那么干）不是协议形态；真要改就换
+`.Site.Params.author.name`，但那就成了自造字段。
+⚠️ 顺带补了 `og:image:alt` 与 `twitter:image:alt`（值 = 页面标题）。
+`twitter:site` / `twitter:creator` **仍然不输出** —— 它们必须是真实存在的 X 账号，
+填错不会报错、只会把卡片署名指向别人（这条 2026-10-17 就定了，别翻案）。
+
+### 16.2 页面上的「更新于」
+
+`dateModified` 在 JSON-LD 与 sitemap 里一直是对的，但页面上只有发布日期。
+改 `layouts/_default/single.html` 的日期行，判据是**两个条件同时成立**：
+
+1. `.Lastmod.After .Date` —— 防 front matter 把 `lastmod` 写成早于 `date`；
+2. `Format "2006-01-02"` 之后**字符串不同** —— 即「日历日不同」。
+
+⚠️ 为什么不是「差 ≥ 24 小时」：当天发、当天改的文章，两个日期长得一模一样，
+并排显示成「2026-10-26 · 更新于 2026-10-26」是纯噪音。字符串比较天然等价于
+「跨了一天以上」，又不用做时长相减（Go 模板里 `gt` 比 int64 与无类型常量容易报类型不匹配）。
+⚠️ **没有加任何 CSS**：整段仍在原来的 `<i>` 里，继承 `time{font-size:15px}` 与正文字色。
+⚠️ 没写 `lastmod` 的文章，Hugo 会把它设成等于 `date`（本站没开 `enableGitInfo`），
+所以 51 篇**不会输出任何东西**。133 篇里 82 篇 `lastmod` 有变，实际命中 **80 页**
+（`/now/` `/run/` 这两个根级页也有日期行，一并吃到了 —— 对 now 页反而是好事）。
+
+### 16.3 Web App Manifest
+
+新建 `static/manifest.webmanifest` + `layouts/partials/favicon.html` 里一条
+`rel="manifest"`。唯一目的是**安卓 Chrome 的「添加到主屏幕」**：没有 manifest 时
+Android 把网页当书签，桌面图标是自动截图、名字取 `<title>`、点开还是浏览器界面。
+
+| 字段 | 值 | 为什么 |
+| --- | --- | --- |
+| `purpose` | 只写 `any` | **不加 `maskable`**：图标是「藏青笔画 + 白底」、笔画贴边，标成 maskable 会被裁掉一圈 |
+| `theme_color` | `#061161` | 管安卓状态栏着色，取浅色会让状态栏图标看不见 |
+| `background_color` | `#fdfdfd` | 启动瞬间那一屏的底色，必须与首屏一致，否则闪一下黑 |
+| `id` / `start_url` | `/` | `id` 一旦发布别再改，改了等于换了个应用、已安装记录会断 |
+
+⚠️ 文件是**手写 JSON、不能写注释**（JSON 规范不支持，加了整份解析失败，而且失败是静默的）。
+所有取舍理由写在 `favicon.html` 那段注释里。
+⚠️ 深色用户启动时仍会闪一下浅色 —— 规范只有一个 `background_color`，这是限制不是配置错误。
+
+### 16.4 站内搜索从「只搜标题」改成「标题 + 正文」
+
+原实现是 `title.includes(term)`。133 篇里很多标题是比喻式的（「角落里的学生」「过早引用」），
+搜「降噪耳机」这种正文词一个字都出不来。
+
+- 新增 `layouts/index.json`（`hugo.toml` 的 `home` 输出加了 `"JSON"`）→ 产物 `/index.json`：
+  133 条的 `{t,u,g,d}`。正文合计 **364,286 字** → **1.03 MB / gzip 442 KB**。
+- 新增 `layouts/partials/search-box.html`，把原本**在 `list.html` 与 `archive.html` 各抄一份**的
+  脚本收成一份（两份只差计数文案）。
+- 前端：**只在用户开始输入时才 fetch**，之后常驻内存；拿不到索引就退回只搜标题
+  （`state === 'failed'`），不能因为索引挂了让搜索框变成「什么都不出来」。
+
+⚠️ **它只过滤「当前这一页已有的条目」**，不跨页检索。`/archive/` 一页装全部 133 篇，
+所以在那页等于全站检索；`/weekly/` 只有 27 条就只在这 27 条里搜。想做全站结果面板要另写 UI。
+⚠️ 路径要对齐：`li` 里的链接是 `.Permalink`（绝对 URL），索引里是 `.RelPermalink`。
+前端先 `new URL().pathname` 归一化，并且**预先算一次存进数组**，不要每次按键重算。
+⚠️ `/index.json` **不进 sitemap**（实测 148 条不变），缓存头在 `static/_headers`
+写 `max-age=0, must-revalidate` —— 没变时是 304（几百字节），**不会重下正文**；
+给长缓存反而会让「发完新文章的一小时内搜不到它」。
+⚠️ `_headers` 里那条 `/search-index.json` 是自建主题时代的遗留，**别再照它加回来**。
+
+### 16.5 BlogPosting 补 `inLanguage` / `articleSection` / `keywords`
+
+都是**短值**，不破「JSON-LD 不放长文本」这条原则。⚠️ 分类/标签可能为空，
+所以走 `merge` 条件追加 —— 塞空串会输出 `"articleSection":""`，Google 富媒体测试报「字段为空」。
+⚠️ `with` 会重绑定 `.`，两个值都必须**先取进具名变量**再进 `dict`。
+
+### 16.6 71 张图的 alt
+
+25 个页面里 71 张图的 alt 是 `1`…`14` 或两字残词（`耳机` `台灯` `脏鞋`…），其中
+**21 张是纯数字**（年度总结的 7 张公众号截图、开封一日游的 14 张藏品照）。
+按上下文逐张重写，纯数字的改成带序号的系列描述（「开封博物馆展出的藏品（3/14）」）。
+
+⚠️ 改法是按**图片 URL** 定位、要求「旧 alt + URL」同时匹配，匹配不到就报错退出 ——
+按行号改会随别的编辑漂移。
+⚠️ 这些 alt 是**照上下文写的**，不是看图写的。个别照片的实际内容与描述可能不完全一致，
+真要精修得逐张看图。改完实测：353 张图里 alt 过短 **0**、空值 **0**。
+
+### 16.7 验收
+
+| 项 | 结果 |
+| --- | --- |
+| 构建 | **371 页**（含 `/index.json` 这个 JSON 输出）/ **366 HTML** / **0 警告** |
+| sitemap / noindex | **148 / 218**，与上一轮**逐字相同**（`/index.json` 没混进去） |
+| h1 分布 | **`{1 个: 366 页}`**，跳级 0 |
+| 图片 | 353 张：alt 空 **0**、alt 过短 **0**、`width+height` 353 |
+| JSON-LD | 366 页全部可解析，非法 **0**；重复 id **0** |
+| 站内链接 | 相对 4662 条 + 绝对 3959 条，**失效 0** |
+| CSS | **逐值不变**（首页 11996/3419、文章页 16491/4255、`/archive/` 13725/3771）—— 这一轮没加一条 CSS |
+| HTML gzip 增量 | 首页 **+28 B**、文章页 **+195 B**、`/archive/` **+387 B**、`/weekly/` **+369 B**、`/about/` **+25 B** |
+| 「更新于」 | **80 页**出现；同日修改的（如 10-26 那篇）正确**不出现**；`/about/` `/roll/` 无日期行 |
+| 搜索实测 | 「睡眠」（只在正文出现）→ **15 条**；标题词 → 1 条；乱码 → 0 条；清空 → 恢复 133 条与 2 个年份标题 |

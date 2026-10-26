@@ -27,6 +27,27 @@
        ⚠️ 宽高（`og:image:width` / `height`）不在这里输出 —— 它们在
           seo_tags.html 里、紧跟在本模板之后，值来自 hugo.toml。
           卡片统一 1200×630，所以那两行不用改。
+
+       ── 2026-10-26 新增：article:* 四件套 + og:image:alt ──────────────
+       之前全站 366 页里 `article:*` **出现 0 次**（实测）。缺了它们，
+       Slack / Telegram / LinkedIn / Discord 的 unfurl 只拿到标题和图，
+       卡片上没有日期、没有作者、没有标签。数据本来就有（JSON-LD 里
+       datePublished / dateModified / author / tags 都齐），只是没往 OG 写。
+
+       ⚠️ **只对文章页输出**（posts / weekly）。首页和列表页的 og:type 是
+          website，挂 article:* 是非法组合，Facebook 的调试器会报 warning。
+       ⚠️ `article:author` 按 OG 协议应该是**作者主页的 URL**，不是名字
+          （协议原文：URL(s) to the author's profile）。本站没有独立作者页，
+          指到 `/about/` —— 那是唯一「关于这个人」的页面。
+          想改成纯名字（很多博客那么写）就换 `.Site.Params.author.name`，
+          但那不是协议要求的形态。
+       ⚠️ `article:tag` 一篇可以有**多个**（协议允许多值），所以走 range；
+          `article:section` 只有一个，取 categories 的第一个。
+          本站 `categories` 全是单值，多余的值会被静默忽略。
+       ⚠️ 时间格式与 seo_tags.html 的 JSON-LD **必须逐字相同**
+          （`2006-01-02T15:04:05-07:00`）：带时区偏移，否则跨时区解析会漂。
+       ⚠️ `og:image:alt` 用页面标题。这不是凑数 —— 图片 alt 是卡片图的
+          替代文本，读屏软件和「图片没加载出来」时读的就是它。
        ============================================================ */ -}}
 {{- $ogImage := partial "og-image.html" . -}}
 <meta property="og:url" content="{{ .Permalink }}">
@@ -37,4 +58,22 @@
 <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
 {{- with $ogImage }}
 <meta property="og:image" content="{{ . }}">
+<meta property="og:image:alt" content="{{ $.Title }}">
+{{- end }}
+{{- if and .IsPage (in (slice "posts" "weekly") .Type) }}
+{{- with .Date }}
+<meta property="article:published_time" content="{{ .Format "2006-01-02T15:04:05-07:00" }}">
+{{- end }}
+{{- with .Lastmod }}
+<meta property="article:modified_time" content="{{ .Format "2006-01-02T15:04:05-07:00" }}">
+{{- end }}
+<meta property="article:author" content="{{ "about/" | absURL }}">
+{{- with .Params.categories }}
+{{- range first 1 . }}
+<meta property="article:section" content="{{ . }}">
+{{- end }}
+{{- end }}
+{{- range .Params.tags }}
+<meta property="article:tag" content="{{ . }}">
+{{- end }}
 {{- end }}

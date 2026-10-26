@@ -52,57 +52,10 @@
   </small>
   {{ end }}
   {{ if .Site.Params.postSearch }}
-  <input id="search-input" type="search" placeholder="搜索标题…" aria-label="搜索文章标题" style="margin-top: 16px" />
-  <script>
-    // 等待 DOM 完全加载后执行
-    document.addEventListener('DOMContentLoaded', function () {
-      // 缓存 DOM 元素
-      const searchInput = document.getElementById('search-input');
-      const posts = document.querySelectorAll('.blog-posts li');
-      const years = document.querySelectorAll('.blog-posts h2');
-
-      // 更新搜索结果
-      function updateSearchResults(searchTerm) {
-        let visiblePosts = 0;
-        const displayedYears = new Set();
-        posts.forEach(function (post) {
-          const title = post.querySelector('a').textContent.toLowerCase();
-          const year = post.querySelector('time').getAttribute('datetime').split('-')[0];
-          if (title.includes(searchTerm)) {
-            post.style.display = '';
-            visiblePosts++;
-            displayedYears.add(year);
-          } else {
-            post.style.display = 'none';
-          }
-        });
-
-        {{ if .Site.Params.groupByYear }}
-        years.forEach(function (y) {
-          const year = y.textContent;
-          y.style.display = displayedYears.has(year) ? '' : 'none';
-        });
-        {{ end }}
-
-        {{ if .Site.Params.showPostCount }}
-        /* ⚠️ 周刊页用「共 N 期周刊内容」，其余页沿用「共 N 篇。」。
-           ⚠️ 这里只改 `#post-count` 这个 **span** 的 textContent —— 订阅按钮刻意
-           放在它**外面**（见下面计数行的结构）。若用 innerHTML 重写整行，
-           搜索完按钮会被整个覆盖掉、从此消失。 */
-        const countEl = document.getElementById('post-count');
-        {{ if $isWeekly }}
-        countEl.textContent = `共 ${visiblePosts} 期周刊内容`;
-        {{ else }}
-        countEl.textContent = `共 ${visiblePosts} 篇。`;
-        {{ end }}
-        {{ end }}
-      }
-
-      searchInput.addEventListener('input', function () {
-        updateSearchResults(this.value.toLowerCase().trim());
-      });
-    });
-  </script>
+  {{- /* 搜索框与过滤脚本收在 partials/search-box.html（2026-10-26）——
+        原来这段脚本在这里和 archive.html 各抄一份，改一处就会漂。
+        参数只是计数行的后半句：周刊页是「期周刊内容」，其余是「篇。」。 */ -}}
+  {{ partial "search-box.html" (dict "countLabel" (cond $isWeekly "期周刊内容" "篇。")) }}
   {{ end }}
   {{ if .Site.Params.showPostCount }}
   {{ $visiblePages := where .Pages "Params.hidden" "!=" true }}
