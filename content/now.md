@@ -1,6 +1,6 @@
 ---
 title: "现在"
-description: "记录胡拉图此刻在做的事。"
+description: "胡拉图的 Now 页：记录我此刻正在推进的主线与支线 —— 研究、求职、跑步与力量训练。更新得没文章勤，但隔一阵子回来看，这里应该是不一样的。"
 # 独立页不挂「某天」的日期（站点层 single.html 识别这个键，关掉页面上的日期行）。
 # ⚠️ date 本身保留：RSS / og:article:published_time 等 meta 还要用。
 hideDate: true

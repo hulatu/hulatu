@@ -108,6 +108,8 @@
      ⚠️ 没有表格的页面也走这两个 `replaceRE`（空转），代价是两次正则扫描 —— 可忽略。
         全站只有 1 篇文章有表格（《工科研究生用 Mac，也可以很完美》，3 列）。 */ -}}
 {{- $content := .Content | replaceRE "<table" "<div class=\"table-wrap\"><table" | replaceRE "</table>" "</table></div>" -}}
+{{- /* 正文内链：见 partial 里的大段注释（词表 data/inline-links.json，29 条）*/ -}}
+{{- $content = partial "inline-links.html" (dict "c" $content "p" .) -}}
 {{- /* ---------- 手机端折叠目录（2026-10-17 新增，方案 C）----------------
      背景：右侧目录 div.toc 在 ≤1200px 整块 `display:none`（custom_head.html
      第 20 段，2026-10-12 拍板的方案 A）。代价是 **127 篇长文在手机上没有任何

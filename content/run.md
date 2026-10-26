@@ -1,6 +1,6 @@
 ---
 title: "跑步"
-description: "来自 Garmin 的跑步数据：累计里程、配速、心率、月度趋势与每一年的完整记录。"
+description: "胡拉图的跑步数据页，同步自 Garmin：累计里程、配速、心率、月度里程柱状图，以及按年归档的每一次跑步记录 —— 一个普通跑者的长期跑步档案。"
 # 独立页不挂「某天」的日期，页面上的日期行关掉（站点层 single.html 识别）。
 # ⚠️ date 本身保留：RSS / og:article:published_time 等 meta 还要用。
 date: 2026-09-15

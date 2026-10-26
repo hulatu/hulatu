@@ -1,5 +1,5 @@
 {{- /* ============================================================
-       列表页搜索框 + 过滤脚本（2026-10-26 抽出）
+       列表页搜索框 + 过滤脚本（2026-10-26 抽出；同日修「完全失效」）
 
        ── 为什么抽成 partial ──────────────────────────────────────────
        同一段脚本原本**逐字抄在** `layouts/_default/list.html` 和
@@ -8,109 +8,204 @@
        而这两处一旦漂移，症状是「/archive/ 搜得出、/posts/ 搜不出」——
        不会报错，只会让人以为索引坏了。收成一份就不可能漂。
 
-       ── 2026-10-26 改了什么：从「只搜标题」到「标题 + 正文」──────
+       ── ⚠️⚠️ 2026-10-26 用户报「按回车不显示结果」= 搜索从来没生效过 ──
+       真因不是回车、不是索引、不是匹配逻辑，而是**脚本跑得太早**：
+
+         <input id="search-input"> <script>…</script>   ← 在这里执行
+         <p id="post-count">共 133 篇。</p>
+         <ul class="blog-posts"> … 133 个 <li> … </ul>   ← 还没被解析
+
+       内联 `<script>` 是**阻塞解析、立即执行**的，而 `querySelectorAll`
+       返回的是**静态** NodeList（不是 live）。所以脚本里那两行
+
+         var posts = document.querySelectorAll('.blog-posts li');   → 空
+         var countEl = document.getElementById('post-count');       → null
+
+       拿到的分别是「空列表」和「null」，`apply()` 的循环跑 0 次、计数行也不更新
+       —— 打字时页面**一动不动**，且**没有任何报错**。回车自然也「没反应」
+       （其实打字就没反应，只是回车时人最容易察觉）。
+       ⚠️ 这个 bug 从 `ed89ebe` 引入搜索框那天就存在，一直没人发现，
+          因为**用 DOM stub 测脚本测不出来**（stub 里 DOM 是完整的）。
+          **只能拿真浏览器加载真页面测。**
+
+       修法：整段逻辑包进 `boot()`，`readyState === 'loading'` 时挂
+       `DOMContentLoaded`。**不要**把脚本挪到 `</content>` 后面 —— 那样
+       partial 就管不了自己的位置，调用方一旦把搜索框放在列表上方就又坏了。
+
+       ── 2026-10-26 同时改的：从「只搜标题」到「标题 + 标签 + 正文」──
        原来只做 `title.includes(term)`。133 篇文章里很多标题是比喻式的
        （「角落里的学生」「过早引用」），搜「降噪耳机」这种正文词一个字
        都出不来。现在额外读 `/index.json`（`layouts/index.json` 生成，
        含每篇的标题 / 标签 / 正文纯文本）。
 
        ── 三个必须知道的约束 ──────────────────────────────────────────
-       ⚠️ **索引是懒加载的**：只有用户真的在框里打了字才 fetch。
+       ⚠️ **索引是懒加载的**：进页面**不拉**，等用户**聚焦搜索框**才 fetch
+          （2026-10-26 从「打第一个字才拉」提前到 focus —— 点进框就是要搜，
+          等打完字再下 442 KB 在移动端表现为「打了字没反应」）。
           索引 1.03 MB / gzip 442 KB（133 篇正文合计 36 万字），
           在列表页一进来就拉等于每页多下 442 KB —— 那是不能接受的。
        ⚠️ **它只过滤「当前这一页已有的条目」**，不会跨页检索。
           这是刻意保持原行为：/archive/ 一页装全部 133 篇，所以在那页
           等于全站检索；/weekly/ 只有 27 条，就只在这 27 条里搜。
           想做「全站结果面板」得另写一套 UI，不在这次范围内。
-       ⚠️ **索引拿不到就退回只搜标题**（`state === 'failed'`）。
-          fetch 失败、被拦截、JSON 损坏 —— 任何一种都不该让搜索框变成
-          「什么都不出来」，那比只搜标题更糟。
+       ⚠️ **索引拿不到就退回只搜标题**（`state === 'failed'`），
+          并且在计数行后面补一句「（仅匹配标题）」—— 否则用户搜正文词得到
+          0 条会以为「站里没有」，而实际只是索引没加载成功。
        ⚠️ 匹配是**小写后的裸子串**（`indexOf`），没有分词、没有拼音、
           没有同义词。中文按字匹配已经够用；英文是大小写不敏感的子串。
        ⚠️ 路径要对得上：`li` 里的链接是**绝对 URL**（`.Permalink`），
           索引里的 `u` 是 `.RelPermalink`。所以先 `new URL().pathname`
           归一化，并且**预先算一次存进 `paths`**，不要每次按键重算。
+          （实测 133 条 `u` 全是纯 ASCII，不会出现「一边编码一边没编码」。）
 
        ── 参数 ────────────────────────────────────────────────────────
        `countLabel`：计数行里「共 N ___」的后半句。默认「篇。」，
        周刊页传「期周刊内容」。
        ============================================================ */ -}}
 {{- $countLabel := .countLabel | default "篇。" -}}
-<input id="search-input" type="search" placeholder="搜索标题或正文…" aria-label="搜索文章标题或正文" style="margin-top: 16px" />
+<input id="search-input" type="search" placeholder="搜索标题或正文…" aria-label="搜索文章标题或正文"
+       autocomplete="off" spellcheck="false" enterkeyhint="search" style="margin-top: 16px" />
 <script>
 (function () {
-  var input = document.getElementById('search-input');
-  if (!input) return;
-
   var INDEX_URL = {{ "index.json" | relURL }};
+  var ARCHIVE_URL = {{ "archive/" | relURL }};
   var COUNT_LABEL = {{ $countLabel }};
   var GROUP_BY_YEAR = {{ if site.Params.groupByYear }}true{{ else }}false{{ end }};
 
-  var posts = Array.prototype.slice.call(document.querySelectorAll('.blog-posts li'));
-  var years = Array.prototype.slice.call(document.querySelectorAll('.blog-posts h2'));
-  var countEl = document.getElementById('post-count');
+  // ⚠️ 必须等 DOM 解析完才能查 .blog-posts —— 这个脚本物理位置在列表**之前**，
+  //    直接跑会拿到空 NodeList（详见文件头那段）。
+  function boot() {
+    var input = document.getElementById('search-input');
+    if (!input) return;
 
-  // 预先归一化路径：li 的 href 是绝对 URL，索引里存的是站内路径
-  var paths = posts.map(function (li) {
-    var a = li.querySelector('a');
-    if (!a) return '';
-    try { return new URL(a.href, location.origin).pathname; } catch (e) { return ''; }
-  });
+    var posts = Array.prototype.slice.call(document.querySelectorAll('.blog-posts li'));
+    if (!posts.length) return;   // 一篇文章都没有的列表页就别装监听
+    var years = Array.prototype.slice.call(document.querySelectorAll('.blog-posts h2'));
+    var countEl = document.getElementById('post-count');
 
-  var index = null;     // Map<站内路径, 小写全文>
-  var state = 'idle';   // idle | loading | ready | failed
-  var lastTerm = '';
+    // 计数行是结果唯一的「输出口」，让它能被读屏播报（静默更新等于没更新）
+    if (countEl) {
+      countEl.setAttribute('role', 'status');
+      countEl.setAttribute('aria-live', 'polite');
+    }
 
-  function loadIndex() {
-    if (state !== 'idle') return;
-    state = 'loading';
-    fetch(INDEX_URL, { credentials: 'same-origin' })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (list) {
-        index = new Map();
-        list.forEach(function (it) {
-          var tags = (it.g && it.g.length) ? it.g.join(' ') : '';
-          index.set(it.u, (it.t + ' ' + tags + ' ' + it.d).toLowerCase());
-        });
-        state = 'ready';
-        if (lastTerm) apply(lastTerm);
-      })
-      .catch(function () { state = 'failed'; });
-  }
-
-  function apply(term) {
-    var visible = 0;
-    var shownYears = {};
-    for (var i = 0; i < posts.length; i++) {
-      var li = posts[i];
+    // 预先归一化路径：li 的 href 是绝对 URL，索引里存的是站内路径
+    var paths = posts.map(function (li) {
       var a = li.querySelector('a');
-      var title = a ? a.textContent.toLowerCase() : '';
-      var hit = !term || title.indexOf(term) !== -1;
-      if (!hit && index) {
-        var body = index.get(paths[i]);
-        if (body && body.indexOf(term) !== -1) hit = true;
+      if (!a) return '';
+      try { return new URL(a.href, location.origin).pathname; } catch (e) { return ''; }
+    });
+
+    var index = null;     // Map<站内路径, 小写全文>
+    var state = 'idle';   // idle | loading | ready | failed
+    var lastTerm = '';
+    var firstHit = null;  // 当前第一个命中项，回车时跳过去
+
+    // ── 「这一页只是子集」时，0 结果要指路 ──────────────────────────────
+    // 搜索框出现在 222 个页面上，其中绝大多数是词条页（/tags/跑步/ 只有 13 条）。
+    // 在那儿搜「耳机」得到「共 0 篇。」，读起来像「全站没有这个内容」——
+    // 而实际只是这一页没有。索引加载完成后能拿到总篇数，两者一比就知道
+    // 当前页是不是子集，是子集且 0 命中时才补一个指向 /archive/ 的链接。
+    // ⚠️ 用 `hidden` 属性显隐，**不引入任何 CSS**。
+    var hintEl = null;
+    if (countEl) {
+      hintEl = document.createElement('p');
+      hintEl.hidden = true;
+      var hintLink = document.createElement('a');
+      hintLink.href = ARCHIVE_URL;
+      hintLink.textContent = '在归档页搜索全部文章';
+      hintEl.appendChild(hintLink);
+      var anchor = (countEl.closest && countEl.closest('p')) || countEl;
+      if (anchor.parentNode) anchor.parentNode.insertBefore(hintEl, anchor.nextSibling);
+    }
+
+    function loadIndex() {
+      if (state !== 'idle') return;
+      state = 'loading';
+      fetch(INDEX_URL, { credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (list) {
+          index = new Map();
+          list.forEach(function (it) {
+            var tags = (it.g && it.g.length) ? it.g.join(' ') : '';
+            index.set(it.u, (it.t + ' ' + tags + ' ' + it.d).toLowerCase());
+          });
+          state = 'ready';
+          if (lastTerm) apply(lastTerm);
+        })
+        .catch(function () { state = 'failed'; if (lastTerm) apply(lastTerm); });
+    }
+
+    function apply(term) {
+      var visible = 0;
+      var shownYears = {};
+      firstHit = null;
+      for (var i = 0; i < posts.length; i++) {
+        var li = posts[i];
+        var a = li.querySelector('a');
+        var title = a ? a.textContent.toLowerCase() : '';
+        var hit = !term || title.indexOf(term) !== -1;
+        if (!hit && index) {
+          var body = index.get(paths[i]);
+          if (body && body.indexOf(term) !== -1) hit = true;
+        }
+        li.style.display = hit ? '' : 'none';
+        if (hit) {
+          visible++;
+          if (!firstHit && a) firstHit = a;
+          var t = li.querySelector('time');
+          if (t) shownYears[t.getAttribute('datetime').slice(0, 4)] = 1;
+        }
       }
-      li.style.display = hit ? '' : 'none';
-      if (hit) {
-        visible++;
-        var t = li.querySelector('time');
-        if (t) shownYears[t.getAttribute('datetime').slice(0, 4)] = 1;
+      if (GROUP_BY_YEAR) {
+        years.forEach(function (y) {
+          y.style.display = shownYears[y.textContent.trim()] ? '' : 'none';
+        });
+      }
+      // ⚠️ 只用 textContent —— /weekly/ 的 #post-count 是个 <span>，
+      //    后面的「请订阅 RSS」链接在它**外面**；用 innerHTML 会把链接冲掉。
+      if (countEl) {
+        var extra = (term && state === 'failed') ? '（仅匹配标题）' : '';
+        countEl.textContent = '共 ' + visible + ' ' + COUNT_LABEL + extra;
+      }
+      // 只在「这一页装不全站」且「0 命中」时指路，否则平时不留任何多余 DOM 文字
+      if (hintEl) {
+        hintEl.hidden = !(term && visible === 0 && index && posts.length < index.size);
       }
     }
-    if (GROUP_BY_YEAR) {
-      years.forEach(function (y) {
-        y.style.display = shownYears[y.textContent.trim()] ? '' : 'none';
-      });
-    }
-    // ⚠️ 只用 textContent —— /weekly/ 的 #post-count 是个 <span>，
-    //    后面的「请订阅 RSS」链接在它**外面**；用 innerHTML 会把链接冲掉。
-    if (countEl) countEl.textContent = '共 ' + visible + ' ' + COUNT_LABEL;
+
+    input.addEventListener('input', function () {
+      lastTerm = this.value.toLowerCase().trim();
+      if (lastTerm) loadIndex();
+      apply(lastTerm);
+    });
+
+    // 聚焦即预取索引：点进框就是要搜，等打完第一个字再开始下 442 KB 已经晚了
+    // （移动端尤其明显：打字 → 看起来「没反应」→ 1 秒后才跳出来）。
+    // 只挂一次；`loadIndex()` 自己有 `state !== 'idle'` 守卫，不会重复请求。
+    input.addEventListener('focus', loadIndex, { once: true });
+
+    // 回车 = 「带我去第一条」。不阻止默认的话，type=search 在部分浏览器里
+    // 会触发一次无声的表单提交式行为（页面不跳但焦点丢失），所以显式接管。
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        if (!this.value.trim() || !firstHit) return;
+        e.preventDefault();
+        firstHit.scrollIntoView({ block: 'center' });
+        firstHit.focus();
+      } else if (e.key === 'Escape' && this.value) {
+        e.preventDefault();
+        this.value = '';
+        lastTerm = '';
+        apply('');
+      }
+    });
   }
 
-  input.addEventListener('input', function () {
-    lastTerm = this.value.toLowerCase().trim();
-    if (lastTerm) loadIndex();
-    apply(lastTerm);
-  });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
 </script>

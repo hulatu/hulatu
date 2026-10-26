@@ -1,6 +1,6 @@
 ---
 title: "支持"
-description: "支持胡拉图说：如果这个网站对你有帮助，可以通过微信或支付宝请我喝杯咖啡。页面里是两个收款码。"
+description: "如果胡拉图说的文章对你有帮助，可以用微信或支付宝请我喝杯咖啡 —— 页面里是两个收款码，扫码即可，金额随意，心意最重要。"
 # 独立页不挂「某天」的日期（站点层 single.html 识别这个键，关掉页面上的日期行）。
 # ⚠️ date 本身保留：RSS / og:article:published_time 等 meta 还要用。
 hideDate: true

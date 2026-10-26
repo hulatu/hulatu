@@ -1803,23 +1803,70 @@
     font-size: 0.75rem;
   }
 
+  /* 月度里程柱状图（2026-10-26 改「滚动条太粗」）
+     ── 原来什么样 ──────────────────────────────────────────────────
+     `overflow-x: auto` + `.month{flex:1 0 48px}` + `gap:6px`：
+     15 个月最少要 15×48 + 14×6 = **804px**，而正文宽只有 680px
+     → **桌面端也一直在横向滚动**，于是每个访客都看得见一条 15px 高的
+     原生滚动条压在 200px 的图里，又粗又抢戏。
+
+     ── 改了三处 ────────────────────────────────────────────────────
+     ① `flex: 1 1 38px` / `gap: 4px`：15 个月最少 15×38 + 14×4 = **626px**
+        < 680px → **桌面端不再溢出，滚动条直接消失**。flex-grow 会把
+        每根柱子撑到约 41px，比原来的 48px 略窄，但 `25-05` 这种标签
+        实测约 34px，还留 7px 余量。
+     ② 真的溢出时（手机、或将来月份涨到 18 个以上）滚动条改成 **6px**：
+        `scrollbar-width: thin` 管 Firefox，`::-webkit-scrollbar` 管
+        Chrome/Safari。轨道透明、滑块用 `--border-color` 圆角，
+        只在悬停时加深到 `--text-color-tertiary`。
+     ③ `padding-bottom: 6px` 给滚动条留一条**独立槽**：不加的话
+        滑块会紧贴甚至压住 `25-05` 这行月份标签。
+        `overscroll-behavior-x: contain` 顺手加上 —— 手机上滑到图表
+        两端时不会把整个页面带着一起横向抖。
+
+     ⚠️ 别把 `overflow-x` 改成 `hidden`「眼不见为净」：手机上一屏
+        只放得下 8 个月，藏了滚动条就没人知道右边还有 7 个月。
+     ⚠️ `.month-key` / `.month-value` 的 0.72rem 别再调大 —— 41px 的
+        格子刚好装下 5 个字符，调大就会让相邻标签叠在一起。
+     ⚠️ 这个块按 `.RelPermalink == "/run/"` 守卫，类名与
+        `layouts/_default/run.html` 是一份契约，改一处要改两处。 */
   .chart {
     display: flex;
     align-items: flex-end;
-    gap: 6px;
+    gap: 4px;
     height: 200px;
-    padding: 0;
+    padding: 0 0 6px;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+  }
+
+  .chart::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .chart::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .chart::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 999px;
+  }
+
+  .chart::-webkit-scrollbar-thumb:hover {
+    background: var(--text-color-tertiary);
   }
 
   .month {
     display: flex;
-    flex: 1 0 48px;
+    flex: 1 1 38px;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
     height: 100%;
-    min-width: 48px;
+    min-width: 38px;
   }
 
   .month-bar {
