@@ -16,36 +16,40 @@
 | Hugo | `0.167.0+extended`（本机 / GitHub Actions / Cloudflare 三边一致） |
 | 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
 | 代码高亮 | `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
-| 站点层 | **30 个文件** = `layouts/` × 28 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`；2026-10-18 新增 `layouts/partials/header.html`；2026-10-25 新增 `layouts/partials/favicon.html`） |
-| 页面 | 362 页 → **358 个 HTML** |
-| 内容 | 105 篇文章 + 27 期周刊 = 132 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
+| 站点层 | **32 个文件** = `layouts/` × 30 + `assets/js/` × 2，全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`；2026-10-18 新增 `layouts/partials/header.html`；2026-10-25 新增 `layouts/partials/favicon.html`；2026-10-26 新增 `layouts/partials/og-image.html`、`layouts/partials/noindex.html` —— 两个都是**把原本复制在 2–3 处的逻辑收成一份**） |
+| 页面 | 370 页 → **366 个 HTML** |
+| 内容 | 106 篇文章 + 27 期周刊 = 133 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
 | 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开由 `functions/_middleware.js` 分派到 `/feed/` 那两页，订阅器照旧拿 XML |
-| 词条页 | 标签 205 + 分类 8（索引页 `/tags/` `/categories/` 已关，词条页全部 `noindex, follow`） |
+| 词条页 | 标签 212（`noindex, follow`）+ 分类 8（**2026-10-26 起全部放行，可索引、进 sitemap**，各配 `content/categories/<词>/_index.md`）。索引页 `/tags/` `/categories/` 已关 |
+| sitemap | **148 条** = 133 篇文章 + 7 个根级/列表页 + 8 个分类页；与 218 个 noindex 页**零交集** |
 | CSS | **全部内联**，无 `/css/` 目录 |
 | JS | 两个：giscus（指纹化长缓存）+ 代码块复制按钮 |
 | 构建 | 干净构建 **0 警告** |
-| URL | 与迁移前逐条一致（126 个 `/posts/…` 全保留），仅 8 个刻意删除的地址有 301 |
+| URL | 与迁移前逐条一致（133 个 `/posts/…` 全保留），仅 8 个刻意删除的地址有 301 |
 
 内联 CSS 分档（口径：把该页**所有 `<style>` 合并后**一次 `gzip.compress(d,9)`；「补丁」= 合计减去主题固定的 6424 B）：
 
 | 档 | 页数 | raw / gzip | 补丁 |
 | --- | --- | --- | --- |
-| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` `/posts/` / 213 词条页） | 220 | 11994 / 3419 | 5570 B（+00 +00c +14 +17 +20 +21 +22 +23 +26 +29 +30 +31 +32 +33 段） |
-| 长文页（105 文章 + 27 周刊，无代码块） | 126 | 16489 / 4255 | 10065 B（再 +09 +10 +13 +16 +19 段，**含 2026-10-25 的 `.post-related`**） |
-| 长文页 + 代码块 | 6 | 18740 / 4749 | 12316 B（再 +12 +18 段） |
-| `/archive/` | 1 | 13723 / 3771 | 7299 B |
-| `/donate/` | 1 | 12420 / 3514 | 5996 B（+08 段） |
-| `/run/` | 1 | 13826 / 3813 | 7402 B（+25 段） |
-| `/404.html` | 1 | 13408 / 3685 | 6984 B（+15 段） |
-| 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 12373 / 3501 | 5949 B（+28 段） |
+| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` `/posts/`） | 7 | 12049 / 3432 | 5625 B（+00 +00c +14 +17 +20 +21 +22 +23 +26 +29 +30 +31 +32 +33 +34 段） |
+| 词条页（212 标签 + 8 分类） | 220 | 12049 / 3432 | 同上 —— **CSS 与普通页逐字节相同**，只是走的守卫分支不同 |
+| 长文页（106 文章 + 27 周刊，无代码块） | 127 | 16544 / 4270 | 10120 B（再 +09 +10 +13 +16 +19 段，**含 2026-10-25 的 `.post-related`**） |
+| 长文页 + 代码块 | 6 | 18795 / 4761 | 12371 B（再 +12 +18 段） |
+| `/archive/` | 1 | 13778 / 3783 | 7354 B |
+| `/donate/` | 1 | 12475 / 3526 | 6051 B（+08 段） |
+| `/run/` | 1 | 13881 / 3825 | 7457 B（+25 段） |
+| `/404.html` | 1 | 13463 / 3696 | 7039 B（+15 段） |
+| 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 12428 / 3513 | 6004 B（+28 段） |
 
-合计 358 页，与 `os.walk` 数出的 HTML 数一致。
-⚠️ 上面每一档的**逐值都是 2026-10-25 晚（第 33 段落地后）的实测值**。与当天早些时候相比：
-· **每档统一 +243 B raw / +62～65 B gzip** —— 就是新增的第 33 段（见下面那条）。
-· 长文页补丁 **+558 B raw**（9264 → 9822），即 2026-10-25 新增的 `.post-related` 六条规则。
-  它被 `{{ if $longForm }}` 单独守卫，**归档页拿不到**（实测归档页 CSS 仍是 13480 B，零增量）。
-⚠️ **页数口径**：`220 + 126 + 6 + 1 + 1 + 1 + 1 + 2 = 358`；长文页 126 + 6 = **132**。
-⚠️ 2026-10-25 的分类合并（`跑步` 并入 `运动`）让词条页从 214 变成 **213**、总页数 359 → **358**。
+合计 366 页，与 `os.walk` 数出的 HTML 数一致。
+⚠️ 上面每一档的**逐值都是 2026-10-26（第 34 段落地后）的实测值**。与 10-25 晚相比：
+· **每档统一 +55 B raw / +11～15 B gzip** —— 就是新增的第 34 段（`content h1.term-head`）。
+· 词条页这次**单独成档**（220 页）：它的 CSS 与普通页逐字节相同，但页数口径更清楚。
+  10-25 的表把 214 个词条页混在「普通页 221」里。
+· 长文页 126 → **127**：2026-10-26 新增了一篇文章（`my-electronic-devices`）。
+⚠️ **页数口径**：`7 + 220 + 127 + 6 + 1 + 1 + 1 + 1 + 2 = 366`；长文页 127 + 6 = **133**。
+⚠️ **词条页 220 = 212 标签 + 8 分类**。分类页 2026-10-26 起可索引，但 CSS 一档没变
+   （h1 的字号/边距补偿写在同一个全站 `<style>` 里）。
 ⚠️ **第 29 段里约 300 B gzip 是打印样式**，对屏幕用户完全无用却每页都下载。没拆成外部 `media="print"` 样式表的原因：本站 CSS 全内联是既定架构（产物没有 `/css/` 目录），且 `media="print"` 的表浏览器**照样下载**，只是优先级低，省不下请求。
 
 - 第 20–23 段是 2026-10-12 新增的 4 条全站规则（**+428 B raw / +115 B gzip**）：目录断点抬到 1200px、`img{height:auto}`、等宽字体令牌、TOC 链接 transition 收窄。
@@ -59,6 +63,15 @@
   `33-c ul.blog-posts h2{font-size:1.17em;margin:1.9em 0 .6em}`（列表页年份 h3→h2 后还原字号**和**边距）、
   `33-d .recent-posts-head{font-size:1.17em}`（首页「Recent Posts:」h3→h2 后补字号）。
   ⚠️ **33-b / 33-d 其实只在首页生效，但 CSS 是全站内联的**，所以 358 页一起背上这 243 B —— 这是「CSS 全内联」架构的固有代价，不是写错了。
+- **第 34 段（词条页标题 h3→h1 的字号与边距还原，2026-10-26 新增）是一条全站规则，每档统一 +55 B raw / +11～15 B gzip**。改前基线就是上表逐值 −55。
+  规则本体只有一行：`content h1.term-head{font-size:1.17em;margin:1.9em 0 0}`。
+  用途：`list.html` 里词条页的「筛选：X」原本是 `<h3 style="margin-bottom:0">`，2026-10-26 分类页放行后
+  必须升成 h1（否则可索引页没有 h1），而换标签会让字号从 1.17em 跳到 2em、边距从
+  `content h3{1.9em 0 .6em}` 掉到主题的 `h1{margin:16px 0}` —— 两处都要还原。
+  ⚠️ 原来那行 HTML 上的 inline `margin-bottom:0` 已删掉，改由这条 CSS 的 `margin:1.9em 0 0` 承担。
+    留着 inline 会盖住 CSS，下边距又回到 .6em。
+  ⚠️ 它对 **220 个词条页**都生效，包括 212 个 noindex 的标签页 —— h1 是「这一页写了什么」
+    决定的语义元素，按站点层规矩必须全站输出，不能按页型守卫。
 - 第 24 段（`/archive/` 的 `content-visibility`）评估后**撤回**，只留注释，运行时 +0 B。
 - 第 25 段按 `.RelPermalink` 守卫，**其他页 0 字节**（实测：去掉它重构建，首页 `/now/` `/about/` 的 `<style>` 逐字节不变）。
 - 03 / 06 / 11 三段**刻意留空**（只留注释保段号）；详见 DESIGN.md 第 5 节。
@@ -97,7 +110,7 @@ content/
 archetypes/
   posts.md weekly.md      新建文章的模板（含发布前检查清单）
 
-layouts/                  ★ 站点层覆盖，28 个文件
+layouts/                  ★ 站点层覆盖，30 个文件
   index.html                        首页（上游只有 {{ .Content }}；简介**不包 <content>**）
   sitemap.xml                       ★ 2026-10-17 新增：按 $noindex 过滤（336 → 134 条）
                                     ⚠️ 过滤条件必须与 _default/baseof.html 的 $noindex 逐字同口径
@@ -388,7 +401,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 改代码复制按钮 | `assets/js/code-copy.js` + 第 18 段 + `partials/code-copy.html` 的加载判断（三处类名 / 判据一致） |
 | 改「系列」分组口径 | ⚠️ **两处必须同口径**（`series` 字段 + `.ByDate` 升序）：`single.html` 与 `archive.html` |
 | 改评论区 | `layouts/partials/giscus.html` + `assets/js/giscus.js` + 第 07 段 |
-| 改 robots / `noindex` | `layouts/_default/baseof.html` 的 robots 分支（改前先读 DESIGN.md 第 5 节） |
+| 改 robots / `noindex` | **`layouts/partials/noindex.html`**（2026-10-26 起是唯一判定处，`baseof.html` 与 `sitemap.xml` 都调它）。⚠️ 改完两处会同时生效，不需要再手动对齐；口径与理由见 DESIGN.md 第 15.1 节 |
 | 改首页那行平台链接 | `content/_index.md`（**地址的真相在 `content/about.md` 的「内容平台」段，两边一起改**） |
 | 改链接页（加朋友 / 加聚合站） | `content/roll.md` —— **全站唯一的链接页**，一条平铺<br>⚠️ 条目格式 `- [名称](地址)：一句话点评`<br>⚠️ `</a>` 和中文冒号之间**不要手写空格**（`render-link.html` 已处理）<br>⚠️ 两组之间那条全宽虚线是手写的裸 `<hr>`，**别删** |
 | 加根级独立页 | `content/xxx.md`（`hideDate` + `toc: false`）+ 回 `static/_headers` 补缓存规则 |
@@ -396,6 +409,8 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 改响应头 / 缓存 | `static/_headers` |
 | 换 favicon / 站点图标 / 分享图 | **只改 `static/favicon.svg`**，然后按 DESIGN.md 第 12.3 节重跑一遍 → 生成 `icon-512/192.png`、`apple-touch-icon.png`、`favicon.ico`、`images/feed-icon.png`（feed `<image>` 用，路径在 `hugo.toml` 的 `params.feedIcon`，宽高在 `rss.xml` 里写死 144）。⚠️ 光栅图**别手工裁**，会和 SVG 分叉；⚠️ 改完阅读器要手动刷新图标（订阅时抓一次就长期缓存）。分享图是 `static/images/share.webp`（只是**兜底** `og:image`，由 `params.images` 引用；文章页各有一张 `static/images/og/<slug>.png`，由 `scripts/gen-og.js` 生成，`publish.sh` 每次重画）。⚠️ 换兜底图后改 `hugo.toml` 的 `params.ogImageWidth` / `ogImageHeight` 跟上（`seo_tags.html` 读这两个参数输出 og 宽高） |
 | 改 SEO 头（keywords / JSON-LD / og / referrer / theme-color） | `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）。⚠️ `theme-color` 那两条在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 与 `input{font-size}` 在第 26 段；`referrer` 在 `baseof.html`。⚠️ 上游那份是「HTML 规范还在 2015 年」的写法，**别回退** |
+| 改分享卡片图 / JSON-LD 的 `image` | **`layouts/partials/og-image.html`**（2026-10-26 起是唯一取值处，`og:image` / `twitter:image` / JSON-LD `image` 三处都调它）。⚠️ 返回的是**绝对 URL**，调用方不要再套 `absURL` |
+| 改分类页的标题 / 描述 | `content/categories/<词>/_index.md`（8 个，2026-10-26 新增）。⚠️ `title` 必须写，否则 `<title>` 会退化成「 \| 胡拉图说」；标签页没有对应文件（它们仍是 noindex） |
 | 改图片放大（放大方式 / 键盘可达性） | 结构在 `layouts/_default/_markup/render-image.html`（`--zoom-src` 挂在 figure 上），样式在第 26 段 ④⑤。⚠️ overlay 是**空壳**（只有 `class`，没有 `<img>`）；`.image-zoom-toggle` 那条**必须带 `display`**，只写定位会让上游的 `display:none` 留下、checkbox 又变回不可聚焦 |
 | 改文末「相关文章」 | 模板 `single.html` 的 ② 段 + 第 09 段的 `.post-related*` 六条规则 + **`hugo.toml` 的 `[related]`**（权重 / 阈值都在那）。⚠️ 改阈值前先数产物里 `.post-related` 有几个 —— 2026-10-05 那次就是吃默认 `threshold = 80` 导致**一条都推不出来**、构建 0 警告。现在 20，132/133 篇有推荐 |
 | 改图片加载（srcset / 边缘转换 / 首图优先） | `layouts/_default/_markup/render-image.html`（一个文件搞定四件事，理由见 DESIGN.md 第 13 节）+ `custom_head.html` 顶部的 `preconnect`。⚠️ `quality=82` 是目视比过的，别往 70 以下调（截图类图片会出色带）；⚠️ 首图 `fetchpriority="high"` **不能同时带 `loading="lazy"`**，同时写 high 会被忽略；⚠️ `sizes` 里的 `680px` = `body` 的 720 减左右各 20 padding，改布局宽度要回来改它 |

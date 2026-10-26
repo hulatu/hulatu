@@ -15,7 +15,7 @@ description: >
   `/run/` 11071、`/404.html` 10651、`/feed/` 那两页 9616；改完记得回读体积，别凭印象）。
   ⚠️ 上表是 **2026-10-14 加了第 26 段之后**的值 —— 每个页型都比当天之前**统一 +562 B**，
   逐值与更早那份基线在「已删除的功能」一节之后的 2026-10-14 小节里对照。
-  站点层只在 30 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
+  站点层只在 32 个文件里做了最小偏离，逐条列在正文「站点层偏离」一节。
   **改样式前先读那一节**：绝大多数视觉问题应该在上游那一份里改，
   而不是在站点层再叠一层规则 —— 那是上一版自建主题最后变得无法维护的原因。
 
@@ -86,7 +86,7 @@ hit-target: "无硬性下限"      # 上游没有 44px 触控区约定；站点�
 
 # 设计规范 —— hulatu.com
 
-> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 30 个文件的最小偏离。
+> 一句话：**本站的视觉体系就是上游 Hugo Bear Neo 的**，站点层只做了 32 个文件的最小偏离。
 > 这份文档的作用不是「描述我们自己的设计系统」，而是**登记那 25 个文件**，
 > 以及把「为什么不改」的理由留下来 —— 免得下一轮改造又把上游的东西重做一遍。
 
@@ -1038,7 +1038,7 @@ CSS 拿不到 location，只能由模板给。
 
 ---
 
-## 5. 站点层偏离（30 个文件）+ 改上游 1 处
+## 5. 站点层偏离（32 个文件）+ 改上游 1 处
 
 > ⚠️ **2026-10-14 起多了一类偏离：直接改上游主题本身。**
 > 在此之前 27 个主题文件是逐字节未改的；现在
@@ -1069,7 +1069,9 @@ CSS 拿不到 location，只能由模板给。
 | `layouts/partials/footer.html` | 版权独立成行；`Say hello` 大写；末行英文化 + `Privacy` 链接 + CC 带链接 | 上游版权和 Sitemap 挤一行，配置不出来；后三处是 2026-10-11 用户要求 |
 | `layouts/partials/breadcrumbs.html` | **新增**：面包屑 `<nav>` + `BreadcrumbList` JSON-LD | 上游与 yinji 都没有面包屑；只给有层级的文章页挂（见第 4 节） |
 | `layouts/partials/seo_tags.html` | **新增**（2026-10-14）：整份覆盖上游的同名 partial —— ① 删 `<meta name="keywords">` 与 `<meta name="title">`；② 删掉整块微数据（`itemscope` / `itemprop` 那套）；③ 补 `og:image:width` / `height`；④ 换成按页型输出的 JSON-LD | 上游那份是「HTML 规范还在 2015 年」的写法（见第 8 节第 1 条：它原本就是本文件存在的理由）。现在 332 页全部有 `ld+json`、`keywords` / `itemprop` / `pubdate` 全站归零 |
-| `layouts/partials/custom_head.html` | 33 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 / 28 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 / **29 / 30 / 31 / 32 / 33** 全站；00b / 00c 挂在 00 段之后） | 见下。⚠️ **第 29 段（skip-link + 打印）、第 30 段（跨页转场）、第 31 段（手机端折叠目录）都是 2026-10-17 新增**，全站生效；第 29/30 段 + 00b 合计每页 +1345 B raw，第 31 段再 +1089 B raw。**第 32 段（浅色三级文字色）+ 00c（页头站名）是 2026-10-18 新增**，两段合计每页 **+164 B raw / 约 +42 B gzip**（实测 8 个页型逐值一致） |
+| `layouts/partials/og-image.html` | **新增**（2026-10-26）：分享卡片图的**唯一**取值来源 —— 长文页按 `.Slug` 找 `images/og/<slug>.png`，取不到回落 `site.Params.images` 第一张；返回**绝对 URL** | 这段逻辑原本在 `_partials/opengraph.html` 与 `_partials/twitter_cards.html` 各写一份、靠注释提醒「必须逐字一致」；2026-10-26 给 JSON-LD 的 `image` 也用同一张图时正好会变成第三份，于是收成一份。见第 15 节 |
+| `layouts/partials/noindex.html` | **新增**（2026-10-26）：`noindex` 判定的**唯一**来源（`tags` / `404` / `.Params.noindex`），返回 bool | 同上：原本 `_default/baseof.html` 与 `sitemap.xml` 各写一份 `or(...)`，漂移的后果是「sitemap 里混进 noindex 页」而构建 0 警告。分类页 2026-10-26 放行时正好要动它，于是收成一份。见第 15 节 |
+| `layouts/partials/custom_head.html` | 34 段补丁样式 + GoatCounter（03 / 06 / 11 / 24 留空；08 / 15 / 25 按页输出；09+10 / 12 / 13 / 16 / 18 / 19 / 26 / 28 各只给一类页；01 / 02 / 04 / 05 / 07 / 14 / 17 / 20 / 21 / 22 / 23 / **29 / 30 / 31 / 32 / 33 / 34** 全站；00b / 00c 挂在 00 段之后） | 见下。⚠️ **第 29 段（skip-link + 打印）、第 30 段（跨页转场）、第 31 段（手机端折叠目录）都是 2026-10-17 新增**，全站生效；第 29/30 段 + 00b 合计每页 +1345 B raw，第 31 段再 +1089 B raw。**第 32 段（浅色三级文字色）+ 00c（页头站名）是 2026-10-18 新增**，两段合计每页 **+164 B raw / 约 +42 B gzip**（实测 8 个页型逐值一致）。**第 34 段（词条页 h1 补偿）是 2026-10-26 新增**，每页 **+55 B raw / +11～15 B gzip** |
 | `layouts/404.html` | **新增** | 上游默认只有 `<h1>404</h1>` + 一行颜文字 |
 | `layouts/_default/_markup/render-heading.html` | **新增**：标题末尾的 `#` 锚点 | 上游没有这个钩子（Goldmark 只给 id、不给可点入口） |
 | `layouts/partials/orphan-safe.html` | **新增**：标题末 2 字包 `nowrap` | 中文标题的孤行问题（取回旧主题的做法） |
@@ -1182,7 +1184,7 @@ Firefox / Safari 目前仍支持 XSLT，但**这套方案已经不需要任何�
 所以 `/privacy/`、`/posts/`、`/donate/` **仍然留在 sitemap 里**。爬虫读到 meta 不会收录，
 但地址仍会先交给它一次。要彻底干净，得再加一份 sitemap 模板把 `not .Params.noindex` 排掉。
 
-### `custom_head.html` 的 33 段
+### `custom_head.html` 的 34 段
 
 | 段 | 内容 | 生效范围 |
 | --- | --- | --- |
@@ -1218,11 +1220,12 @@ Firefox / Safari 目前仍支持 XSLT，但**这套方案已经不需要任何�
 | 31 | `.toc-mobile`（手机端折叠目录；`@media screen and (max-width: 1200px)`，打印时不出） | **全站**（结构只在 h2 ≥ 3 的 **56 页**） |
 | 32 | 浅色下 `--text-color-tertiary` 提亮到 `#6e6e6e`（包在 `@media (prefers-color-scheme: light)` 里，深色原值不动） | **全站** |
 | 33 | **页面级 h1 配套**（2026-10-25，四条）：<br>`33-a .sr-only` —— 视觉隐藏但**留在无障碍树里**（给 `/about/` `/now/` `/roll/` 的隐藏 h1；用 clip 方案，不是 `display:none`）<br>`33-b #hi{font-size:1.5em}` —— 首页「Hi!」由 h2 升 h1 后把字号钉回 1.5em<br>`33-c ul.blog-posts h2{font-size:1.17em;margin:1.9em 0 .6em}` —— 列表页年份分组 h3→h2，**字号和边距都要还原**（`content h2` 与 `content h3` 的边距本来就不是一个值）<br>`33-d .recent-posts-head{font-size:1.17em}` —— 首页「Recent Posts:」h3→h2 后补字号 | **全站**（33-b / 33-d 实际只在首页生效，但 CSS 全内联，每页都带这 243 B） |
+| 34 | **词条页标题 h3→h1 的字号与边距还原**（2026-10-26）：`content h1.term-head{font-size:1.17em;margin:1.9em 0 0}`。`list.html` 里「筛选：X」原本是 `<h3 style="margin-bottom:0">`，分类页放行后必须升 h1（否则可索引页没有 h1）；换标签会让字号从 1.17em 跳到 UA 的 2em、边距从 `content h3{1.9em 0 .6em}` 掉到主题的 `h1{margin:16px 0}`，两处都要还原 | **全站**（对 220 个词条页生效，含 noindex 的标签页） |
 | — | 文件末尾：**GoatCounter**（上游 `baseof.html` 没有统计挂载点，只能挂这个钩子） | 全站 |
 
 > 00 段之后还挂着两条**没有独立段号**的规则：`00b` 导航当前页标识（`aria-current="page"` 只改颜色）、
 > `00c` 页头站名（`<p class="title">` 补回 `<h1>` 的四处默认样式，2026-10-18）。
-> 用字母后缀而不是新号，是为了不打乱 01–33 的既有编号 —— 文档、注释、验收清单里引用的都是这些号。
+> 用字母后缀而不是新号，是为了不打乱 01–34 的既有编号 —— 文档、注释、验收清单里引用的都是这些号。
 
 #### 周刊页的「请订阅 RSS」（2026-10-14 用户要求，当天改为普通链接）
 
@@ -1961,7 +1964,7 @@ new weekly/周刊-27
 | `static/apple-touch-icon.png` | 180×180，**白底**，iOS 主屏 |
 | `static/favicon.ico` | 48 / 32 / 16 三尺寸，约定路径兜底 |
 | `static/images/feed-icon.png` | 144×144，**白底**，RSS `<image>` 用 |
-| `layouts/partials/favicon.html` | 站点层覆盖（第 30 个文件），head 里输出五条 link |
+| `layouts/partials/favicon.html` | 站点层覆盖（2026-10-25 加入），head 里输出五条 link |
 | `layouts/_default/rss.xml` | channel 级 `<image>`，位置在 `<item>` 之前 |
 | `hugo.toml` → `params.feedIcon` | 图路径单点配置，模板里宽高写死 144 |
 
@@ -2172,3 +2175,101 @@ HTML 359 → **358**。
 | 空 `alt` | **0** |
 | 视觉回归 | 首页 / `/about/` / `/now/` / `/roll/` **AE = 0**；`/archive/` `/posts/` 去掉 89/90px 偏移后 **AE = 0**；`/weekly/` 最后一个年份组有 **1px 亚像素取整差**（目视不可见） |
 | 体积 | 每档 **+243 B raw / +62～65 B gzip**（全站 358 页，见 MAINTENANCE 第 0 节） |
+
+---
+
+## 15. 2026-10-26：分类页放行 + JSON-LD 逐篇取图
+
+起因是 Google 收录审查（`google-seo-review.html`）里的两条：8 个分类页全是 `noindex`、
+全站没有可索引的主题聚合页；JSON-LD 的 `image` 全站共用一张 `share.webp`，
+而 `og:image` 早就逐篇不同了。
+
+### 15.1 分类页全部放行
+
+8 个 `/categories/<词>/` 从 `noindex, follow` 改成可索引，并自动进 `sitemap.xml`。
+实测文章数：思考 38、周刊 27、工具 19、记录 18、运动 12、学习科研 10、饮食 5、健康 4。
+
+**⚠️ 用户决定「全部放行」，不是原报告建议的「≥10 篇才放行」。** 所以饮食（5 篇）、
+健康（4 篇）这两个内容量偏少的分类也在里面 —— 它们有可能被判「已抓取 - 尚未编入索引」，
+这是已知的、可接受的代价。
+
+每个分类配一个 `content/categories/<词>/_index.md` 提供 `title` + `description`：
+
+```yaml
+---
+title: "思考"
+description: "关于选择、习惯、消费与长期主义的记录：……"
+---
+```
+
+⚠️ **`title` 必须写**。Hugo 的词条页标题来自 taxonomy key，一旦该目录下有 `_index.md`
+而它没写 `title`，`.Title` 会变成空 → `<title>` 退化成「 | 胡拉图说」。
+⚠️ 这些 `description` 是**手写**的，加文章后不会自动更新 —— 所以刻意不写「共 N 篇」这类数字。
+
+### 15.2 分类页的 `<h1>`
+
+词条页原本的顶层标题是 `<h3 style="margin-bottom:0">筛选：{{ .Title }}</h3>`，
+全站 h1 只有站名那一个（2026-10-18 降级成 `<p class="title">` 之后是 0 个）。
+放行后它们成了可索引页，没有 h1 说不过去。
+
+**改法**：`list.html` 里那一行 h3 → `<h1 class="term-head">`，再用第 34 段
+`content h1.term-head{font-size:1.17em;margin:1.9em 0 0}` 把 h3 的字号与边距钉回去。
+
+⚠️ 两个坑：
+- **只换标签 = 标题跳级**。页面大纲会变成 `h1 → h3`（升级 +2），axe `heading-order` 判失败。
+  换完 h1 后后面的年份分组接 `h2`，大纲是 `h1 → h2 → h2 …`，通过。
+- **字号和边距都要还原**。字号：UA 默认 h1 = 2em、h3 = 1.17em。边距：`<content>` 里生效的
+  是 `content h3{margin:1.9em 0 .6em}`，而 h1 在 `<content>` 里**没有任何站点层规则**
+  （只有主题那条 `h1..h6{margin:16px 0}`）。原行还带 inline `margin-bottom:0`，
+  所以实际值是 `1.9em 0 0` —— 那个 inline 已删掉，改由第 34 段承担。
+
+验收：`/categories/思考/` 与 `/tags/写作/` 改前改后 `magick compare -metric AE` **都是 0**。
+
+⚠️ 这条 CSS 对 **220 个词条页**（212 标签 + 8 分类）同时生效。标签页虽然 noindex，
+但 h1 是「这一页写了什么」决定的语义元素，按站点层规矩必须全站输出，**不能按页型守卫**。
+
+### 15.3 JSON-LD 的 `image` 改成逐篇
+
+`seo_tags.html` 原本取 `site.Params.images` 的第一张，于是 133 篇文章的 JSON-LD
+`image` 全是 `share.webp`。而 **Google 的 Article 富媒体结果与 Discover 读的是 JSON-LD，
+不是 `og:image`** —— 等于白丢逐篇缩略图的差异化。
+
+改法：把「按 slug 找 `images/og/<slug>.png`、取不到回落 `share.webp`」这套逻辑
+收进 `layouts/partials/og-image.html`，三处共用：
+
+| 调用方 | 输出 |
+| --- | --- |
+| `_partials/opengraph.html` | `og:image` |
+| `_partials/twitter_cards.html` | `twitter:image` |
+| `partials/seo_tags.html` | JSON-LD 的 `image` |
+
+⚠️ partial 返回**绝对 URL**，`seo_tags.html` 里直接用 `slice $img`，
+**不要**再套 `absURL`（原来是 `slice (absURL $img)`，改完必须去掉）。
+⚠️ 重构后 `og:image` / `twitter:image` 必须**逐页不变** —— 实测 366 页全部一致。
+
+### 15.4 顺手根治的两处「复制粘贴」
+
+这两处原本都是「同一个判定写在两个文件里 + 注释提醒必须逐字一致」：
+
+| 原位置 | 症状 | 现在 |
+| --- | --- | --- |
+| `_default/baseof.html` + `sitemap.xml` 的 `$noindex` | sitemap 里混进 noindex 页，构建 0 警告 | `layouts/partials/noindex.html` |
+| `_partials/opengraph.html` + `_partials/twitter_cards.html` 的取图 | 微信卡片与 Twitter 卡片不是同一张图 | `layouts/partials/og-image.html` |
+
+这次两个改动都要动到这两处逻辑，正好把它们收成一份 —— 以后改口径只改 partial。
+
+### 15.5 验收
+
+| 项 | 结果 |
+| --- | --- |
+| 构建 | 370 页 / **366 HTML / 0 警告** |
+| sitemap | **148 条**（133 文章 + 7 根级/列表页 + **8 分类页**），与 218 个 noindex 页**零交集** |
+| noindex | 226 → **218**（只少了 8 个分类页） |
+| h1 分布 | **`{1 个: 366 页}`** —— 改前是 `{0 个: 213, 1 个: 153}`，现在每页恰好一个 |
+| `heading-order` 跳级 | **0 页** |
+| 站内链接 | 5669 条，**失效 0** |
+| 重复 id | **0 页** |
+| JSON-LD `image` | 逐篇 = `/images/og/<slug>.png`（抽样 133 篇全部命中） |
+| `og:image` / `twitter:image` | 重构前后 **366 页逐页一致** |
+| 视觉回归 | 首页 / `/archive/` / 文章页 / `/categories/思考/` / `/tags/写作/` **AE 全为 0** |
+| 体积 | 每档 **+55 B raw / +11～15 B gzip**（第 34 段，见 MAINTENANCE 第 0 节） |
