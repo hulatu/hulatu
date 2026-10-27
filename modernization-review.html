@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>现代化评审 · hulatu.com · 2026-10-27</title>
+<style>
+  /* ============================================================
+     这份评审页用**站点自己的设计语言**排版：
+     纸底 #fdfdfd / 墨 #1a1a1a / 三级灰 #6e6e6e / 线 #d0d7de /
+     链接蓝 #0066cc / Verdana + 苹方 / 正文 1.8 行高 / 4px 圆角 / 无投影。
+     颜色全部取自 themes/hugo-bearneo/layouts/partials/style.html:3-18，
+     三级灰取自站点层 custom_head.html:2409（2026-10-18 提亮到 #6e6e6e）。
+     刻意不引入任何外部字体、CDN、图片 —— 双击即可打开。
+     ============================================================ */
+  :root {
+    --paper: #fdfdfd;
+    --surface: #f2f4f7;
+    --ink: #1a1a1a;
+    --ink-2: #444;
+    --muted: #6e6e6e;
+    --line: #d0d7de;
+    --blue: #0066cc;
+    --ok: #1a7f37;
+    --warn: #9a6700;
+    --bad: #b42318;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    padding: 20px 20px 64px;
+    max-width: 760px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Verdana, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+      "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+    font-size: 16px;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  ::selection { background: #cfe3fb; }
+
+  h1, h2, h3, h4 { line-height: 1.35; }
+  h1 { font-size: 30px; margin: 8px 0 4px; letter-spacing: -.01em; }
+  h2 {
+    font-size: 23px;
+    margin: 2.4em 0 .5em;
+    padding-top: 1.1em;
+    border-top: 1px dashed var(--line);
+  }
+  h3 { font-size: 17px; margin: 1.9em 0 .35em; }
+  h4 { font-size: 15px; margin: 1.5em 0 .3em; color: var(--ink-2); }
+  p { margin: 1.1em 0; }
+  ul, ol { margin: 1.1em 0; padding-left: 1.5em; }
+  li { margin: .45em 0; }
+  strong { font-weight: 700; }
+  em { font-style: normal; background: linear-gradient(transparent 62%, #ffe9a8 62%); }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", monospace;
+    font-size: .875em;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: .1em .3em;
+  }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+
+  .kicker {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0;
+  }
+  .lede { font-size: 17px; color: var(--ink-2); margin-top: .6em; }
+  .meta {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 1.2em 0 0;
+    padding-bottom: 1.4em;
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* 结论卡：三条，不带底色、只靠左边一条竖线 */
+  .verdict { margin: 1.8em 0; }
+  .verdict > div {
+    border-left: 3px solid var(--ink);
+    padding: .1em 0 .1em 14px;
+    margin: 1.1em 0;
+  }
+  .verdict .n {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: .1em;
+  }
+  .verdict b { font-size: 16.5px; display: block; margin-bottom: .15em; }
+
+  /* 数值表 */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.3em 0;
+    font-size: 14.5px;
+  }
+  th, td {
+    border-bottom: 1px solid var(--line);
+    padding: 7px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    font-size: 12.5px;
+    letter-spacing: .02em;
+    color: var(--muted);
+    font-weight: 400;
+    border-bottom: 1px solid var(--ink);
+    white-space: nowrap;
+  }
+  td.num {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13.5px;
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: 0; }
+  .t-ok { color: var(--ok); }
+  .t-bad { color: var(--bad); }
+  .t-warn { color: var(--warn); }
+
+  /* 并排 mockup */
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    margin: 1.5em 0 .4em;
+    overflow: hidden;
+  }
+  .pair > figure {
+    margin: 0;
+    padding: 14px 16px 16px;
+    background: var(--paper);
+  }
+  .pair > figure.dark { background: #121212; color: #e5e5e5; }
+  .cap {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11.5px;
+    letter-spacing: .04em;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .pair > figure.dark .cap { color: #8a8a90; }
+  .note {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0 0 1.6em;
+    padding-left: 2px;
+  }
+  .note b { color: var(--ink-2); font-weight: 400; }
+
+  /* —— mockup 1：搜索框 —— */
+  .m-input-before {
+    /* 复刻实测：width 174px / height 24px / border 2px inset #767676 /
+       border-radius 0 / background #fff / font-size 16px
+       出处：Helium 计算样式实测（archive/index.html，#search-input） */
+    width: 174px;
+    height: 24px;
+    padding: 1px 2px;
+    font-size: 16px;
+    font-family: Verdana, "PingFang SC", sans-serif;
+    border: 2px inset rgb(118, 118, 118);
+    border-radius: 0;
+    background: #fff;
+    color: #000;
+  }
+  .m-input-after {
+    /* 改造后：占满内容宽 / 44px 触控高 / 1px 发丝线 / 4px 圆角（全站唯一一档）
+       / 与 content 容器同一套 16px 字号 */
+    width: 100%;
+    height: 44px;
+    padding: 0 12px 0 34px;
+    font-size: 16px;
+    font-family: Verdana, "PingFang SC", sans-serif;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--paper);
+    color: var(--ink);
+    appearance: none;
+  }
+  .m-field { position: relative; }
+  .m-field::before {
+    /* 放大镜：纯 CSS，不引入图标字体 */
+    content: "";
+    position: absolute;
+    left: 12px; top: 50%;
+    width: 11px; height: 11px;
+    margin-top: -7px;
+    border: 1.5px solid var(--muted);
+    border-radius: 50%;
+  }
+  .m-field::after {
+    content: "";
+    position: absolute;
+    left: 22px; top: 50%;
+    width: 6px; height: 1.5px;
+    margin-top: 3px;
+    background: var(--muted);
+    transform: rotate(45deg);
+  }
+
+  /* —— mockup 2：段间距 —— */
+  .m-prose { font-size: 14px; }
+  .m-prose p { margin: 0; }
+  .m-prose.tight p { margin: 14px 0; }        /* 16px @16px = 14px @14px，等比缩到 mockup 尺寸 */
+  .m-prose.roomy p { margin: 24.5px 0; }      /* 1.75em @14px */
+  .m-prose.tight p:first-child,
+  .m-prose.roomy p:first-child { margin-top: 0; }
+  .m-prose.tight p:last-child,
+  .m-prose.roomy p:last-child { margin-bottom: 0; }
+  .lh-mark {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px dotted var(--line);
+  }
+
+  /* —— mockup 3：深色图片 —— */
+  .m-photo {
+    height: 92px;
+    border-radius: 4px;
+    border: 1px solid #30363d;
+    /* 用渐变模拟一张「明亮的窗外照片」：左亮右暗，均值约 0.43 */
+    background:
+      linear-gradient(105deg, #dfe6ee 0%, #b9c6d4 38%, #7c8b9b 68%, #4a5663 100%);
+  }
+  .m-photo.dim { filter: brightness(.82); }
+
+  /* —— mockup 4：时间轴 —— */
+  .bar { margin: 6px 0; font-size: 13px; }
+  .bar-label {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+  }
+  .bar-track {
+    height: 16px;
+    background: var(--surface);
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+  }
+  .bar-seg { height: 100%; }
+  .seg-net { background: #b9c6d4; }
+  .seg-render { background: #7c8b9b; }
+  .seg-cache { background: #cfe3fb; }
+
+  /* 清单 */
+  .item {
+    border-top: 1px solid var(--line);
+    padding: 1.1em 0 .2em;
+  }
+  .item:first-of-type { border-top: 0; }
+  .item h3 { margin-top: 0; }
+  .tag {
+    display: inline-block;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px;
+    letter-spacing: .04em;
+    padding: 1px 6px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+    vertical-align: 2px;
+    margin-right: 6px;
+  }
+  .tag.p0 { color: var(--bad); }
+  .tag.p1 { color: var(--warn); }
+  .tag.p2 { color: var(--muted); }
+  .where {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin: .3em 0 .9em;
+  }
+  .where b { color: var(--ink-2); font-weight: 400; }
+
+  .no-list { list-style: none; padding-left: 0; }
+  .no-list li {
+    padding-left: 1.4em;
+    position: relative;
+  }
+  .no-list li::before {
+    content: "×";
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+    font-family: ui-monospace, Menlo, monospace;
+  }
+
+  .ask {
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin: 1.6em 0;
+  }
+  .ask h3 { margin-top: 0; }
+  .ask ol { margin-bottom: 0; }
+
+  footer {
+    margin-top: 3em;
+    padding-top: 1.2em;
+    border-top: 1px dashed var(--line);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 620px) {
+    .pair { grid-template-columns: 1fr; }
+    body { padding: 16px 16px 48px; }
+    h1 { font-size: 25px; }
+    h2 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<p class="kicker">设计 / 性能评审 · 2026-10-27</p>
+<h1>还能更现代，但不是靠换皮</h1>
+<p class="lede">站点的外观和加载都已经过了「及格线」很远。真正剩下的问题只有 7 处，其中 2 处值得先做 —— 而它们恰好都不需要动视觉身份。</p>
+<p class="meta">基线：hugo 0.168.0 · 257 页 · 252 HTML · 0 警告 ｜ 站点层 35 文件 ｜ 全部数字为本轮实测（Helium 无头浏览器读计算样式 + curl 线上探测）</p>
+
+<div class="verdict">
+  <div>
+    <span class="n">结论 1</span>
+    <b>加载的瓶颈不在代码，在网络路径。</b>
+    首页只有 6.0 KB（gzip）、<b>1 个 HTTP 请求</b>、零阻塞资源、零字体外链 —— 这份成绩单已经超过绝大多数个人博客。但 HTML 是 <code>cf-cache-status: DYNAMIC</code>，每次导航都要跨太平洋回源，实测 TTFB <b>2.0–9.1 秒</b>。
+  </div>
+  <div>
+    <span class="n">结论 2</span>
+    <b>外观上「不现代」的地方只有一处是显眼的：搜索框。</b>
+    它是全站唯一一个完全没有被设计过的控件 —— 实测 174×24 px、<code>border: 2px inset</code>、<code>border-radius: 0</code>，是浏览器 1998 年的默认长相。
+  </div>
+  <div>
+    <span class="n">结论 3</span>
+    <b>其余都是「2005 年的 CSS 写法」层面的，不是审美层面的。</b>
+    段间距小于行距、<code>::selection</code> 未定义、深色模式图片不压亮度、日期字号硬编码。这些改动都看不见「换了风格」，但会让页面显得是被认真做过的。
+  </div>
+</div>
+
+<h2>0 · 先把「现代化」在这个站定义清楚</h2>
+
+<p>2026-10-10 你做过一次明确的选择：<strong>完全照 Bear Neo，功能也删干净</strong>。那之后视觉体系就是上游的 —— Verdana、720px 单列、虚线 <code>hr</code>、链接蓝 <code>#0066cc</code>、全站唯一一档 4px 圆角、没有投影。上一套「纸账 + 印章」已在 <code>DESIGN.md</code> 第 1 节里被标注<strong>整体作废</strong>。</p>
+
+<p>所以这份评审的立场是：<strong>现代化 = 把 2005 年的 CSS 写法升级到 2026 年的浏览器能力，视觉身份一个像素都不动。</strong></p>
+
+<p>它<strong>不</strong>意味着下面这些（这些是「伪现代化」，而且和你已经做过的决定冲突）：</p>
+
+<ul class="no-list">
+  <li>大圆角卡片、多层投影、玻璃拟态、渐变 —— 与「1px 发丝线 + 空白承担层级」直接冲突，第 6 节里每一条都写了删它的理由。</li>
+  <li>引入外部 Web 字体 —— 是刻意的设计决策（零外链），而且在 TTFB 已经 2 秒的链路上再加一个域名的 DNS + TLS，是负收益。</li>
+  <li>前端框架、动画库、图标字体 —— 当前全站外链 JS 只有 2 个文件（1.1 KB + 2.2 KB），没有可优化的余地，只有可破坏的空间。</li>
+  <li><code>text-wrap: balance / pretty</code> —— 设计目标是英文，在中文里表现为「行提前换行」，正是你会立刻察觉的那种坏。已验证，别再试。</li>
+  <li>深浅色手动开关、阅读进度条 —— 你分别在 2026-10-11 和 2026-10-17 明确否掉过。</li>
+</ul>
+
+<h2>1 · 基线：现在到底有多快</h2>
+
+<p>先把「已经做到了什么」摊开。这一步是必要的 —— 因为如果不先确认这些，任何「优化加载」的建议都会撞在已经做完的事情上。</p>
+
+<table>
+  <thead>
+    <tr><th>指标</th><th>实测</th><th>判断</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>首页体积</td>
+      <td class="num">18,197 B / gzip <b>6,005 B</b></td>
+      <td class="t-ok">优</td>
+    </tr>
+    <tr>
+      <td>归档页（133 条）</td>
+      <td class="num">58,792 B / gzip 14,603 B</td>
+      <td class="t-ok">优</td>
+    </tr>
+    <tr>
+      <td>最长文章页</td>
+      <td class="num">58,689 B / gzip 19,067 B</td>
+      <td class="t-ok">优</td>
+    </tr>
+    <tr>
+      <td>阻塞渲染的资源</td>
+      <td class="num">0</td>
+      <td class="t-ok">CSS 全内联，无 <code>&lt;link rel=stylesheet&gt;</code></td>
+    </tr>
+    <tr>
+      <td>字体请求</td>
+      <td class="num">0</td>
+      <td class="t-ok">系统字体栈</td>
+    </tr>
+    <tr>
+      <td>外链 JS（首页 / 文章页）</td>
+      <td class="num">0 / 1（giscus，点击才注入）</td>
+      <td class="t-ok">优</td>
+    </tr>
+    <tr>
+      <td>图片</td>
+      <td class="num">srcset 三档 + 首图 <code>fetchpriority=high</code></td>
+      <td class="t-ok">优</td>
+    </tr>
+    <tr>
+      <td>第三方脚本</td>
+      <td class="num">GoatCounter：<code>requestIdleCallback</code> + prerender 守卫</td>
+      <td class="t-ok">优</td>
+    </tr>
+    <tr>
+      <td>跨页转场</td>
+      <td class="num">View Transitions，252 / 252 页</td>
+      <td class="t-ok">优</td>
+    </tr>
+    <tr>
+      <td><b>HTML 边缘缓存</b></td>
+      <td class="num"><b>DYNAMIC（不缓存）</b></td>
+      <td class="t-bad">唯一的瓶颈</td>
+    </tr>
+    <tr>
+      <td><b>TTFB（线上实测）</b></td>
+      <td class="num"><b>2.00 s / 2.91 s / 9.06 s</b>，两次 20 s 超时</td>
+      <td class="t-bad">唯一的瓶颈</td>
+    </tr>
+    <tr>
+      <td>POP 落点</td>
+      <td class="num"><code>cf-ray: …-LAX</code>（洛杉矶）</td>
+      <td class="t-bad">路由问题</td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="note">
+  <b>口径</b>：体积 = 构建产物 <code>--minify</code> 后的字节数，gzip 用 <code>gzip.compress(d, 9)</code>。<br>
+  <b>TTFB</b> = <code>curl -w %{time_starttransfer}</code>，三次采样加 <code>?cb=</code> 绕缓存。<br>
+  <b>为什么是 9 秒</b>：不是站点慢，是「本机 → 洛杉矶 → 源站」这条路上的一次往返。同一个站在东京测只要 48.7 ms —— 这个数字 2026-10 就量过，结论没变。
+</p>
+
+<p>换句话说得更直白一点：<strong>这个站已经把「页面本身」优化到了没什么可优化的地步，剩下 100% 的等待都花在「把 6 KB 送到你面前」这件事上。</strong>所以下面关于加载的两条建议，一条都不涉及减小体积。</p>
+
+<h2>2 · 外观：三处「没有设计过」的地方</h2>
+
+<h3><span class="tag p0">P0</span>搜索框：全站唯一一个浏览器默认控件</h3>
+
+<p>它在 <code>/archive/</code>、<code>/posts/</code>、<code>/weekly/</code> 三个主列表页的顶部。实测计算样式：</p>
+
+<table>
+  <thead><tr><th>属性</th><th>实测值</th><th>问题</th></tr></thead>
+  <tbody>
+    <tr><td>width</td><td class="num">174 px（固定）</td><td class="t-bad">392 px 视口下只占内容宽 352 的一半</td></tr>
+    <tr><td>height</td><td class="num">24 px</td><td class="t-bad">触控目标下限是 44 px</td></tr>
+    <tr><td>border</td><td class="num"><code>2px inset rgb(118,118,118)</code></td><td class="t-bad">3D 内阴影边框，与全站 1px 发丝线冲突</td></tr>
+    <tr><td>border-radius</td><td class="num">0</td><td class="t-warn">全站唯一一档圆角是 4px</td></tr>
+    <tr><td>appearance</td><td class="num"><code>auto</code></td><td class="t-bad">完全没有被接管</td></tr>
+    <tr><td>font-size</td><td class="num">16 px</td><td class="t-ok">合格（≥16px 才不会触发 iOS 聚焦缩放）</td></tr>
+  </tbody>
+</table>
+
+<div class="pair">
+  <figure>
+    <span class="cap">现状 · 浏览器默认</span>
+    <input class="m-input-before" type="search" value="搜索标题或正文…" readonly tabindex="-1">
+    <div class="lh-mark">174 × 24 · 2px inset · radius 0</div>
+  </figure>
+  <figure>
+    <span class="cap">改造后</span>
+    <div class="m-field">
+      <input class="m-input-after" type="search" value="搜索标题或正文…" readonly tabindex="-1">
+    </div>
+    <div class="lh-mark">100% × 44 · 1px 发丝线 · radius 4px</div>
+  </figure>
+</div>
+
+<p class="note">
+  <b>改造后取值依据</b>：宽度 <code>100%</code>（跟随 720px 内容列）；高度 <code>44px</code>（与全站触控目标一致）；边框 <code>1px solid var(--border-color)</code>（与图片、表格、代码块同一条线）；圆角 <code>4px</code>（<code>style.html:132/156/191</code> 全站唯一一档）；放大镜用两个伪元素画，不引入图标字体。<br>
+  <b>落点</b>：<code>layouts/partials/custom_head.html</code> 新增一段，用 <code>#search-input</code> 守卫（这个 id 只在列表页存在，天然按页生效）。<br>
+  <b>为什么这条是 P0</b>：它是三个主入口页上最显眼的元素，而且它「没被设计过」这件事本身会被读者读成「这个站没做完」。
+</p>
+
+<h3><span class="tag p0">P0</span>段间距小于行距：长文的段落边界是失效的</h3>
+
+<p>实测：正文 <code>line-height: 28.8px</code>（16 px × 1.8），段落 <code>margin: 16px 0</code>。</p>
+
+<p><strong>段间距只有行距的 55.6%。</strong>这意味着「换段」在视觉上比「换行」还紧 —— 读者要靠标点和语义去猜段落在哪结束。中文是方块字、没有 x-height 提供节奏，这个问题比英文严重得多。你当初把行高从上游的 1.6 抬到 1.8，解决的是「行内太挤」；段落之间这一层其实一直没跟上。</p>
+
+<div class="pair">
+  <figure>
+    <span class="cap">现状 · 段距 16px / 行距 28.8px</span>
+    <div class="m-prose tight">
+      <p>后来，21 年的 9 月，注册了自己的第一个自媒体平台——公众号，输出自己想要分享的内容。再后来，慢慢地有了「多平台输出」的概念，注册的平台就更多了。</p>
+      <p>有了 MacBook，让我有了做自媒体的冲动、勇气和力量。这个过程中我也了解、学习了很多的工具，用来改善自己做自媒体的体验。</p>
+    </div>
+    <div class="lh-mark">段距 / 行距 = 55.6%</div>
+  </figure>
+  <figure>
+    <span class="cap">改造后 · 段距 1.75em / 行距 28.8px</span>
+    <div class="m-prose roomy">
+      <p>后来，21 年的 9 月，注册了自己的第一个自媒体平台——公众号，输出自己想要分享的内容。再后来，慢慢地有了「多平台输出」的概念，注册的平台就更多了。</p>
+      <p>有了 MacBook，让我有了做自媒体的冲动、勇气和力量。这个过程中我也了解、学习了很多的工具，用来改善自己做自媒体的体验。</p>
+    </div>
+    <div class="lh-mark">段距 / 行距 = 97%（1.75em = 28px）</div>
+  </figure>
+</div>
+
+<p class="note">
+  <b>为什么是 1.75em 而不是 1.5em</b>：1.5em = 24 px 仍小于行距 28.8 px，段落边界还是比行边界紧；1.75em = 28 px 恰好与行距齐平，是「换段 ≥ 换行」的最小值。Apple 中文站与少数派的正文段落都在这个区间。<br>
+  <b>落点</b>：<code>custom_head.html</code> 第 02 段（那一段已经在管标题上下间距，段落间距属于同一类问题）。写法必须是 <code>content p { margin: 1.75em 0 }</code> 而不是给 <code>content &gt; * + *</code> 加 <code>margin-top</code> —— 后者会和已有的 <code>p</code> 边距叠加成双倍。<br>
+  <b>代价</b>：一篇 20 段的文章会变长约 240 px（约 5–8%）。这是<strong>需要你接受的视觉变化</strong>，也是本文里唯一一条会明显改变页面长度的改动。
+</p>
+
+<h3><span class="tag p1">P1</span>深色模式下，图片比页面亮 6 倍</h3>
+
+<p>实测一张普通户外照片在深色主题下的表现：图片区域平均亮度 <strong>0.427</strong>，页面底色 <strong>0.071</strong> —— 差 6 倍。加上图片的边框是 <code>#30363d</code>（在 <code>#121212</code> 上几乎不可见），整块图没有任何过渡地贴在深色底上。</p>
+
+<div class="pair">
+  <figure class="dark">
+    <span class="cap">现状 · 无处理</span>
+    <div class="m-photo"></div>
+    <div class="lh-mark" style="color:#8a8a90;border-color:#2c2c31">均值 0.427 · 边框 #30363d</div>
+  </figure>
+  <figure class="dark">
+    <span class="cap">改造后 · brightness(.82)</span>
+    <div class="m-photo dim"></div>
+    <div class="lh-mark" style="color:#8a8a90;border-color:#2c2c31">均值 0.350 · 与底色差 4.9×</div>
+  </figure>
+</div>
+
+<p class="note">
+  <b>这不是新提案，是找回丢掉的东西</b>：旧主题的 <code>critical-post.css</code> 里有一条 <code>[data-theme="dark"] .article-image img { filter: brightness(.88) }</code>，2026-10-10 迁移到上游主题时随整套 CSS 一起消失了。<br>
+  <b>落点</b>：<code>custom_head.html</code> 新增一段，<code>@media (prefers-color-scheme: dark) { content img { filter: brightness(.82) } }</code>。<br>
+  <b>两个必须确认的点</b>：① <code>filter</code> 会创建新的包含块，要和第 21 段的 <code>img { height: auto }</code> 一起验（不会冲突，但要验）；② 灯箱是 CSS-only 的 <code>:checked ~</code> 方案，<code>filter</code> 挂在 <code>content img</code> 上时放大的那张图也会被压暗 —— 这是<strong>期望行为</strong>，深色下放大看图不该突然变亮。
+</p>
+
+<h3><span class="tag p1">P1</span>三处「浏览器默认」没被接管</h3>
+
+<p>这三条单独看都很小，但它们是同一个问题：<strong>页面里还有一小块区域是「系统的」，不是「这个站的」。</strong></p>
+
+<table>
+  <thead><tr><th>属性</th><th>实测</th><th>表现</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>::selection</code></td>
+      <td class="num">未定义（透明）</td>
+      <td>选中文字是浏览器默认淡蓝，与链接蓝撞色，深色下也不跟</td>
+    </tr>
+    <tr>
+      <td><code>accent-color</code></td>
+      <td class="num">未声明</td>
+      <td>任务清单的 <code>&lt;input type=checkbox&gt;</code> 用 UA 默认蓝，不跟 <code>--link-color</code></td>
+    </tr>
+    <tr>
+      <td><code>scrollbar-gutter</code></td>
+      <td class="num"><code>auto</code></td>
+      <td>归档页 14.6 KB / 短文页 6 KB，滚动条出现与消失时内容横移 15 px</td>
+    </tr>
+  </tbody>
+</table>
+
+<pre><code>/* 三行，都放在 custom_head.html 全站生效的段里 */
+::selection { background: color-mix(in srgb, var(--link-color) 22%, transparent); }
+:root { accent-color: var(--link-color); scrollbar-gutter: stable; }</code></pre>
+
+<p class="note">
+  <b><code>color-mix()</code> 而不是写死色值</b>：深色下 <code>--link-color</code> 是 <code>#6da6ff</code>，同一行代码自动跟着走，不用再维护一份深色覆盖 —— 这是这个站「深色只覆盖 8 个颜色变量」的既有做法的自然延伸。<br>
+  <b><code>scrollbar-gutter: stable</code> 的代价</b>：页面右侧会永久留出 15 px。在本站这种单列居中布局里几乎看不出来，但它是「所有页面宽度一致」的前提。
+</p>
+
+<h3><span class="tag p2">P2</span>日期字号硬编码 15px</h3>
+
+<p><code>style.html:184</code> 是 <code>time { font-size: 15px }</code> —— 硬编码 px，不跟随 <code>--font-size-primary: 1em</code>。后果是：用户在浏览器里把默认字号调到 130%，正文变成 20.8 px，日期还是 15 px。同一行里两个字号不再成比例。</p>
+
+<p>改成 <code>font-size: .9375em</code>（= 15/16）即可，视觉在默认字号下逐像素不变。这属于「可访问性修补」，优先级低但成本几乎为零。</p>
+
+<h2>3 · 加载：唯一的瓶颈，和两个解</h2>
+
+<p>前面那张表已经说明：体积、请求数、阻塞资源、字体、第三方脚本 —— 全部已经做到位了。剩下的一处，也是唯一的一处，是 <strong>HTML 不进边缘缓存</strong>。</p>
+
+<pre><code>$ curl -sSI "https://hulatu.com/about/" | grep -E "cf-cache-status|cache-control|cf-ray"
+cache-control: public, max-age=0, must-revalidate
+cf-cache-status: DYNAMIC          ← 没有命中边缘缓存
+cf-ray: a511ea2f5a6bf7c1-LAX      ← 落在洛杉矶</code></pre>
+
+<p><code>DYNAMIC</code> 意味着每一个页面请求都要走完整的回源链路。而 Cloudflare 免费版的 anycast 会把中国流量大量丢到美东 / 美西 / 欧洲 —— 这一点 2026-10 就量过（22 次采样亚洲 0 次），今天的 <code>cf-ray</code> 仍然是 LAX。</p>
+
+<h3><span class="tag p0">P0</span>给 HTML 一个短的边缘缓存 TTL</h3>
+
+<p>现在的 <code>static/_headers</code> 里，所有 HTML 规则都是 <code>max-age=0, must-revalidate</code>。这是为了让「发了新文章立刻能看到」，代价是每次访问都回源。但这个代价换来的收益其实被高估了：</p>
+
+<div class="pair">
+  <figure>
+    <span class="cap">现状 · 每次回源</span>
+    <div class="bar">
+      <div class="bar-label"><span>首次访问</span><span>2 000 – 9 000 ms</span></div>
+      <div class="bar-track"><div class="bar-seg seg-net" style="width:100%"></div></div>
+    </div>
+    <div class="bar">
+      <div class="bar-label"><span>第 2 次（另一个页面）</span><span>2 000 – 9 000 ms</span></div>
+      <div class="bar-track"><div class="bar-seg seg-net" style="width:100%"></div></div>
+    </div>
+    <div class="bar">
+      <div class="bar-label"><span>渲染</span><span>≈ 50 ms</span></div>
+      <div class="bar-track"><div class="bar-seg seg-render" style="width:3%"></div></div>
+    </div>
+  </figure>
+  <figure>
+    <span class="cap">改造后 · s-maxage=300</span>
+    <div class="bar">
+      <div class="bar-label"><span>首次访问（回源）</span><span>2 000 – 9 000 ms</span></div>
+      <div class="bar-track"><div class="bar-seg seg-net" style="width:100%"></div></div>
+    </div>
+    <div class="bar">
+      <div class="bar-label"><span>第 2 次（边缘命中）</span><span>≈ 50 ms</span></div>
+      <div class="bar-track"><div class="bar-seg seg-cache" style="width:3%"></div></div>
+    </div>
+    <div class="bar">
+      <div class="bar-label"><span>渲染</span><span>≈ 50 ms</span></div>
+      <div class="bar-track"><div class="bar-seg seg-render" style="width:3%"></div></div>
+    </div>
+  </figure>
+</div>
+
+<p class="note">
+  <b>改法</b>：<code>static/_headers</code> 里 HTML 那几条从 <code>public, max-age=0, must-revalidate</code> 改成 <code>public, max-age=0, s-maxage=300, must-revalidate</code>。<code>max-age=0</code> 保留（浏览器仍然每次条件请求），<code>s-maxage</code> 只管 CDN 那一层。<br>
+  <b>代价</b>：发新文章后，最多 5 分钟内部分访客仍看到旧列表页。文章页本身的 URL 是新的，不受影响 —— 受影响的只有首页、<code>/archive/</code>、<code>/posts/</code> 这几页。<br>
+  <b>为什么值得</b>：个人博客不是新闻站，5 分钟的可见延迟换「第 2 次访问起快 40 倍」，这笔账是正的。<b>但这一条需要你拍板</b>，因为它和你 2026-10 定下的「发完立刻可见」直接冲突。<br>
+  <b>注意</b>：<code>_headers</code> 的 <code>s-maxage</code> 会被后台的 Cache Rule / Edge TTL 覆盖。改完必须在 Cloudflare 后台确认一遍，并用 <code>bash scripts/check-cache.sh</code> 复核。
+</p>
+
+<h3><span class="tag p1">P1</span>补 Speculation Rules：让站内跳转变成 0 ms</h3>
+
+<p>全站 0 处。但有意思的是 —— <code>custom_head.html:2600</code> 里已经有这段：</p>
+
+<pre><code>if (document.prerendering) {
+  document.addEventListener("prerenderingchange", schedule, { once: true });
+} else {
+  schedule();
+}</code></pre>
+
+<p>也就是说 <strong>GoatCounter 那段代码已经为预渲染做好了准备，只是从来没有东西会预渲染它。</strong>这条规则被考虑过，但没落地。</p>
+
+<pre><code>&lt;script type="speculationrules"&gt;
+{"prerender":[{"where":{"and":[
+  {"href_matches":"/*"},
+  {"not":{"href_matches":"/index.xml"}},
+  {"not":{"href_matches":"/index.json"}}
+]},"eagerness":"moderate"}]}
+&lt;/script&gt;</code></pre>
+
+<p><strong>安全性我逐条查过了</strong>，这是这次评审里唯一一个「加之前必须先证明安全」的项：</p>
+
+<table>
+  <thead><tr><th>风险点</th><th>核查结果</th></tr></thead>
+  <tbody>
+    <tr><td>写入 <code>localStorage</code> / <code>sessionStorage</code></td><td class="t-ok">全仓 0 处</td></tr>
+    <tr><td>GoatCounter 重复计数</td><td class="t-ok">已有 <code>document.prerendering</code> 守卫</td></tr>
+    <tr><td>giscus 重复注入</td><td class="t-ok">点击展开才注入脚本，预渲染副本不会展开</td></tr>
+    <tr><td>搜索索引重复 fetch</td><td class="t-ok">聚焦才 fetch，预渲染副本不会被聚焦</td></tr>
+    <tr><td>主题 <code>toc.js</code> 副作用</td><td class="t-ok">只改 class，幂等</td></tr>
+  </tbody>
+</table>
+
+<p class="note">
+  <b><code>eagerness: moderate</code></b> = 悬停 200 ms 或按下鼠标时开始预渲染。<code>conservative</code> 太保守（只在 pointerdown 时启动，来不及），<code>immediate</code> 会预渲染所有可见链接（在列表页上是 133 个，太过）。<br>
+  <b>排除 <code>/index.xml</code> 和 <code>/index.json</code></b>：前者是 RSS 订阅源，后者是 1.03 MB 的搜索索引（gzip 442 KB）—— 预渲染它们没有意义，只会白占内存。<br>
+  <b>收益</b>：配合上面那条边缘缓存，站内跳转从「2 秒白屏」变成「瞬时」。这一条<strong>不解决 TTFB</strong>，它解决的是「感知到的等待」—— 把等待从「点击之后」挪到「悬停之时」，而悬停时用户并没有在等。<br>
+  <b>落点</b>：<code>layouts/_default/baseof.html</code> 的 <code>&lt;/head&gt;</code> 前（一行），或 <code>custom_head.html</code> 新增一段。
+</p>
+
+<h2>4 · 清单</h2>
+
+<div class="item">
+  <h3><span class="tag p0">P0</span>搜索框接管样式</h3>
+  <p class="where">落点 <b>layouts/partials/custom_head.html</b> 新增一段 ｜ 守卫 <b>#search-input</b> ｜ 影响 3 个列表页</p>
+  <p>100% 宽 / 44px 高 / 1px 发丝线 / 4px 圆角 / <code>appearance: none</code> / CSS 放大镜。视觉会变，但这是全站唯一一个「新设计」的控件。</p>
+</div>
+
+<div class="item">
+  <h3><span class="tag p0">P0</span>段间距 16px → 1.75em</h3>
+  <p class="where">落点 <b>custom_head.html</b> 第 02 段 ｜ 影响全部文章页 ｜ 长文变长 5–8%</p>
+  <p>唯一一条会明显改变页面长度的改动。1.75em 是「换段 ≥ 换行」的最小值。</p>
+</div>
+
+<div class="item">
+  <h3><span class="tag p0">P0</span>HTML 边缘缓存 <code>s-maxage=300</code></h3>
+  <p class="where">落点 <b>static/_headers</b> ｜ 影响所有 HTML ｜ 需要 Cloudflare 后台确认</p>
+  <p>TTFB 2 000 ms → 约 50 ms（边缘命中时）。代价是新文章最多延迟 5 分钟可见。<b>需要拍板。</b></p>
+</div>
+
+<div class="item">
+  <h3><span class="tag p1">P1</span>深色模式图片亮度抑制</h3>
+  <p class="where">落点 <b>custom_head.html</b> 新增一段 ｜ <code>filter: brightness(.82)</code></p>
+  <p>找回旧主题里有、迁移时丢掉的功能。图片平均亮度与底色差从 6 倍降到 4.9 倍。</p>
+</div>
+
+<div class="item">
+  <h3><span class="tag p1">P1</span>Speculation Rules 预渲染</h3>
+  <p class="where">落点 <b>baseof.html</b> 或 <b>custom_head.html</b> ｜ 一行 JSON</p>
+  <p>安全性五项已逐条核查通过。站内跳转从「点击后等 2 秒」变成「悬停时就开始加载」。</p>
+</div>
+
+<div class="item">
+  <h3><span class="tag p1">P1</span><code>::selection</code> / <code>accent-color</code> / <code>scrollbar-gutter</code></h3>
+  <p class="where">落点 <b>custom_head.html</b> 全站段 ｜ 三行</p>
+  <p>让浏览器原生 UI 跟着主题走。<code>color-mix()</code> 自动适配深浅两套。</p>
+</div>
+
+<div class="item">
+  <h3><span class="tag p2">P2</span><code>time</code> 字号改成 .9375em</h3>
+  <p class="where">落点 <b>custom_head.html</b> 覆盖，或改上游 <b>style.html:184</b> 并登记</p>
+  <p>默认字号下逐像素不变，但能跟随用户调大字号。可访问性修补。</p>
+</div>
+
+<div class="item">
+  <h3><span class="tag p2">P2</span>图片上下留白</h3>
+  <p class="where">落点 <b>custom_head.html</b> 第 21 段（已在管 <code>img</code>）</p>
+  <p>实测 <code>img { margin: 0 }</code>，正文图与上下段落之间只有 <code>p</code> 的 16px。加 <code>margin: 1.4em auto</code> 会更接近「图是一段独立内容」。</p>
+</div>
+
+<div class="item">
+  <h3><span class="tag p2">P2</span>删掉表格上那条无效的 <code>border-radius</code></h3>
+  <p class="where">落点 <b>style.html:132</b>（上游，改完登记）</p>
+  <p><code>border-collapse: collapse</code> 时 <code>border-radius</code> 按规范被忽略 —— 写了不生效，属于死声明。要么删，要么改 <code>separate</code>（后者会改变表格外观，不建议）。</p>
+</div>
+
+<h2>5 · 要保留的（别在下一轮当问题报）</h2>
+
+<ul>
+  <li><strong>导航全部用链接蓝。</strong>这是 2026-10-17 定下的三态方案：普通蓝 / 悬停蓝+下划线 / 当前页主文字色。<code>custom_head.html:124-143</code> 写明了为什么不能加下划线、不能改字重、不能加底色 —— 每一条都有实测依据（改字重会让 392px 下的 7 项导航折行）。</li>
+  <li><strong>Verdana + 720px + 虚线 hr。</strong>这是 Bear Neo 的身份，也是你 2026-10-10 主动选的。它不「过时」，它只是「不流行」。</li>
+  <li><strong>零外链字体。</strong>在 TTFB 2 秒的链路上，再加一个域名的 DNS + TLS 是负收益。</li>
+  <li><strong>CSS 全内联。</strong>每页 3.9–4.8 KB（gzip），换成一个外链文件反而多一次往返。</li>
+  <li><strong><code>text-wrap: wrap</code>（默认值）。</strong>中文里 <code>balance</code> / <code>pretty</code> 会让行提前换行，已验证。</li>
+  <li><strong>深色没有手动开关。</strong>跟随系统是零配置的正确答案。</li>
+</ul>
+
+<h2>6 · 需要你拍板的三件事</h2>
+
+<div class="ask">
+  <h3>① HTML 边缘缓存：接受 5 分钟的可见延迟吗？</h3>
+  <p>这是三条里收益最大的一条（TTFB 2 000 ms → 约 50 ms，且只影响首页和列表页），也是唯一一条会改变你既有决定的 —— 你 2026-10 特意把 Edge TTL 设成 0，就是为了「发完立刻可见」。</p>
+  <p><strong>可选</strong>：300 秒 / 60 秒 / 维持现状。</p>
+</div>
+
+<div class="ask">
+  <h3>② 段间距从 16px 加到 1.75em（28px）吗？</h3>
+  <p>这会让你所有已发布的文章变长 5–8%。排版上更易读，但页面总长度会变。</p>
+  <p><strong>可选</strong>：1.75em / 1.5em（24px，折中）/ 维持 16px。</p>
+</div>
+
+<div class="ask">
+  <h3>③ 搜索框改造成「有设计的控件」吗？</h3>
+  <p>这是本文里唯一会新增视觉元素的改动。改完它会成为全站第一个有边框、有圆角、有内边距的输入控件 —— 和其他部分仍然协调（用的是同一套 token），但确实「多了一个设计过的部件」。</p>
+  <p><strong>可选</strong>：完整改造 / 只改尺寸不改外观（44px 高 + 100% 宽，保留系统边框）/ 维持现状。</p>
+</div>
+
+<footer>
+  评审方法：<code>hugo --gc --minify --destination /tmp/modern-site</code> 干净构建（257 页 / 0 警告）；
+  计算样式用 Helium 无头浏览器（<code>--headless=new --no-sandbox</code>）注入探针读取，
+  视口 992 px 与 392 px 各测一次；线上用 <code>curl -w</code> 三次采样。<br>
+  本页所有 mockup 都是手写 HTML/CSS，不是截图 —— 每个值都在注释里标了出处，改的时候照着改就行。
+</footer>
+
+</body>
+</html>
