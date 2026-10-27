@@ -330,6 +330,31 @@
   .ask h3 { margin-top: 0; }
   .ask ol { margin-bottom: 0; }
 
+  .done {
+    margin: 1.6em 0 0;
+    border-left: 3px solid var(--ok);
+    padding: .7em 0 .7em 14px;
+  }
+  .done .n {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--ok);
+    display: block;
+    margin-bottom: .25em;
+    letter-spacing: .06em;
+  }
+  .done p { margin: .35em 0; font-size: 15px; }
+  .done .warn {
+    display: block;
+    margin-top: .5em;
+    padding: .5em .7em;
+    background: #fff8e6;
+    border: 1px solid #e8d9a8;
+    border-radius: 3px;
+    font-size: 14px;
+    color: #6b4d00;
+  }
+
   footer {
     margin-top: 3em;
     padding-top: 1.2em;
@@ -352,6 +377,14 @@
 <h1>还能更现代，但不是靠换皮</h1>
 <p class="lede">站点的外观和加载都已经过了「及格线」很远。真正剩下的问题只有 7 处，其中 2 处值得先做 —— 而它们恰好都不需要动视觉身份。</p>
 <p class="meta">基线：hugo 0.168.0 · 257 页 · 252 HTML · 0 警告 ｜ 站点层 35 文件 ｜ 全部数字为本轮实测（Helium 无头浏览器读计算样式 + curl 线上探测）</p>
+
+<div class="done">
+  <span class="n">已实施 · 2026-10-27</span>
+  <p><b>你选了三项，都已落地并验证：</b></p>
+  <p>① HTML 边缘缓存 <code>s-maxage=300</code>（<code>static/_headers</code> 15 个块）· ② 段间距 <code>1.75em</code>（<code>custom_head.html</code> 第 02 段）· ③ 搜索框<b>只改尺寸</b>（新增第 35 段：<code>100%</code> 宽 + <code>44px</code> 高，系统边框/圆角/背景全部保留）</p>
+  <p><b>另外 4 项没做</b>（不是否掉，是这轮没选）：深色图片亮度 · Speculation Rules 预渲染 · <code>::selection</code>／<code>accent-color</code>／<code>scrollbar-gutter</code> · <code>time</code> 字号。方案仍留在 §3–§4。</p>
+  <span class="warn">⚠️ ① 还需要你去 Cloudflare 后台做一步：<b>删掉或停用 <code>bypass_cache_for_html</code> 规则</b>（或把它的边缘 TTL 改成 300 秒）。后台规则优先级高于源站头 —— 不改，<code>_headers</code> 里那行不生效。改完用 <code>bash scripts/check-cache.sh</code> 复核，期望 <code>cf-cache-status: HIT</code> 且 <code>age &lt; 300</code>。</span>
+</div>
 
 <div class="verdict">
   <div>

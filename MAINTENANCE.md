@@ -43,6 +43,11 @@
 | 订阅源浏览器视图（`/feed/` `/feed/weekly/`） | 2 | 12465 / 3535 | 6041 B（+28 段） |
 
 合计 366 页，与 `os.walk` 数出的 HTML 数一致。
+
+⚠️ **「366」是 2026-10-26 标签归并前的口径**（词条页 220 = 212 标签 + 8 分类）。
+2026-10-27 实测 HTML 是 **253 个**（词条页 106 = 98 标签 + 8 分类，另有 1 篇 10-27 新增文章）。
+**体积逐值不受影响** —— 每一档的 CSS 与页数无关，只是同一份 CSS 被多少页引用。
+下次重测这张表时把页数列一起更新。
 ⚠️⚠️ **`raw` 列是字节数**（`css.encode()` 之后 `len`），**不是字符数**。
   2026-10-26 之前这张表记的是**字符数**，所以每档比实际少 **2 B**、`/run/` 少 **4 B** ——
   因为 CSS 里有两个非 ASCII 字符：`✕`（U+2715，图片放大遮罩的关闭符）和
@@ -197,10 +202,12 @@ layouts/                  ★ 站点层覆盖，33 个文件（另有 data/inlin
                                        改图标只改 SVG 再跑 DESIGN.md 第 12.3 节那几行
   partials/footer.html              版权独立成行 + 订阅行挪到第 3 行
                                     + copyrightNote/licenseName/licenseURL
-  partials/custom_head.html         32 段补丁样式 + GoatCounter
-                                    （03/06/11 刻意留空，24 撤回）
+  partials/custom_head.html         35 段补丁样式 + GoatCounter
+                                    （03/06/11 刻意留空，24 撤回，27/34 不占号）
                                     ⚠️ <style> 之前还有两条 theme-color meta，不占段号
                                     ⚠️ 第 27 段号**刻意不占** —— 当天建当天撤，原因见 DESIGN.md
+                                    ⚠️ 第 34 段号**也不占** —— 2026-10-26 加了又撤，见本文件第 0 节
+                                    ⚠️ 第 35 段是 2026-10-27 新增的搜索框尺寸，**只改尺寸不改外观**
                                     ⚠️ 第 28 段是订阅源浏览器视图的样式，**只给 /feed/ 那两页**
                                     （守卫 `or (eq .Type "feed") (eq .Section "feed")`）
                                     ⚠️ 第 29 段 = skip-link + 打印；第 30 段 = 跨页转场（2026-10-17，全站）
@@ -420,6 +427,8 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 改页脚 | `hugo.toml` 的 `copyright` / `copyrightNote` / `licenseName` / `licenseURL` / `[params.footer]` 四个开关。⚠️ 订阅行末尾那个「🚇 开往」**不在配置里**，写在 `layouts/partials/footer.html` 的订阅块里（`safeHTML` 存成变量、三个互斥分支各引用一次） |
 | 改颜色 / 字体 / 宽度 / 圆角 | `themes/hugo-bearneo/layouts/partials/style.html` 的 `:root`（改上游，改完在 DESIGN.md 第 5 节登记）。全站只有这一份 —— 改一处即全站生效 |
 | 改正文标题的上下间距 | `custom_head.html` 第 02 段（`text-autospace` 与 `content > :first-child` 两条已删 —— 后者是「首行贴导航栏」的元凶，见 DESIGN.md 第 5 节第 ③ 条） |
+| 改**正文段落间距** | `custom_head.html` 第 02 段末尾的 `content > p { margin-bottom: 1.75em }`（2026-10-27）。⚠️ **必须写 `content > p`**：写成 `content p` 会覆盖上游的 `blockquote p { margin: 0 }`（同特异性、本文件后加载），引用块里凭空多出 28px。⚠️ **只写 `margin-bottom`**：写了 `margin-top` 会把「标题 → 正文」的 16.8px 一起改成 28px |
+| 改**列表页搜索框尺寸** | `custom_head.html` 第 35 段（2026-10-27）。⚠️ `box-sizing: border-box` **不能删** —— 全站没有全局 border-box，`width:100%` + 2px 边框 + padding 会横向溢出 8px。⚠️ 用户当时选的是「只改尺寸不改外观」，所以这一段**刻意没有** border / radius / background / appearance |
 | 改**正文行高** | `themes/hugo-bearneo/layouts/partials/style.html` 的 `content`（**改上游**，改完在 DESIGN.md 第 5 节登记）。⚠️ 上游 1.6，2026-10-14 已改成 **1.8**；`body` 那条 1.5 **不要动**（页头 / 导航 / 页脚是外壳，不是阅读面）。改完回读：`content p` 应 16px / 28.8px，`header nav a` 仍 24px。⚠️ `<content>` 里的**标题也继承这 1.8** |
 | 改文末「系列坐标带」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html`，样式 `custom_head.html` 第 09 / 10 段（**改类名要两边一起改**） |
 | 改归档页顶部的「系列」横向入口 | 模板 `layouts/_default/archive.html`，样式 `custom_head.html` 第 09 段 |
@@ -501,34 +510,74 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 
 ### `_headers`
 
-- HTML 一律 `public, max-age=0, must-revalidate`（**故意不加 stale-while-revalidate** —— 2026-09-28 因此出现过「发了新文章首页还是旧的」）。
+- **HTML：`public, max-age=0, s-maxage=300, must-revalidate`**（2026-10-27 起）。
+  `max-age=0` 管浏览器（每次条件请求，没变就 304 → 改完立刻能看到）；
+  `s-maxage=300` 管 CDN（5 分钟内的重复访问由边缘直接给，不跨太平洋回源）。
+  **故意不加 `stale-while-revalidate`** —— 2026-09-28 因此出现过「发了新文章首页还是旧的」。
+  ⚠️ `s-maxage` 与 `stale-while-revalidate` **不是一回事**：前者过期后必须回源验证，
+  后者允许 CDN 继续发旧页。别再混为一谈。
 - `/images/*` 30 天、`/js/*` 一年 immutable（两个文件：giscus + code-copy，文件名带内容哈希）、favicon 7 天。
 - ⚠️ **`/css/*` 已删除**（产物里没有 `/css/` 目录了）。
 - ⚠️ 新增根级内容页记得回来补一条缓存规则（2026-10-12 就为 `/run/` 补了一条）。
 - ⚠️ `/rss.xsl` 那条 **2026-10-15 已删**（XSLT 方案整体撤掉）；新加的是 `/feed/` 与 `/feed/*` 两条 ——
   它们只对「直接访问 `/feed/`」和本地预览生效：线上主路径是浏览器打开 `/index.xml` 被
   `functions/_middleware.js` 改写的，**函数响应不吃 `_headers`**，那几条头写在函数代码里。
+- ⚠️ **订阅源与索引保持 `max-age=0, must-revalidate`，没有 `s-maxage`**：`/index.xml`
+  `/weekly/index.xml` `/index.json` `/sitemap.xml` 四条。`/index.json` 是 1 MB 的搜索索引，
+  给它长缓存会让「发完新文章 5 分钟内搜不到」——与首页那个坑同源，不值得。
 
-### ⚠️⚠️ 首页 `/` 被边缘缓存锁住（2026-10-18 / 10-25 两次复发）
+### ⚠️⚠️ HTML 边缘缓存：2026-10-27 从「Bypass」改成「300 秒」
 
-**症状**：改了 CSS 或首页文案，本地构建正常、源站也新，但访客看到的还是旧页。
-**判据**：
+**这一节是本次改动能否生效的关键。`_headers` 里那行 `s-maxage=300` 会被后台的
+Cache Rule / Edge TTL 覆盖 —— 后台不改，仓库里写什么都不生效。**
+
+**历史**：2026-10-18 / 10-25 两次出现「改了 CSS 或首页文案，源站已新、访客还是旧页」。
+当时的处置是建一条 **`bypass_cache_for_html`** 规则（缓存资格 = **绕过缓存**），
+让 HTML 完全不进边缘 —— 于是「发完立刻可见」，代价是**每次导航都回源**。
+2026-10-27 实测这个代价是 TTFB **2.0–9.1 秒**（`cf-cache-status: DYNAMIC`、`cf-ray …-LAX`），
+而页面本身只有 6 KB gzip、1 个请求 —— 等待全花在路上。用户当天选择接受
+「新文章最多延迟 5 分钟可见」，换成边缘缓存。
+
+**现在的目标状态（二选一，推荐 A）**：
+
+| 方案 | 怎么做 | 说明 |
+| --- | --- | --- |
+| **A（推荐）** | Cloudflare → Caching → Cache Rules → **删掉 / 停用 `bypass_cache_for_html`** | 让源站的 `s-maxage=300` 生效。规则写在仓库里，可追溯、可 review |
+| **B** | 保留规则，把「缓存资格」从「绕过缓存」改成「符合条件则缓存」，**边缘 TTL 填 300 秒** | 后台与仓库两处表达同一件事，容易漂移；只有 A 不方便时才用 |
+
+**判据（改完必须复核）**：
 
 ```bash
-curl -sI https://hulatu.com/ | grep -iE "cf-cache-status|^age|cache-control"
-#   cache-control: public, max-age=0, must-revalidate   ← 源站说「别缓存」
-#   cf-cache-status: HIT                                ← 边缘说「我缓存了」
-#   age: 5888                                           ← 98 分钟前那份
-curl -s "https://hulatu.com/?cb=$RANDOM" -o /dev/null -D - | grep cf-cache-status
-#   DYNAMIC = 源站已经是新的，只有边缘是旧的
+bash scripts/check-cache.sh          # 退出码 0 才算过
+curl -sI "https://hulatu.com/about/?cb=$RANDOM" | grep -iE "cf-cache-status|^age|cache-control"
+#   cache-control: public, max-age=0, s-maxage=300, must-revalidate
+#   cf-cache-status: HIT      ← 目标：命中边缘
+#   age: 137                  ← 目标：< 300
 ```
 
-**为什么 `_headers` 管不住**：`max-age=0, must-revalidate` 是**源站**的头，
-Cloudflare 后台的 **Cache Rule / Edge TTL** 在它之上，会覆盖掉。
-其它页面（`/posts/`、`/archive/`、`/feed/`）实测全是 `DYNAMIC`，**只有 `/` 被单独锁住**。
+- `DYNAMIC` = 还没进缓存 → 后台那条规则还在挡（或者刚 Purge 过，等第二次请求）
+- `BYPASS` = 后台还是「绕过缓存」→ 方案 A 没做完
+- `HIT` 且 `age` 是**几万秒** = 后台有别的规则在给它更长的 TTL → 回到上面那两次复发的排查
 
-**根治（只能后台点，仓库里没有任何 purge 手段）**：
-Cloudflare 后台 → 选 `hulatu.com` → **Caching → Cache Rules → 创建规则**：
+**为什么 300 秒这个值刻意不大**：它同时是「后台规则配错、首页又被锁成十几小时旧版」
+那个老毛病的上限。想更激进可以调到 600，但**别超过 900**。
+
+**顺序**：先改后台规则 → 点 **部署（Deploy）** → 再 **Purge** 一次 `/`。
+旧副本不会因为新规则自动失效。
+⚠️ 已有的那条 `img.hulatu.com` + `/cdn-cgi/image/` 规则**保持不动**：它是图片管线
+（`/cdn-cgi/image/width=…`）能吃边缘缓存 1 年的前提，删了图片就退回直连原图。
+
+**临时处置**：Caching → **Purge Cache → Custom Purge** → 填 `https://hulatu.com/`。
+
+⚠️ 仓库里**没有** wrangler、没有 `CF_API_TOKEN`，`deploy.sh` / `publish.sh` 都**不 purge** ——
+别指望「推上去就生效」。
+⚠️ 本机到这个 POP 经常 timeout，**别把请求失败当成没上线**，用带随机查询串的方式才准。
+⚠️ `functions/_middleware.js` 对这条**无能为力**：缓存命中时请求根本进不到函数层。
+
+<details>
+<summary>附：2026-10-18 / 10-25 那次排查的原始记录（Bypass 方案，现已作废，留作背景）</summary>
+
+当时的规则配置与判据：
 
 | 项 | 填什么 |
 | --- | --- |
@@ -550,18 +599,10 @@ Cloudflare 后台 → 选 `hulatu.com` → **Caching → Cache Rules → 创建�
 命中 **358 / 359** 个 HTML，**非 HTML 误伤 0 个**；唯一漏掉的是 `/404.html`
 （它没有结尾斜杠，本来就该让边缘缓存，**别去补**）。
 
-⚠️ **顺序**：先点右下角 **部署（Deploy）**，再回头 **Purge** 一次 `/` ——
-旧副本不会因为新规则自动失效。
-⚠️ 已有的那条 `img.hulatu.com` + `/cdn-cgi/image/` 规则**保持不动**：它是图片管线
-（`/cdn-cgi/image/width=…`）能吃边缘缓存 1 年的前提，删了图片就退回直连原图。
-⚠️ 规则生效后首页的 `cf-cache-status` 会从 `HIT` 变成 **`BYPASS`**，这是**目标状态**。
+⚠️ 规则生效后首页的 `cf-cache-status` 会从 `HIT` 变成 **`BYPASS`**，这在当时是目标状态；
+**2026-10-27 起反过来 —— `BYPASS` 变成了「没改完」的信号。**
 
-**临时处置**：Caching → **Purge Cache → Custom Purge** → 填 `https://hulatu.com/`。
-
-⚠️ 仓库里**没有** wrangler、没有 `CF_API_TOKEN`，`deploy.sh` / `publish.sh` 都**不 purge** ——
-别指望「推上去就生效」。
-⚠️ 本机到这个 POP 经常 timeout，**别把请求失败当成没上线**，用带随机查询串的方式才准。
-⚠️ `functions/_middleware.js` 对这条**无能为力**：缓存命中时请求根本进不到函数层。
+</details>
 
 ---
 
