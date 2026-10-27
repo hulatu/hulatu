@@ -300,6 +300,7 @@
   .tag.p0 { color: var(--bad); }
   .tag.p1 { color: var(--warn); }
   .tag.p2 { color: var(--muted); }
+  .tag.done { color: var(--ok); }
   .where {
     font-family: ui-monospace, Menlo, monospace;
     font-size: 12px;
@@ -390,7 +391,7 @@
   <div>
     <span class="n">结论 1</span>
     <b>加载的瓶颈不在代码，在网络路径。</b>
-    首页只有 6.0 KB（gzip）、<b>1 个 HTTP 请求</b>、零阻塞资源、零字体外链 —— 这份成绩单已经超过绝大多数个人博客。但 HTML 是 <code>cf-cache-status: DYNAMIC</code>，每次导航都要跨太平洋回源，实测 TTFB <b>2.0–9.1 秒</b>。
+    首页只有 6.0 KB（gzip）、<strong>1 个 HTTP 请求</strong>、零阻塞资源、零字体外链 —— 这份成绩单已经超过绝大多数个人博客。但 HTML 是 <code>cf-cache-status: DYNAMIC</code>，每次导航都要跨太平洋回源，实测 TTFB <strong>2.0–9.1 秒</strong>。
   </div>
   <div>
     <span class="n">结论 2</span>
@@ -495,7 +496,8 @@
 <p class="note">
   <b>口径</b>：体积 = 构建产物 <code>--minify</code> 后的字节数，gzip 用 <code>gzip.compress(d, 9)</code>。<br>
   <b>TTFB</b> = <code>curl -w %{time_starttransfer}</code>，三次采样加 <code>?cb=</code> 绕缓存。<br>
-  <b>为什么是 9 秒</b>：不是站点慢，是「本机 → 洛杉矶 → 源站」这条路上的一次往返。同一个站在东京测只要 48.7 ms —— 这个数字 2026-10 就量过，结论没变。
+  <b>为什么是 9 秒</b>：不是站点慢，是「本机 → 洛杉矶 → 源站」这条路上的一次往返。同一个站在东京测只要 48.7 ms —— 这个数字 2026-10 就量过，结论没变。<br>
+  <b>下表是 2026-10-27 改前的基线</b>。最后两行（<code>DYNAMIC</code> / TTFB）是这次要修的对象；改后的复核数字要等后台规则调整完、<code>check-cache.sh</code> 跑过才有意义 —— <b>别拿改前的数字当现状引用</b>。
 </p>
 
 <p>换句话说得更直白一点：<strong>这个站已经把「页面本身」优化到了没什么可优化的地步，剩下 100% 的等待都花在「把 6 KB 送到你面前」这件事上。</strong>所以下面关于加载的两条建议，一条都不涉及减小体积。</p>
@@ -731,21 +733,21 @@ cf-ray: a511ea2f5a6bf7c1-LAX      ← 落在洛杉矶</code></pre>
 <h2>4 · 清单</h2>
 
 <div class="item">
-  <h3><span class="tag p0">P0</span>搜索框接管样式</h3>
-  <p class="where">落点 <b>layouts/partials/custom_head.html</b> 新增一段 ｜ 守卫 <b>#search-input</b> ｜ 影响 3 个列表页</p>
-  <p>100% 宽 / 44px 高 / 1px 发丝线 / 4px 圆角 / <code>appearance: none</code> / CSS 放大镜。视觉会变，但这是全站唯一一个「新设计」的控件。</p>
+  <h3><span class="tag p0">P0</span><span class="tag done">已实施</span>搜索框接管样式</h3>
+  <p class="where">落点 <b>layouts/partials/custom_head.html</b> 新增第 35 段 ｜ 守卫 <b>#search-input</b> ｜ 影响 3 个列表页</p>
+  <p><b>按你的选择缩了范围：只改尺寸。</b>最终落地的只有三行 —— <code>box-sizing: border-box</code> + <code>width: 100%</code> + <code>height: 44px</code>。系统边框 <code>2px inset</code>、圆角 0、白底、<code>appearance: auto</code> <strong>全部保留</strong>。实测桌面 720×44、手机 352×44、横向溢出 0。</p>
 </div>
 
 <div class="item">
-  <h3><span class="tag p0">P0</span>段间距 16px → 1.75em</h3>
-  <p class="where">落点 <b>custom_head.html</b> 第 02 段 ｜ 影响全部文章页 ｜ 长文变长 5–8%</p>
-  <p>唯一一条会明显改变页面长度的改动。1.75em 是「换段 ≥ 换行」的最小值。</p>
+  <h3><span class="tag p0">P0</span><span class="tag done">已实施</span>段间距 16px → 1.75em</h3>
+  <p class="where">落点 <b>custom_head.html</b> 第 02 段末尾 ｜ 影响全部文章页 ｜ 长文变长 5–8%</p>
+  <p>实际落地的是 <code>content &gt; p { margin-bottom: 1.75em }</code>。用子选择器是为了不误伤 <code>blockquote p</code>；只写 <code>margin-bottom</code> 是为了保住「标题 → 正文」的 16.8px 节奏。实测段距 <b>28px</b>（行距 28.8px），标题后仍是 16.8px。</p>
 </div>
 
 <div class="item">
-  <h3><span class="tag p0">P0</span>HTML 边缘缓存 <code>s-maxage=300</code></h3>
-  <p class="where">落点 <b>static/_headers</b> ｜ 影响所有 HTML ｜ 需要 Cloudflare 后台确认</p>
-  <p>TTFB 2 000 ms → 约 50 ms（边缘命中时）。代价是新文章最多延迟 5 分钟可见。<b>需要拍板。</b></p>
+  <h3><span class="tag p0">P0</span><span class="tag done">已实施</span>HTML 边缘缓存 <code>s-maxage=300</code></h3>
+  <p class="where">落点 <b>static/_headers</b> 15 个 HTML 块 ｜ 订阅源与 <code>/index.json</code> 未动 ｜ <b>还需后台操作</b></p>
+  <p>TTFB 2 000 ms → 约 50 ms（边缘命中时）。代价是新文章最多延迟 5 分钟可见 —— 你已确认接受。<b>但后台的 <code>bypass_cache_for_html</code> 规则优先级更高，不删它这一行不生效。</b></p>
 </div>
 
 <div class="item">
@@ -795,24 +797,24 @@ cf-ray: a511ea2f5a6bf7c1-LAX      ← 落在洛杉矶</code></pre>
   <li><strong>深色没有手动开关。</strong>跟随系统是零配置的正确答案。</li>
 </ul>
 
-<h2>6 · 需要你拍板的三件事</h2>
+<h2>6 · 三件事已经拍了板</h2>
+
+<p>2026-10-27 你选的方案，逐条记在这里（实施细节见页顶横幅与 <code>DESIGN.md</code> 第 18 节）。</p>
 
 <div class="ask">
-  <h3>① HTML 边缘缓存：接受 5 分钟的可见延迟吗？</h3>
-  <p>这是三条里收益最大的一条（TTFB 2 000 ms → 约 50 ms，且只影响首页和列表页），也是唯一一条会改变你既有决定的 —— 你 2026-10 特意把 Edge TTL 设成 0，就是为了「发完立刻可见」。</p>
-  <p><strong>可选</strong>：300 秒 / 60 秒 / 维持现状。</p>
+  <h3>① HTML 边缘缓存 → <span style="color:var(--ok)">300 秒</span></h3>
+  <p>接受「发新文章最多 5 分钟内部分访客看到旧列表页」，换 TTFB 从 2 000 ms 降到约 50 ms。</p>
+  <p><strong>待办（不在仓库里）</strong>：Cloudflare 后台删掉 / 停用 <code>bypass_cache_for_html</code>，或把它的边缘 TTL 改成 300 秒。然后 <code>bash scripts/check-cache.sh</code> 复核。</p>
 </div>
 
 <div class="ask">
-  <h3>② 段间距从 16px 加到 1.75em（28px）吗？</h3>
-  <p>这会让你所有已发布的文章变长 5–8%。排版上更易读，但页面总长度会变。</p>
-  <p><strong>可选</strong>：1.75em / 1.5em（24px，折中）/ 维持 16px。</p>
+  <h3>② 段间距 → <span style="color:var(--ok)">1.75em（28px）</span></h3>
+  <p>接受「已发布文章变长 5–8%」，换段落边界清晰。落地写法是 <code>content &gt; p { margin-bottom: 1.75em }</code>。</p>
 </div>
 
 <div class="ask">
-  <h3>③ 搜索框改造成「有设计的控件」吗？</h3>
-  <p>这是本文里唯一会新增视觉元素的改动。改完它会成为全站第一个有边框、有圆角、有内边距的输入控件 —— 和其他部分仍然协调（用的是同一套 token），但确实「多了一个设计过的部件」。</p>
-  <p><strong>可选</strong>：完整改造 / 只改尺寸不改外观（44px 高 + 100% 宽，保留系统边框）/ 维持现状。</p>
+  <h3>③ 搜索框 → <span style="color:var(--ok)">只改尺寸</span></h3>
+  <p>保留系统边框、圆角、背景，只把 174×24 改成 100%×44。这是三条里唯一「没有新增视觉元素」的做法 —— 与你的选择一致。</p>
 </div>
 
 <footer>
