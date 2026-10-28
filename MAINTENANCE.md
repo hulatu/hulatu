@@ -607,6 +607,39 @@ curl -sI "https://hulatu.com/about/?cb=$RANDOM" | grep -iE "cf-cache-status|^age
 - `BYPASS` = 后台还是「绕过缓存」→ 方案 A 没做完
 - `HIT` 且 `age` 是**几万秒** = 后台有别的规则在给它更长的 TTL → 回到上面那两次复发的排查
 
+### ⚠️ 2026-10-28 实测：只删 `bypass_cache_for_html` **不够**
+
+用户删掉 / 停用了那条 Bypass 规则后实测（同一时刻、同一份 `_headers`）：
+
+| URL | `cf-cache-status` | 说明 |
+| --- | --- | --- |
+| `/` | **HIT**，`age` 从 490 → 687 一路涨 | 唯一进了边缘的 |
+| `/posts/` `/archive/` `/weekly/` `/feed/` `/about/` `/now/` `/roll/` | **DYNAMIC** | 全部没进缓存 |
+| `/index.html` `/404.html` | **DYNAMIC** | 带 `.html` 后缀的也不进 |
+| `/favicon.svg` | **HIT**，`age` 38008 | 靠 `max-age=604800`，本来就正常 |
+
+关键点：**这几个 URL 的 `cache-control` 逐字节相同**（都是
+`public, max-age=0, s-maxage=300, must-revalidate`），差异只在 Cloudflare 侧。
+
+所以：
+
+- **「删掉 Bypass」≠「主动缓存 HTML」。** Bypass 只表示「别绕过」，删掉之后缓存资格
+  回到**没有规则命中的默认状态** —— 默认状态下 HTML 不进边缘（实测 `/posts/`
+  `/archive/` `/index.html` 全是 `DYNAMIC`，而它们的 `s-maxage` 明明都在）。
+- 要让 HTML 进边缘，Cache Rule 必须**显式**写「缓存资格 = **符合条件则缓存**」
+  +「边缘 TTL = **300 秒**」，并且匹配条件要覆盖所有 HTML 路径：
+
+```
+(http.host eq "hulatu.com" and (http.request.uri.path eq "/" or ends_with(http.request.uri.path, "/")))
+```
+
+- 现在只有 `/` 是 `HIT`，最可能的原因是**规则表达式只剩 `http.request.uri.path eq "/"`**
+  （`ends_with(...)` 那半被删掉了），或者干脆没建「符合条件则缓存」这条规则。
+- `DYNAMIC` **不等于**「有一份旧副本卡着」→ 这种情况下 **Purge 没用**（没有副本可清）。
+  只有 `HIT` + `age` 很大时 Purge 才有意义。
+- `/` 的 `age` 涨过 300 还继续涨，说明它的实际 TTL 不是 300（要么在按 300 秒做
+  `304` 复验、要么规则里的边缘 TTL 填了更大的值）。**改完规则要再看一次 `age` 是否会回落。**
+
 **为什么 300 秒这个值刻意不大**：它同时是「后台规则配错、首页又被锁成十几小时旧版」
 那个老毛病的上限。想更激进可以调到 600，但**别超过 900**。
 
