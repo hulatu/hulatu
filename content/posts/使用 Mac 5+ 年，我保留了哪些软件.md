@@ -1,7 +1,7 @@
 ---
-title: "使用 Mac 5+ 年，我保留了哪些软件"
+title: "使用 Mac 5年多，我保留了哪些软件"
 date: 2026-10-24T21:14:28+08:00
-lastmod: 2026-10-25T13:15:42+08:00
+lastmod: 2026-10-28T13:30:52+08:00
 slug: "apple-app-recommendations"
 summary: "工具，是拿来用的，用得顺手，就行。"
 description: "这篇文章，分享了我使用 Mac 5 年多以来，至今留下的一些应用，包含了我日常主力使用的应用软件，还有一些辅助的应用工具，目的就是为了更好的满足自己学习和写东西的需求，并且满足自己极简主义、长期主义的最久，能符合开源精神，就更好了。希望大家在我的这份软件分享清单里，找到属于自己的思路，搭建好适合自己的软件工具，让电脑，更好的服务于自己。"
@@ -24,11 +24,13 @@ draft: false
 
 好了，开始今天的 APP 分享之旅。
 
-付费：💰 
+付费软件：💰 
 
 免费/开源：🆓
 
 ## 不喜欢，但不能卸载 {#bu-xi-huan-dan-bu-neng}
+
+有些东西，总是那么的让人无奈——不喜欢，也不能完全的丢弃。
 
 **WeChat** 🆓
 
@@ -106,21 +108,13 @@ Apple 备忘录虽然对 Markdown 的支持不够友好，但这和我使用它�
 
 ![备忘录标签](https://img.hulatu.com/post/4uzGCh.png)
 
-软件官网/官方使用指南：https://support.apple.com/guide/notes/welcome/mac  
+官方使用指南：https://support.apple.com/guide/notes/welcome/mac  
 
 **uPic** 🆓
 
 一款开源的 Mac 平台的图床软件，搭配 Typora 可以很方便地把图片展示在我的博客上。由于我的图床是基于 Cloudflare R2 搭建的，所以我的 Markdown 图片链接都是带有 `img.hulatu.com/xx` 的，也不会被公众号屏蔽，复制过去是可以直接使用的，不用再一张张添加图片。
 
 软件官网/项目主页：https://github.com/gee1k/uPic  
-
-**Pixelmator Pro** 💰
-
-Mac 端的 PS，可以这么理解，但是远比 PS 易上手、轻量美观。我平时其实很少有修图的需求，但有时候科研画机理图、做 PPT、文章封面图等等，需要抠图、调整图片，这个应用很好用。
-
-软件官网：https://www.pixelmator.com/pro/ 
-
-App Store 下载链接：[Pixelmator Pro](https://apps.apple.com/us/app/pixelmator-pro/id1289583905?mt=12)
 
 **Keynote** 🆓
 
@@ -216,19 +210,21 @@ Homebrew 安装方式：`brew install --cask firefox`
 
 不推荐国内用户下载、折腾这个 Codex。
 
-**Mimestream** 💰
+**Apple mail + Safari Gmail** 🆓
 
-我的 Gmail 客户端，省得我收邮件还需要每次打开 Gmail 网页。
+我国内的邮箱——Qmail、163 mail 都登录在 Apple mail 上，轻量简洁够用。
 
-这个 APP 还有一点好处：本来我想把 Gmail 添加到 Mac 自带的邮件软件里收发邮件，但是这要求网络一定是「直连代理」，规则模式下无效。但 Mimestream 就可以在规则模式下正常使用，我觉得很棒。
+我的 Gmail 客户端其实是我的主力邮箱，为了避免我收邮件需要每次打开 Gmail 网页，我把 Safari 里的 mail.google.com 网页添加到了程序坞，打开查看邮件很简单。
 
-而且整个 APP 很轻量、手势交互很棒。
+软件官网：https://apps.apple.com/us/app/mail/id1108187098
 
-![Mimestream 使用](https://img.hulatu.com/post/vPpkYM.png)
+**Pixelmator Pro** 💰
 
-软件官网：https://mimestream.com/ 
+Mac 端的 PS，可以这么理解，但是远比 PS 易上手、轻量美观。我平时其实很少有修图的需求，但有时候科研画机理图、做 PPT、文章封面图等等，需要抠图、调整图片，这个应用很好用。
 
-Homebrew 安装方式：`brew install --cask mimestream`  
+软件官网：https://www.pixelmator.com/pro/ 
+
+App Store 下载链接：[Pixelmator Pro](https://apps.apple.com/us/app/pixelmator-pro/id1289583905?mt=12)
 
 ## 辅助工具 {#fu-zhu-gong-ju}
 
@@ -308,13 +304,11 @@ Homebrew 安装方式：`brew install --cask darkmodebuddy`
 
 Homebrew 安装方式：`brew install --cask transmission`  
 
-**Clash Verge Rev** 🆓
+**Clash Party** 🆓
 
-我的网络代理客户端，不多说，大家懂的都懂。PC 端，网络代理我首推这款软件。
+我的网络代理客户端，不多说，大家懂的都懂。
 
-软件官网/项目主页：https://clash-verge-rev.github.io/ 
-
-Homebrew 安装方式：`brew install --cask clash-verge-rev`  
+软件官网/项目主页：https://github.com/mihomo-party-org
 
 **ImageOptim** 🆓
 
@@ -368,11 +362,21 @@ Homebrew 安装方式：`brew install --cask visual-studio-code`
 
 可以这么说，日常的 Vlog、简单的拼接、裁剪视频，这个 Mac 自带的 iMovie 剪辑软件，完全可以胜任。并且软件很干净，对于视频的优化很好，是苹果调教出来的那个味道。相比于 Mac 的亲儿子 Final Cut Pro 以及达芬奇等软件，我觉得 iMovie 剪辑就是适合普通人使用的日常剪辑软件——没有太大的上手难度，但是可以用起来剪辑一些有故事感的、能够成形的视频。
 
+分享一个小技巧：
+
+imovie 剪辑不支持竖屏视频导出。如果你需要竖版视频，那么请导出的时候，选择旋转 90°。导出完毕后的视频用「空格」预览，点击右上角的选装按钮，就能把横屏视频变成竖屏了。
+
 ![iMovie](https://img.hulatu.com/post/QhSMza.png)
 
 软件官网：https://www.apple.com/imovie/ 
 
 App Store 下载链接：[iMovie for Mac](https://apps.apple.com/us/app/imovie/id408981434?mt=12)
+
+**HandBrake**
+
+一款开源的视频工具软件，可以免费的把大体积、高画质的视频压缩到很小的体积，但是又基本不损失细节和清晰度。
+
+导出的视频用里面的 Fast 1080p30 压缩一下，体积会节省到原来的 1/5-1/10，收益还是很可观的。
 
 **Ice** 🆓
 
@@ -420,7 +424,7 @@ Homebrew 安装方式：`brew install --cask easydict`
 
 ## 命令行工具 {#ming-ling-xing-gong-ju}
 
-**Homebrew**
+**Homebrew** 🆓
 
 必装的一款命令行工具！用来安装、卸载、管理软件的必要工具，甚至比 App Store 还要推荐，尤其是安装一些 AI 工具、开源软件、命令行工具，太好用了。
 
@@ -436,7 +440,7 @@ Homebrew 安装方式：`brew install --cask easydict`
 
 视频教程：[Mac 特有的软件安装方式，既神秘又强大](https://www.bilibili.com/video/BV1dR4y1b7e1/?vd_source=faa4a04597a50c1354e7975248079b6f)
 
-**Mole**
+**Mole** 🆓
 
 这是一个很推荐的用来清理垃圾、卸载软件的命令行工具，我觉得很好用，也很够用。
 
@@ -446,13 +450,13 @@ Homebrew 安装方式：`brew install --cask easydict`
 
 Homebrew 安装方式：`brew install mole`
 
-**oh-my-zsh**
+**oh-my-zsh** 🆓
 
 一款 Mac 终端的美化、强化工具，配合上几个插件，可以自动补全代码、记忆代码等等。对于我这种编程小白、记不住代码的菜鸟来说，可以简化很多问题。
 
 项目地址：https://github.com/ohmyzsh/ohmyzsh
 
-**sci_env**
+**sci_env** 🆓
 
 我的终端科研环境，因为我需要用到 Python、R 语言搭配一些第三方库做数据处理、分析以及科研图表的绘制，所以我搭建了一个「虚拟环境」，与我系统自带的 Python 环境分离开、独立管理。
 
@@ -496,7 +500,7 @@ brew install --cask mole-app
 
 Homebrew 安装前，也可以用 `brew info --cask 软件包名` 查看包信息。软件包名与 App 显示名称不一定相同；安装前建议核对 [Homebrew Cask 官方目录](https://formulae.brew.sh/cask/)。
 
-更多开源 Mac 应用，大家可以浏览这个项目：[awesome-mac](https://github.com/jaywcjlove/awesome-mac/blob/master/README-zh.md)
+更多开源 Mac 应用，大家可以浏览这个项目：[awesome-mac](https://github.com/jaywcjlove/awesome-mac/blob/master/README-zh.md) 🆓
 
 ---
 
