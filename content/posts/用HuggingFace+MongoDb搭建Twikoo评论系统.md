@@ -1,7 +1,7 @@
 ---
 title: 用 HuggingFace + MongoDb 搭建 Twikoo 评论系统
 categories: ["工具"]
-tags: ["Hugo", "博客"]
+tags: ["Hugo", "Twikoo", "评论", "博客"]
 date: 2026-01-26T10:19:41+08:00
 lastmod: 2026-10-26T19:18:33+08:00
 slug: "set-up-twikoo-comment-system"

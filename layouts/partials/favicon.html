@@ -37,11 +37,18 @@
        ⚠️ 顺序有意义：SVG 在前。Chrome / Firefox 会按 type + sizes 自己挑，
           但「先声明矢量」能让不支持 SVG 的客户端在解析时直接落到后面的 PNG。
       --------------------------------------------------------------- */ -}}
-<link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | absURL }}">
-<link rel="icon" type="image/png" sizes="512x512" href="{{ "icon-512.png" | absURL }}">
-<link rel="icon" type="image/png" sizes="192x192" href="{{ "icon-192.png" | absURL }}">
-<link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | absURL }}">
-<link rel="shortcut icon" href="{{ "favicon.ico" | absURL }}">
+{{- /* ⚠️ 2026-10-28：下面 6 条 href 从 `absURL` 改成了 `relURL`。
+       理由：这 6 个标签只服务于**当前这个 HTML 页面**，同源即可，写全域名是白付字节
+       （每条多 22 B，一页 6 条 ≈ 130 B raw）。更重要的是给「镜像域名」留余地 ——
+       将来若用 Cloudflare 优选 IP 挂第二个域名，绝对 URL 会把那 6 个请求拽回
+       hulatu.com 这个慢域名。
+       ⚠️ 不要改回 `absURL`。需要绝对地址的是 **feed 里的图标**（走 `params.feedIcon`，
+          在 layouts/feed/ 与 seo_tags.html 里），不是这里的 `<link>`。 */ -}}
+<link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | relURL }}">
+<link rel="icon" type="image/png" sizes="512x512" href="{{ "icon-512.png" | relURL }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ "icon-192.png" | relURL }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | relURL }}">
+<link rel="shortcut icon" href="{{ "favicon.ico" | relURL }}">
 
 {{- /* ── Web App Manifest（2026-10-26 新增）──────────────────────────────
        加它的唯一理由：**安卓 Chrome 的「添加到主屏幕」**。没有 manifest 时
@@ -74,5 +81,5 @@
           `application/manifest+json`）。改成 `.json` 也能用，但拿不到正确的
           Content-Type，部分浏览器会拒收。
       --------------------------------------------------------------- */ -}}
-<link rel="manifest" href="{{ "manifest.webmanifest" | absURL }}">
+<link rel="manifest" href="{{ "manifest.webmanifest" | relURL }}">
 

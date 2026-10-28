@@ -1,7 +1,7 @@
 ---
 title: "剪辑生活 Vlog"
 categories: ["记录"]
-tags: ["Vlog", "视频", "生活"]
+tags: ["Vlog", "剪辑", "生活"]
 date: 2026-01-10T22:07:55+08:00
 lastmod: 2026-10-26T19:18:33+08:00
 draft: false

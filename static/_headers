@@ -144,6 +144,36 @@
 /favicon.svg
   Cache-Control: public, max-age=604800
 
+# 根级图标与 manifest（2026-10-28 补）。
+#
+# 之前这 5 个文件**一条规则都没覆盖**，落到 Cloudflare Pages 的平台默认值上，实测：
+#     cache-control: public, max-age=0, must-revalidate
+#     cf-cache-status: REVALIDATED
+# 也就是说每打开一个页面，favicon 与 manifest 都要跨洋回来问一次「变了没」。
+# 三个 PNG 还带一条 `warning: cf-images 299 "cache-control is too restrictive"` ——
+# Cloudflare 的图片处理链路认为策略太严格，等于每次都在重新处理。
+#
+# ⚠️ 为什么是 604800（7 天）而不是 `/js/*` 那种 `immutable`：这些文件名**不带内容哈希**，
+#    换图标时文件名不变。写 immutable 等于对老访客一年内失效不了。
+#    7 天是「换图标最多一周内生效」的折中。
+# ⚠️ 换完图标想立刻生效：后台 Purge 这几个 URL，或者换个文件名。
+# ⚠️ 别写成 `/icon-*` 通配 —— 那条会连带匹配到将来可能出现的 `/icons/` 目录。
+#    一共就 5 个文件，逐个精确列出更安全。
+/icon-192.png
+  Cache-Control: public, max-age=604800
+
+/icon-512.png
+  Cache-Control: public, max-age=604800
+
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800
+
+/favicon.ico
+  Cache-Control: public, max-age=604800
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=604800
+
 # 订阅源 / 站点地图同理：发布完就该是新的，
 # 条件请求的开销比「订阅里少一篇」小得多
 #

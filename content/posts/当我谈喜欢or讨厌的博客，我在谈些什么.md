@@ -7,7 +7,7 @@ slug: "blog-style"
 summary: "在这儿，讨厌的和喜欢的东西，各有各的共性。"
 description: "分享一下我个人非常喜欢和非常讨厌的一些博客设计，有些让人讨厌的博客设计，真的会让人脑子一团雾；有些让人喜欢的博客设计，真的让人无比舒畅、流连忘返。"
 categories: ["思考"]
-tags: ["博客"]
+tags: ["博客", "审美", "内容", "排版"]
 comments: true
 draft: false
 ---
