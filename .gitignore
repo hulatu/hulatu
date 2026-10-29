@@ -34,3 +34,4 @@ content/posts/AI.md
 # 仓库是公开的，这些文件不该被 publish.sh 的 `git add .` 一起推上去。
 .workbuddy-ai/
 
+drafts/
