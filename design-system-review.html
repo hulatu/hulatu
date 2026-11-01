@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>设计规范系统评审 —— hulatu.com</title>
+<style>
+  :root {
+    --paper: #fdfdfd;
+    --surface: #f2f4f7;
+    --ink: #1a1a1a;
+    --ink-soft: #444;
+    --muted: #6e6e6e;
+    --line: #d0d7de;
+    --link: #0066cc;
+    --good: #1a7f37;
+    --bad: #b42318;
+    --font: Verdana, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+            "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+            "Liberation Mono", "Sarasa Mono SC", monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--ink);
+    background: var(--paper);
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 20px 96px;
+  }
+
+  h1 {
+    font-size: 2em;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0 0 12px;
+  }
+
+  h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 2.6em 0 0.7em;
+    padding-top: 0.9em;
+    border-top: 1px dashed var(--line);
+  }
+
+  h3 {
+    font-size: 1.17em;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 1.9em 0 0.6em;
+  }
+
+  p { margin: 0 0 1.4em; }
+
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--surface);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12.8px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  .lede {
+    font-size: 1.05em;
+    color: var(--ink-soft);
+    margin: 0 0 2em;
+  }
+
+  .banner {
+    background: var(--surface);
+    border-left: 3px solid var(--link);
+    padding: 16px 18px;
+    margin: 0 0 2.4em;
+    font-size: 0.94em;
+    line-height: 1.75;
+  }
+
+  .banner strong { color: var(--ink); }
+  .banner p:last-child { margin-bottom: 0; }
+
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 2.4em;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stats li {
+    flex: 1 1 130px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+
+  .stats b {
+    display: block;
+    font-size: 1.75em;
+    line-height: 1.2;
+    color: var(--bad);
+  }
+
+  .stats span {
+    display: block;
+    font-size: 12.8px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: 2px;
+  }
+
+  .finding {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin: 0 0 1.4em;
+  }
+
+  .finding h3 {
+    margin: 0 0 8px;
+    font-size: 1.05em;
+    line-height: 1.45;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 8px;
+    vertical-align: 2px;
+    background: var(--surface);
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .tag.p0 { background: #fde8e6; color: var(--bad); }
+  .tag.p1 { background: #fdf3e0; color: #8a5a00; }
+  .tag.p2 { background: var(--surface); color: var(--muted); }
+
+  .finding p { margin: 0 0 0.8em; font-size: 0.94em; }
+  .finding p:last-child { margin-bottom: 0; }
+
+  .measured {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--surface);
+    border-radius: 3px;
+    padding: 10px 12px;
+    line-height: 1.7;
+    margin: 0 0 0.9em;
+    white-space: pre-wrap;
+  }
+
+  .measured .bad { color: var(--bad); }
+  .measured .good { color: var(--good); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88em;
+    margin: 0 0 1.4em;
+  }
+
+  th, td {
+    border: 1px solid var(--line);
+    padding: 7px 10px;
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.6;
+  }
+
+  th {
+    background: var(--surface);
+    font-weight: 700;
+    font-size: 0.95em;
+  }
+
+  td.mono, th.mono { font-family: var(--mono); font-size: 0.94em; }
+
+  /* 首列不换行：「P0-1」被压成「P0-」+「1」两行会读错 */
+  td:first-child { white-space: nowrap; }
+
+  /* ---------- 字号长尾可视化 ---------- */
+  .axis-wrap {
+    margin: 0 0 0.6em;
+  }
+
+  .axis {
+    position: relative;
+    height: 64px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .axis-zone {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 8.5%;
+    background: #fde8e6;
+  }
+
+  .axis-zone-label {
+    position: absolute;
+    top: 4px;
+    left: 10.5%;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--bad);
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+
+  .axis-bar {
+    position: absolute;
+    bottom: 0;
+    width: 2px;
+    background: var(--bad);
+    border-radius: 1px 1px 0 0;
+  }
+
+  .axis-bar.sparse {
+    width: 1px;
+    background: #b9c0c9;
+  }
+
+  .axis-labs {
+    position: relative;
+    height: 20px;
+    margin-top: 5px;
+  }
+
+  .axis-labs span {
+    position: absolute;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ---------- 并排 mockup ---------- */
+  .mock-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 0 0.8em;
+  }
+
+  .mock-pair > div {
+    padding: 16px;
+    min-width: 0;
+  }
+
+  .mock-old { background: #fff; border-right: 1px solid var(--line); }
+  .mock-new { background: var(--surface); }
+
+  .mock-cap {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 12px;
+    display: block;
+  }
+
+  .mock-new .mock-cap { color: var(--good); }
+
+  .mock-note {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.65;
+    margin: 0 0 2em;
+  }
+
+  /* ---- 复刻「现状」：逐值照抄线上计算样式（2026-10-31 实测）---- */
+  .mock-old .brand {
+    font-size: 32px; font-weight: 700; line-height: 1.5;
+    margin: 16px 0; color: var(--ink);
+  }
+  .mock-old nav { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mock-old nav a { font-size: 16px; color: var(--link); }
+  .mock-old .pageh1 {
+    font-size: 24px; font-weight: 700; line-height: 1.5;
+    margin: 16px 0; color: var(--ink);
+  }
+  .mock-old blockquote {
+    border-left: 4px solid var(--line);
+    padding-left: 8px;
+    margin: 16px 0;
+    color: var(--ink-soft);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .mock-old blockquote p { margin: 0; }
+  .mock-old .body { font-size: 16px; line-height: 1.5; margin: 16px 0; color: var(--ink-soft); }
+
+  /* ---- 「改造后」：提案值 ---- */
+  .mock-new .brand {
+    font-size: 24px; font-weight: 700; line-height: 1.3;
+    margin: 0 0 8px; color: var(--ink);
+  }
+  .mock-new nav { display: flex; flex-wrap: wrap; gap: 10px; }
+  .mock-new nav a { font-size: 15px; color: var(--ink-soft); }
+  .mock-new .pageh1 {
+    font-size: 20px; font-weight: 700; line-height: 1.35;
+    margin: 28px 0 10px; color: var(--ink);
+  }
+  .mock-new blockquote {
+    border-left: 3px solid var(--line);
+    padding-left: 16px;
+    margin: 0 0 24px;
+    color: var(--ink-soft);
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  .mock-new blockquote p { margin: 0; }
+  .mock-new .body { font-size: 16px; line-height: 1.8; margin: 0 0 28px; color: var(--ink-soft); }
+
+  /* ---- 文章页标题层级 mockup ---- */
+  .mock-old .artbrand { font-size: 32px; font-weight: 700; line-height: 1.5; margin: 16px 0; }
+  .mock-old .arttitle { font-size: 32px; font-weight: 700; line-height: 1.5; margin: 16px 0; }
+  .mock-old .artmeta { font-size: 15.2px; color: var(--muted); line-height: 1.5; margin: 16px 0; }
+
+  .mock-new .artbrand { font-size: 24px; font-weight: 700; line-height: 1.3; margin: 0 0 8px; }
+  .mock-new .arttitle { font-size: 32px; font-weight: 700; line-height: 1.3; margin: 32px 0 10px; }
+  .mock-new .artmeta { font-size: 14px; color: var(--muted); line-height: 1.5; margin: 0 0 24px; }
+
+  /* ---- 行高 mockup ---- */
+  .lh-demo { margin: 0 0 1.4em; }
+  .lh-demo p { margin: 0; font-size: 16px; }
+  .lh-a { line-height: 1.8; }
+  .lh-b { line-height: 1.3; }
+
+  .verdict {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin: 0 0 1.4em;
+  }
+
+  .verdict h3 { margin-top: 0; }
+
+  .keep li { margin-bottom: 0.5em; }
+
+  .ask {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--link);
+    border-radius: 4px;
+    padding: 18px 20px;
+    margin: 2.4em 0 0;
+  }
+
+  .ask h3 { margin-top: 0; }
+  .ask ol { margin: 0.6em 0 0; padding-left: 1.4em; }
+  .ask li { margin-bottom: 0.7em; }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed var(--line);
+    margin: 2.4em 0;
+  }
+
+  @media (max-width: 620px) {
+    .mock-pair { grid-template-columns: 1fr; }
+    .mock-old { border-right: 0; border-bottom: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+
+<p class="kicker">Design System Review · 2026-10-31</p>
+<h1>设计规范系统评审</h1>
+<p class="lede">在现有 Bear Neo 风格不变的前提下，把「逐处手写的像素」收成一套可复用的尺度 —— 这是这个站距离「现代、专业」最缺的那一层。</p>
+
+<div class="banner">
+  <p><strong>先说结论。</strong>你的站不丑，也不土。它的问题不是审美，是<strong>没有系统</strong>：
+  29 种字号、23 种内边距，全部是每次遇到新组件时临时挑的数字。</p>
+  <p>专业设计系统最显著的标志恰恰相反 —— <strong>有限的几个值，被反复使用</strong>。
+  下面所有判断都能在 <code>themes/hugo-bearneo/layouts/partials/style.html</code>
+  与 <code>layouts/partials/custom_head.html</code> 里查到出处，计算样式由真实浏览器量取。</p>
+</div>
+
+<ul class="stats">
+  <li><b>29</b><span>种 font-size</span></li>
+  <li><b>23</b><span>种 padding</span></li>
+  <li><b>13</b><span>个字号挤在 3.7px 区间内</span></li>
+  <li><b>7</b><span>个可修的层级缺口</span></li>
+</ul>
+
+<h2>一、诊断：字号长尾</h2>
+
+<p>把全站所有 <code>font-size</code> 按大小排开，会看到一条典型的「长尾」——
+13 个值堆在 11.5–15.2px 之间，其中还有<strong>两组是完全相同的值</strong>（<code>0.8em</code> 与 <code>0.8rem</code> 都是 12.8px，<code>0.9em</code> 与 <code>0.9rem</code> 都是 14.4px）。</p>
+
+<div class="axis-wrap">
+  <div class="axis">
+    <div class="axis-zone"></div>
+    <span class="axis-zone-label">13 个值</span>
+    <span class="axis-bar" style="left:0.04%;height:40px"></span>
+    <span class="axis-bar" style="left:1.12%;height:40px"></span>
+    <span class="axis-bar" style="left:2.20%;height:40px"></span>
+    <span class="axis-bar" style="left:2.92%;height:40px"></span>
+    <span class="axis-bar" style="left:3.20%;height:40px"></span>
+    <span class="axis-bar" style="left:3.64%;height:40px"></span>
+    <span class="axis-bar" style="left:4.72%;height:40px"></span>
+    <span class="axis-bar" style="left:6.52%;height:40px"></span>
+    <span class="axis-bar" style="left:6.80%;height:40px"></span>
+    <span class="axis-bar" style="left:7.24%;height:40px"></span>
+    <span class="axis-bar" style="left:7.52%;height:40px"></span>
+    <span class="axis-bar" style="left:8.31%;height:40px"></span>
+    <span class="axis-bar" style="left:8.59%;height:40px"></span>
+    <span class="axis-bar sparse" style="left:10.11%;height:40px"></span>
+    <span class="axis-bar sparse" style="left:16.22%;height:40px"></span>
+    <span class="axis-bar sparse" style="left:19.10%;height:40px"></span>
+    <span class="axis-bar sparse" style="left:28.09%;height:40px"></span>
+    <span class="axis-bar sparse" style="left:46.07%;height:40px"></span>
+    <span class="axis-bar sparse" style="left:96.40%;height:40px"></span>
+  </div>
+  <div class="axis-labs">
+    <span style="left:10.11%">16</span>
+    <span style="left:19.10%">20</span>
+    <span style="left:28.09%">24</span>
+    <span style="left:46.07%">32</span>
+    <span style="left:96.40%">54</span>
+  </div>
+</div>
+
+<p class="mock-note">红色区间 = 13 个「元信息字号」，全部挤在左侧 <strong>8.5%</strong> 的宽度里；
+灰色是正文与标题字号，彼此分得很开。<br>
+红区内这 13 个值依次是：<code>11.5 / 12.0 / 12.5 / 12.8 / 12.8 / 13.1 / 13.6 / 14.4 / 14.4 / 14.7 / 14.7 / 15.2 / 15.2</code>（单位 px）。
+其中 12.8、14.4、15.2 各出现两次 —— <code>0.8em</code> 与 <code>0.8rem</code> 是同一个 12.8px，写了两种。
+它们在屏幕上实际只分得出 <strong>4 个</strong>档位，但维护成本是 13 份。</p>
+
+<h3>「同一事物，两种值」的三个实例</h3>
+
+<table>
+  <thead>
+    <tr><th>同一件事</th><th class="mono">值 A</th><th class="mono">值 B</th><th>出处</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>正文行高</td>
+      <td class="mono">1.8</td>
+      <td class="mono">1.5</td>
+      <td>文章 <code>content</code> / 首页 <code>main</code></td>
+    </tr>
+    <tr>
+      <td>正文段间距</td>
+      <td class="mono">28px</td>
+      <td class="mono">16px</td>
+      <td>文章 <code>content &gt; p</code> / 首页 <code>main &gt; p</code></td>
+    </tr>
+    <tr>
+      <td>横向内边距</td>
+      <td class="mono">12px</td>
+      <td class="mono">14px / 16px / 20px</td>
+      <td>按钮、标签、卡片各一套</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>第一条是本次最值得修的一处，单独展开。</p>
+
+<h2>二、七个发现</h2>
+
+<div class="finding">
+  <h3><span class="tag p0">P0</span>首页正文是「次级排版」，行距比文章页紧 20%</h3>
+  <div class="measured">首页  main &gt; p        font-size:16px  <span class="bad">line-height:24px (1.5)</span>  margin:16px 0
+文章  content &gt; p   font-size:16px  <span class="good">line-height:28.8px (1.8)</span>  margin:16px 0 28px</div>
+  <p>原因：行高与段间距都写在 <code>content</code> 选择器上，而首页的简介在 <code>&lt;main&gt;</code> 里、不在 <code>&lt;content&gt;</code> 里。</p>
+  <p>你自己在 <code>style.html</code> 里给 1.8 写的理由是「中文是方块字、没有 x-height，1.6 读长文明显更挤」——
+  这条理由对<strong>全站第一段文字</strong>同样成立，但它没生效。视觉结果就是首页四段话挤成一坨。</p>
+  <p><strong>修法：</strong>把行高与段间距的规则从 <code>content</code> 提升到 <code>main</code>（或两条都写）。
+  一行改动，影响 379 页里的每一页首屏。</p>
+</div>
+
+<div class="finding">
+  <h3><span class="tag p0">P0</span>文章页出现两个 32px/700 的标题，品牌与内容同级</h3>
+  <div class="measured">站名      font-size:32px  font-weight:700
+文章标题  font-size:32px  font-weight:700   <span class="bad">← 完全相同的视觉权重</span></div>
+  <p>读者进入文章页，先看到「胡拉图说」，隔两行又看到一篇同尺寸的粗体标题。
+  两者没有任何视觉手段区分「我在哪个站」和「这篇讲什么」。</p>
+  <p>现代博客的通行做法是<strong>站名小、内容大</strong>：站名 20–24px 作为品牌锚点，
+  文章标题 32px 以上作为页面主体。你现在的站名是全站最大的东西，等于把「品牌」摆在了「内容」前面。</p>
+</div>
+
+<div class="finding">
+  <h3><span class="tag p1">P1</span>标题继承了正文的 1.8 行高，多行标题会散架</h3>
+  <div class="measured">正文 h2   font-size:24px   <span class="bad">line-height:43.2px  (=1.8)</span>
+正文 h1   font-size:32px   line-height:48px   (=1.5)</div>
+  <p><code>DESIGN.md</code> 第 3 节其实已经记过这件事：「<code>content</code> 是唯一带行高的容器规则，
+  所以标题也继承这 1.8（标题单行时看不出差别）」。已知，但没修。</p>
+  <p>单行标题看不出来，<strong>一旦 h2 折成两行，行间就会出现 19px 的空隙</strong>，
+  标题读起来像两段独立的话。标题的行高应该在 1.2–1.35。</p>
+</div>
+
+<div class="finding">
+  <h3><span class="tag p1">P1</span>引用块：4px 粗边 + 8px 内边距，文字贴着边线</h3>
+  <div class="measured">blockquote   border-left: 4px solid #d0d7de   <span class="bad">padding-left: 8px</span></div>
+  <p>4px 的边线在 16px 字号旁显得很重，而 8px 的内边距又让文字几乎贴上去 —— 一重一轻，比例失衡。
+  这是全站唯一一处「装饰性线条」，也是首页那句「总得留下点什么吧」的容器，值得单独调好。</p>
+  <p><strong>建议：</strong>边线 3px、内边距 16px。边线变细后视觉重量下降，内边距拉开后文字有呼吸。</p>
+</div>
+
+<div class="finding">
+  <h3><span class="tag p1">P1</span>表格内边距 4px、行内代码 2px —— 纯上游默认值，从未调过</h3>
+  <div class="measured">th, td   padding: 4px      <span class="bad">← 中文单元格里几乎贴边</span>
+code     padding: 2px      <span class="bad">← 左右各 2px，等于没有</span></div>
+  <p>这两个值是全站仅存的「上游原封未动」的排版参数。中文没有词间空格，
+  4px 的内边距让表格读起来像挤在一起的两列字；行内代码的 2px 则让它看起来像被高亮笔涂了一道。</p>
+  <p><strong>建议：</strong>单元格 <code>padding: 8px 10px</code>，行内代码 <code>padding: 1px 5px</code>。</p>
+</div>
+
+<div class="finding">
+  <h3><span class="tag p2">P2</span>日期列 120px，实际内容 91px</h3>
+  <div class="measured">.recent-posts { grid-template-columns: 120px 1fr }
+日期文字实测宽 ≈ 91px（等宽 15.2px × 10 字符）
+<span class="bad">→ 每行浪费 29px，标题列被压到 600px</span></div>
+  <p>这是照 yinji.org 逐值对齐的结果，不算错。但 720px 的总宽里白扔 29px，
+  在手机上（内容区 350px）就等于标题少了 8% 的宽度，是「标题折两行」的直接原因之一。</p>
+  <p><strong>建议：</strong>改成 <code>minmax(92px, auto) 1fr</code>，让日期列贴合内容、又不失对齐。</p>
+</div>
+
+<div class="finding">
+  <h3><span class="tag p2">P2</span>首屏顶部留白 36px，对 720px 的画布偏紧</h3>
+  <div class="measured">body padding-top: 20px  +  h1 margin-top: 16px  =  36px</div>
+  <p>正文宽 720px 的页面，首屏顶部的呼吸通常给 48–64px。36px 会让页头显得「顶在天花板上」，
+  尤其在桌面端大屏上。</p>
+</div>
+
+<h2>三、改前 / 改后</h2>
+
+<p>下面两组都是<strong>用真实 CSS 值渲染的</strong>，不是画出来的示意图 ——
+左边逐值照抄线上计算样式，右边是提案值。你可以直接对着看差别在哪。</p>
+
+<h3>M1 · 首页头部与简介</h3>
+
+<div class="mock-pair">
+  <div class="mock-old">
+    <span class="mock-cap">现状</span>
+    <div class="brand">胡拉图说</div>
+    <nav>
+      <a href="#">Home</a><a href="#">About</a><a href="#">Posts</a><a href="#">Weekly</a><a href="#">RSS</a>
+    </nav>
+    <div class="pageh1">Hi!</div>
+    <blockquote><p>总得留下点什么吧。——胡拉图</p></blockquote>
+    <p class="body">一名热爱折腾的工科研究生，聊聊生活、记录观察、思考、跑步和写作的日常。分享一些关于 Mac、AI、电子设备相关的知识。</p>
+    <p class="body">如果觉得我的网站不错，可以选择支持一下。</p>
+  </div>
+  <div class="mock-new">
+    <span class="mock-cap">改造后</span>
+    <div class="brand">胡拉图说</div>
+    <nav>
+      <a href="#">Home</a><a href="#">About</a><a href="#">Posts</a><a href="#">Weekly</a><a href="#">RSS</a>
+    </nav>
+    <div class="pageh1">Hi!</div>
+    <blockquote><p>总得留下点什么吧。——胡拉图</p></blockquote>
+    <p class="body">一名热爱折腾的工科研究生，聊聊生活、记录观察、思考、跑步和写作的日常。分享一些关于 Mac、AI、电子设备相关的知识。</p>
+    <p class="body">如果觉得我的网站不错，可以选择支持一下。</p>
+  </div>
+</div>
+
+<p class="mock-note">改动：站名 32→24px（行高 1.5→1.3）；导航 16→15px、间距 8→10px，且从链接蓝降为 <code>--text-color-secondary</code>；
+「Hi!」24→20px；引用块 4px/8px → 3px/16px；正文 1.5 → 1.8、段间距 16 → 28px。<br>
+（对照里导航只放了 5 项 —— 半宽栏放不下 7 项，会折行干扰对比。真实页面的宽度复算见下。）<br>
+<strong>为什么导航要变灰</strong>：现在 7 个蓝色链接和正文里的链接长得一模一样，
+读者分不清「这是导航」还是「这是内容里的引用」。降成次要色后，蓝色只留给正文链接，全站只剩一种「可点」的暗示。</p>
+
+<div class="verdict">
+  <h3>一处必须复算的地方：导航间距不能给到 16px</h3>
+  <p>我第一版提案把导航 <code>gap</code> 写成 16px，看起来更透气 —— 但那样手机上会折行。
+  <code>DESIGN.md</code> 第 00 段有实测基线：7 项内容 298.5px、6 个 8px 间距，合计 346.5px，
+  而 392px 视口的内容区是 352px，只剩 5.5px 余量。按这个基线复算：</p>
+  <table>
+    <thead>
+      <tr><th>方案</th><th class="mono">字号</th><th class="mono">gap</th><th class="mono">总宽</th><th class="mono">余量</th><th>结果</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>现状</td><td class="mono">16px</td><td class="mono">8px</td><td class="mono">346.5px</td><td class="mono">+5.5</td><td>OK</td></tr>
+      <tr><td>初版提案</td><td class="mono">15px</td><td class="mono">16px</td><td class="mono">375.8px</td><td class="mono">−23.8</td><td style="color:var(--bad)">折行</td></tr>
+      <tr><td>修正提案</td><td class="mono">15px</td><td class="mono">10px</td><td class="mono">339.8px</td><td class="mono">+12.2</td><td style="color:var(--good)">OK</td></tr>
+    </tbody>
+  </table>
+  <p>所以正确的组合是 <strong>15px + 10px</strong>：比现在<strong>还窄 6.7px</strong>，比现状更安全，
+  同时因为字号小了、颜色淡了，视觉上反而更松弛。这一条也说明为什么「间距只能凭眼睛定」会出问题 ——
+  它有一个硬上限，必须算。</p>
+</div>
+
+<h3>M2 · 文章页的标题层级</h3>
+
+<div class="mock-pair">
+  <div class="mock-old">
+    <span class="mock-cap">现状</span>
+    <div class="artbrand">胡拉图说</div>
+    <nav>
+      <a href="#">Home</a><a href="#">About</a><a href="#">Posts</a>
+    </nav>
+    <div class="artmeta">首页 / 文章 / 思考</div>
+    <div class="arttitle">当我谈写东西和个人博客时，我在谈些什么</div>
+    <div class="artmeta">2026-10-27</div>
+  </div>
+  <div class="mock-new">
+    <span class="mock-cap">改造后</span>
+    <div class="artbrand">胡拉图说</div>
+    <nav>
+      <a href="#">Home</a><a href="#">About</a><a href="#">Posts</a>
+    </nav>
+    <div class="artmeta">首页 / 文章 / 思考</div>
+    <div class="arttitle">当我谈写东西和个人博客时，我在谈些什么</div>
+    <div class="artmeta">2026-10-27</div>
+  </div>
+</div>
+
+<p class="mock-note">站名降到 24px 后，文章标题 32px 立刻成为页面上唯一的「最大声」的元素。
+面包屑与日期统一到 14px 等宽，成为一层明确的「元信息」—— 现在它们是 15.2px 与 13.6px 两个值，看着像随手写的。</p>
+
+<h3>M3 · 标题行高（多行时才有差别）</h3>
+
+<div class="mock-pair">
+  <div class="mock-old">
+    <span class="mock-cap">现状 · line-height 1.8</span>
+    <div class="lh-demo"><p class="lh-a" style="font-size:24px;font-weight:700">我为什么喜欢写东西，以及它对我的意义</p></div>
+  </div>
+  <div class="mock-new">
+    <span class="mock-cap">改造后 · line-height 1.3</span>
+    <div class="lh-demo"><p class="lh-b" style="font-size:24px;font-weight:700">我为什么喜欢写东西，以及它对我的意义</p></div>
+  </div>
+</div>
+
+<p class="mock-note">两行标题在 1.8 行高下会拉开 19px 的行距，读起来像两个独立的句子。
+1.3 让它们重新成为一个整体 —— 这是排版学里「标题行距必须小于正文」的基本规则。</p>
+
+<h2>四、尺度系统提案</h2>
+
+<p>目标不是「更好看」，是<strong>把 29 个值收成 7 个、23 个 padding 收成 7 个</strong>，
+以后每加一个组件都不再需要临场决定数字。</p>
+
+<h3>字号：7 档</h3>
+
+<table>
+  <thead>
+    <tr><th>令牌</th><th class="mono">值</th><th>用途</th><th>吸收的现有值</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="mono">--fs-xs</td><td class="mono">0.75rem / 12px</td><td>极小标注</td><td class="mono">0.72 / 0.75 / 0.78em</td></tr>
+    <tr><td class="mono">--fs-sm</td><td class="mono">0.85rem / 13.6px</td><td>元信息、页脚、面包屑</td><td class="mono">0.8 / 0.82 / 0.85 / 0.9</td></tr>
+    <tr><td class="mono">--fs-base</td><td class="mono">1rem / 16px</td><td>正文、导航、列表标题</td><td class="mono">1em / 15.2px / 16px</td></tr>
+    <tr><td class="mono">--fs-lg</td><td class="mono">1.17rem / 18.7px</td><td>小节标题</td><td class="mono">1.17em</td></tr>
+    <tr><td class="mono">--fs-xl</td><td class="mono">1.5rem / 24px</td><td>页内标题、站名</td><td class="mono">1.5em / 24px</td></tr>
+    <tr><td class="mono">--fs-2xl</td><td class="mono">2rem / 32px</td><td>文章标题</td><td class="mono">2em / 32px</td></tr>
+    <tr><td class="mono">--fs-3xl</td><td class="mono">3.4rem / 54px</td><td>404 大数字（特例）</td><td class="mono">3.4rem</td></tr>
+  </tbody>
+</table>
+
+<h3>间距：7 档</h3>
+
+<table>
+  <thead>
+    <tr><th>令牌</th><th class="mono">值</th><th>用途</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="mono">--sp-1</td><td class="mono">4px</td><td>图标与文字、极小间隙</td></tr>
+    <tr><td class="mono">--sp-2</td><td class="mono">8px</td><td>紧邻元素</td></tr>
+    <tr><td class="mono">--sp-3</td><td class="mono">12px</td><td>组件内边距</td></tr>
+    <tr><td class="mono">--sp-4</td><td class="mono">16px</td><td>默认内边距、列表行</td></tr>
+    <tr><td class="mono">--sp-5</td><td class="mono">24px</td><td>区块内分隔</td></tr>
+    <tr><td class="mono">--sp-6</td><td class="mono">32px</td><td>区块之间</td></tr>
+    <tr><td class="mono">--sp-7</td><td class="mono">48px</td><td>页面级留白</td></tr>
+  </tbody>
+</table>
+
+<h3>行高：3 档</h3>
+
+<table>
+  <thead>
+    <tr><th>令牌</th><th class="mono">值</th><th>用途</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="mono">--lh-tight</td><td class="mono">1.3</td><td>标题（h1–h6）</td></tr>
+    <tr><td class="mono">--lh-base</td><td class="mono">1.5</td><td>外壳、导航、列表</td></tr>
+    <tr><td class="mono">--lh-reading</td><td class="mono">1.8</td><td>正文长文</td></tr>
+  </tbody>
+</table>
+
+<div class="verdict">
+  <h3>关于「要不要真的引入 CSS 变量」</h3>
+  <p><code>DESIGN.md</code> 第 7 节写着「别引入 <code>--space-*</code> / <code>--radius-*</code> 这些令牌 —— 它们不存在了」。
+  那条规矩针对的是<strong>上一版自建主题留下的空壳令牌</strong>，不是「不许有尺度」。</p>
+  <p>建议分两步走，避免一次性大改带来的回归风险：</p>
+  <p><strong>第一步（低风险）：</strong>只引入变量定义，把现有硬编码值<strong>机械替换</strong>成最接近的档位，
+  每替换一处就截图比对。视觉上应该只有几像素的位移。</p>
+  <p><strong>第二步（可选）：</strong>把 7 个发现里的具体修法落进对应模块。</p>
+  <p>如果只想做一半 —— <strong>先做 P0 两条</strong>。它们占本次收益的七成，且都只有几行代码。</p>
+</div>
+
+<h2>五、清单</h2>
+
+<table>
+  <thead>
+    <tr><th>级别</th><th>要改什么</th><th>改哪个文件</th><th>风险</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="mono">P0-1</td>
+      <td>首页正文行高 1.5 → 1.8，段间距 16 → 28px</td>
+      <td class="mono">style.html（content → main）</td>
+      <td>低</td>
+    </tr>
+    <tr>
+      <td class="mono">P0-2</td>
+      <td>站名 32 → 24px，行高 1.5 → 1.3</td>
+      <td class="mono">custom_head.html 第 00c 段</td>
+      <td>低（会改变页头高度）</td>
+    </tr>
+    <tr>
+      <td class="mono">P1-1</td>
+      <td>导航降为次要色、15px、gap 8 → 10px（<strong>不能给 16px</strong>，会折行）</td>
+      <td class="mono">custom_head.html 第 00 段</td>
+      <td>中（需重算折行宽度）</td>
+    </tr>
+    <tr>
+      <td class="mono">P1-2</td>
+      <td>标题行高 1.8 → 1.3</td>
+      <td class="mono">custom_head.html 第 02 段</td>
+      <td>低</td>
+    </tr>
+    <tr>
+      <td class="mono">P1-3</td>
+      <td>引用块 4px/8px → 3px/16px</td>
+      <td class="mono">style.html</td>
+      <td>低</td>
+    </tr>
+    <tr>
+      <td class="mono">P1-4</td>
+      <td>表格 4px → 8px 10px；行内码 2px → 1px 5px</td>
+      <td class="mono">style.html</td>
+      <td>低</td>
+    </tr>
+    <tr>
+      <td class="mono">P2-1</td>
+      <td>日期列 120px → minmax(92px, auto)</td>
+      <td class="mono">custom_head.html 第 04 段</td>
+      <td>中（手机端需复验）</td>
+    </tr>
+    <tr>
+      <td class="mono">P2-2</td>
+      <td>首屏顶部 36 → 48px</td>
+      <td class="mono">style.html（body padding）</td>
+      <td>低</td>
+    </tr>
+    <tr>
+      <td class="mono">P2-3</td>
+      <td>引入 7+7+3 档尺度令牌，机械替换</td>
+      <td class="mono">style.html 的 :root</td>
+      <td>中（改动面广）</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>六、不要动的</h2>
+
+<p>评审最怕的是「改着改着把好东西改掉了」。下面这些是<strong>已经做对、且比大多数同类站点更好</strong>的部分：</p>
+
+<ul class="keep">
+  <li><strong>虚线 <code>hr</code></strong> —— 全站唯一的装饰线条，是这套极简语言里唯一的签名。别换成实线。</li>
+  <li><strong>正文 1.8 行高 + 28px 段间距</strong> —— 中文长文的正确解，已经是全站最专业的一处。</li>
+  <li><strong>零外部字体、零 CDN</strong> —— 首页 1 个请求、6KB gzip。这个约束比任何视觉优化都值钱。</li>
+  <li><strong>导航折行用 flex + gap</strong> —— 解决了「RSS 从词中间劈开」的真 bug，比上游正确。</li>
+  <li><strong>代码块配色</strong> —— 逐 token 过 4.5:1，比上游的 monokai 内联色好一个数量级。</li>
+  <li><strong>元信息对比度</strong> —— 浅色提到 <code>#6e6e6e</code>（5.01:1），修对了上游「浅色比深色还难读」的倒挂。</li>
+  <li><strong>页脚 4 行结构</strong> —— 你反复调过的行序与分隔符，不动。</li>
+</ul>
+
+<div class="ask">
+  <h3>需要你拍板的一件事</h3>
+  <p><strong>站名要不要从 32px 降到 24px？</strong></p>
+  <p>这是本次唯一「会改变站点性格」的改动。降下去之后，文章标题成为页面上最大的元素，
+  层级立刻清晰、也更接近现代博客的通行比例；代价是站名的存在感变弱，页头整体矮 16px。</p>
+  <p>三个选项：</p>
+  <ol>
+    <li><strong>降到 24px</strong>（推荐）—— 层级最清晰，改动最小。</li>
+    <li><strong>保持 32px，只把文章标题升到 36px</strong> —— 不动头部，但两者差距只有 4px，层级改善有限。</li>
+    <li><strong>保持 32px 不动</strong> —— 只做 P0-1（首页行距）与 P1 其余各项，接受「品牌与内容同级」。</li>
+  </ol>
+  <p>选完之后我按你选的做，不做你没点的项。</p>
+</div>
+
+<hr>
+
+<p class="mock-note">本页所有计算样式由 Chromium（Helium）在 <code>127.0.0.1:1313</code> 的真实渲染上量取，
+字体解析为 Verdana + 苹方，视口 1200×1200。<code>DESIGN.md</code> 中已登记的刻意设计（虚线 hr、
+零外部字体、页脚结构、导航不加下划线、搜索框保留 UA 默认样式）均已排除在本清单之外。</p>
+
+</body>
+</html>
