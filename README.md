@@ -29,8 +29,8 @@
 
 ## 功能特点
 
-- **导航栏**：7 项英文标签，**完全由 `hugo.toml` 的 `[[menu.main]]` 驱动**，模板里不写死任何链接：
-  `Home` / `About` / `Now` / `Links`(→`/roll/` 收藏与友链) / `Weekly`(→`/weekly/`) / `Posts`(→`/archive/` 归档) / `RSS`(→`/index.xml` 全站订阅源)
+- **导航栏**：6 项英文标签，**完全由 `hugo.toml` 的 `[[menu.main]]` 驱动**，模板里不写死任何链接：
+  `Home` / `About` / `Links`(→`/roll/` 收藏与友链) / `Weekly`(→`/weekly/`) / `Posts`(→`/archive/` 归档) / `RSS`(→`/index.xml` 全站订阅源)
   ⚠️ 2026-10-12 **撤掉了原来的 `Hub`**（曾指向 `https://profile.hulatu.com/` 个人主页）——
   那个子站当晚被**整体删除**，内容并入 `/about/`（新增「内容平台」一节 + 已去掉「花园」入口）。
   同日稍晚 `run` / `shot` / `share` 三个子站也一并下线、`sites/` 目录从仓库删除，
@@ -44,11 +44,11 @@
   **与标题左对齐**，照 yinji），**不分页**、**列表后面没有任何尾巴**。文案全在 `content/_index.md`
 - **支持页 `/donate/`**：微信 + 支付宝两个赞赏码并排居中（窄屏落成一列）。
   收款码是站内静态资源，不走图床。**换码后记得去 Cloudflare Purge `/images/donate/*`**（30 天缓存）
-- **关于页 `/about/` 与 `/now/`**：**没有页面标题、没有头像**（标题只留在 `<title>` 和导航高亮里，
+- **关于页 `/about/`**：**没有页面标题、没有头像**（标题只留在 `<title>` 和导航高亮里，
   照 yinji）。页头那张头像更早就撤了，所以**全站一张头像都没有**
 - **文章页**：**面包屑**（`首页 / 文章 / 分类`；周刊是 `首页 / 周刊`。126 篇都有，
   另带完整的 `BreadcrumbList` JSON-LD）—— **分类的入口就在这一段的第三段**、
-  右侧固定目录（照 Bear Neo —— 平时**完全隐形**、悬停才显形；**≤800px 整块隐藏**）、
+  右侧固定目录（**>1200px 显示**，平时完全隐形、悬停才显形；**手机端没有目录**）、
   标签行（**只有标签、没有分类行**）、**文末「系列坐标带」+「上一篇 / 下一篇」**、
   评论区、CSS-only 的图片放大（**零 JS**：checkbox + `--zoom-src` 背景图，overlay 不重复一个 `<img>`，所以每张图在 DOM 里只占 1 个节点，且放大时内联图不离流、零回流）。
   **含代码的文章有跟随深浅色的语法配色**（2026-10-11 修 —— 改之前代码块里的
@@ -58,7 +58,7 @@
   无分割线无折叠）+ 按年份分组的全部文章（含周刊）。⚠️ 没有页面级 `<h1>`，与上游一致
 - **周更栏目**：周刊独立成栏（`/weekly/`），正文走 `/posts/年/月/日/slug/`，另有单独的 RSS
 - **链接页 `/roll/`（导航里那项 `Links`）**：全站唯一的链接清单，照 [yinji.org/roll](https://yinji.org/roll)
-  做成**一条平铺的 14 项列表**（前 3 条朋友、后 11 条聚合站/目录站，**没有小标题、也没有页面标题**），
+  做成**一条平铺的 13 项列表**（前 3 条朋友、后 10 条聚合站/目录站，**没有小标题、也没有页面标题**），
   两组之间是一条**全宽虚线 `<hr>`**（与首页 `Hi!` / `Recent Posts:` 之间那条同源）。
   条目写成 `名称：一句话点评`，**点评目前留空待填**。
   旧的 `/links/` 友链页已删除，`/links/` 与更早的 `/friends/` 都 301 到 `/roll/`
@@ -69,10 +69,10 @@
 - **404 页**：两段结构（水印 `404` + `<h1>这一页不在账上</h1>` + 三个动作 + 「逛逛别处」两列栏目）。
   「随便看一篇」是构建时抽签，每次发布换一篇
 - **标题锚点**：**只在文章页** —— h2/h3 悬停显示一个可点的 `#`，用来复制小节直链。
-  ⚠️ 非文章页（`/about/` `/now/` `/privacy/` `/` …）**模板层就不输出它**，所以那些页面没有 `#`
+  ⚠️ 非文章页（`/about/` `/privacy/` `/` …）**模板层就不输出它**，所以那些页面没有 `#`
 - **返回顶部**：只挂长文页。**纯 CSS 滚动驱动动画，零 JS**（⚠️ 同批做过的阅读进度条已按用户要求删除）
 - **订阅**：RSS 2.0 全文输出，主源 `/index.xml` + 周刊专线 `/weekly/index.xml`，每源最多 20 条。
-  **两个源都只收文章页**（`/about/` `/now/` `/roll/` `/privacy/` `/donate/` `/archive/` 一条都不进）。
+  **两个源都只收文章页**（`/about/` `/roll/` `/privacy/` `/donate/` `/archive/` 一条都不进）。
   feed 本身是**纯 XML**（顶部没有 `<?xml-stylesheet?>`）；浏览器直接打开 feed 时，由
   `functions/_middleware.js`（Cloudflare Pages Functions）做内容协商，改写到站内 HTML 页
   `/feed/` 与 `/feed/weekly/`（标题 + 简介 + 订阅地址 + 日期/标题/摘要列表），
@@ -100,10 +100,10 @@ blog/
 │   ├── _index.md               # 首页文案（Hi! / 题记 / 简介 / 支持链接 / 四个平台入口链接）
 │   ├── posts/                  # 101 篇文章 + _index.md（noindex，站内没有入口）
 │   ├── weekly/                 # 25 期周刊 + _index.md（单独开了 RSS 输出）
-│   ├── about.md now.md roll.md privacy.md archive.md             七个根级独立页
+│   ├── about.md roll.md privacy.md archive.md                   根级独立页
 │   │                           # ⚠️ links.md 2026-10-11 已删：友链并进 roll.md（唯一的链接页）
-│   ├── donate.md               # ↑ 之后的第 6 个独立页：支持页（两个赞赏码），2026-10-11 搬回
-│   ├── run.md                  # ↑ 之后的第 7 个独立页：跑步数据（layout: "run"），2026-10-12 从子站搬回
+│   ├── donate.md               # 支持页（两个赞赏码），2026-10-11 搬回
+│   ├── run.md                  # 跑步数据（layout: "run"），2026-10-12 从子站搬回
 │   ├── feed/                   # 订阅源「浏览器视图」的两个壳（只有 front matter）
 │   │                           #   _index.md → /feed/，weekly.md → /feed/weekly/（都 noindex）
 ├── layouts/                    # ★ 站点层覆盖，只有 23 个文件（+ assets/js 2 个 = 站点层合计 25，见 DESIGN.md 第 5 节）
@@ -125,7 +125,7 @@ blog/
 ├── assets/js/giscus.js         # 评论区脚本（只在挂评论的页加载）
 ├── assets/js/code-copy.js      # 代码块复制按钮（只在含代码块的 5 页加载）
 ├── themes/hugo-bearneo/        # ★ 上游主题逐字节副本（27 个文件），**不要改这里**
-├── scripts/                    # 发布前脚本、Garmin 同步、图床尺寸采集、仓库清理（8 个，见 MAINTENANCE.md）
+├── scripts/                    # 发布前脚本、链接检查、Garmin 同步、图床尺寸采集、仓库清理（12 个，见 MAINTENANCE.md）
 ├── data/
 │   ├── runs.json               # 跑步数据（主站 `/run/` 页在读）
 │   └── image-dims.json         # 正文图片真实宽高（喂 render-image.html）
@@ -171,7 +171,7 @@ hugo server -D     # -D 连草稿一起显示，改文件自动刷新
 只想构建一份干净的产物看看（不部署）：
 
 ```bash
-./deploy.sh        # 干净构建到 public/，并检查产物里没有 livereload 调试脚本
+./deploy.sh        # 干净构建到 public/，检查 livereload 与站内断链，再同步产物
 ```
 
 ⚠️ `hugo server` 开着会持续覆盖 `public/`。想在不打扰 server 的情况下验收，
@@ -201,13 +201,13 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 首页列几篇 | `hugo.toml` 的 `homeRecentCount`（当前 5，设 0 就不显示列表） |
 | 首页列表的对齐 | `layouts/partials/custom_head.html` 第 04 段（`padding-left: 0` 保证与标题左对齐） |
 | 支持页 / 换赞赏码 | `content/donate.md` + `custom_head.html` 第 08 段。⚠️ 换码后去 Cloudflare Purge `/images/donate/*` |
-| 链接页（朋友 / 聚合站 / 点评） | `content/roll.md` —— **全站唯一的链接页**，一条平铺 14 项（前 3 朋友、后 11 聚合站，无小标题）。条目写成 `名称：一句话点评`（点评待填） |
+| 链接页（朋友 / 聚合站 / 点评） | `content/roll.md` —— **全站唯一的链接页**，一条平铺 13 项（前 3 朋友、后 10 聚合站，无小标题）。条目写成 `名称：一句话点评`（点评待填） |
 | 关于页介绍块 | `content/about.md`（**纯 Markdown，没有头像**；`custom_head.html` 第 03 段已留空） |
 | **颜色 / 字体 / 宽度 / 圆角** | `themes/hugo-bearneo/layouts/partials/style.html` 的 `:root`（改上游，改完在 DESIGN.md 第 5 节登记） |
 | 正文排版（标题间距 / 中文字体） | `layouts/partials/custom_head.html` 第 02 段 |
 | 代码块配色 | `custom_head.html` 第 12 段（浅/深两套）。⚠️ 前提是 `hugo.toml` 的 `[markup.highlight] noClasses = false` |
 | 面包屑 | `layouts/partials/breadcrumbs.html`（**新增文件**）+ `custom_head.html` 第 13 段。改**分类**那一段看 partial 里 `$catName` 那块（周刊刻意不加） |
-| 独立页是否显示标题 | front matter 的 `hideTitle: true`（`/roll/` `/about/` `/now/` 开着） |
+| 独立页是否显示标题 | front matter 的 `hideTitle: true`（`/roll/` `/about/` 开着） |
 | 文末「系列」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html` + `custom_head.html` 第 09 / 10 段 |
 | 归档页「系列」横向入口 | 模板 `layouts/_default/archive.html` + `custom_head.html` 第 09 段 |
 | 404 页 | `layouts/404.html` + `custom_head.html` 第 15 段 |
@@ -215,7 +215,7 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 返回顶部 | `partials/back-top.html` + `custom_head.html` 第 16 段 |
 | 代码复制按钮 | `assets/js/code-copy.js` + `partials/code-copy.html` + 第 18 段 |
 | 分页 | **全站都不分页**（上游不用 `.Paginate`）。旧地址 `/page/*` 和 `/weekly/page/*` 由 `static/_redirects` 301 兜底 |
-| 目录显示断点 | `themes/hugo-bearneo/.../style.html` 里搜 `800px` —— **只有一个断点**（≤800px 整块隐藏） |
+| 目录 | **>1200px 桌面端**：右侧悬浮目录（主题 `div.toc`，平时隐形、悬停显形，断点覆盖在 `custom_head.html` 第 20 段）；**≤1200px**：没有目录（手机折叠目录 2026-11-02 已删除，不恢复） |
 | 图标 | `static/favicon.svg`（全站唯一图标；PWA 五件套 2026-10-13 已删） |
 | 评论 | `hugo.toml` 的 `[params.giscus]`；单篇用 `comments: false` 关掉 |
 | 统计 | `hugo.toml` 的 `[params.analytics]`（当前只有 GoatCounter，挂在 `custom_head.html` 末尾） |

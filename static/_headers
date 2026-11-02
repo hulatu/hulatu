@@ -82,13 +82,11 @@
 # 就是为了**不依赖平台的默认行为**——平台哪天改了默认，这几行就是唯一还站在源站侧的说明。
 #
 # ⚠️ 以后**新加根级内容页，记得回来补一条**（这条规矩 2026-10-07 立）。
-# 2026-10-10 晚迁移到上游 hugo-bearneo 时补了 /now/、/roll/ 两个新页面。
+# 2026-10-10 晚迁移到上游 hugo-bearneo 时补了 /now/、/roll/ 两个新页面；
+# 2026-11-02 按用户要求删除 /now/ 页面，旧地址 301 到 /about/。
 # 2026-10-11 补了 /donate/（支持页，从旧自建主题搬回）；
 #            同日**删掉**了 /links/ 那条 —— 友链并进 /roll/，页面本身不再产出。
 /about/
-  Cache-Control: public, max-age=0, s-maxage=300, must-revalidate
-
-/now/
   Cache-Control: public, max-age=0, s-maxage=300, must-revalidate
 
 /roll/
@@ -182,16 +180,16 @@
 #    历史上那条 `/search-index.json` 是自建主题时代的东西，迁移时随搜索一起删了；
 #    **别再把它加回来**，那个文件已经不产出。
 #
-#    缓存策略是 `max-age=0, must-revalidate` 而不是长缓存，理由：
-#    这个文件 1.03 MB（gzip 442 KB），但只要它没变，浏览器发的是条件请求、
-#    服务端回 304（几百字节），**不会重新下载正文**。
-#    反过来若给 1 小时 max-age，发完新文章的最初一小时里搜索会搜不到它 ——
-#    和「首页 Edge 缓存」那类「发了看不到」的坑同源，不值得。
+#    浏览器侧保持 `max-age=0, must-revalidate`：只要索引没变，浏览器发条件请求、
+#    服务端回 304，不会重新下载正文。2026-11-02 起补 `s-maxage=300`，让这份
+#    1.03 MB（gzip 442 KB）的索引能被边缘缓存，避免每次搜索都跨洋回源。
+#    代价与 HTML 相同：发布后最多 5 分钟内，部分访客搜不到刚发的文章。
+#    不给浏览器长 max-age：否则发完新文章最久一小时内搜索都缺内容。
 /index.xml
   Cache-Control: public, max-age=0, must-revalidate
 
 /index.json
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=0, s-maxage=300, must-revalidate
 
 /weekly/index.xml
   Cache-Control: public, max-age=0, must-revalidate

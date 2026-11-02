@@ -55,6 +55,25 @@ jobs:
       - name: 构建主站
         run: hugo --minify --gc --destination public
 
+      - name: 准备内部链接检查副本
+        run: |
+          cp -R public public-linkcheck
+          find public-linkcheck -type f -name '*.html' -exec \
+            perl -pi -e 's#https://hulatu\.com/#/#g; s#https://hulatu\.com#/#g' {} +
+
+      - name: 检查内部链接与锚点
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --offline
+            --root-dir public-linkcheck
+            --index-files index.html
+            --include-fragments=anchor-only
+            --no-progress
+            --max-concurrency 12
+            'public-linkcheck/**/*.html'
+          fail: true
+
       - name: 检查中文标题锚点
         run: |
           # 中文标题要显式写 {#pinyin}（如 ## 习惯 {#xi-guan}），否则分享出去的链接是

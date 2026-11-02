@@ -20,7 +20,7 @@
 | 页面 | **369 页 HTML** + `/index.json`（搜索索引，不是 HTML）。2026-10-28 撤销标签归并后从 256 涨回来（+113 个词条页） |
 | 内容 | 108 篇文章 + 27 期周刊 = 135 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
 | 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开由 `functions/_middleware.js` 分派到 `/feed/` 那两页，订阅器照旧拿 XML |
-| 站内搜索 | 列表页的搜索框，**2026-10-26 起标题 + 正文都搜**：索引 `/index.json`（`layouts/index.json` 生成，135 条，**1.05 MB / gzip 447 KB**），前端 `layouts/partials/search-box.html`，**聚焦搜索框即预取索引**（进页面不拉）。⚠️ 它只过滤**当前页已有的条目**（`/archive/` 一页装 135 篇 = 全站检索）；子集页 0 命中时补一条指向 `/archive/` 的链接。⚠️⚠️ **2026-10-26 傍晚修过一次「搜索完全无效」**：脚本物理位置在 `.blog-posts` **之前**，内联脚本解析到就立即执行，而 `querySelectorAll` 返回**静态** NodeList → `posts` 是空列表、`countEl` 是 `null`，打字毫无反应且**零报错**（回车自然也没反应）。现在整段包进 `boot()`，等 `DOMContentLoaded`。**这类 bug 用 DOM stub 测不出来**（stub 里 DOM 是完整的），必须拿真浏览器加载真页面验 |
+| 站内搜索 | 列表页的搜索框，**2026-10-26 起标题 + 正文都搜**：索引 `/index.json`（`layouts/index.json` 生成，135 条，**1.05 MB / gzip 447 KB**），前端 `layouts/partials/search-box.html`。**2026-11-02 起分两级加载**：聚焦不发请求；输入后先按标题即时筛选，停手 450ms 才后台补全文索引；单字查询不拉全文索引。⚠️ 它只过滤**当前页已有的条目**（`/archive/` 一页装 135 篇 = 全站检索）；子集页 0 命中时补一条指向 `/archive/` 的链接。⚠️⚠️ **2026-10-26 傍晚修过一次「搜索完全无效」**：脚本物理位置在 `.blog-posts` **之前**，内联脚本解析到就立即执行，而 `querySelectorAll` 返回**静态** NodeList → `posts` 是空列表、`countEl` 是 `null`，打字毫无反应且**零报错**（回车自然也没反应）。现在整段包进 `boot()`，等 `DOMContentLoaded`。**这类 bug 用 DOM stub 测不出来**（stub 里 DOM 是完整的），必须拿真浏览器加载真页面验 |
 | 词条页 | 标签 **213**（`noindex, follow`；2026-10-26 曾归并成 98，**2026-10-28 已全部还原**）+ 分类 8（2026-10-26 起全部放行，可索引、进 sitemap，各配 `content/categories/<词>/_index.md`）。索引页 `/tags/` `/categories/` 已关 |
 | sitemap | **150 条** = 135 个内容页（108 文章 + 27 周刊）+ 7 个根级/列表页 + 8 个分类页；与 219 个 noindex 页**零交集** |
 | CSS | **全部内联**，无 `/css/` 目录 |
@@ -32,7 +32,7 @@
 
 | 档 | 页数 | raw / gzip | 补丁 |
 | --- | --- | --- | --- |
-| 普通页（首页 / `/about/` `/now/` `/roll/` `/privacy/` `/weekly/` `/posts/`） | 7 | 12027 / 3428 | 5603 B（+00 +00c +14 +17 +20 +21 +22 +23 +26 +29 +30 +31 +32 +33 段，**含 2026-10-27 的段间距**） |
+| 普通页（首页 / `/about/` `/roll/` `/privacy/` `/weekly/` `/posts/`） | 6 | 12027 / 3428 | 5603 B（+00 +00c +14 +17 +20 +21 +22 +23 +26 +29 +30 +31 +32 +33 段，**含 2026-10-27 的段间距**） |
 | 词条页（213 标签 + 8 分类） | 221 | 12027 / 3428 | 同上 —— **CSS 与普通页逐字节相同**，只是走的守卫分支不同 |
 | 长文页（108 文章 + 27 周刊，无代码块） | 129 | 16522 / 4266 | 10098 B（再 +09 +10 +13 +16 +19 段，**含 2026-10-25 的 `.post-related`**） |
 | 长文页 + 代码块 | 6 | 18773 / 4759 | 12349 B（再 +12 +18 段） |
@@ -78,7 +78,7 @@ gzip 首页 **+28 B**、文章页 **+195 B**、`/archive/` **+387 B**、`/weekly
 - **第 31 段（手机端折叠目录）是 2026-10-17 新增的全站规则，每档统一 +1089 B raw / +701～792 B gzip**。改前基线就是上表逐值 −1089。构成：12 条规则本体约 1034 B + `@media screen and (max-width:1200px)` 外层包裹约 44 B + 第 29 段隐藏清单里补的 `.toc-mobile` 11 B。⚠️ 为什么 +1089 raw 只压掉约 370 B：`<style>` 是**每个块单独 gzip** 的，小块压缩率天然偏低，而且这一段里 `var(--…)` 与 `.toc-mobile` 前缀重复很多。
 - **第 32 段（浅色三级文字色 `#6e6e6e`）+ 00c 段（页头站名 `<h1>`→`<p>` 的外观补偿）是 2026-10-18 新增的全站规则，每档统一 +164 B raw / +41～45 B gzip**。改前基线就是上表逐值 −164。两段都很短（minify 后 32 段约 73 B、00c 约 91 B），所以 gzip 只压掉约 42 B。
 - **第 33 段（页面级 h1 配套，2026-10-25 新增）是 4 条全站规则，每档统一 +243 B raw / +62～65 B gzip**。改前基线就是上表逐值 −243。四条各自的用途：
-  `33-a .sr-only`（视觉隐藏但仍进无障碍树，给 `/about/` `/now/` `/roll/` 的隐藏 h1）、
+  `33-a .sr-only`（视觉隐藏但仍进无障碍树，给 `/about/` `/roll/` 的隐藏 h1）、
   `33-b #hi{font-size:1.5em}`（首页「Hi!」h2→h1 后补字号）、
   `33-c ul.blog-posts h2{font-size:1.17em;margin:1.9em 0 .6em}`（列表页年份 h3→h2 后还原字号**和**边距）、
   `33-d .recent-posts-head{font-size:1.17em}`（首页「Recent Posts:」h3→h2 后补字号）。
@@ -166,8 +166,8 @@ DESIGN.md / MAINTENANCE.md / README.md
 
 content/
   _index.md               首页正文（Hi! + 题记 + 简介 + 「支持」链接 + 四个平台链接行）
-  about.md now.md roll.md privacy.md archive.md donate.md run.md    七个根级独立页
-                          roll.md 是**唯一的链接页**：14 条平铺（前 3 条朋友、后 11 条
+  about.md roll.md privacy.md archive.md donate.md run.md           六个根级独立页
+                          roll.md 是**唯一的链接页**：13 条平铺（前 3 条朋友、后 10 条
                             聚合站），页面上没有小标题、也没有页面标题。
                             ⚠️ links.md 2026-10-11 已删（友链并进 roll.md），别再加回来
                           run.md 2026-10-12 从子站搬入：`layout: "run"` →
@@ -193,9 +193,11 @@ layouts/                  ★ 站点层覆盖，33 个文件（另有 data/inlin
                                     + 长文页的 .print-url
   _default/single.html              去掉 `if eq .Type "blog"` 门槛 + hideDate/hideTitle
                                     + 文末「系列坐标带」与「上一篇/下一篇」+ 评论区
-                                    + 手机端折叠目录（2026-10-17，h2 ≥ 3 且 $tocEnabled 才出）
-                                    ⚠️ `$tocEnabled` 在文件开头定义，末尾的侧栏目录复用它；
-                                       别在末尾再声明一次（同层重复声明直接构建失败）
+                                    ⚠️ 目录：**2026-11-02 删了手机端折叠、又恢复了电脑端侧栏**。
+                                       现在末尾有 `<div class="toc">{{ partial "toc.html" . }}</div>`
+                                       （$tocEnabled 守卫，>1200px 可见）；正文顶部**没有**
+                                       `<details class="toc-mobile">`，$h2count 也已删除。
+                                       hugo.toml 的 params.toc = true。
   _default/list.html                5 处文案英译中 + 删底部标签墙
   _default/rss.xml                  ★ 首页 feed 只收文章页 + atom:updated / category /
                                     摘要 description / 全文 content:encoded + pageLimit 20
@@ -219,7 +221,7 @@ layouts/                  ★ 站点层覆盖，33 个文件（另有 data/inlin
                                     边缘转换(/cdn-cgi/image/width=W,format=auto,
                                     quality=82/) + 首图 fetchpriority=high。
                                     实测省 47–71%，详见 DESIGN.md 第 13 节
-  partials/nav.html                 完全由 [[menu.main]] 驱动（7 项）
+  partials/nav.html                 完全由 [[menu.main]] 驱动（6 项）
                                     + aria-current="page"（2026-10-17，精确匹配 RelPermalink）
   partials/header.html              ★ 2026-10-18 新增：站名从 <h1> 换成 <p class="title">
                                     —— 文章页原本有**两个 h1**（站名 + 文章标题，134/344 页）
@@ -249,8 +251,10 @@ layouts/                  ★ 站点层覆盖，33 个文件（另有 data/inlin
                                     ⚠️ 第 28 段是订阅源浏览器视图的样式，**只给 /feed/ 那两页**
                                     （守卫 `or (eq .Type "feed") (eq .Section "feed")`）
                                     ⚠️ 第 29 段 = skip-link + 打印；第 30 段 = 跨页转场（2026-10-17，全站）
-                                    ⚠️ 第 31 段 = 手机端折叠目录（2026-10-17，`@media screen` 限定，
-                                       打印时不显示；类名**不能**叫 `.toc-nav`，会抢走主题 JS 的选择器）
+                                    ⚠️ 第 31 段 = 手机端折叠目录（2026-10-17）——**2026-11-02 起
+                                       已是无消费者的死样式**（标记已从 single.html 删除且不恢复），
+                                       留着是为了以后恢复时不用重写；别据此判断手机端还有目录。
+                                       电脑端侧栏走的是主题自带的 div.toc 样式（第 20 段断点）
                                     ⚠️ 第 32 段 = 浅色三级文字色提亮到 #6e6e6e（2026-10-18，
                                        包在 `@media (prefers-color-scheme: light)` 里 ——
                                        裸 `:root` 会把深色主题一起覆盖）
@@ -294,7 +298,7 @@ functions/                ★ Cloudflare Pages Functions（2026-10-15 新增）
 
 data/                     runs.json（/run/ 页在读）+ image-dims.json（喂 render-image.html）
                           ⚠️ 两个都别当孤儿删
-scripts/                  10 个脚本，见第 4 节
+scripts/                  12 个脚本，见第 4 节
 .github/workflows/        build.yml（构建校验）/ sync-garmin.yml（每日同步跑步数据）
 ```
 
@@ -432,7 +436,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | `comments` | ✅ | `false` 关掉该篇评论区 |
 | `draft` | ✅ | |
 | `hidden` | ✅ | 列表页过滤掉（`list.html` / `archive.html` 都判） |
-| `toc` | ✅ | `false` 关掉右侧目录。⚠️ 是「继承」不是「一律关」：闸门 `default .Site.Params.toc .Params.toc`，而 `hugo.toml` 的 `[params] toc = true` → **不写 `toc` 的页（`/about/` `/privacy/`）实际有目录** |
+| `toc` | ✅ | `false` 关掉**电脑端右侧目录**（>1200px）。闸门 `default .Site.Params.toc .Params.toc`，`hugo.toml` 的 `params.toc = true` → 不写 `toc` 的页（`/about/` `/privacy/`、文章页）有侧栏。**手机端没有目录**（2026-11-02 起折叠目录已删除） |
 | `hideDate` | ✅ | `true` 藏掉页面日期行（`date` 字段仍要留） |
 | `mermaid` | ✅ | `true` 才加载 Mermaid |
 | `menu` | ✅ | 有值时 `single.html` 不输出 `<h1>` / 日期行 |
@@ -444,7 +448,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 
 ### 三个必须记住的规矩
 
-1. **加根级独立页时写 `hideDate: true` + `toc: false`**（短页面挂目录是纯噪音）；纯工具页再加 `noindex: true`；新页别忘了回 `static/_headers` 补一条缓存规则。
+1. **加根级独立页时写 `hideDate: true` + `toc: false`**（短页面挂目录是纯噪音；侧栏只在 >1200px 显示）；纯工具页再加 `noindex: true`；新页别忘了回 `static/_headers` 补一条缓存规则。
 2. **中文标题显式写锚点** `## 习惯 {#xi-guan}`，否则分享链接是 `#%e4%b9%a0%e6%83%af`。漏了跑 `python3 scripts/add-heading-anchors.py`（需要 macOS 拼音库）。
 3. **`noindex: true` 是生效的**（站点层 `baseof.html` 有 robots 分支，上游没有），覆盖 219 页 = 213 标签词条 + 8 分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404。
    ✅ **2026-10-17 起 sitemap 也排除了**：`layouts/sitemap.xml` 的四个判据与 `baseof.html` 的 `$noindex` 同口径，336 条 → 134 条。
@@ -456,7 +460,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 
 | 想做的事 | 去哪儿 |
 | --- | --- |
-| 改导航（增删项 / 改标签 / 换落点） | `hugo.toml` 的 `[[menu.main]]`，**不用碰模板**（当前 7 项：Home / About / Now / Links→`/roll/` / Weekly→`/weekly/` / Posts→`/archive/` / RSS→`/index.xml`） |
+| 改导航（增删项 / 改标签 / 换落点） | `hugo.toml` 的 `[[menu.main]]`，**不用碰模板**（当前 6 项：Home / About / Links→`/roll/` / Weekly→`/weekly/` / Posts→`/archive/` / RSS→`/index.xml`） |
 | 改首页文案 | `content/_index.md` |
 | 改首页列表条数 | `hugo.toml` 的 `homeRecentCount`（设 0 退回上游原样） |
 | 改首页列表的对齐 / 间距 | `custom_head.html` 第 04 段。⚠️ 列表必须与 `Recent Posts:` 标题左对齐（`padding-left: 0`），失效时会缩进 40px；几何值（120px / .95rem / 1.2rem / 1.3 / 2rem）逐值照 yinji，改前想清楚 |
@@ -478,7 +482,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 改「系列」带里的序号对齐 | `custom_head.html` 第 09 段的 `.post-series-ord`（`min-width: 1.5em` + `text-align: right`）。不写的话「9」与「11」宽度不同（8.1 vs 16.3px），上下两行标题左端错开 8.1px；只兜得住 2 位 |
 | ⚠️ 在 `custom_head.html` 写元素选择器前先数标签 | `grep -c '<nav' public/…/index.html`。2026-10-11 栽过：裸 `nav{display:flex}` 命中一页 5 个 `<nav>`，把 `.post-series` 挤成左右两栏（右边空 208px）、TOC 的 `<ul>` 撑出容器 92.8px。**必须写 `header nav`** |
 | 改代码块配色 | `custom_head.html` 第 12 段（浅 / 深两套 `--code-*`）。⚠️ 前提是 `[markup.highlight] noClasses = false` —— 改回 `true` 代码块立刻变回「看不见」 |
-| 改独立页是否显示标题 | front matter `hideTitle: true`。当前 `/roll/` `/about/` `/now/` 三页开着；`/privacy/` `/donate/` 保留标题 |
+| 改独立页是否显示标题 | front matter `hideTitle: true`。当前 `/roll/` `/about/` 两页开着；`/privacy/` `/donate/` 保留标题 |
 | 改 `/roll/` 两组之间的分隔线 | `content/roll.md` 里那条**裸 `<hr>`**，走主题样式，**没有专属 CSS**（第 11 段留空）。想改观感就改主题的 `hr`（全站生效） |
 | 改 404 页 | `layouts/404.html`（结构）+ 第 15 段（样式）。⚠️「随便看一篇」是 `shuffle` 构建期抽签 |
 | 改标题锚点 `#` | `layouts/_default/_markup/render-heading.html` + 第 19 段。⚠️ **只给文章页**（两边都判 `$longForm`，改一处要一起改） |
@@ -497,7 +501,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 改 SEO 头（keywords / JSON-LD / og / referrer / theme-color） | `layouts/partials/seo_tags.html`（2026-10-14 新增，整份覆盖上游同名 partial）。⚠️ `theme-color` 那两条在 `custom_head.html` 的 `<style>` **之前**（不占段号）；`color-scheme` 与 `input{font-size}` 在第 26 段；`referrer` 在 `baseof.html`。⚠️ 上游那份是「HTML 规范还在 2015 年」的写法，**别回退** |
 | 改分享卡片图 / JSON-LD 的 `image` | **`layouts/partials/og-image.html`**（2026-10-26 起是唯一取值处，`og:image` / `twitter:image` / JSON-LD `image` 三处都调它）。⚠️ 返回的是**绝对 URL**，调用方不要再套 `absURL` |
 | 改分类页的标题 / 描述 | `content/categories/<词>/_index.md`（8 个，2026-10-26 新增）。⚠️ `title` 必须写，否则 `<title>` 会退化成「 \| 胡拉图说」；标签页没有对应文件（它们仍是 noindex） |
-| 改站内搜索（索引内容 / 匹配规则 / 触发时机） | 索引 `layouts/index.json`（字段 `t/u/g/d`，`hugo.toml` 的 `[outputs] home` 含 `"JSON"`），前端 `layouts/partials/search-box.html`。⚠️ 索引 **1.03 MB / gzip 442 KB**，前端只在用户开始输入时 fetch，**别改成进页面就拉**；⚠️ 拿不到索引必须退回「只搜标题」，不能变成搜不出东西；⚠️ 它只过滤**当前页已有的条目**（`/archive/` = 全站）。理由见 DESIGN.md 第 16.4 节 |
+| 改站内搜索（索引内容 / 匹配规则 / 触发时机） | 索引 `layouts/index.json`（字段 `t/u/g/d`，`hugo.toml` 的 `[outputs] home` 含 `"JSON"`），前端 `layouts/partials/search-box.html`。⚠️ 索引 **1.03 MB / gzip 442 KB**，先显示标题结果，停手 450ms 后才 fetch 全文索引；**别改成进页面或聚焦就拉**；⚠️ 拿不到索引必须退回「只搜标题」，不能变成搜不出东西；⚠️ 它只过滤**当前页已有的条目**（`/archive/` = 全站）。理由见 DESIGN.md 第 16.4 节 |
 | 改分享卡上的日期 / 作者 / 标签（`article:*`） | `layouts/_partials/opengraph.html`。⚠️ 只对 `posts` / `weekly` 输出，首页与列表页的 `og:type` 是 `website`，挂 `article:*` 非法；⚠️ `article:author` 按协议是**作者主页 URL**（本站指 `/about/`），不是名字 |
 | 改「更新于」的显示条件 | `layouts/_default/single.html` 日期行（`$showUpdated`）。⚠️ 判据是「`lastmod` 晚于 `date` **且** 日历日不同」，不是「差 24 小时」——当天发当天改的两个日期长得一样，显示出来是噪音；⚠️ 这一行**没有配套 CSS**，改样式要自己在 `custom_head.html` 加段 |
 | 改 Web App Manifest（名称 / 图标 / 主题色） | `static/manifest.webmanifest`。⚠️ 它是**手写 JSON、不能写注释**（加了整份解析失败且静默），所有取舍理由写在 `layouts/partials/favicon.html` 那段注释里；⚠️ `purpose` 别加 `maskable`（图标笔画贴边会被裁）；⚠️ `id` 一旦发布别再改 |
@@ -517,6 +521,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | `sync-lastmod.py` | ⚠️ 半废（`lastmod` 只喂 RSS / sitemap） |
 | `sync-image-dims.py` | ✅ 在用（HTTP 探测图床图片真实宽高 → `data/image-dims.json`，供 `render-image.html` 消费）。**2026-10-18 起在 `publish.sh` 里自动跑**，只补缺的 |
 | `check-cache.sh` | ✅ 在用（2026-10-25 新增，**手动跑**）。自查线上首页是否被边缘缓存锁住：打 `/` 与 `/?cb=随机` 对比 `cf-cache-status` + 内容指纹，命中就打印后台 Purge / Edge TTL 的操作路径。退出码 0=正常 / 1=被锁 / 2=网络拿不到。⚠️ 不进 `publish.sh` —— 它依赖外网，而发布流程要能离线跑 |
+| `check-links.sh` | ✅ 在用（2026-11-02 新增）：构建后检查站内路径和页内锚点；`deploy.sh` 会调用，CI 也跑同一套 lychee 参数。未安装 lychee 时本地脚本提示并跳过 |
 | `gen-og.js` | ✅ 在用（2026-10-17 重写，2026-10-18 接入 `publish.sh`）：每篇文章一张 1200×630 分享卡 → `static/images/og/`。⚠️ 依赖 sharp，`publish.sh` 会自己找 `node` 与 `NODE_PATH`；**每次都全量重画**（改过标题的卡片要跟着变） |
 | `new-post.sh` | ✅ 在用（2026-10-18）：`new posts/xxx` 建文件 + 用系统默认应用打开。配套的 `new()` 函数在 `~/.config/zsh/.zshrc`，不在仓库里 |
 | `backup-blog.sh` / `cleanup-junk.sh` / `_frontmatter.py` | ✅ 工具 |
@@ -528,7 +533,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 ### URL 不变量（改任何东西之前先守住这几条）
 
 - 文章 / 周刊：`/posts/YYYY/MM/DD/slug/`（126 条，由 `[permalinks]` 生成）
-- 根级页：`/`、`/about/`、`/now/`、`/roll/`、`/privacy/`、`/archive/`、`/weekly/`、`/donate/`、`/run/`
+- 根级页：`/`、`/about/`、`/roll/`、`/privacy/`、`/archive/`、`/weekly/`、`/donate/`、`/run/`
 - 订阅源浏览器视图：`/feed/`、`/feed/weekly/`（2026-10-15 新增，`noindex`，**不进导航**；
   线上由 `functions/_middleware.js` 把浏览器导航的 `/index.xml` 分派到这里，订阅器不受影响）
 - 词条页：`/tags/<tag>/`（213）、`/categories/<cat>/`（8）
@@ -570,9 +575,12 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 - ⚠️ `/rss.xsl` 那条 **2026-10-15 已删**（XSLT 方案整体撤掉）；新加的是 `/feed/` 与 `/feed/*` 两条 ——
   它们只对「直接访问 `/feed/`」和本地预览生效：线上主路径是浏览器打开 `/index.xml` 被
   `functions/_middleware.js` 改写的，**函数响应不吃 `_headers`**，那几条头写在函数代码里。
-- ⚠️ **订阅源与索引保持 `max-age=0, must-revalidate`，没有 `s-maxage`**：`/index.xml`
-  `/weekly/index.xml` `/index.json` `/sitemap.xml` 四条。`/index.json` 是 1 MB 的搜索索引，
-  给它长缓存会让「发完新文章 5 分钟内搜不到」——与首页那个坑同源，不值得。
+- **订阅源与站点地图** `/index.xml` `/weekly/index.xml` `/sitemap.xml` 保持
+  `max-age=0, must-revalidate`，没有 `s-maxage`。
+- **搜索索引** `/index.json` 自 2026-11-02 起是
+  `max-age=0, s-maxage=300, must-revalidate`：浏览器仍每次条件请求，边缘缓存 5 分钟。
+  代价是发新文章后最多 5 分钟内搜索索引缺这一篇；这与 HTML 的延迟口径一致，
+  换来的是 442 KB gzip 索引不必每次跨洋回源。
 
 ### ⚠️⚠️ HTML 边缘缓存：2026-10-27 从「Bypass」改成「300 秒」
 
@@ -873,7 +881,7 @@ PY
 ```
 
 ```bash
-# 7) ★「首行贴导航栏」的哨兵：/roll/ /about/ /now/ 三页的正文首行到导航文字下沿
+# 7) ★「首行贴导航栏」的哨兵：/roll/ /about/ 两页的正文首行到导航文字下沿
 #    应都在 ~28 CSS px（与 yinji 一致；12.5px 就是 content > :first-child 被加回来了）
 #    ⚠️ 三页必须在**同一批截图**里量：--window-size 高度不同会得出不同数字
 #    （实测过 46px vs 57px 的假差异）；量法：2x 截图后逐行取最暗像素找文本带，换算回 CSS px
@@ -952,17 +960,17 @@ PY
 - 首页：`h2#hi` → 引用 → 段落 → **含「支持」链接的段落** → 四个平台链接行 → 虚线 `<hr>` → `<h3>Recent Posts:</h3>` → 5 条
   ⚠️ 简介正文外面不该有 `<content>`（照 yinji 去掉的，行高走 body 的 1.5 —— 2026-10-14 正文行高改成 1.8 后这一层更要紧，留着简介会比正文还松）；列表左边界要和 `Recent Posts:` 标题对齐（实测都 x≈140），缩进 40px 就是 `.recent-posts{padding-left:0}` 被吞了 → 去跑第 4 条哨兵
 - `/archive/`：搜索框 + 「共 **135** 篇。」+ **「系列」三条横向行**（居家流水账 4 / 综述写作 5 / 跑步 14）+ 年份分组 + 底部 **213 个标签**平铺；⚠️ 这块**不该有任何分割线 / 折叠三角**
-- 导航 7 项；⚠️ 项多窄屏必折行，靠第 00 段 `header nav{flex-wrap:wrap;column-gap:8px}` 保证只在项与项之间折（没这段时 392px 把 `RSS` 拆成 `RS`/`S`）
+- 导航 6 项；⚠️ 靠第 00 段 `header nav{flex-wrap:wrap;column-gap:8px}` 保证只在项与项之间折
 - 页脚四行，顺序：Made with → Copyright → **订阅行（RSS / Say hello / 🚇 开往）** → 英文授权行（+ Privacy + Sitemap）
   ⚠️ **一个 `·` 都没有**（3 个全换成 `.`）：读作 `Say hello. 🚇 开往` 与 `…CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.`；出现任何一个都是回退
   哨兵：`<footer>` 里 `<br>` 恰好 **3 个**、`go.html` 恰好 **1 次**、`·` **0 次**，且「Say hello」与「开往」在**同一个 `<br>` 分段**里
 - 文章页：`<h1>`、日期行、标签行、**文末系列坐标带（仅 21 篇连载）+ 上一篇/下一篇（126 篇都有）**、TOC、评论区
   ⚠️ **「上一篇」= 更早、「下一篇」= 更晚**；两段相邻时只画一条发丝线；最新一篇没有「下一篇」、最早一篇没有「上一篇」（留不可见空槽，正常）
   ⚠️ 含代码的文章代码块必须「浅灰底 + 深字」（浅色）—— 大片文字发白就是 `noClasses` 被改回 `true`，跑第 5 条 f) 哨兵
-- 文章页顶部面包屑：`首页 / 文章 / 分类`（周刊是 `首页 / 周刊`，**两段** —— 周刊的 `categories` 就是 `["周刊"]`，加了会变「首页 / 周刊 / 周刊」）；⚠️ 面包屑**不该**出现在 `/about/` `/now/` `/roll/` 或词条页上
+- 文章页顶部面包屑：`首页 / 文章 / 分类`（周刊是 `首页 / 周刊`，**两段** —— 周刊的 `categories` 就是 `["周刊"]`，加了会变「首页 / 周刊 / 周刊」）；⚠️ 面包屑**不该**出现在 `/about/` `/roll/` 或词条页上
 - `/roll/`：**没有页面标题**（只在 `<title>` 与导航高亮），两个 `<ul>`：3 条朋友 + 11 条聚合站，中间一条全宽虚线 `<hr>`；结尾「…更新中」，无日期行 / 评论区 / TOC；正文首行到导航文字下沿约 **28 CSS px**（~12.5px 就是 `content > :first-child` 被加回来了）
 - `/about/`：介绍块纯 Markdown，**没有头像**（全站一张头像都没有），**没有页面标题**，首行间距同 28px
-- `/now/`：**没有页面标题**，无日期行 / 评论区 / TOC；⚠️ `/privacy/` 与 `/donate/` **仍保留页面标题**（用户只点名了 About 和 Now，别顺手统一）
+- `/now/`：2026-11-02 已按用户要求删除，旧地址 301 到 `/about/`；⚠️ `/privacy/` 与 `/donate/` **仍保留页面标题**
 - `/donate/`：两个收款码并排居中（窄屏一列），**没有**日期行 / TOC / 评论区（**有标题**）
 - `/privacy/` `/posts/` `/donate/` `/404.html` 与全部词条页：`<meta name=robots content="noindex, follow">`（合计 **219 页**）。⚠️ 2026-10-15 起还要加上 `/feed/` 与 `/feed/weekly/` → **221 页**（那两页的 `noindex` 写在 `content/feed/*.md` 的 front matter 里，别删）
 - `/run/`：`<h1>跑步</h1>` + 导语 + 4 个 `.stats` 格子 + 月度柱状图 + 按年 `<details>` 记录表 + 更新时间行；**没有**面包屑 / TOC / 评论区（走 `layouts/_default/run.html`，不经过 single.html）；数据每天由 CI 的 `sync-garmin.py` 刷新
@@ -1001,7 +1009,7 @@ PY
 
 `~/bearneo-trial` 是同一套主题的试运行站（上游逐字节未改 + 站点层覆盖），本站的站点层覆盖从它搬过来。两边关系：
 
-- **同源**：`index.html` / `baseof.html` / `single.html` / `list.html` / `rss.xml` / `nav.html` / `footer.html` / `custom_head.html` / `giscus.html` / `giscus.js`；内容页 `_index.md` / `about.md` / `privacy.md` / `now.md`。
+- **同源**：`index.html` / `baseof.html` / `single.html` / `list.html` / `rss.xml` / `nav.html` / `footer.html` / `custom_head.html` / `giscus.html` / `giscus.js`；内容页 `_index.md` / `about.md` / `privacy.md`。
 - **本站多出来的**（试运行站没有）：`archive.html`（没有 `/archive/`）、`_markup/render-link.html`、系列与上下篇两段、`breadcrumbs.html`、`render-image.html`、`run.html`、`seo_tags.html`（2026-10-14）。
 - **本站改过的**：`"blog"` → `"posts"`（4 处）；第 06 段删掉（TOC 保持上游「默认隐形」）；末尾补回 GoatCounter。
 - **别反向同步**：试运行站没有第 11 / 12 / 13 段（`/roll/` 分隔线走裸 `<hr>`、代码块配色、面包屑样式）—— 它仍是 monokai 内联色，即「代码块看不见」那个状态；链接页形态也不同（本站 `/roll/` 一页平铺 14 项，试运行站没有这一页）。⚠️ **第 26 段与 `seo_tags.html` 同理** —— 上游原始写法，同步过去等于把「过时」那份搬回去。

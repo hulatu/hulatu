@@ -45,6 +45,7 @@
   var giveupTimer = null;
   var frameObserver = null;
   var nearObserver = null;
+  var connectionHintsAdded = false;
 
   function clearTimers() {
     if (slowTimer) {
@@ -110,7 +111,26 @@
     frameObserver.observe(slot, { childList: true, subtree: true });
   }
 
+  /* giscus 脚本带 crossorigin=anonymous，因此预连接也使用 CORS 连接池。
+     提示只在真正接近评论区时添加；只看正文的读者不会提前连第三方域。 */
+  function addConnectionHints() {
+    if (connectionHintsAdded) return;
+    connectionHintsAdded = true;
+
+    var preconnect = document.createElement("link");
+    preconnect.rel = "preconnect";
+    preconnect.href = "https://giscus.app";
+    preconnect.crossOrigin = "anonymous";
+    document.head.appendChild(preconnect);
+
+    var dnsPrefetch = document.createElement("link");
+    dnsPrefetch.rel = "dns-prefetch";
+    dnsPrefetch.href = "https://giscus.app";
+    document.head.appendChild(dnsPrefetch);
+  }
+
   function inject() {
+    addConnectionHints();
     var script = document.createElement("script");
     script.src = "https://giscus.app/client.js";
     script.async = true;

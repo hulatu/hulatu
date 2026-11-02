@@ -1,7 +1,7 @@
 ---
 title: "AI 时代，也应该拥抱英语"
 date: 2026-09-17T08:26:56+08:00
-lastmod: 2026-10-25T11:54:05+08:00
+lastmod: 2026-11-02T18:00:56+08:00
 slug: "embrace-english"
 
 summary: "学好英语，一直都很重要。"
@@ -70,7 +70,7 @@ draft: false
 
 从我个人来看：打开中文字幕看英文视频，是非常差劲的一个体验。
 
-还记得之前和大家分享过 [「心智带宽」](https://hulatu.com/posts/2026/09/10/goal-oriented/#%e5%bf%83%e6%99%ba%e5%b8%a6%e5%ae%bd) 的概念。
+还记得之前和大家分享过 [「心智带宽」](/posts/2026/09/10/goal-oriented/#xin-zhi-dai-kuan) 的概念。
 
 看英文视频开中文字幕体验差，或许可以用这个概念来解释。
 

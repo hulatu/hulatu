@@ -39,9 +39,10 @@
        含每篇的标题 / 标签 / 正文纯文本）。
 
        ── 三个必须知道的约束 ──────────────────────────────────────────
-       ⚠️ **索引是懒加载的**：进页面**不拉**，等用户**聚焦搜索框**才 fetch
-          （2026-10-26 从「打第一个字才拉」提前到 focus —— 点进框就是要搜，
-          等打完字再下 442 KB 在移动端表现为「打了字没反应」）。
+       ⚠️ **索引分两级加载**：进页面不拉；聚焦输入框也不拉；输入后先按
+          标题即时筛选，停手 450ms 才在后台补标题 + 标签 + 正文索引。
+          这样「点一下搜索框」不会白付 442 KB，打字时也先得到可用结果，
+          不再被全文索引的网络等待卡住。
           索引 1.03 MB / gzip 442 KB（133 篇正文合计 36 万字），
           在列表页一进来就拉等于每页多下 442 KB —— 那是不能接受的。
        ⚠️ **它只过滤「当前这一页已有的条目」**，不会跨页检索。
@@ -100,6 +101,8 @@
     var state = 'idle';   // idle | loading | ready | failed
     var lastTerm = '';
     var firstHit = null;  // 当前第一个命中项，回车时跳过去
+    var loadTimer = null;
+    var indexRequest = null;
 
     // ── 「这一页只是子集」时，0 结果要指路 ──────────────────────────────
     // 搜索框出现在 222 个页面上，其中绝大多数是词条页（/tags/跑步/ 只有 13 条）。
@@ -122,7 +125,9 @@
     function loadIndex() {
       if (state !== 'idle') return;
       state = 'loading';
-      fetch(INDEX_URL, { credentials: 'same-origin' })
+      if (lastTerm) apply(lastTerm);
+      indexRequest = new AbortController();
+      fetch(INDEX_URL, { credentials: 'same-origin', signal: indexRequest.signal })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (list) {
           index = new Map();
@@ -133,7 +138,29 @@
           state = 'ready';
           if (lastTerm) apply(lastTerm);
         })
-        .catch(function () { state = 'failed'; if (lastTerm) apply(lastTerm); });
+        .catch(function (err) {
+          if (err && err.name === 'AbortError') {
+            state = 'idle';
+            return;
+          }
+          state = 'failed';
+          if (lastTerm) apply(lastTerm);
+        })
+        .finally(function () { indexRequest = null; });
+    }
+
+    function scheduleIndex() {
+      if (loadTimer) {
+        clearTimeout(loadTimer);
+        loadTimer = null;
+      }
+      if (!lastTerm || state === 'ready' || state === 'failed') return;
+      // 单字查询先只筛标题：一是通常命中很多，二是避免一个字就拉整份索引。
+      if (Array.from(lastTerm).length < 2) return;
+      loadTimer = setTimeout(function () {
+        loadTimer = null;
+        if (lastTerm) loadIndex();
+      }, 450);
     }
 
     function apply(term) {
@@ -165,7 +192,10 @@
       // ⚠️ 只用 textContent —— /weekly/ 的 #post-count 是个 <span>，
       //    后面的「请订阅 RSS」链接在它**外面**；用 innerHTML 会把链接冲掉。
       if (countEl) {
-        var extra = (term && state === 'failed') ? '（仅匹配标题）' : '';
+        var extra = '';
+        if (term && state === 'idle') extra = '（先匹配标题，停顿后补正文）';
+        else if (term && state === 'loading') extra = '（正在补正文结果）';
+        else if (term && state === 'failed') extra = '（仅匹配标题）';
         countEl.textContent = '共 ' + visible + ' ' + COUNT_LABEL + extra;
       }
       // 只在「这一页装不全站」且「0 命中」时指路，否则平时不留任何多余 DOM 文字
@@ -176,14 +206,19 @@
 
     input.addEventListener('input', function () {
       lastTerm = this.value.toLowerCase().trim();
-      if (lastTerm) loadIndex();
+      if (!lastTerm) {
+        if (loadTimer) {
+          clearTimeout(loadTimer);
+          loadTimer = null;
+        }
+        if (indexRequest && !index) {
+          indexRequest.abort();
+          state = 'idle';
+        }
+      }
       apply(lastTerm);
+      scheduleIndex();
     });
-
-    // 聚焦即预取索引：点进框就是要搜，等打完第一个字再开始下 442 KB 已经晚了
-    // （移动端尤其明显：打字 → 看起来「没反应」→ 1 秒后才跳出来）。
-    // 只挂一次；`loadIndex()` 自己有 `state !== 'idle'` 守卫，不会重复请求。
-    input.addEventListener('focus', loadIndex, { once: true });
 
     // 回车 = 「带我去第一条」。不阻止默认的话，type=search 在部分浏览器里
     // 会触发一次无声的表单提交式行为（页面不跳但焦点丢失），所以显式接管。
@@ -197,6 +232,14 @@
         e.preventDefault();
         this.value = '';
         lastTerm = '';
+        if (loadTimer) {
+          clearTimeout(loadTimer);
+          loadTimer = null;
+        }
+        if (indexRequest && !index) {
+          indexRequest.abort();
+          state = 'idle';
+        }
         apply('');
       }
     });

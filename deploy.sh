@@ -29,5 +29,9 @@ if rg -q "livereload" "$STAGE/index.html" 2>/dev/null; then
   exit 1
 fi
 
+# 站内路径和页内锚点一旦失效，读者会直接点到 404。
+# 没装 lychee 时脚本只提示并跳过；装了就在发布前阻断。
+./scripts/check-links.sh "$STAGE"
+
 rsync -a --delete "$STAGE/" public/
 echo "完成：已生成生产构建到 public/（无调试脚本）。"

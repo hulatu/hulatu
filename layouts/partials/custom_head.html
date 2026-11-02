@@ -2,13 +2,11 @@
        站点层补丁样式（上游主题一个字节都没改）
        参考：yinji.org —— 同样基于 Hugo Bear Neo，可对照它的做法
        ============================================================ */ -}}
-{{- /* 只有真会加载 giscus 的页面才预连 —— 省掉一次 DNS + TLS 往返。
-       判断条件和 single.html 里挂评论区的那段保持一致。 */ -}}
+{{- /* giscus 的连接提示不再在页面加载时提前发出。
+       评论脚本本来就延迟到距评论区 400px 才注入；现在 DNS / TLS
+       提示由 assets/js/giscus.js 在同一时刻动态加入，避免读者只看正文
+       时也提前连第三方域。 */ -}}
 {{- $longForm := and .IsPage (in (slice "posts" "weekly") .Type) }}
-{{- if and site.Params.giscus.repo $longForm (ne .Params.comments false) }}
-<link rel="preconnect" href="https://giscus.app">
-<link rel="dns-prefetch" href="https://giscus.app">
-{{- end }}
 
 {{- /* 图床预连（2026-10-25 新增）。
        正文图片全部来自 img.hulatu.com，是一个**跨域主机** —— 不预连的话，
@@ -24,8 +22,8 @@
           `/privacy/`（正文用文字提到了这个域名）—— 它们都把 `img.hulatu.com`
           写成了 `<a href>` 或纯文本，一个 `<img>` 都没有。
           实测：只判主机名 → 77 页挂预连；加上 `<img` → 正好 74 页。
-          ⚠️ 别用「数 `rel=preconnect`」来验收这一项：giscus 的预连也长这样，
-             全站 135 个长文页都有，会把结论带偏（本文件上一版注释就写错过一次）。
+          ⚠️ giscus 的预连已改为接近评论区时由 JS 动态加入，不再出现在静态 HTML；
+             验收本项时应只数 `href="https://img.hulatu.com"` 的 preconnect。
        ⚠️ **不要加 crossorigin**：`<img src>` 是 no-cors 请求，匹配的是
           **不带** crossorigin 的 preconnect 连接池。写了 crossorigin 反而
           建出一个用不上的 CORS 连接池，等于没预连。 */ -}}
@@ -121,6 +119,15 @@
 
   header nav a {
     margin-right: 0;
+  }
+
+  /* 390px 是 iPhone 12–15 的常见 CSS 视口宽。7 项导航在 8px 间距下
+     刚好超过内容宽 0.5px，只剩 RSS 单独折到第二行；6px 能让它保持一行。
+     更窄的 375 / 360 仍会自然折行，不强行压缩字号或内容宽度。 */
+  @media (max-width: 400px) {
+    header nav {
+      column-gap: 6px;
+    }
   }
 
   /* ---------------------------------------------------------------

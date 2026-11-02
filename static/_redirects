@@ -44,6 +44,10 @@
 /weekly/page/1/ /weekly/ 301
 /weekly/page/* /weekly/ 301
 
+# 2026-11-02：/now/ 页面按用户要求删除。旧地址跳到最接近的 /about/，
+# 避免已收录链接和站外分享直接变成 404。
+/now/ /about/ 301
+
 # 友链页：旧站叫 /friends/。2026-10-11 起友链**并进了 /roll/**，全站只剩一个链接页，
 # 所以这两条**都直接指向 /roll/**，不串成两跳（/friends/ → /links/ → /roll/）。
 # ⚠️ /links/ 本身已经不产出了（content/links.md 已删），它现在是**纯 301 桩**；
