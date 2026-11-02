@@ -38,6 +38,15 @@ draft: false
 #      在两组之间插一条不带文字的分隔即可。
 #   ⚠️ **别再拆回两页**（DESIGN.md 第 6 节）。也**别把 14 条并成两页/两栏**。
 #
+# 【第四次，2026-11-02】页面底部加十年之约「虫洞」按钮（正文末尾那个 `<p>`）。
+#   用户收到十年之约站内信，要求挂虫洞按钮。官方给 4 种代码（按钮 ×2 主题、
+#   挂件 ×2 主题），这里只用了按钮，挂在「收藏页」而不是全站页脚 ——
+#   理由写在正文末尾那段 HTML 注释里（徽章 293 KB，页脚每页都出现）。
+#   全站页脚另外补了一个 0 字节的文字入口「🌀 虫洞」，见 layouts/partials/footer.html。
+#   ⚠️ 「今天读什么」挂件**没有采用**：它是 360×260 的 iframe，且主题只能靠
+#      `?theme=` 固定，没法跟随本站的 `prefers-color-scheme` 自动切换。
+#      以后要加，得配一段内联脚本按 `matchMedia` 改 `src`，别直接贴官方那段。
+#
 # ⚠️ **条目格式照 yinji.org/roll**：`- [名称](地址)：一句话点评`。
 #   冒号后面是作者自己写的点评，助手编不了 —— 要补就直接接一句话，不用改别处。
 #   ⚠️ 列表项里**不要**在 `</a>` 和中文冒号之间手动加空格：
@@ -66,3 +75,27 @@ draft: false
 - [中文博客琅琊榜](https://github.com/qianguyihao/blog-list/tree/main)：中文博客琅琊榜，只收录优质的中文独立博客，全网最精品。
 
 &hellip;更新中
+
+<!-- ── 十年之约「虫洞」按钮（2026-11-02 新增）─────────────────────────────
+     官方代码见 https://www.foreverblog.cn/about.html#ab-8
+     官方给的是**两张固定图**：`wormhole_v2_dark.webp`（深色文字，配浅背景）
+     和 `wormhole_v2_light.webp`（浅色文字，配深背景）。
+
+     ⚠️ 本站是**纯 `prefers-color-scheme` 双主题**，没有手动开关。直接贴官方那段
+        会在另一半场景下看不见文字，所以这里改成 `<picture>` + `media` 自动换图：
+          · 深色模式 → `_light`（浅色文字）
+          · 浅色模式 → `_dark`（深色文字，即默认 src）
+        `<picture>` 只会下载**命中的那一张**，不会两张都拉。
+     ⚠️ 徽章放在这一页而不是全站页脚：官方图是 163×64 **动画 WebP，293 KB / 67 帧**，
+        本站首页整页才 6 KB。页脚每页都出现，这里只在收藏页付一次成本。
+     ⚠️ `loading="lazy"`：本页在页面底部，不进视口就不下载。
+     ⚠️ 尺寸用 40px 高（官方示例是 32px）。原生 163×64 缩到 32px 时，「虫洞 WORMHOLE」
+        那行小字只剩 4.5px 高，糊成一团；40px 是能看清「十年之约」的最小值。
+        `width`/`height` 属性给的是原生尺寸，只为让浏览器提前算出 163:64 的比例、
+        避免图片到达时页面跳动；实际显示尺寸由 `style` 决定。
+     ⚠️ 必须写 `border:0;border-radius:0`：上游 style.html 给**所有** `img` 都加了
+        `border:1px solid var(--border-color)` + `border-radius:4px`。徽章是**透明背景**
+        （四角 alpha=0），套上那个边框就变成一个灰色圆角空盒子，像个卡片。
+     ⚠️ 居中保留（上游 `img{display:block;margin:auto}`）—— 全站图片都这样，
+        这里不破例；它正好是页面收尾的装饰位。 -->
+<p><a href="https://www.foreverblog.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机访问十年之约成员博客"><picture><source srcset="https://www.foreverblog.cn/assets/logo/wormhole_v2_light.webp" media="(prefers-color-scheme: dark)"><img src="https://www.foreverblog.cn/assets/logo/wormhole_v2_dark.webp" alt="十年之约虫洞" width="163" height="64" style="width:auto;height:40px;border:0;border-radius:0" loading="lazy" decoding="async"></picture></a></p>

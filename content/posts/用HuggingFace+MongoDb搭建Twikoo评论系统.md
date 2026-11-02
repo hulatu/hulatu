@@ -3,7 +3,7 @@ title: 用 HuggingFace + MongoDb 搭建 Twikoo 评论系统
 categories: ["工具"]
 tags: ["Hugo", "Twikoo", "评论", "博客"]
 date: 2026-01-26T10:19:41+08:00
-lastmod: 2026-10-26T19:18:33+08:00
+lastmod: 2026-11-02T11:27:11+08:00
 slug: "set-up-twikoo-comment-system"
 
 summary: “缺少评论系统的博客，总觉得缺少点灵魂。“
@@ -12,7 +12,7 @@ draft: false
 comments: true
 ---
 
-如果你想有一个个人网站，市面上有很多搭建教程，我就先不写了，基于 **Hexo、Hugo、WordPress、VuePress……**这些平台都可以，挑选一款喜欢的主题，比如我的主题是 hugo-PaperMod，然后就可以开始搭建了，把网站放在 GitHub 的仓库里。
+如果你想有一个个人网站，市面上有很多搭建教程，我就先不写了，基于 <strong>Hexo、Hugo、WordPress、VuePress……</strong>这些平台都可以，挑选一款喜欢的主题，比如我的主题是 hugo-PaperMod，然后就可以开始搭建了，把网站放在 GitHub 的仓库里。
 
 这时候，很多人会想要一个评论系统，giscus 搭建起来是最简单的，因为开源、免费、无广告，而且和 GitHub 的互联很好，有个缺点——就是浏览者想要评论必须要有个 GitHub 账号，这个其实有点门槛。
 

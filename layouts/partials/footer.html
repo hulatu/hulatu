@@ -83,11 +83,22 @@
 <!-- 订阅 / 邮件（2026-10-11 由第 1 行挪到此处，即第 3 行）
      + 开往入口（2026-10-12 用户要求「接在订阅行末尾」） -->
 {{ if ne .Site.Params.Footer.hideRSSAndEmail true }}
-{{/* 开往（Travellings）友链接力入口 —— 纯文字「🚇 开往」，不挂徽章图片。
-     链接地址取自开往官方文档：https://www.travellings.cn/docs/join.html
-     （官方要求把 https://www.travellings.cn/go.html 放在「打开网站就能看到的地方」，
-      例如顶栏 / 侧栏；页脚在长文页要滚到底才看得到。用户明确选了「只放页脚」，
-      别再自作主张挪进顶部导航 —— 导航已经 8 项、窄屏本来就折行。）
+{{/* 两个「友链圈入口」：开往（Travellings）+ 虫洞（十年之约）—— 都是纯文字，不挂徽章图片。
+     链接地址取自官方文档：
+       开往 https://www.travellings.cn/docs/join.html
+       虫洞 https://www.foreverblog.cn/about.html#ab-8
+
+     ── 为什么开往只放页脚（2026-10-12 的决定，别推翻）───────────────
+     官方要求把 https://www.travellings.cn/go.html 放在「打开网站就能看到的地方」，
+     例如顶栏 / 侧栏；页脚在长文页要滚到底才看得到。用户明确选了「只放页脚」，
+     别再自作主张挪进顶部导航 —— 导航已经 8 项、窄屏本来就折行。
+
+     ── 为什么虫洞也不挂徽章（2026-11-02）─────────────────────────
+     用户收到十年之约站内信要求挂按钮。官方给的是 163×64 **动画 WebP**，
+     单文件 293 KB / 67 帧。本站首页整页才 6 KB（gzip），一个徽章就是它 50 倍，
+     而页脚在**每一页**都出现（377 个 HTML）。官方允许放在「页脚、侧边栏或友链页」，
+     所以徽章图放进了 /roll/（收藏页，只在那一页付一次成本），
+     全站页脚只保留 0 字节的文字入口 —— 与开往的处理方式一致。
 
      ⚠️ 下面三个分支互斥、各自带 `<br />`，所以这里把标记**定义一次、在三处引用**；
         别把 URL 抄成三份，将来改地址一定会漏一处。
@@ -97,23 +108,30 @@
         这是「接在订阅行末尾」的必然结果，不是 bug。
      ⚠️ rel 用 noopener noreferrer（与站点层 nav.html 对外链的处理一致），
         不用官方示例里的 noopener。
-     ⚠️ 字符串**开头只有一个空格**，没有 ` · ` 分隔符 —— 2026-10-12 用户要求
-        「不要那么多 ·」，页脚里 3 个 `·` 全换成了 `.`。而订阅那句本来就以 `.`
-        收尾，所以这里**不要再补点**（会变成 `Say hello.. 🚇 开往`）。 */}}
-{{ $trav := safeHTML ` 🚇 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>` }}
+     ⚠️ 分隔符用 `. ` 不用 ` · ` —— 2026-10-12 用户要求「不要那么多 ·」，
+        页脚里原有的 3 个 `·` 全换成了 `.`，第 4 行就是这个写法：
+        `Privacy. 🗺️ Sitemap.`。这里沿用，读作「…开往. 🌀 虫洞」。
+        （字符串开头是**一个空格**，句号由订阅那句自带，所以这里别再补点，
+          否则会变成 `Say hello.. 🚇 开往`。）
+     ⚠️ 图标用 `🌀`（气旋）不用 `🕳️`（洞）。实测在 12.8px（`--font-size-secondary`
+        = 0.8em）下，`🕳️` 渲染成**一条黑色椭圆**，看着像下划线或污点，不像图标；
+        `🌀` 是彩色螺旋，同尺寸下轮廓最清晰。而且官方徽章本身就是个橙色涡旋，
+        形态一致 —— 别改成 `🕳️`、`🌌`（渲染成深色小方块）或 `⏳`（语义不对）。
+     ⚠️ title 只写用途，不放 `·` 分隔符（同上，用户不喜欢那个字符）。 */}}
+{{ $friendLinks := safeHTML ` 🚇 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>. 🌀 <a href="https://www.foreverblog.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机访问十年之约成员博客">虫洞</a>` }}
 <!-- Enable RSS and email exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS false ) .Site.Params.Author.email }}
-Subscribe via <a href="/index.xml">RSS</a> or just <a href="mailto:{{ .Site.Params.Author.email }}">Say hello</a>.{{ $trav }}
+Subscribe via <a href="/index.xml">RSS</a> or just <a href="mailto:{{ .Site.Params.Author.email }}">Say hello</a>.{{ $friendLinks }}
 <br />
 {{ end }}
 <!-- Enable RSS and email does not exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS false ) (not .Site.Params.Author.email) }}
-Subscribe via <a href="/index.xml">RSS</a>.{{ $trav }}
+Subscribe via <a href="/index.xml">RSS</a>.{{ $friendLinks }}
 <br />
 {{ end }}
 <!-- Do not enable RSS and email exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS true ) .Site.Params.Author.email }}
-Say hello via <a href="mailto:{{ .Site.Params.Author.email }}">email</a>.{{ $trav }}
+Say hello via <a href="mailto:{{ .Site.Params.Author.email }}">email</a>.{{ $friendLinks }}
 <br />
 {{ end }}
 {{ end }}
