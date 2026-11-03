@@ -1,0 +1,47 @@
+{{- /* 系列总览页（站点层新增，2026-11-03）。
+
+       /archive/（Posts）顶部现在只有一个「系列」入口，点进来就是这一页：
+       全站有哪些系列、每组按时间顺序有哪些文章。
+
+       数据口径与文章页文末的「系列坐标带」完全一致：
+         · content 的 `series:` 字段（字符串，一篇只能属于一个系列）；
+         · `where $posts "Params.series" $name` + `.ByDate`（升序 = 连载顺序）。
+       所以这里的序号和文章页那条第 x / y 篇必然一致，改一处要回来对另一处。
+
+       ⚠️ 页池必须限定 posts + weekly：根级独立页也可能带 `series` 字段，
+          不限定的话会把 about / privacy 之类混进来。
+       ⚠️ 标题里的系列前缀（「综述写作之-」「居家流水账-」）剥掉，
+          和文章页系列带、归档入口用同一套剥法；完整标题留在 title 属性里。
+       ⚠️ 类名与 partials/custom_head.html 的 09b 段是一份契约。 */ -}}
+{{ define "main" }}
+{{- $posts := (where site.RegularPages "Type" "in" (slice "posts" "weekly")).ByDate.Reverse -}}
+{{- $seriesNames := slice -}}
+{{- range $posts -}}{{- with .Params.series -}}{{- $seriesNames = $seriesNames | append . -}}{{- end -}}{{- end -}}
+{{- $seriesNames = $seriesNames | uniq | sort -}}
+<content>
+  <h1>{{ .Title }}</h1>
+  {{ .Content }}
+  <div class="series-page">
+    {{- range $seriesNames }}
+    {{- $name := . -}}
+    {{- $group := (where $posts "Params.series" $name).ByDate }}
+    <section class="series-group">
+      <h2 class="series-group-head">{{ $name }}<span class="series-group-count">{{ len $group }} 篇</span></h2>
+      <ol class="series-article-list">
+        {{- range $i, $p := $group -}}
+          {{- $label := strings.TrimPrefix (printf "%s之-" $name) $p.Title -}}
+          {{- $label = strings.TrimPrefix (printf "%s-" $name) $label -}}
+          <li>
+            <a href="{{ $p.RelPermalink }}" title="{{ $p.Title }}">
+              <span class="series-article-ord">{{ add $i 1 }}</span>
+              <span class="series-article-title">{{ $label }}</span>
+              <time class="series-article-date" datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date.Format site.Params.dateFormat }}</time>
+            </a>
+          </li>
+        {{- end }}
+      </ol>
+    </section>
+    {{- end }}
+  </div>
+</content>
+{{ end }}

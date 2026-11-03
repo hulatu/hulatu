@@ -51,12 +51,10 @@
     <a href="{{ "archive/" | relURL }}">全部文章</a>
   </small>
   {{ end }}
-  {{ if .Site.Params.postSearch }}
-  {{- /* 搜索框与过滤脚本收在 partials/search-box.html（2026-10-26）——
-        原来这段脚本在这里和 archive.html 各抄一份，改一处就会漂。
-        参数只是计数行的后半句：周刊页是「期周刊内容」，其余是「篇。」。 */ -}}
-  {{ partial "search-box.html" (dict "countLabel" (cond $isWeekly "期周刊内容" "篇。")) }}
-  {{ end }}
+  {{- /* 搜索框 2026-11-03 起只保留在 /archive/（全站 135 篇）。
+         词条页（/tags/*、/categories/*）通常只有几篇到十几篇，搜索价值很低；
+         /weekly/ 的 25 期也已经一屏排得下 —— 这些页不再挂输入框和 2.7KB 的
+         内联过滤脚本。archive.html 有自己的 search-box 调用，别在这里加回来。 */ -}}
   {{ if .Site.Params.showPostCount }}
   {{ $visiblePages := where .Pages "Params.hidden" "!=" true }}
   {{- /* 周刊页的计数行（2026-10-14 用户要求）：

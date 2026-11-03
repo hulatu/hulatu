@@ -1,5 +1,10 @@
 {{- /* ============================================================
-       列表页搜索框 + 过滤脚本（2026-10-26 抽出；同日修「完全失效」）
+       归档页搜索框 + 过滤脚本（2026-10-26 抽出；2026-11-03 起只在 /archive/ 使用）
+
+       2026-11-03：用户要求列表页搜索只保留 /archive/。词条页（/tags/*、
+       /categories/*）与 /weekly/ 不再挂这个 partial —— 那边列表本来就短，
+       而且每个页面都要背 2.7KB 内联脚本。下面「子集页 0 命中指路」的逻辑
+       也随之删除（只在归档页用时，它永远是全集，指路没有意义）。
 
        ── 为什么抽成 partial ──────────────────────────────────────────
        同一段脚本原本**逐字抄在** `layouts/_default/list.html` 和
@@ -69,7 +74,6 @@
 <script>
 (function () {
   var INDEX_URL = {{ "index.json" | relURL }};
-  var ARCHIVE_URL = {{ "archive/" | relURL }};
   var COUNT_LABEL = {{ $countLabel }};
   var GROUP_BY_YEAR = {{ if site.Params.groupByYear }}true{{ else }}false{{ end }};
 
@@ -103,24 +107,6 @@
     var firstHit = null;  // 当前第一个命中项，回车时跳过去
     var loadTimer = null;
     var indexRequest = null;
-
-    // ── 「这一页只是子集」时，0 结果要指路 ──────────────────────────────
-    // 搜索框出现在 222 个页面上，其中绝大多数是词条页（/tags/跑步/ 只有 13 条）。
-    // 在那儿搜「耳机」得到「共 0 篇。」，读起来像「全站没有这个内容」——
-    // 而实际只是这一页没有。索引加载完成后能拿到总篇数，两者一比就知道
-    // 当前页是不是子集，是子集且 0 命中时才补一个指向 /archive/ 的链接。
-    // ⚠️ 用 `hidden` 属性显隐，**不引入任何 CSS**。
-    var hintEl = null;
-    if (countEl) {
-      hintEl = document.createElement('p');
-      hintEl.hidden = true;
-      var hintLink = document.createElement('a');
-      hintLink.href = ARCHIVE_URL;
-      hintLink.textContent = '在归档页搜索全部文章';
-      hintEl.appendChild(hintLink);
-      var anchor = (countEl.closest && countEl.closest('p')) || countEl;
-      if (anchor.parentNode) anchor.parentNode.insertBefore(hintEl, anchor.nextSibling);
-    }
 
     function loadIndex() {
       if (state !== 'idle') return;
@@ -197,10 +183,6 @@
         else if (term && state === 'loading') extra = '（正在补正文结果）';
         else if (term && state === 'failed') extra = '（仅匹配标题）';
         countEl.textContent = '共 ' + visible + ' ' + COUNT_LABEL + extra;
-      }
-      // 只在「这一页装不全站」且「0 命中」时指路，否则平时不留任何多余 DOM 文字
-      if (hintEl) {
-        hintEl.hidden = !(term && visible === 0 && index && posts.length < index.size);
       }
     }
 

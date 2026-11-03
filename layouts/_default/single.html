@@ -145,7 +145,7 @@
        取组，都用 `.ByDate`（升序 = 连载顺序）定位，所以两处算出来的
        「第 N / M 篇」必然一样，不会各说各话。
 
-       站里现有 3 组 21 篇：跑步 12 / 综述写作 5 / 居家流水账 4。
+       站里现有 3 组 23 篇：跑步 14 / 综述写作 5 / 居家流水账 4。
 
        ⚠️ 只有 `len $seriesGroup > 1` 才渲染 —— 单篇的「系列」是自相矛盾的。
        ⚠️ 系列内上下篇用 `index $seriesGroup (sub $seriesPos 2)` 求，**别用
@@ -161,9 +161,10 @@
       {{- if eq $p.RelPermalink $.RelPermalink -}}{{- $seriesPos = add $i 1 -}}{{- end -}}
     {{- end -}}
   {{- end -}}
-  {{- if and $seriesName (gt (len $seriesGroup) 1) -}}
+  {{- $hasSeriesBand := and $seriesName (gt (len $seriesGroup) 1) -}}
+  {{- if $hasSeriesBand -}}
   <nav class="post-series" aria-label="系列导航">
-    <p class="post-series-head">系列 · <span class="post-series-name">{{ $seriesName }}</span><span class="post-series-count">第 {{ $seriesPos }} / {{ len $seriesGroup }} 篇</span></p>
+    <p class="post-series-head"><a href="{{ "series/" | relURL }}">系列</a> · <span class="post-series-name">{{ $seriesName }}</span><span class="post-series-count">第 {{ $seriesPos }} / {{ len $seriesGroup }} 篇</span></p>
     <div class="post-series-links">
       {{- if gt $seriesPos 1 -}}
         {{- $prev := index $seriesGroup (sub $seriesPos 2) -}}
@@ -228,7 +229,10 @@
   {{- /* ---------- ③ 全站「上一篇 / 下一篇」 ------------------------------
        2026-10-05 曾经删过一次（当时的理由是它和相关文章 if/else 互斥、从没渲染过，
        且「按顺序连载」交给 series 就够了）；2026-10-11 用户要求加回来 ——
-       这次**和系列带并存**，不互斥：系列带管「组内」，这条管「时间线前后」。
+       这次与系列带并存了一段时间；**2026-11-03 起，有系列带的文章不再渲染这一块**
+       （用户要求）：系列带已经给了组内「上一篇 / 下一篇」，再出现一组同名的
+       「时间线前后」会让读者分不清两个「上一篇」到底指谁。系列带没有渲染的
+       情况（非系列文章、或系列只有 1 篇）仍然保留这一块。
 
        口径：posts + weekly 合起来按 `.ByDate.Reverse`（新的在前）排成一列，
        找到当前页的下标 i：
@@ -240,6 +244,7 @@
 
        ⚠️ 别用 `.PrevInSection` / `.NextInSection`：那是 section 内的顺序，
           weekly 和 posts 会被割成两条线，周刊的邻居就丢了。 */ -}}
+  {{- if not $hasSeriesBand -}}
   {{- $allPosts := (where site.RegularPages "Type" "in" (slice "posts" "weekly")).ByDate.Reverse -}}
   {{- $olderPage := false -}}
   {{- $newerPage := false -}}
@@ -268,6 +273,7 @@
     <span class="post-nav-item post-nav-empty" aria-hidden="true"></span>
     {{- end }}
   </nav>
+  {{- end -}}
   {{- end -}}
 {{- end }}
 {{- /* 评论区。移植自 ~/Blog：只给「长文页」（文章 + 周刊）挂，

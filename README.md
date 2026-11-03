@@ -1,7 +1,8 @@
 # 我的博客（Hugo）
 
 `hulatu.com` 的源码：一个基于 [Hugo](https://gohugo.io/) 的中文个人博客，
-主题是上游 [hugo-bearneo](https://github.com/rokcso/hugo-bearneo)（**逐字节未改**）。
+主题是上游 [hugo-bearneo](https://github.com/rokcso/hugo-bearneo)（`style.html` 有两处登记改动：
+正文行高 1.6→1.8、删除未启用的 upvote CSS；其余 26 个文件逐字节未改）。
 **单站单仓库** —— 2026-10-12 原先的四个独立子站（`run.` / `shot.` / `share.` / `profile.hulatu.com`）
 **全部下线**：跑步页并入本站 `/run/`，个人主页（导航里的 `Hub`）并入 `/about/`，
 `shot.` / `share.` 本来就是空壳。仓库里的 `sites/` 目录已整体删除。
@@ -32,7 +33,8 @@
 - **导航栏**：6 项英文标签，**完全由 `hugo.toml` 的 `[[menu.main]]` 驱动**，模板里不写死任何链接：
   `Home` / `About` / `Links`(→`/roll/` 收藏与友链) / `Weekly`(→`/weekly/`) / `Posts`(→`/archive/` 归档) / `RSS`(→`/index.xml` 全站订阅源)
   ⚠️ 2026-10-12 **撤掉了原来的 `Hub`**（曾指向 `https://profile.hulatu.com/` 个人主页）——
-  那个子站当晚被**整体删除**，内容并入 `/about/`（新增「内容平台」一节 + 已去掉「花园」入口）。
+  那个子站当晚被**整体删除**，内容并入 `/about/`（已去掉「花园」入口）。
+  ⚠️ 2026-11-03：关于页的「内容平台」一节已撤，平台入口只保留在首页那一行。
   同日稍晚 `run` / `shot` / `share` 三个子站也一并下线、`sites/` 目录从仓库删除，
   **所以现在全站只有主站一份导航表**，不再有「子站导航要同步改」这回事。
 - **首页**：逐条照 [yinji.org](https://yinji.org/) 的 Bear Neo 版式 —— `Hi!`（**h1**，2026-10-25 从 h2 升上来）+
@@ -46,16 +48,18 @@
   收款码是站内静态资源，不走图床。**换码后记得去 Cloudflare Purge `/images/donate/*`**（30 天缓存）
 - **关于页 `/about/`**：**没有页面标题、没有头像**（标题只留在 `<title>` 和导航高亮里，
   照 yinji）。页头那张头像更早就撤了，所以**全站一张头像都没有**
-- **文章页**：**面包屑**（`首页 / 文章 / 分类`；周刊是 `首页 / 周刊`。126 篇都有，
+- **文章页**：**面包屑**（`首页 / 文章 / 分类`；周刊是 `首页 / 周刊`。137 篇都有，
   另带完整的 `BreadcrumbList` JSON-LD）—— **分类的入口就在这一段的第三段**、
   右侧固定目录（**>1200px 显示**，平时完全隐形、悬停才显形；**手机端没有目录**）、
-  标签行（**只有标签、没有分类行**）、**文末「系列坐标带」+「上一篇 / 下一篇」**、
+  标签行（**只有标签、没有分类行**）、文末**「系列坐标带」**（「系列」链回 `/series/`）+
+  **相关文章** + **「上一篇 / 下一篇」**（2026-11-03 起只有非系列文章显示）+
   评论区、CSS-only 的图片放大（**零 JS**：checkbox + `--zoom-src` 背景图，overlay 不重复一个 `<img>`，所以每张图在 DOM 里只占 1 个节点，且放大时内联图不离流、零回流）。
   **含代码的文章有跟随深浅色的语法配色**（2026-10-11 修 —— 改之前代码块里的
   普通标识符/字符串在浅色底上对比度只有 1:1，等于看不见）。
-  **没有**相关文章、阅读进度条、回到顶部（长文页的返回顶部除外）、代码块红绿灯 —— 都删了
-- **归档 `/archive/`**：搜索框 + 「共 126 篇。」+ **「系列」三条横向行**（系列名在左、篇目在右铺开，
-  无分割线无折叠）+ 按年份分组的全部文章（含周刊）。⚠️ 没有页面级 `<h1>`，与上游一致
+  **没有**阅读进度条、回到顶部（长文页的返回顶部除外）、代码块红绿灯 —— 都删了
+- **归档 `/archive/`**：`<h1>归档</h1>` + 搜索框 + 「共 137 篇。」+ **「系列」一行入口**
+  （3 组 · 23 篇 → `/series/`）+ 底部标签（出现 ≥3 篇的 32 个常显，其余 187 个收进「其余标签」折叠）
+  + 按年份分组的全部文章（含周刊）
 - **周更栏目**：周刊独立成栏（`/weekly/`），正文走 `/posts/年/月/日/slug/`，另有单独的 RSS
 - **链接页 `/roll/`（导航里那项 `Links`）**：全站唯一的链接清单，照 [yinji.org/roll](https://yinji.org/roll)
   做成**一条平铺的 13 项列表**（前 3 条朋友、后 10 条聚合站/目录站，**没有小标题、也没有页面标题**），
@@ -63,7 +67,8 @@
   条目写成 `名称：一句话点评`，**点评目前留空待填**。
   旧的 `/links/` 友链页已删除，`/links/` 与更早的 `/friends/` 都 301 到 `/roll/`
 - **深浅色**：**完全跟随系统**，没有切换按钮（上游如此）
-- **搜索**：只有列表页顶部的**标题过滤**（上游 `postSearch`）。全站搜索面板已删除
+- **搜索**：只在 `/archive/` 顶部；标题 + 标签 + 正文（懒加载 `/index.json`，两级加载）。
+  词条页与 `/weekly/` 不再挂搜索框（2026-11-03）
 - **评论**：giscus（GitHub Discussions），只挂长文页、默认收起。样式极简 —— 没有任何外框，
   只有一行加粗的「评论」+ 右边一个**实心三角 ▼**（展开翻成 ▲），点一下展开
 - **404 页**：两段结构（水印 `404` + `<h1>这一页不在账上</h1>` + 三个动作 + 「逛逛别处」两列栏目）。
@@ -82,7 +87,7 @@
   上游那份还带着 `<meta name=keywords>`（Google 2009 年起就不读）和一套没有 `itemscope`
   祖先、**实际全不生效**的 microdata `itemprop`，两者都已删，改按页型输出 JSON-LD
   （首页 `WebSite` / 文章页 `BlogPosting` / 其他独立页与 404 `WebPage` / section 与词条 `CollectionPage`）。
-  `noindex, follow` 覆盖 **201 页**（187 个标签词条 + 8 个分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404 + `/feed/` 那两页）。
+  `noindex, follow` 覆盖 **225 页**（219 个标签词条 + `/privacy/` + `/posts/` + `/donate/` + 404 + `/feed/` 那两页）；分类词条页 2026-10-26 起可索引，不在其中。
   ⚠️ 每页 `og:image` 目前都是同一张 `share.webp`（按 slug 分图的 125 张**已于 2026-10-11 清理删除**，见 DESIGN.md 第 8 节）；宽高走 `hugo.toml` 的 `ogImageWidth` / `ogImageHeight`
 - **子站**：⚠️ **2026-10-12 起本站是单站单仓库，`sites/` 目录已删除。**
   原先的四个独立子站全部下线：`profile`（个人主页 / `Hub`）内容并入 `/about/`、
@@ -112,7 +117,7 @@ blog/
 │   ├── _default/single.html    #   去 `if eq .Type "blog"` 门槛 + hideDate/hideTitle + 系列带/上下篇 + 评论区
 │   ├── _default/list.html      #   5 处文案英译中 + 删底部标签墙
 │   ├── _default/rss.xml        #   加 pageLimit 上限；⚠️ 2026-10-15 起不再输出 <?xml-stylesheet?>
-│   ├── _default/archive.html   #   ★ 新增：/archive/ 列表页 + 顶部「系列」横向入口
+│   ├── _default/archive.html   #   ★ 新增：/archive/ 列表页 + 「系列」入口 + 标签常显/折叠
 │   ├── _default/run.html       #   ★ 新增：/run/ 跑步数据页（读 hugo.Data.runs）
 │   ├── feed/list.html          #   ★ 新增（2026-10-15）：/feed/ 订阅源浏览器视图
 │   ├── feed/single.html        #   ★ 新增（2026-10-15）：/feed/weekly/ 同一个视图
@@ -124,7 +129,7 @@ blog/
 │                               #     （删 keywords / name=title / 微数据，换按页型的 JSON-LD）
 ├── assets/js/giscus.js         # 评论区脚本（只在挂评论的页加载）
 ├── assets/js/code-copy.js      # 代码块复制按钮（只在含代码块的 5 页加载）
-├── themes/hugo-bearneo/        # ★ 上游主题逐字节副本（27 个文件），**不要改这里**
+├── themes/hugo-bearneo/        # ★ 上游主题副本（27 个文件；style.html 有 2 处登记改动），**别随手改**
 ├── scripts/                    # 发布前脚本、链接检查、Garmin 同步、图床尺寸采集、仓库清理（12 个，见 MAINTENANCE.md）
 ├── data/
 │   ├── runs.json               # 跑步数据（主站 `/run/` 页在读）
@@ -186,7 +191,7 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 按 `archetypes/posts.md` 里的清单填 front matter，写完把 `draft` 改成 `false` 即可发布。
 `date` 决定 URL（`/posts/年/月/日/slug/`），`slug` 决定 URL 的最后一段。
 
-⚠️ **`series`（系列）字段在用**：文章页文末「系列坐标带」+ `/archive/` 顶部横向入口都读它
+⚠️ **`series`（系列）字段在用**：文章页文末「系列坐标带」+ `/archive/` 一行入口 + `/series/` 总览页都读它
 （字符串语义，一篇只能属于一个系列）。`issue`（周刊期号）**2026-10-13 已全部移除** ——
 期号徽章早随迁移删除，标题里本来就写着「第 N 期」。
 
@@ -208,8 +213,8 @@ hugo new content/posts/文章名.md      # 周刊：hugo new content/weekly/周�
 | 代码块配色 | `custom_head.html` 第 12 段（浅/深两套）。⚠️ 前提是 `hugo.toml` 的 `[markup.highlight] noClasses = false` |
 | 面包屑 | `layouts/partials/breadcrumbs.html`（**新增文件**）+ `custom_head.html` 第 13 段。改**分类**那一段看 partial 里 `$catName` 那块（周刊刻意不加） |
 | 独立页是否显示标题 | front matter 的 `hideTitle: true`（`/roll/` `/about/` 开着） |
-| 文末「系列」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html` + `custom_head.html` 第 09 / 10 段 |
-| 归档页「系列」横向入口 | 模板 `layouts/_default/archive.html` + `custom_head.html` 第 09 段 |
+| 文末「系列」/「相关文章」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html` + `custom_head.html` 第 09 / 10 段。系列文章不渲染全站上下篇 |
+| 「系列」入口 / 总览页 | 入口 `layouts/_default/archive.html`（+ `custom_head.html` 第 09 段）；总览页 `layouts/_default/series.html` + `content/series.md`（+ 第 09b 段） |
 | 404 页 | `layouts/404.html` + `custom_head.html` 第 15 段 |
 | 标题锚点 / 孤行保护 | `_markup/render-heading.html`（只文章页，第 19 段）+ `partials/orphan-safe.html`（全站，第 14 段） |
 | 返回顶部 | `partials/back-top.html` + `custom_head.html` 第 16 段 |

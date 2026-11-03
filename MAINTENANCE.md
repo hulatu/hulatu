@@ -14,13 +14,13 @@
 | 项 | 值 |
 | --- | --- |
 | Hugo | `0.167.0+extended`（本机 / GitHub Actions / Cloudflare 三边一致） |
-| 主题 | `themes/hugo-bearneo/`，27 个文件，**上游逐字节未改**（`diff -r` 验过） |
+| 主题 | `themes/hugo-bearneo/`，27 个文件；`style.html` 有 **2 处登记改动**（正文行高 1.6→1.8、删除未启用的 upvote CSS），其余逐字节未改（`diff -r` 验过） |
 | 代码高亮 | `[markup.highlight] noClasses = false`（**必须是 false**）+ 站点层第 12 段配色 |
 | 站点层 | **35 个文件** = `layouts/` × 33 + `assets/js/` × 2（另有 `data/inline-links.json` 词表），全站所有自定义都在这里（2026-10-17 新增 `layouts/sitemap.xml`、`layouts/_partials/opengraph.html`、`layouts/_partials/twitter_cards.html`；2026-10-18 新增 `layouts/partials/header.html`；2026-10-25 新增 `layouts/partials/favicon.html`；2026-10-26 新增 `layouts/partials/og-image.html`、`layouts/partials/noindex.html` —— 两个都是**把原本复制在 2–3 处的逻辑收成一份**；同日再新增 `layouts/index.json`、`layouts/partials/search-box.html` 与 `layouts/partials/inline-links.html` + `data/inline-links.json` —— 见第 17 节） |
 | 页面 | **369 页 HTML** + `/index.json`（搜索索引，不是 HTML）。2026-10-28 撤销标签归并后从 256 涨回来（+113 个词条页） |
 | 内容 | 108 篇文章 + 27 期周刊 = 135 个内容页 + 7 个根级独立页（`about`/`now`/`roll`/`privacy`/`archive`/`donate`/`run`）+ `/feed/` 与 `/feed/weekly/`（订阅源浏览器视图，`noindex`） |
 | 订阅源 | `/index.xml`（文章 20 条）+ `/weekly/index.xml`（周刊 20 条），**都只收文章页**；浏览器直开由 `functions/_middleware.js` 分派到 `/feed/` 那两页，订阅器照旧拿 XML |
-| 站内搜索 | 列表页的搜索框，**2026-10-26 起标题 + 正文都搜**：索引 `/index.json`（`layouts/index.json` 生成，135 条，**1.05 MB / gzip 447 KB**），前端 `layouts/partials/search-box.html`。**2026-11-02 起分两级加载**：聚焦不发请求；输入后先按标题即时筛选，停手 450ms 才后台补全文索引；单字查询不拉全文索引。⚠️ 它只过滤**当前页已有的条目**（`/archive/` 一页装 135 篇 = 全站检索）；子集页 0 命中时补一条指向 `/archive/` 的链接。⚠️⚠️ **2026-10-26 傍晚修过一次「搜索完全无效」**：脚本物理位置在 `.blog-posts` **之前**，内联脚本解析到就立即执行，而 `querySelectorAll` 返回**静态** NodeList → `posts` 是空列表、`countEl` 是 `null`，打字毫无反应且**零报错**（回车自然也没反应）。现在整段包进 `boot()`，等 `DOMContentLoaded`。**这类 bug 用 DOM stub 测不出来**（stub 里 DOM 是完整的），必须拿真浏览器加载真页面验 |
+| 站内搜索 | **只保留在 `/archive/`**（2026-11-03 起；词条页 / `weekly` / `posts` 页都不再挂输入框和那段 2.7KB 内联脚本 —— 那些页只有几篇到十几篇，搜索价值低于成本）。索引 `/index.json`（`layouts/index.json` 生成，137 条，**1.05 MB / gzip 447 KB**），前端 `layouts/partials/search-box.html`。**2026-10-26 起标题 + 标签 + 正文都搜**；**2026-11-02 起分两级加载**：聚焦不发请求；输入后先按标题即时筛选，停手 450ms 才后台补全文索引；单字查询不拉全文索引。因为只剩归档页（全集），原先「子集页 0 命中→指路 /archive/」的逻辑已删除。⚠️⚠️ **2026-10-26 傍晚修过一次「搜索完全无效」**：脚本物理位置在 `.blog-posts` **之前**，内联脚本解析到就立即执行，而 `querySelectorAll` 返回**静态** NodeList → `posts` 是空列表、`countEl` 是 `null`，打字毫无反应且**零报错**（回车自然也没反应）。现在整段包进 `boot()`，等 `DOMContentLoaded`。**这类 bug 用 DOM stub 测不出来**（stub 里 DOM 是完整的），必须拿真浏览器加载真页面验 |
 | 词条页 | 标签 **213**（`noindex, follow`；2026-10-26 曾归并成 98，**2026-10-28 已全部还原**）+ 分类 8（2026-10-26 起全部放行，可索引、进 sitemap，各配 `content/categories/<词>/_index.md`）。索引页 `/tags/` `/categories/` 已关 |
 | sitemap | **150 条** = 135 个内容页（108 文章 + 27 周刊）+ 7 个根级/列表页 + 8 个分类页；与 219 个 noindex 页**零交集** |
 | CSS | **全部内联**，无 `/css/` 目录 |
@@ -28,7 +28,9 @@
 | 构建 | 干净构建 **0 警告** |
 | URL | 与迁移前逐条一致（135 个 `/posts/…` 全保留）；301 共 **16 条**（`static/_redirects`）= 6 条 slug 兜底（4 条句点 + 2 条大小写）+ 4 条分页 + `/friends/` `/links/` + `/media/` `/stats/` + `/tags/` `/categories/` 两个索引页。⚠️ 2026-10-26 标签归并时曾多出 113 条「旧标签→新标签」，**2026-10-28 已随归并一起撤销** |
 
-内联 CSS 分档（口径：把该页**所有 `<style>` 合并后**一次 `gzip.compress(d,9)`；「补丁」= 合计减去主题固定的 6424 B）：
+内联 CSS 分档（口径：把该页**所有 `<style>` 合并后**一次 `gzip.compress(d,9)`；「补丁」= 合计减去主题固定的 6424 B）。
+
+> ⚠️ 下表是 **2026-10-26 口径**。2026-11-03 删除第 31 段（`.toc-mobile`，约 1.1KB raw）和主题 upvote CSS（约 260B）后，各档相应减少；当前值以构建产物为准。
 
 | 档 | 页数 | raw / gzip | 补丁 |
 | --- | --- | --- | --- |
@@ -75,7 +77,7 @@ gzip 首页 **+28 B**、文章页 **+195 B**、`/archive/` **+387 B**、`/weekly
 - 第 20–23 段是 2026-10-12 新增的 4 条全站规则（**+428 B raw / +115 B gzip**）：目录断点抬到 1200px、`img{height:auto}`、等宽字体令牌、TOC 链接 transition 收窄。
 - **第 26 段是 2026-10-14 新增的 6 条全站规则，每档统一 +562 B raw / +124 B gzip**（① `input{font-size:16px}` ② `color-scheme` ③ `div.toc` 的 `100vw`→`100%` + `80dvh` ④⑤ 图片放大换背景 + checkbox 可聚焦）。改前基线是 8675 / 12610 / 14861 / 10404 / 9101 / 10509 / 10089，逐值 -562 就是当天之前的样子。
 - **第 29 段（skip-link + 打印）与第 30 段（跨页转场）是 2026-10-17 新增的两条全站规则，加上 00 段末尾的导航高亮，每档统一 +1345 B raw / 约 +377 B gzip**。改前基线是 9237 / 13172 / 15423 / 10966 / 9663 / 11071 / 10651 / 9616，逐值 +1345 就是当天之前的样子。⚠️ 第 29 段里约 300 B gzip 是打印样式，屏幕用户用不到但每页都下载 —— 判断依据见 DESIGN.md 第 10.2 节。
-- **第 31 段（手机端折叠目录）是 2026-10-17 新增的全站规则，每档统一 +1089 B raw / +701～792 B gzip**。改前基线就是上表逐值 −1089。构成：12 条规则本体约 1034 B + `@media screen and (max-width:1200px)` 外层包裹约 44 B + 第 29 段隐藏清单里补的 `.toc-mobile` 11 B。⚠️ 为什么 +1089 raw 只压掉约 370 B：`<style>` 是**每个块单独 gzip** 的，小块压缩率天然偏低，而且这一段里 `var(--…)` 与 `.toc-mobile` 前缀重复很多。
+- ~~第 31 段（手机端折叠目录）~~：2026-10-17 曾新增 +1089 B raw / +701～792 B gzip；**2026-11-03 已整段删除**（标记先删，CSS 随后清掉，每页省约 1.1KB raw / 300B gzip）。上表是旧口径，别拿它当当前体积。
 - **第 32 段（浅色三级文字色 `#6e6e6e`）+ 00c 段（页头站名 `<h1>`→`<p>` 的外观补偿）是 2026-10-18 新增的全站规则，每档统一 +164 B raw / +41～45 B gzip**。改前基线就是上表逐值 −164。两段都很短（minify 后 32 段约 73 B、00c 约 91 B），所以 gzip 只压掉约 42 B。
 - **第 33 段（页面级 h1 配套，2026-10-25 新增）是 4 条全站规则，每档统一 +243 B raw / +62～65 B gzip**。改前基线就是上表逐值 −243。四条各自的用途：
   `33-a .sr-only`（视觉隐藏但仍进无障碍树，给 `/about/` `/roll/` 的隐藏 h1）、
@@ -192,21 +194,24 @@ layouts/                  ★ 站点层覆盖，33 个文件（另有 data/inlin
                                     + skip-link（2026-10-17）+ <main id="main" tabindex="-1">
                                     + 长文页的 .print-url
   _default/single.html              去掉 `if eq .Type "blog"` 门槛 + hideDate/hideTitle
-                                    + 文末「系列坐标带」与「上一篇/下一篇」+ 评论区
+                                    + 文末「系列坐标带」+ 相关文章 + 「上一篇/下一篇」（2026-11-03
+                                      起仅非系列文章渲染）+ 评论区
                                     ⚠️ 目录：**2026-11-02 删了手机端折叠、又恢复了电脑端侧栏**。
                                        现在末尾有 `<div class="toc">{{ partial "toc.html" . }}</div>`
                                        （$tocEnabled 守卫，>1200px 可见）；正文顶部**没有**
                                        `<details class="toc-mobile">`，$h2count 也已删除。
                                        hugo.toml 的 params.toc = true。
   _default/list.html                5 处文案英译中 + 删底部标签墙
+                                    ⚠️ 2026-11-03 起不再挂搜索框（搜索只在 /archive/）
   _default/rss.xml                  ★ 首页 feed 只收文章页 + atom:updated / category /
                                     摘要 description / 全文 content:encoded + pageLimit 20
                                     + <image> 站点图标（2026-10-25，144×144 PNG，走
                                     params.feedIcon；必须在 <item> 之前）
                                     ⚠️ 2026-10-15 起**不再输出 <?xml-stylesheet?>**（旧的
                                     static/rss.xsl 已删），浏览器视图改由 /feed/ 承担
-  _default/archive.html             ★ /archive/ 列表页 + 顶部「系列」横向入口
-                                    + 底部全部标签平铺（照 yinji）
+  _default/archive.html             ★ /archive/ 列表页 + 顶部「系列」一行入口（→ /series/）
+                                    + 底部标签：≥3 篇的 32 个常显、其余 187 个折叠
+  _default/series.html              ★ /series/ 系列总览页（2026-11-03 新增）
   _default/run.html                 ★ /run/ 跑步数据页（2026-10-12 从子站搬入）
   feed/list.html                    ★ /feed/ —— 订阅源浏览器视图（section 页）
   feed/single.html                  ★ /feed/weekly/ —— 同一个视图（普通页）
@@ -276,7 +281,7 @@ layouts/                  ★ 站点层覆盖，33 个文件（另有 data/inlin
 assets/js/giscus.js       评论区脚本（只在挂评论的页加载）
 assets/js/code-copy.js    代码块复制按钮（只在含代码块的 5 页加载）
 
-themes/hugo-bearneo/      ★ 上游逐字节副本，27 个文件，**不要改**
+themes/hugo-bearneo/      ★ 上游副本，27 个文件；style.html 有 2 处登记改动，其余逐字节未改
 
 static/
   _headers _redirects     Cloudflare 的响应头 / 301 规则（_redirects 现有 129 条，见第 0 节「URL」行）
@@ -432,7 +437,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | `summary` | ✅ | 列表 / 首页摘要；`description` 留空时兜底 |
 | `description` | ✅ | `<meta name="description">` + OG/Twitter 卡片 |
 | `categories` / `tags` | ✅ | 词条页仍生成；索引页已关 |
-| `series` | ✅ | 文章页文末坐标带 + `/archive/` 横向入口。⚠️ 字符串语义（一篇只能属一个系列）；旧文档说它「已作废」是过时的 |
+| `series` | ✅ | 文章页文末坐标带 + `/archive/` 一行入口 + `/series/` 总览页。⚠️ 字符串语义（一篇只能属一个系列）；旧文档说它「已作废」是过时的 |
 | `comments` | ✅ | `false` 关掉该篇评论区 |
 | `draft` | ✅ | |
 | `hidden` | ✅ | 列表页过滤掉（`list.html` / `archive.html` 都判） |
@@ -470,15 +475,15 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 | 改**站内跳转预渲染** | `custom_head.html` 末尾那个 `<script type="speculationrules">`（2026-10-28）。⚠️ `eagerness` 是 `moderate`，**别改成 `eager`** —— 列表页一屏十几个链接会同时预渲染，把带宽吃光。⚠️ 规则里 `href_matches` 写 `/*` 是相对本文档解析的，只命中同源路径；别换成跨源全通配。⚠️ 模板注释里**绝不能出现星号加斜杠的连续两字符**（那就是注释结束符），我这次就写坏过一次，构建直接报 `comment ends before closing delimiter` |
 | 改**图标 link 的绝对 / 相对** | `layouts/partials/favicon.html`（2026-10-28 起 6 条全用 `relURL`）。⚠️ 别改回 `absURL`：这 6 条只服务当前 HTML 页，绝对地址在镜像域名下会把请求拽回 hulatu.com。**需要绝对地址的是 feed 里的图标**（走 `params.feedIcon`） |
 | 改**图床预连的触发条件** | `custom_head.html` 第 27 行附近，条件是 `and (strings.Contains .Content "img.hulatu.com") (strings.Contains .Content "<img")`。⚠️ **两个条件缺一不可**：只判主机名会误命中 `/`、`/about/`、`/privacy/`（那三页里是 `<a href>` 或纯文本）。⚠️ 验收别数 `rel=preconnect` —— giscus 的预连也长这样（135 个长文页都有），会把结论带偏 |
-| 改**标签（增 / 删 / 合并）** | 标签只来自各篇的 `tags:` 行，模板一处都不用动 —— `/archive/` 底部那份平铺是 `layouts/_default/archive.html` 里 `range .Site.Taxonomies.tags` 自动生成的（**按字节序**：数字 → 英文 → 中文，不额外 sort）。⚠️ **删/合并标签必须同时处理 `static/_redirects`**：被删掉的 `/tags/<词>/` 会变成 404，得补 301；2026-10-26 归并时就是「改 tags + 补 113 条 301」一起做的，2026-10-28 撤销时也是「还原 tags + 删 113 条 301」一起做的。⚠️ 改完数一遍 `/archive/` 的 `class=tag-index` 里 `<a>` 个数，应等于 `tags/` 目录数（现在 **213**） |
+| 改**标签（增 / 删 / 合并）** | 标签只来自各篇的 `tags:` 行，模板一处都不用动 —— `/archive/` 底部由 `layouts/_default/archive.html` 从 `site.Taxonomies.tags` 生成：**出现 ≥3 篇的常显（按篇数降序）**，其余收进「其余标签（N）」折叠（按名称）。⚠️ **删/合并标签必须同时处理 `static/_redirects`**：被删掉的 `/tags/<词>/` 会变成 404，得补 301；2026-10-26 归并时就是「改 tags + 补 113 条 301」一起做的，2026-10-28 撤销时也是「还原 tags + 删 113 条 301」一起做的。⚠️ 改完数一遍 `/archive/` 的 `class=tag-index` 里 `<a>` **总数**（常显 + 折叠），应等于 `tags/` 目录数（现在 **219**） |
 | 改颜色 / 字体 / 宽度 / 圆角 | `themes/hugo-bearneo/layouts/partials/style.html` 的 `:root`（改上游，改完在 DESIGN.md 第 5 节登记）。全站只有这一份 —— 改一处即全站生效 |
 | 改正文标题的上下间距 | `custom_head.html` 第 02 段（`text-autospace` 与 `content > :first-child` 两条已删 —— 后者是「首行贴导航栏」的元凶，见 DESIGN.md 第 5 节第 ③ 条） |
 | 改**正文段落间距** | `custom_head.html` 第 02 段末尾的 `content > p { margin-bottom: 1.75em }`（2026-10-27）。⚠️ **必须写 `content > p`**：写成 `content p` 会覆盖上游的 `blockquote p { margin: 0 }`（同特异性、本文件后加载），引用块里凭空多出 28px。⚠️ **只写 `margin-bottom`**：写了 `margin-top` 会把「标题 → 正文」的 16.8px 一起改成 28px |
 | 改**列表页搜索框尺寸** | ⚠️ **2026-10-27 加过又撤了，现在是纯 UA 默认（174×24）**。当时写的第 35 段是 `#search-input{box-sizing:border-box;width:100%;height:44px}`，用户看过效果后要求恢复原样。真要再改，先去 `custom_head.html` 第 35 段位置读那段说明注释（含四条技术事实，其中一条是我上一轮写错又更正过的：`type=search` 的 UA 默认**已经是** border-box，`type=text` 才是 content-box） |
 | 改**正文行高** | `themes/hugo-bearneo/layouts/partials/style.html` 的 `content`（**改上游**，改完在 DESIGN.md 第 5 节登记）。⚠️ 上游 1.6，2026-10-14 已改成 **1.8**；`body` 那条 1.5 **不要动**（页头 / 导航 / 页脚是外壳，不是阅读面）。改完回读：`content p` 应 16px / 28.8px，`header nav a` 仍 24px。⚠️ `<content>` 里的**标题也继承这 1.8** |
 | 改文末「系列坐标带」/「上一篇 / 下一篇」 | 模板 `layouts/_default/single.html`，样式 `custom_head.html` 第 09 / 10 段（**改类名要两边一起改**） |
-| 改归档页顶部的「系列」横向入口 | 模板 `layouts/_default/archive.html`，样式 `custom_head.html` 第 09 段 |
-| 改归档页底部的标签平铺 | 模板 `layouts/_default/archive.html`（`</ul>` 后那段）+ 样式第 09 段的 `.tag-index`<br>⚠️ 排序不是写出来的：`range` map 时 Go 按 key 字节序排 → 数字 → 英文 → 中文<br>⚠️ 别写成 `{{ with .Site.Taxonomies.tags }}` 再 `range .Site.…` —— `with` 重绑 `.`，静默 0 迭代、只留一个空 `<div>`，**构建 0 警告**<br>⚠️ 链接落 `/tags/<slug>/` 词条页；`/tags/` 索引页是关掉的，别改过去（会 404）<br>⚠️ 外层是 `<small>`（默认 inline），必须有 `.tag-index{display:block;margin-bottom:16px}`，否则页脚会贴住标签 |
+| 改「系列」入口 / 总览页 | 入口：`layouts/_default/archive.html`，样式 `custom_head.html` 第 09 段；总览页：`layouts/_default/series.html` + `content/series.md`，样式第 09b 段（2026-11-03 起「点进去才看」） |
+| 改归档页底部的标签 | 模板 `layouts/_default/archive.html`（`</ul>` 后那段）+ 样式第 09 段的 `.tag-index*`<br>⚠️ 结构：`<section class="tag-index">` → `<h2>标签</h2>` → `.tag-index-top`（≥3 篇，32 个，`sort ... "count" "desc"`）→ `.tag-index-more`（其余 187 个，默认关闭的 `<details>`，按 `name` 排）<br>⚠️ 显示名用 `$pages.Page.Title`（Hugo 会把 `ai` 标题化成 `AI`），别改成 map 的 key，否则会变回小写<br>⚠️ 别写成 `{{ with .Site.Taxonomies.tags }}` 再 `range .Site.…` —— `with` 重绑 `.`，静默 0 迭代、只留一个空块，**构建 0 警告**<br>⚠️ 链接落 `/tags/<slug>/` 词条页；`/tags/` 索引页是关掉的，别改过去（会 404） |
 | 改「系列」带里的序号对齐 | `custom_head.html` 第 09 段的 `.post-series-ord`（`min-width: 1.5em` + `text-align: right`）。不写的话「9」与「11」宽度不同（8.1 vs 16.3px），上下两行标题左端错开 8.1px；只兜得住 2 位 |
 | ⚠️ 在 `custom_head.html` 写元素选择器前先数标签 | `grep -c '<nav' public/…/index.html`。2026-10-11 栽过：裸 `nav{display:flex}` 命中一页 5 个 `<nav>`，把 `.post-series` 挤成左右两栏（右边空 208px）、TOC 的 `<ul>` 撑出容器 92.8px。**必须写 `header nav`** |
 | 改代码块配色 | `custom_head.html` 第 12 段（浅 / 深两套 `--code-*`）。⚠️ 前提是 `[markup.highlight] noClasses = false` —— 改回 `true` 代码块立刻变回「看不见」 |
@@ -802,11 +807,14 @@ python3 - <<'PY'
 import re, glob
 r=[open(f,encoding='utf-8',errors='replace').read() for f in glob.glob('/tmp/hb-check/**/*.html',recursive=True)]
 print('a) </a>+换行+中文标点 (0):',sum(len(re.findall(r'</a>\n[，。：；！？、）」』》〈【（]',s)) for s in r))
-print('b) 系列坐标带页 (21):',sum(1 for s in r if re.search(r'<nav class=["\']?post-series',s)))
+print('b) 系列坐标带页 (23):',sum(1 for s in r if re.search(r'<nav class=["\']?post-series',s)))
 print('c) 上下篇页 (126):',sum(1 for s in r if re.search(r'<nav class=["\']?post-nav',s)))
 a=open('/tmp/hb-check/archive/index.html',encoding='utf-8').read()
-print('d) 归档页系列横向行 (3):',len(re.findall(r'<div class=series-row>',a)),
-      '| <details class=series-row> 残留 (0):',len(re.findall(r'<details class=series-row',a)))
+print('d) 归档页系列入口 (1):',len(re.findall(r'<p class=series-entry-line>',a)),
+      '| 旧 series-row 残留 (0):',len(re.findall(r'class=series-row',a)))
+sp=open('/tmp/hb-check/series/index.html',encoding='utf-8').read()
+print('d2) /series/ 组 (3) / 篇 (23):',len(re.findall(r'<section class=series-group>',sp)),
+      len(re.findall(r'class=series-article-ord',sp)))
 ro=open('/tmp/hb-check/roll/index.html',encoding='utf-8').read()
 main=re.search(r'<main>(.*?)</main>',ro,re.S).group(1)
 print('e) /roll/ h1 (0):',len(re.findall(r'<h1',main)),
@@ -924,18 +932,20 @@ PY
 # ⚠️ 视图那两页还要 `noindex`：grep -c 'name=robots' 应为 1（minify 会剥引号，别按
 #    `name="robots"` 写）
 
-# 9) ★ 归档页底部标签平铺 + 样式作用域哨兵
+# 9) ★ 归档页底部标签（32 常显 + 其余折叠）+ 样式作用域哨兵
 python3 - <<'PY'
 import re, glob
 st=lambda s:''.join(re.findall(r'<style[^>]*>(.*?)</style>',s,re.S))
 r=[(f,open(f,encoding='utf-8',errors='replace').read()) for f in glob.glob('/tmp/hb-check/**/*.html',recursive=True)]
 a=open('/tmp/hb-check/archive/index.html',encoding='utf-8').read()
-blk=re.search(r'<small class=tag-index><div>(.*?)</div></small>',a,re.S)
-tags=re.findall(r'>#([^<]+)</a>',blk.group(1)) if blk else []
-kind=lambda x:'数字' if re.match(r'^[0-9]',x) else ('英文' if all(ord(c)<128 for c in x) else '中文')
-seq=[kind(t) for t in tags]
-print('a) 归档标签个数 (应 = 标签词条页数 213):',len(tags))
-print('   三类顺序 (应 数字*→英文*→中文*，同类连续):',[k for i,k in enumerate(seq) if i==0 or seq[i-1]!=k])
+blk=re.search(r'<section class=tag-index.*?</section>',a,re.S)
+top=re.search(r'<div class=tag-index-top>(.*?)</div>',blk.group(0),re.S) if blk else None
+more=re.search(r'<details class=tag-index-more>(.*?)</details>',blk.group(0),re.S) if blk else None
+tags=re.findall(r'>#([^<]+)</a>',blk.group(0)) if blk else []
+n_top=top.group(1).count('<a ') if top else 0
+n_more=more.group(1).count('<a ') if more else 0
+print('a) 归档标签总数 (应 = 标签词条页数 219):',len(tags))
+print('   常显 (应 32) / 折叠 (应 187):',n_top,n_more)
 print('b) 有 tag-index 块却缺 .tag-index 规则的页 (0):',
       sum(1 for f,s in r if 'class=tag-index' in s and '.tag-index' not in st(s)))
 print('c) 含 header nav 规则的页 (应 = HTML 总数 369):',
@@ -957,14 +967,14 @@ PY
 
 改完模板还要手工扫一眼这几处（回归面）：
 
-- 首页：`h2#hi` → 引用 → 段落 → **含「支持」链接的段落** → 四个平台链接行 → 虚线 `<hr>` → `<h3>Recent Posts:</h3>` → 5 条
+- 首页：`h1#hi` → 引用 → 段落 → **含「支持」链接的段落** → 四个平台链接行 → 虚线 `<hr>` → `<h2 class=recent-posts-head>Recent Posts:</h2>` → 5 条
   ⚠️ 简介正文外面不该有 `<content>`（照 yinji 去掉的，行高走 body 的 1.5 —— 2026-10-14 正文行高改成 1.8 后这一层更要紧，留着简介会比正文还松）；列表左边界要和 `Recent Posts:` 标题对齐（实测都 x≈140），缩进 40px 就是 `.recent-posts{padding-left:0}` 被吞了 → 去跑第 4 条哨兵
-- `/archive/`：搜索框 + 「共 **135** 篇。」+ **「系列」三条横向行**（居家流水账 4 / 综述写作 5 / 跑步 14）+ 年份分组 + 底部 **213 个标签**平铺；⚠️ 这块**不该有任何分割线 / 折叠三角**
+- `/archive/`：搜索框 + 「共 **137** 篇。」+ **「系列」一行入口**（3 组 · 23 篇 → `/series/`）+ 年份分组 + 底部标签（**32 个 ≥3 篇的常显 + 187 个在「其余标签」折叠里**）
 - 导航 6 项；⚠️ 靠第 00 段 `header nav{flex-wrap:wrap;column-gap:8px}` 保证只在项与项之间折
-- 页脚四行，顺序：Made with → Copyright → **订阅行（RSS / Say hello / 🚇 开往）** → 英文授权行（+ Privacy + Sitemap）
-  ⚠️ **一个 `·` 都没有**（3 个全换成 `.`）：读作 `Say hello. 🚇 开往` 与 `…CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.`；出现任何一个都是回退
-  哨兵：`<footer>` 里 `<br>` 恰好 **3 个**、`go.html` 恰好 **1 次**、`·` **0 次**，且「Say hello」与「开往」在**同一个 `<br>` 分段**里
-- 文章页：`<h1>`、日期行、标签行、**文末系列坐标带（仅 21 篇连载）+ 上一篇/下一篇（126 篇都有）**、TOC、评论区
+- 页脚四行，顺序：Made with → Copyright → **订阅行（RSS / Say hello / 🚇 开往 / 🌀 虫洞）** → 英文授权行（+ Privacy + Sitemap）
+  ⚠️ **一个 `·` 都没有**（3 个全换成 `.`）：读作 `Say hello. 🚇 开往. 🌀 虫洞` 与 `…CC BY-NC-SA 4.0. Privacy. 🗺️ Sitemap.`；出现任何一个都是回退
+  哨兵：`<footer>` 里 `<br>` 恰好 **3 个**、`go.html` 恰好 **2 次**（开往 + 虫洞）、`·` **0 次**，且「Say hello」「开往」「虫洞」在**同一个 `<br>` 分段**里
+- 文章页：`<h1>`、日期行、标签行、**文末系列坐标带（仅 23 篇连载）+ 上一篇/下一篇（126 篇都有）**、TOC、评论区
   ⚠️ **「上一篇」= 更早、「下一篇」= 更晚**；两段相邻时只画一条发丝线；最新一篇没有「下一篇」、最早一篇没有「上一篇」（留不可见空槽，正常）
   ⚠️ 含代码的文章代码块必须「浅灰底 + 深字」（浅色）—— 大片文字发白就是 `noClasses` 被改回 `true`，跑第 5 条 f) 哨兵
 - 文章页顶部面包屑：`首页 / 文章 / 分类`（周刊是 `首页 / 周刊`，**两段** —— 周刊的 `categories` 就是 `["周刊"]`，加了会变「首页 / 周刊 / 周刊」）；⚠️ 面包屑**不该**出现在 `/about/` `/roll/` 或词条页上

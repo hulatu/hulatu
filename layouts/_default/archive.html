@@ -39,50 +39,33 @@
   <p id="post-count">共 {{ len $posts }} 篇。</p>
   {{ end }}
 
-  {{- /* ---------- 系列入口（站点层新增，2026-10-11）----------------------
-       站里有 3 组天然连载共 21 篇（跑步 12 / 综述写作 5 / 居家流水账 4），
-       靠 content 的 `series:` 字段表达。这一页是**总览**：全站有哪些系列、
-       每组有哪几篇；文章页文末那条「系列坐标带」是**定位**：我正读的这篇
-       在组里排第几、上下篇是哪两篇（layouts/_default/single.html）。
+  {{- /* ---------- 系列入口（2026-11-03 改成「只有入口」）------------------
+       用户要求：Posts 页顶部只显示一个「系列」入口，具体篇目点进去再看。
+       所以归档页**不再铺开三组篇目**，只留一行链接 → /series/（新的总览页）。
 
-       两处都从同一个 `series:` 字段、同一套 `.ByDate`（升序 = 连载顺序）算，
-       所以篇序号必然一致，不会各说各话 —— 改一处要回来对另一处。
+       这一页现在只做两件事：数「几组、共几篇」；给链接。
+       分组、排序、篇目列表全在 layouts/_default/series.html。
 
-       ── 形态（2026-10-11 二次改版，用户否掉了第一版）────────────────
-       第一版：每个系列一个 `<details>`，默认收起，行间画一条发丝线。
-       用户原话：「我的归档页的『系列』，请不要有分割线等多余的设计，
-       简单的设计成一个个系列，水平排布」。
-       现在：**一个系列 = 一行 div**，系列名（含篇数）在左、该系列的篇目在右
-       **横向铺开**，超宽自动换行。**没有分割线、没有折叠、没有箭头。**
-       所以模板这边从 `<details>/<summary>/<ol>` 换成了
-       `<div class="series-row">` + `<span class="series-name">` +
-       `<span class="series-posts">`（`<a>` 直接铺，不再套 `<li>`）。
-
-       ⚠️ 类名与 partials/custom_head.html 第 09 段是一份契约，改一处要改两处。
-       ⚠️ 别再退回 <details> 折叠 —— 那是被用户明确否掉的第一版形态。 */ -}}
+       ⚠️ 之前那版（一个系列一行、篇目横向铺开）已删除；别再搬回来 ——
+         用户 2026-11-03 明确改成「点进去才看」。
+       ⚠️ `with .Params.series` 同时过滤空值：archetype 会给新文章写
+          `series: ""`，空字符串不能算一组。 */ -}}
   {{- $seriesNames := slice -}}
-  {{- range $posts -}}{{- with .Params.series -}}{{- $seriesNames = $seriesNames | append . -}}{{- end -}}{{- end -}}
+  {{- $seriesTotal := 0 -}}
+  {{- range $posts -}}
+    {{- with .Params.series -}}
+      {{- $seriesNames = $seriesNames | append . -}}
+      {{- $seriesTotal = add $seriesTotal 1 -}}
+    {{- end -}}
+  {{- end -}}
   {{- $seriesNames = $seriesNames | uniq | sort -}}
   {{ if $seriesNames }}
-  <section class="archive-series" aria-label="系列文章">
-    {{- range $seriesNames }}
-    {{- $name := . -}}
-    {{- $group := (where $posts "Params.series" $name).ByDate }}
-    <div class="series-row">
-      <span class="series-name">{{ $name }}<span class="series-label-count">{{ len $group }} 篇</span></span>
-      <span class="series-posts">
-        {{- range $group -}}
-          {{- /* 标题里的系列前缀（「综述写作之-」「居家流水账-」）和旁边的系列名
-                 重复了，剥掉才读得通；完整标题留在 title 里，鼠标停一下还能看到。
-                 与文章页文末系列带用同一套剥法，两处保持一致。 */ -}}
-          {{- $label := strings.TrimPrefix (printf "%s之-" $name) .Title -}}
-          {{- $label = strings.TrimPrefix (printf "%s-" $name) $label -}}
-          <a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ $label }}</a>
-        {{- end }}
-      </span>
-    </div>
-    {{- end }}
-  </section>
+  <p class="series-entry-line">
+    <a class="series-entry" href="{{ "series/" | relURL }}">
+      <span class="series-entry-label">系列</span>
+      <span class="series-entry-meta">{{ len $seriesNames }} 组 · {{ $seriesTotal }} 篇</span>
+    </a>
+  </p>
   {{ end }}
 
   <ul class="blog-posts">
@@ -177,15 +160,39 @@
           那一条规则只做一件事：把 `<small>` 变块级并补回 `margin-bottom: 16px`
           —— 因为 `<small>` 默认 inline，会让原本「`<ul>` 的 1em 下边距折叠穿透 main」
           失效，**页脚会贴住标签**（实测 16px → 0）。原因写在第 09 段那段注释里。 */}}
+  {{- /* ---------- 标签（2026-11-03 二改：常显 ≥3 篇，其余折叠）----------
+       用户要求：像「系列」一样收口 —— 保留出现 ≥3 篇的标签常显，
+       其余（本站 187 个只出现 1–2 次的）放进「其余标签」折叠里。
+       **不合并、不删标签**：219 个标签一个不少，只是默认不铺满页面。
+
+       数据仍来自 site.Taxonomies.tags；显示名用 `.Page.Title`（Hugo 会把
+       `ai` 标题化成 `AI`、`iphone` → `IPhone`，与旧标签墙一致），排序用
+       `name`/`count`。常显组按篇数降序（先看到真主题），折叠组按名称排。
+
+       ⚠️ 原来这外面是 `<small>`（inline），靠第 09 段的 `.tag-index` 改块级
+          并补 16px 下边距；现在是 `<section>` + `<h2>`，语义更正确，
+          也不需要那个「inline 防外边距折叠」的技巧了。
+       ⚠️ 折叠默认关闭：这是「把墙收起来」的全部意义，别改成 open。 */ -}}
   {{- $tagList := .Site.Taxonomies.tags }}
   {{- if $tagList }}
-  <small class="tag-index">
-    <div>
-      {{- range $name, $pages := $tagList -}}
-      <a href="{{ $pages.Page.Permalink }}">#{{ $pages.Page.Title }}</a>&nbsp;
-      {{- end }}
+  {{- $tags := slice -}}
+  {{- range $name, $pages := $tagList -}}
+    {{- $tags = $tags | append (dict "name" $pages.Page.Title "count" (len $pages) "url" $pages.Page.Permalink) -}}
+  {{- end -}}
+  {{- $topTags := sort (where $tags "count" "ge" 3) "count" "desc" -}}
+  {{- $moreTags := sort (where $tags "count" "lt" 3) "name" -}}
+  <section class="tag-index" aria-labelledby="tag-index-head">
+    <h2 class="tag-index-head" id="tag-index-head">标签</h2>
+    <div class="tag-index-top">
+      {{- range $topTags -}}<a href="{{ .url }}">#{{ .name }}</a>&nbsp;{{- end -}}
     </div>
-  </small>
+    {{- if $moreTags }}
+    <details class="tag-index-more">
+      <summary>其余标签（{{ len $moreTags }}）</summary>
+      <div>{{ range $moreTags }}<a href="{{ .url }}">#{{ .name }}</a>&nbsp;{{ end }}</div>
+    </details>
+    {{- end }}
+  </section>
   {{- end }}
 </content>
 {{ end }}
