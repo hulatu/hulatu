@@ -2001,7 +2001,7 @@ new weekly/周刊-27
 
 | 位置 | 内容 |
 | --- | --- |
-| `static/favicon.svg` | 矢量母版，**唯一需要手工维护的图标文件**（藏青 `#061161`） |
+| `static/favicon.svg` | 矢量母版（藏青 `#061161`）。**2026-11-04 起由 `H_avatar.jpg` 经 potrace 描摹生成**，不再是手写路径 |
 | `static/icon-512.png` / `icon-192.png` | 透明底，浏览器 / PWA / 图标服务 |
 | `static/apple-touch-icon.png` | 180×180，**白底**，iOS 主屏 |
 | `static/favicon.ico` | 48 / 32 / 16 三尺寸，约定路径兜底 |
@@ -2010,11 +2010,32 @@ new weekly/周刊-27
 | `layouts/_default/rss.xml` | channel 级 `<image>`，位置在 `<item>` 之前 |
 | `hugo.toml` → `params.feedIcon` | 图路径单点配置，模板里宽高写死 144 |
 
-### 12.3 重新生成（改图标只改 SVG，然后跑这三行）
+### 12.3 重新生成（母版是 `H_avatar.jpg`，先描摹成 SVG 再出光栅）
+
+**第 1 步：位图 → 矢量**（只有换原始画稿时才跑）
+
+```bash
+# 原稿：~/Documents/生活素材/图片/H_avatar.jpg（512×512，白底，藏青笔画）
+M="/opt/homebrew/bin/magick"
+$M "$HOME/Documents/生活素材/图片/H_avatar.jpg" \
+   -colorspace gray -filter Lanczos -resize 2048x2048 -blur 0x1.6 -depth 8 /tmp/trace_in.pgm
+potrace -k 0.55 -O 0.25 -a 1.0 -t 8 -u 20 --flat -b svg -o /tmp/traced.svg /tmp/trace_in.pgm
+```
+
+⚠️ `-blur 0x1.6` 是必须的：512 的 JPEG 直接放大再描摹，potrace 会沿着 JPEG 的块状噪声
+描出一圈毛刺。先放大到 2048 再轻微模糊，等于给它一条平滑的等值线。
+⚠️ `-t 8` 丢掉 8 像素以下的碎点（JPEG 噪点会变成一堆肉眼看不见、但让 path 暴涨的小岛）。
+
+**第 2 步：把描摹结果套进正方形 viewBox**（手算一次，记在下面）
+
+原稿墨迹外接框在 2048 坐标系里是 `x=383 y=148 w=1278 h=1900`，取
+`side = 1900 × 1.03 = 1957`、以墨迹中心为中心 → `viewBox="43.5 119.5 1957 1957"`。
+**换画稿就要重算这四个数**（`magick /tmp/t2048.png -trim -format "%w %h %X %Y" info:`）。
+
+**第 3 步：SVG → 全套光栅**
 
 ```bash
 cd ~/Blog
-M="/opt/homebrew/bin/magick"
 $M -background none -density 600 static/favicon.svg -resize 512x512 -depth 8 -strip static/icon-512.png
 $M static/icon-512.png -resize 192x192 -depth 8 -strip static/icon-192.png
 $M -background '#ffffff' -density 600 static/favicon.svg -resize 180x180 -flatten -depth 8 -strip static/apple-touch-icon.png
@@ -2022,15 +2043,27 @@ $M -background '#ffffff' -density 600 static/favicon.svg -resize 144x144 -flatte
 $M -background none -density 1200 static/favicon.svg -filter Mitchell -resize 48x48 -depth 8 -strip /tmp/i48.png
 $M -background none -density 1200 static/favicon.svg -filter Mitchell -resize 32x32 -depth 8 -strip /tmp/i32.png
 $M -background none -density 1200 static/favicon.svg -filter Mitchell -resize 16x16 -depth 8 -strip /tmp/i16.png
-$M /tmp/i48.png /tmp/i32.png /tmp/i16.png static/favicon.ico
+$M /tmp/i48.png /tmp/i32.png /tmp/i16.png -type TrueColorAlpha static/favicon.ico
+```
+
+**第 4 步：把 `layouts/partials/favicon.html` 里的 `$iconV` 加 1**，否则浏览器还在用旧缓存。
+
+⚠️⚠️ **拼 ico 那句的 `-type TrueColorAlpha` 不能省（2026-11-04 修）**。
+上面三张中间 PNG 是 `PaletteAlpha`，不带这个参数时 ImageMagick 会把调色板**原样搬进
+ICO**，每层只剩 3–4 种颜色 —— 抗锯齿整个丢掉，32px 的 H 变成阶梯锯齿、还带断口和
+白洞，标签页里就是「图标不清晰」。这个失败**不报错、构建 0 警告**，只能量出来：
+
+```bash
+for i in 0 1 2; do $M "static/favicon.ico[$i]" -format "%wx%h 唯一色=%k\n" info:; done
+# 合格：209 / 161 / 93（≥50 即可）；坏掉：3 / 4 / 3
 ```
 
 ⚠️ **ico 要逐尺寸单独渲染再拼**，别用 `-define icon:auto-resize`：
 后者是从 256px 降采样，16px 那档的笔画会糊成一团。
 ⚠️ **小尺寸要用 `-filter Mitchell`，别用 Lanczos**：Lanczos 在「藏青笔画 / 透明」
 这种硬边上有振铃，32px 会出现**白色毛边**，铺在深色界面里就是一圈白刺。
-⚠️ `-density 600` 不能省：不指定时 ImageMagick 按 SVG 自带的 `width="200"`
-光栅化，再放大回 512 就是二次采样。
+⚠️ `-density 600` 不能省：不指定时 ImageMagick 按 SVG 自带的 `width="512"` 光栅化，
+再放大回 512 就是二次采样（2026-11-04 之前母版写的是 `width="200"`，同理）。
 ⚠️ **别手工裁 PNG**：光栅四件套与 SVG 一旦分叉，标签页和订阅端就长得不一样了。
 
 ### 12.4 为什么光栅图标是白底

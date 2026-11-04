@@ -24,8 +24,15 @@
          favicon.ico          约定路径兜底（48/32/16 三尺寸）
 
        ⚠️ 光栅四件套**全部由 static/favicon.svg 生成**，改图标只改 SVG，
-          再按 DESIGN.md 第 12 节那三行命令重跑一次；直接改 PNG 会让矢量版与
+          再按 DESIGN.md 第 12.3 节那组命令重跑一次；直接改 PNG 会让矢量版与
           光栅版分叉，标签页和订阅端从此长得不一样。
+
+       ⚠️ 拼 favicon.ico 那句必须带 `-type TrueColorAlpha`（2026-11-04 修）。
+          少了它，ImageMagick 会把中间 PNG 的调色板搬进 ICO，每层只剩 3–4 种
+          颜色 —— 抗锯齿全丢，32px 的笔画变成阶梯锯齿，标签页里就是不清晰。
+          Chromium 会把 ICO 的 16/32 两帧直接存进自己的 Favicons 库，所以
+          **这条链路错了，标签页就一定糊**（本站默认浏览器 Helium 走的正是
+          /favicon.ico，不是 SVG）。验收见 DESIGN.md 12.3 那条循环。
 
        ⚠️ **白底不是随便定的**：这个图标是藏青（#061161）笔画，透明底在深色
           阅读器 / 深色壁纸上几乎不可见（和没图标一样）。SVG 版靠内部
@@ -44,11 +51,19 @@
        hulatu.com 这个慢域名。
        ⚠️ 不要改回 `absURL`。需要绝对地址的是 **feed 里的图标**（走 `params.feedIcon`，
           在 layouts/feed/ 与 seo_tags.html 里），不是这里的 `<link>`。 */ -}}
-<link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | relURL }}">
-<link rel="icon" type="image/png" sizes="512x512" href="{{ "icon-512.png" | relURL }}">
-<link rel="icon" type="image/png" sizes="192x192" href="{{ "icon-192.png" | relURL }}">
-<link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | relURL }}">
-<link rel="shortcut icon" href="{{ "favicon.ico" | relURL }}">
+{{- /* ⚠️ 2026-11-04：加了 `?v=` 缓存破坏。
+       起因：`_headers` 给这 6 个文件的是 `max-age=604800`，文件名不带哈希，
+       换图标后老访客最多 7 天还看着旧图 —— 上一轮修好 ICO 抗锯齿，自己浏览器里
+       却一点变化都看不到，就是这条缓存。带查询串等于换了个 URL，浏览器会当新图标
+       重新抓、重新存，同时**旧记录不会被删掉**（只是不再被引用）。
+       ⚠️ **每次换图标都要把这个数字 +1**，否则等于没加。
+       ⚠️ 查询串不影响 `static/_headers` 的路径匹配（Cloudflare Pages 按路径匹配）。 */ -}}
+{{- $iconV := "2" -}}
+<link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | relURL }}?v={{ $iconV }}">
+<link rel="icon" type="image/png" sizes="512x512" href="{{ "icon-512.png" | relURL }}?v={{ $iconV }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ "icon-192.png" | relURL }}?v={{ $iconV }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ "apple-touch-icon.png" | relURL }}?v={{ $iconV }}">
+<link rel="shortcut icon" href="{{ "favicon.ico" | relURL }}?v={{ $iconV }}">
 
 {{- /* ── Web App Manifest（2026-10-26 新增）──────────────────────────────
        加它的唯一理由：**安卓 Chrome 的「添加到主屏幕」**。没有 manifest 时
