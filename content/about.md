@@ -32,20 +32,20 @@ draft: false
 
 关于我更完整的自我介绍，可以看这篇 [关于我](/posts/2025/12/05/personal-profile/)。
 
-## 订阅我 {#ding-yue-wo}
+## 订阅我
 
 本站有两种订阅选择，请按需选择。
 
 - **全部文章** — 包含本站所有文章。[RSS](https://hulatu.com/index.xml)
 - **周刊专线** — 仅包含周刊内容。[RSS](https://hulatu.com/weekly/index.xml)
 
-## 联系我 {#lian-xi-wo}
+## 联系我
 
 - **QQ** — 点开查看二维码 [查看](https://img.hulatu.com/post/paIl9a.webp)
 - **Gmail** — 点击给我发邮件 [写信](mailto:hello@hulatu.com)
 - **WeChat** — 点开查看二维码 [查看](https://img.hulatu.com/post/qbD1Mk.webp)
 
-## 博客导览 {#bo-ke-dao-lan}
+## 博客导览
 
 本站的主要栏目，按需逛逛。
 
@@ -54,7 +54,7 @@ draft: false
 - **跑步** — 我的跑步记录，来自 Garmin 的里程、配速与心率。[去看跑步](/run/)
 - **收藏** — 我常读的博客、认识的朋友，以及常逛的中文博客圈和聚合站。[去收藏](/roll/)
 
-## 博客技术 {#bo-ke-ji-shu}
+## 博客技术
 
 我的博客搭建基于 Hugo 框架，基于 BearNeo 主题，参考了 [印记](https://yinji.org/) 的设计，借助 WorkBuddy 调试的博客主题，偏极简风。
 
@@ -66,7 +66,7 @@ draft: false
 
 我的数据统计功能使用的是 GoatCounter，我只开启了浏览量的统计，没有其他任何的隐私收集。
 
-## 博客历史 {#bo-ke-li-shi}
+## 博客历史
 
 - 2025/09 - 2026/05：使用、折腾 PaperMod 主题
 

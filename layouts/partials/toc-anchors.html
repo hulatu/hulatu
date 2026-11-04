@@ -1,0 +1,39 @@
+{{- /* ============================================================
+       把右侧目录（.TableOfContents）里的 href 换成拼音锚点
+
+       ── 为什么需要这一步 ────────────────────────────────────────────
+       目录 HTML 由 Hugo 从**正文 AST** 生成，里面的 href 用的是 Goldmark 算出的
+       原始 id —— 中文标题就是 `#%E4%B8%BA%E4%BD%95...` 这种。
+       而正文标题的 id 已经被 render-heading.html 改成了拼音
+       （见 partials/heading-slug.html）。两边不一致 → **目录点了没反应**。
+       所以这里把目录里的每一个 `href="#旧id"` 换成 `href="#拼音"`。
+
+       ── 为什么用「字符串替换」而不是自己重画目录 ────────────────────
+       重画就要复刻 `<nav id="TableOfContents"><ul><li>...` 的嵌套结构，
+       而主题 toc.html 里那 130 行滚动高亮 JS 依赖 `a` 的层级
+       （`link.closest('li')` 一路往上找父级）。自己画错一层，高亮就废了，
+       而且这种错**不会报错**。字符串替换只动 href，结构一个字都不碰。
+
+       ── 数据从哪来 ──────────────────────────────────────────────────
+       `.Fragments.HeadingsMap` 是「id → 标题」的扁平表（Hugo 0.111+）。
+       它和 `.TableOfContents` 同源，所以里面的 id 一定能对上。
+       ⚠️ 它包含哪些层级取决于 hugo.toml 的 `[markup.tableOfContents]`
+          startLevel/endLevel（本站 2–3）。多出来的项替换不到也无害 ——
+          正文那边 h4+ 由 render-heading.html 自己处理。
+
+       ── 调用点 ──────────────────────────────────────────────────────
+       layouts/_default/single.html 的目录块：
+           $tocHTML := partial "toc.html" .
+           partial "toc-anchors.html" (dict "html" $tocHTML "page" .) | safeHTML
+       ⚠️ 主题的 toc.html 一行都没改（它还会被别的用途调用）。
+       ============================================================ */ -}}
+
+{{- $html := printf "%s" .html -}}
+{{- $page := .page -}}
+{{- range $id, $_ := $page.Fragments.HeadingsMap -}}
+  {{- $new := partial "heading-slug.html" $id -}}
+  {{- if ne $new $id -}}
+    {{- $html = replace $html (printf `href="#%s"` $id) (printf `href="#%s"` $new) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $html -}}

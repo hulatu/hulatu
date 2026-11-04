@@ -363,7 +363,7 @@ hugo --gc --minify --cleanDestinationDir --destination /tmp/hb-check
 `publish.sh` 在 `git add` 前依次跑四个脚本（失败都不阻断发布）：
 
 ```
-add-heading-anchors.py   中文标题补 {#pinyin}
+sync-pinyin.py           补 data/pinyin.json 缺的汉字（标题锚点用；只写 JSON）
 sync-lastmod.py          刷改过的文章的 lastmod
 sync-image-dims.py       补抓新图尺寸 → data/image-dims.json      ← 2026-10-18 接入
 gen-og.js                全量重画分享卡 → static/images/og/       ← 2026-10-18 接入
@@ -454,7 +454,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 ### 三个必须记住的规矩
 
 1. **加根级独立页时写 `hideDate: true` + `toc: false`**（短页面挂目录是纯噪音；侧栏只在 >1200px 显示）；纯工具页再加 `noindex: true`；新页别忘了回 `static/_headers` 补一条缓存规则。
-2. **中文标题显式写锚点** `## 习惯 {#xi-guan}`，否则分享链接是 `#%e4%b9%a0%e6%83%af`。漏了跑 `python3 scripts/add-heading-anchors.py`（需要 macOS 拼音库）。
+2. **中文标题的锚点不用管** —— 2026-11-04 起在构建期自动生成拼音 id（`#wei-he-zhi-zhe-yu-wei`），md 里**只写 `## 标题`**，不要再写 `{#xi-guan}`。唯一要记的是：新文章用了 `data/pinyin.json` 里没有的汉字时，跑一次 `python3 scripts/sync-pinyin.py` 补字（需要 macOS 拼音库），否则那一节会回退成 `#%e4%b9%a0%e6%83%af`。
 3. **`noindex: true` 是生效的**（站点层 `baseof.html` 有 robots 分支，上游没有），覆盖 219 页 = 213 标签词条 + 8 分类词条 + `/privacy/` + `/posts/` + `/donate/` + 404。
    ✅ **2026-10-17 起 sitemap 也排除了**：`layouts/sitemap.xml` 的四个判据与 `baseof.html` 的 `$noindex` 同口径，336 条 → 134 条。
    ⚠️ 两处的判据**必须逐字一致** —— 漂移时构建 0 警告，只是「提交给爬虫的地址」和「页面上的 noindex」对不上。
@@ -521,7 +521,7 @@ curl -s -H 'Sec-Fetch-Dest: document' -H 'Accept: text/html' \
 
 | 脚本 | 状态 |
 | --- | --- |
-| `add-heading-anchors.py` | ✅ 在用（CI 也跑 `--check`） |
+| `sync-pinyin.py` | ✅ 在用（2026-11-04 取代 `add-heading-anchors.py`）。只维护 `data/pinyin.json`，**不改 md**；CI 也跑 `--check`。云端构建机是 Linux、没有拼音库，所以这张表必须本机补好再提交 |
 | `sync-garmin.py` / `garmin-token.py` | ✅ 在用（每日 CI 同步跑步数据 → `data/runs.json`） |
 | `sync-lastmod.py` | ⚠️ 半废（`lastmod` 只喂 RSS / sitemap） |
 | `sync-image-dims.py` | ✅ 在用（HTTP 探测图床图片真实宽高 → `data/image-dims.json`，供 `render-image.html` 消费）。**2026-10-18 起在 `publish.sh` 里自动跑**，只补缺的 |

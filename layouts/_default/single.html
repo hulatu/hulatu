@@ -292,7 +292,10 @@
           手机上不会出现任何目录 —— 手机折叠目录没有恢复，见正文顶部那条注释。 */ -}}
 {{ if $tocEnabled }}
 <div class="toc">
-{{ partial "toc.html" . }}
+{{- /* ⚠️ 目录里的 href 要跟着正文 id 一起换成拼音锚点，见 partials/toc-anchors.html。
+       捕获 partial 的输出再替换，是为了**不改主题的 toc.html**（那 130 行 JS 得原样留着）。 */ -}}
+{{- $tocHTML := partial "toc.html" . -}}
+{{- partial "toc-anchors.html" (dict "html" $tocHTML "page" .) | safeHTML -}}
 </div>
 {{ end }}
 

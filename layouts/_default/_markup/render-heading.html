@@ -22,11 +22,15 @@
 
        ── 三处容易写错的地方 ──────────────────────────────────────────
 
-       ① **`.Anchor` 是 Hugo 算好的 id，不要自己拼。**
-          `id="{{ .Anchor }}"` 与 `href="#{{ .Anchor }}"` 必须用同一个值，
-          否则点 `#` 会跳不到。`.Anchor` 会自动兼容两种写法：
-            `## AI 的时代红利`              → 音译 `ai-de-shi-dai-hong-li`
-            `## AI 的时代红利 {#custom}`    → 直接用 `custom`
+       ① **id 与 href 必须来自同一个变量 `$id`。**
+          否则点 `#` 会跳不到。
+          `$id` 由 `partials/heading-slug.html` 从 `.Anchor` 算出来（2026-11-04 起）：
+            `## AI 的时代红利`              → `ai-de-shi-dai-hong-li`
+            `## 为何执着于未曾拥有的东西`    → `wei-he-zhi-zhe-yu-wei`
+            `## AI 的时代红利 {#custom}`    → 原样用 `custom`（无汉字 → 不转写）
+          ⚠️ 正文里的 id 变了，**右侧目录的 href 也必须跟着变**，
+             那一半在 `partials/toc-anchors.html` 里（single.html 调用）。
+             两处都调同一个 partial，所以不会错位 —— 但**别只改一边**。
 
        ② **`.Attributes` 要跳过 `id`**。
           当标题写了 `{#custom}` 时，那个 id 会**同时**出现在 `.Anchor` 和
@@ -84,4 +88,5 @@
             因为 h2 本来就是 bold，观感不变
        ============================================================ */ -}}
 {{- $anchor := and .Page.IsPage (in (slice "posts" "weekly") .Page.Type) -}}
-<h{{ .Level }} id="{{ .Anchor }}"{{ range $k, $v := .Attributes }}{{ if ne $k "id" }} {{ $k }}="{{ $v }}"{{ end }}{{ end }}>{{ partial "orphan-safe.html" .PlainText }}{{ if $anchor }}<a class="heading-anchor" href="#{{ .Anchor }}" aria-label="链接到本节" title="链接到本节">#</a>{{ end }}</h{{ .Level }}>
+{{- $id := partial "heading-slug.html" .Anchor -}}
+<h{{ .Level }} id="{{ $id }}"{{ range $k, $v := .Attributes }}{{ if ne $k "id" }} {{ $k }}="{{ $v }}"{{ end }}{{ end }}>{{ partial "orphan-safe.html" .PlainText }}{{ if $anchor }}<a class="heading-anchor" href="#{{ $id }}" aria-label="链接到本节" title="链接到本节">#</a>{{ end }}</h{{ .Level }}>

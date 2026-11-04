@@ -12,7 +12,7 @@ comments: true
 draft: false
 ---
 
-## 提前声明 {#ti-qian-sheng-ming}
+## 提前声明
 
 我目前使用的 Mac，是 2021 款 MacBook Pro 14 inch M1 Pro 芯片的版本，16 G 运行内存 + 1 TB 储存的版本。目前的系统版本是 macOS 15.8.1，除了有时候网络断链、重连后会发生一些网络问题外，其他使用体验都 OK。
 
@@ -28,7 +28,7 @@ draft: false
 
 免费/开源：🆓
 
-## 不喜欢，但不能卸载 {#bu-xi-huan-dan-bu-neng}
+## 不喜欢，但不能卸载
 
 有些东西，总是那么的让人无奈——不喜欢，也不能完全的丢弃。
 
@@ -82,7 +82,7 @@ Homebrew 安装方式：`brew install --cask microsoft-office`
 
 App Store 下载链接：[Microsoft 365（包含 Word、Excel、PowerPoint 等）](https://apps.apple.com/us/app-bundle/microsoft-365/id1450038993?mt=12&platform=mac)
 
-## 主力 APP {#zhu-li-app}
+## 主力 APP
 
 **Typora** 💰
 
@@ -226,7 +226,7 @@ Mac 端的 PS，可以这么理解，但是远比 PS 易上手、轻量美观。
 
 App Store 下载链接：[Pixelmator Pro](https://apps.apple.com/us/app/pixelmator-pro/id1289583905?mt=12)
 
-## 辅助工具 {#fu-zhu-gong-ju}
+## 辅助工具
 
 **Raycast** 🆓
 
@@ -422,7 +422,7 @@ Homebrew 安装方式： `brew install --cask capso`
 
 Homebrew 安装方式：`brew install --cask easydict`  
 
-## 命令行工具 {#ming-ling-xing-gong-ju}
+## 命令行工具
 
 **Homebrew** 🆓
 
@@ -466,7 +466,7 @@ Homebrew 安装方式：`brew install mole`
 
 ![sci_env 环境](https://img.hulatu.com/post/JYJxWY.png)
 
-## Homebrew 安装命令汇总 {#homebrew-an-zhuang-ming-ling-hui}
+## Homebrew 安装命令汇总
 
 以下命令适用于上文提到的、我已确认有对应 Homebrew 包的 App。Capso 需要先添加项目自己的 tap；系统自带的软件如 Safari、备忘录和提醒事项不需要安装。
 

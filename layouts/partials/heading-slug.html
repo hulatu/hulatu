@@ -1,0 +1,102 @@
+{{- /* ============================================================
+       把 Goldmark 生成的标题锚点翻成拼音 slug（构建期计算，不落盘）
+
+       ── 为什么要有这个文件 ──────────────────────────────────────────
+       2026-11-04 之前，每篇文章的二级/三级标题都**手写**着 `{#wei-he-zhi-...}`，
+       由 scripts/add-heading-anchors.py 一次性刷进 99 个 md 文件（560 处）。
+       好处是链接干净（`#wei-he-zhi-...` 而不是 `#%E4%B8%BA%E4%BD%95...`），
+       坏处是**写文章时满屏噪音**，而且改一个标题就得回去改锚点。
+
+       现在改成：md 里只写 `## 为何执着于未曾拥有的东西`，
+       锚点在**构建时**由本 partial 算出来 —— 本地预览、云端构建、读者看到的
+       都是同一套拼音锚点，而源文件保持干净。
+
+       ── 输入 / 输出 ────────────────────────────────────────────────
+       输入：一个字符串，**必须是 `.Anchor`**（Hugo 算好的标题 id），
+             不是 `.PlainText`。理由见下面「为什么从 .Anchor 出发」。
+       输出：拼音 slug 字符串（纯小写 ASCII，`-` 分隔，最多 6 段）。
+
+       ── 为什么从 .Anchor 出发，而不是标题原文 ──────────────────────
+       ① `.Anchor` 已经做过 Goldmark 的清洗：去标点、空格转 `-`、中文保留。
+          拿它当输入，就不用再重复实现一遍「哪些字符该丢」。
+       ② `.Anchor` 已经处理过**同页重名**：Goldmark 会给第二个同标题的标题
+          加 `-1` 后缀。若从原文出发，同名的两个标题会算出同一个 id，
+          页面里就出现重复 id（HTML 无效、目录点击错位）。从 `.Anchor` 出发，
+          这个去重是白送的。
+       ③ 实测：用本文件对现有 560 个手写锚点回算，**553 个逐字一致**；
+          剩下 7 个是「同页重名」，后缀从手写的 `-2/-3` 变成 Goldmark 的 `-1`
+          —— 仍然唯一，不影响任何链接。
+
+       ── 转写规则（必须与旧脚本保持一致，否则老链接会断）──────────
+       · 汉字 → data/pinyin.json 里的拼音（**逐字**转写，不做分词）
+       · 数字 → 粘到**后面**那个汉字上：`72小时` → `72xiao`
+         （旧脚本用 Foundation 的分词器，数字总是和后面的量词粘在一起）
+       · 字母 → **独立成段**，不粘连：`List背单词` → `list-bei-dan-ci`
+       · 其余字符（`-` `_` 标点）→ 分段
+       · 最后：小写、合并连续 `-`、去掉首尾 `-`、**只保留前 6 段**
+         （前 6 段是旧脚本的规矩：`#ai-ju-ti-de-ren` 比把一整句话铺满更好用）
+
+       ── 三种「原样返回」的情况（都很重要）──────────────────────────
+       ① 没有汉字 → 原样返回。
+          纯英文标题、以及**手写的 `{#habit}` 这类锚点**都走这条路。
+          ⚠️ 别在这里做小写化 —— 手写锚点可能是 `{#RSS}` 这种带大写的，
+             改了就断了别人引用的链接。
+       ② 标题是空的 → 原样返回。
+       ③ **字典里缺字** → 原样返回（退回中文锚点）。
+          这是刻意的降级：宁可让这一节的链接变成 `#%E4%B8%BA...`，
+          也不要算出一个**缺了一段**的半截拼音（那种 id 看不出错，但永远对不上）。
+          ⚠️ 缺字是**新增文章**的常见症状（新文章用了字典里没有的汉字）。
+             补字：`python3 scripts/sync-pinyin.py`，见 DESIGN.md 第 13 节。
+
+       ── 调用方（两处，必须同时改）─────────────────────────────────
+       · layouts/_default/_markup/render-heading.html —— 正文 h2–h6 的 id
+       · layouts/partials/toc-anchors.html           —— 右侧目录的 href
+       两边都调本文件，所以「目录点不动」这类错位**不可能**发生。
+       ⚠️ 改这里的规则，两边会一起变；但**旧锚点会断**，改之前先想清楚。
+       ============================================================ */ -}}
+
+{{- $s := . -}}
+{{- $out := $s -}}
+{{- if and $s (findRE `\p{Han}` $s) -}}
+  {{- $dict := hugo.Data.pinyin -}}
+  {{- $slug := "" -}}
+  {{- $digits := "" -}}
+  {{- $word := "" -}}
+  {{- $ok := true -}}
+  {{- range $i := seq 0 (sub (strings.RuneCount $s) 1) -}}
+    {{- $ch := substr $s $i 1 -}}
+    {{- if findRE `\p{Han}` $ch -}}
+      {{- if $word -}}{{- $slug = printf "%s-%s" $slug $word -}}{{- $word = "" -}}{{- end -}}
+      {{- $p := index $dict $ch -}}
+      {{- if $p -}}
+        {{- $slug = printf "%s-%s%s" $slug $digits $p -}}
+        {{- $digits = "" -}}
+      {{- else -}}
+        {{- $ok = false -}}
+      {{- end -}}
+    {{- else if findRE `[0-9]` $ch -}}
+      {{- if $word -}}{{- $slug = printf "%s-%s" $slug $word -}}{{- $word = "" -}}{{- end -}}
+      {{- $digits = printf "%s%s" $digits $ch -}}
+    {{- else if findRE `[a-z]` $ch -}}
+      {{- if $digits -}}{{- $slug = printf "%s-%s" $slug $digits -}}{{- $digits = "" -}}{{- end -}}
+      {{- $word = printf "%s%s" $word $ch -}}
+    {{- else -}}
+      {{- if $word -}}{{- $slug = printf "%s-%s" $slug $word -}}{{- $word = "" -}}{{- end -}}
+      {{- if $digits -}}{{- $slug = printf "%s-%s" $slug $digits -}}{{- $digits = "" -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if $word -}}{{- $slug = printf "%s-%s" $slug $word -}}{{- end -}}
+  {{- if $digits -}}{{- $slug = printf "%s-%s" $slug $digits -}}{{- end -}}
+  {{- if $ok -}}
+    {{- /* ⚠️ Hugo 的 strings.TrimPrefix 是 (前缀, 字符串)，与 Go 标准库参数顺序**相反**。 */ -}}
+    {{- $slug = strings.TrimPrefix "-" $slug -}}
+    {{- $slug = replaceRE `-+` "-" $slug -}}
+    {{- $slug = strings.Trim $slug "-" -}}
+    {{- $parts := split $slug "-" -}}
+    {{- if gt (len $parts) 6 -}}
+      {{- $slug = delimit (first 6 $parts) "-" -}}
+    {{- end -}}
+    {{- if $slug -}}{{- $out = $slug -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

@@ -76,7 +76,7 @@ jobs:
 
       - name: 检查中文标题锚点
         run: |
-          # 中文标题要显式写 {#pinyin}（如 ## 习惯 {#xi-guan}），否则分享出去的链接是
-          # #%e4%b9%a0%e6%83%af 这种百分号编码。这步只检查不修改；本地缺了就跑
-          # python3 scripts/add-heading-anchors.py 自动补齐（需要 macOS 的拼音转写）。
-          python3 scripts/add-heading-anchors.py --check
+          # 中文标题的拼音锚点在**构建期**算（partials/heading-slug.html），md 里不再写 {#pinyin}。
+          # 它要查 data/pinyin.json；表里缺字 → 那一节回退成 #%e4%b9%a0%e6%83%af 这种中文锚点。
+          # 这步只检查不修改；缺了就在 macOS 上跑 python3 scripts/sync-pinyin.py 补字再提交。
+          python3 scripts/sync-pinyin.py --check

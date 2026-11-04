@@ -48,15 +48,17 @@ if [ -n "$PYTHON_BIN" ]; then
   #       · 图片尺寸漏了 → 那张 <img> 没有 width/height，图片晚到时页面往下跳
   #     2026-10-18 实测过一次真实的漏：129 篇文章只有 127 张卡（`newsletter-26` 走了兜底）。
   #     **加新步骤时保持「失败只警告、不阻断发布」的约定** —— 网络抖动不该让人发不了文章。
-  # 给新写的中文标题补上 {#pinyin} 锚点：不补的话分享链接是 #%e4%b9%a0%e6%83%af
-  #     这种百分号编码，也没法在链接里一眼看出是哪个小节。只补缺的，已经写了 {#...}
-  #     的标题不动；转写用 macOS 自带的拼音库，失败不阻断发布。
-  if ! "$PYTHON_BIN" scripts/add-heading-anchors.py; then
-    echo "    !! 锚点补全失败，这次新加的中文标题可能还是 #%e4... 这种链接（不影响发布）" >&2
+  # 给新写的中文标题补上拼音：锚点本身在**构建期**由 partials/heading-slug.html 算，
+  #     但它要查 data/pinyin.json 这张字表；表里缺字的那一节会回退成
+  #     #%e4%b9%a0%e6%83%af 这种中文锚点（不影响构建，只是链接变丑）。
+  #     这一步只补 JSON，**不碰任何 md**；转写用 macOS 自带的拼音库，失败不阻断发布。
+  #     ⚠️ 云端构建机是 Linux，没有拼音库 —— 所以这张表必须在本机补好再提交。
+  if ! "$PYTHON_BIN" scripts/sync-pinyin.py; then
+    echo "    !! 拼音字典补字失败，这次新加的生僻字标题会回退成 #%E4... 这种链接（不影响发布）" >&2
   fi
   # 把这次改动过的文章的 front matter lastmod 刷成当前时间：文章页的「更新于」
   #     只在 lastmod 比 date 晚时才显示，靠人手改这个字段一定会忘。
-  #     放在 add-heading-anchors 之后：锚点补全本身也算改动了正文，一起算进这次更新。
+  #     ⚠️ 拼音字典那一步只写 data/pinyin.json，不算「改动正文」，所以不受影响。
   if ! "$PYTHON_BIN" scripts/sync-lastmod.py; then
     echo "    !! 刷新 lastmod 失败，这次改过的文章页可能不显示「更新于」（不影响发布）" >&2
   fi
