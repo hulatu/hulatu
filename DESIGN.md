@@ -2081,7 +2081,7 @@ for i in 0 1 2; do $M "static/favicon.ico[$i]" -format "%wx%h 唯一色=%k\n" in
 
 ```bash
 hugo --cleanDestinationDir                      # 必须 0 警告
-grep -o '<link rel=[^>]*>' public/index.html    # 应有 5 条图标 link
+grep -o '<link rel=[^>]*>' public/index.html    # 应有 6 条（5 条图标 + 1 条 manifest），都带 ?v=
 sed -n '/<image>/,/<\/image>/p' public/index.xml
 xmllint --noout public/index.xml public/weekly/index.xml
 ```
