@@ -1,7 +1,8 @@
 ---
 title: "什么都想做 or 什么都不想做，可能有相同的原因"
+featured: false
 date: 2026-09-05T21:52:24+08:00
-lastmod: 2026-10-26T19:18:33+08:00
+lastmod: 2026-11-05T21:30:42+08:00
 slug: "do-one-thing-well"
 
 summary: "先做好一件事，大部分人生问题都会迎刃而解。"

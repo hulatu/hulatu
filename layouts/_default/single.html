@@ -75,6 +75,21 @@
     {{- if $showUpdated }}
     · 更新于 <time datetime='{{ .Lastmod.Format "2006-01-02" }}'>{{ .Lastmod.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}</time>
     {{- end }}
+    {{- if $longForm }}
+    {{- /* 阅读时长与字数（2026-11-05 新增）。
+           Hugo 内置 .WordCount 把连续中文算成 1 个词（实测：100 汉字 + 10 英文词 → 11），
+           .ReadingTime 跟着错，所以这里自己算：
+             · 汉字：findRE "\p{Han}" 计数；英文：findRE "[A-Za-z]+" 按词计数；
+             · 合计为「字」；中文 400 字/分钟、英文 200 词/分钟，加权后向上取整、最少 1 分钟。
+           显示沿用本行已有的分隔符与样式（同一个 <i>、time 15px），不加新 CSS。
+           只给长文页（$longForm：posts + weekly），独立页不挂。 */ -}}
+    {{- $hanChars := len (findRE "\\p{Han}" .Plain) -}}
+    {{- $engWords := len (findRE "[A-Za-z]+" .Plain) -}}
+    {{- $totalWords := add $hanChars $engWords -}}
+    {{- $readMins := int (math.Ceil (add (div (float $hanChars) 400.0) (div (float $engWords) 200.0))) -}}
+    {{- if lt $readMins 1 }}{{ $readMins = 1 }}{{ end }}
+    · 约 {{ $readMins }} 分钟 · 全文约 {{ $totalWords }} 字
+    {{- end }}
   </i>
 </p>
 {{ end }}
@@ -275,6 +290,13 @@
   </nav>
   {{- end -}}
   {{- end -}}
+{{- /* ---------- ④ 作者卡片（2026-11-05 新增）------------------------------
+       位置：post-nav 之后、评论区之前 —— 文末最后一块，读完正文才看到。
+       只给长文页（$longForm，和上面三段同一个守卫）。
+       头像目前是文字首字「胡」：仓库里没有头像图片文件；以后想换照片，
+       把 partial 里那个 span 换成 <img> 即可，圆框样式已就绪。
+       一句话取自首页简介；链接只放关于 + 订阅（6 个平台的出口都在关于页里）。 */ -}}
+  {{ partial "author-card.html" . }}
 {{- end }}
 {{- /* 评论区。移植自 ~/Blog：只给「长文页」（文章 + 周刊）挂，
        并且尊重单篇的 comments: false。

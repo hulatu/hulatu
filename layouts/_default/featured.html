@@ -1,0 +1,33 @@
+{{- /* 精选文章页（站点层新增，2026-11-05）。
+       入口在首页（layouts/index.html 的 .featured-entry，只在有精选时显示）。
+       数据口径：posts + weekly 里 Params.featured 为 true 的，按日期倒序；
+       与归档页、系列页同一批页池口径，根级独立页不会混进来。
+       列表复用归档页的 .blog-posts（第 05 段的日期列样式），所以这里不另写 CSS。
+       计数行沿用归档页的写法（「共 N 篇。」）；一篇都没有时显示空状态，
+       不铺空列表。 */ -}}
+{{ define "main" }}
+{{- $featured := (where site.RegularPages "Type" "in" (slice "posts" "weekly")) -}}
+{{- $featured = where $featured "Params.featured" true -}}
+{{- $featured = $featured.ByDate.Reverse -}}
+<content>
+  <h1>{{ .Title }}</h1>
+  {{ .Content }}
+  <p id="post-count">共 {{ len $featured }} 篇精选。</p>
+  {{- if $featured }}
+  <ul class="blog-posts">
+    {{- range $featured }}
+    <li>
+      <span>
+        <i>
+          <time datetime='{{ .Date.Format "2006-01-02" }}'>{{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}</time>
+        </i>
+      </span>
+      <a href="{{ .RelPermalink }}">{{ partial "orphan-safe.html" .Title }}</a>
+    </li>
+    {{- end }}
+  </ul>
+  {{- else }}
+  <p>还没有精选文章。</p>
+  {{- end }}
+</content>
+{{ end }}

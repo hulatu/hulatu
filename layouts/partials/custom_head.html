@@ -2757,4 +2757,71 @@
           （那会真的去预渲染外站）。
        ⚠️ 别把 `/*` 写成 `/**`：URLPattern 里 `**` 是跨段的通配，语义不同。
       --------------------------------------------------------------- */ -}}
+{{- /* ---------------------------------------------------------------
+     36 文末作者卡片 —— **只给长文页**（守卫 `$longForm`）
+
+         与 09 / 10 / 13 / 16 / 19 同一套做法：样式只在挂载它的页面输出，
+         守卫条件与 single.html 里的挂载条件一一对应，改挂载要回来改这里。
+
+         设计（2026-11-05）：1px 边框 + 页面同底色，**不加底色、不加阴影、
+         不加圆角卡片** —— 与 09 段注释里定的克制一致；头像圆框沿用
+         返回顶部按钮的 50% 圆角（那是站里唯一已有的圆形元素）。
+         名字加粗、正文简介走三级灰，链接行沿用首页链接行的 ` / ` 分隔符
+         （页脚那句「不要那么多 ·」的要求，这里同样适用）。
+
+         移动端不用另写规则：56px 头像 + 弹性文字在 320px 内容区里放得下，
+         bio 自然换行。
+      --------------------------------------------------------------- */ -}}
+{{- if $longForm }}
+  .author-card {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-top: 32px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+  }
+
+  .author-card-avatar {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    font-size: 1.5rem;
+    color: var(--text-color-secondary);
+  }
+
+  .author-card-body p {
+    margin: 0;
+  }
+
+  .author-card-name {
+    font-weight: 700;
+  }
+
+  .author-card-bio {
+    color: var(--text-color-secondary);
+    margin-top: 4px;
+  }
+
+  .author-card-links {
+    margin-top: 8px;
+  }
+{{- end }}
+
+{{- /* ---------------------------------------------------------------
+     37 首页精选入口 —— **无守卫**（与第 04 段同类：首页样式全站生效）
+
+         入口本身只在有精选文章时渲染（见 layouts/index.html 的注释），
+         所以这一行在没有精选时根本不存在；这里只钉住它出现时的上边距，
+         取 1.2rem、与最近更新列表的 li 间距同值，节奏一致。
+      --------------------------------------------------------------- */ -}}
+  .featured-entry {
+    margin-top: 1.2rem;
+  }
+
 <script type="speculationrules">{"prerender":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>

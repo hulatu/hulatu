@@ -1,7 +1,8 @@
 ---
 title: "工科研究生用 Mac，也可以很完美"
+featured: false
 date: 2026-10-07T13:41:50+08:00
-lastmod: 2026-10-07T22:38:34+08:00
+lastmod: 2026-11-05T21:30:42+08:00
 slug: "engineering-students-use-macbook"
 summary: "为了最想要的那个理想物品，总得付出点什么。"
 description: "我是一名超级喜欢 Mac 的工科研究生，结合我自己读研的经验，告诉大家如何好好使用 Mac，完成自己读研过程中的数据分析处理、绘图要求等等，其实我们工科生，也能用 Mac。"

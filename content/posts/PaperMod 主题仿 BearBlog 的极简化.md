@@ -1,9 +1,10 @@
 ---
 title: PaperMod 主题仿 BearBlog 的极简化
+featured: false
 categories: ["工具"]
 tags: ["博客", "Hugo"]
 date: 2026-01-24T11:23:53+08:00
-lastmod: 2026-10-26T12:45:08+08:00
+lastmod: 2026-11-05T21:30:42+08:00
 slug: blog-beautification-papermodbearblog
 
 summary: 你在意的博客布局，可能只有你自己关注。

@@ -56,4 +56,14 @@
   {{- end }}
 </ul>
 {{- end }}
+
+{{- /* 精选入口（2026-11-05 新增）。
+       列表后面本来刻意没有尾巴（见上面那段注释），但用户要求加一个精选入口 ——
+       只在至少一篇 featured: true 时才显示，没有时整行消失，
+       所以空站状态下首页还是原来那个干净的样子。
+       口径与精选页一致（posts + weekly，Params.featured）。 */ -}}
+{{- $featured := where (where site.RegularPages "Type" "in" (slice "posts" "weekly")) "Params.featured" true -}}
+{{- if $featured }}
+<p class="featured-entry"><a href="{{ "featured/" | relURL }}">精选文章 →</a></p>
+{{- end }}
 {{ end }}

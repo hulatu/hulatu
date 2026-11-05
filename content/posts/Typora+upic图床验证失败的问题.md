@@ -1,9 +1,10 @@
 ---
 title: "Typora + Upic图床验证失败的问题"
+featured: false
 categories: ["工具"]
 tags: ["写作", "图片"]
 date: 2026-01-18T22:08:48+08:00
-lastmod: 2026-10-26T12:45:08+08:00
+lastmod: 2026-11-05T21:30:42+08:00
 slug: "image-hosting-service-blog"
 
 draft: false

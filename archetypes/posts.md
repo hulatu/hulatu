@@ -8,6 +8,7 @@ description: ""
 categories: [""]
 tags: [""]
 series: ""  
+featured: false
 comments: true
 draft: true
 ---

@@ -1,7 +1,8 @@
 ---
 title: "我舍不得家 and & or 家乡？"
+featured: false
 date: 2026-08-21T22:57:02+08:00
-lastmod: 2026-09-28T16:26:14+08:00
+lastmod: 2026-11-05T21:30:42+08:00
 slug: "home-and-hometown"
 
 summary: "我不知道我是舍不得家，还是舍不得离开孕育着我成长的家乡。"
