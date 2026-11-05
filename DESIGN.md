@@ -44,16 +44,15 @@ colors:
     border: "#30363d"
 
 typography:
-  font-primary: 'Verdana, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif'
+  font-primary: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif'  # ⚠️ 2026-11-05 改成系统字体栈，之前是 Verdana 打头
   font-secondary: "monospace"
   size-primary: "1em"
   size-secondary: "0.8em"
   body-line-height: 1.5
   content-line-height: 1.8       # ⚠️ 2026-10-14 改过，上游是 1.6
   note: >
-    上游只有 `Verdana, sans-serif`。Verdana 不含汉字，中文一直靠浏览器兜底 ——
-    macOS 上看不出差别，Windows / Android 上会落到宋体或老版思源黑。
-    站点层把中文字体显式写进栈里（`custom_head.html` 第 01 段），这是**唯一**动过字体的地方。
+    上游只有 `Verdana, sans-serif`。Verdana 不含汉字，中文一直靠浏览器兜底。
+    2026-11-05 起站点层改成系统字体栈（`custom_head.html` 第 01 段），这是**唯一**动过字体的地方。
 
     ⚠️ **行高 2026-10-14 由 1.6 改成 1.8 —— 这是全站唯一一处改上游主题的地方**
     （`themes/hugo-bearneo/layouts/partials/style.html` 的 `content`，见第 5 节）。
@@ -192,14 +191,12 @@ hulatu.com（本站：上游主题 + 29 个站点层覆盖文件）
 
 | 角色 | 栈 | 用在哪儿 |
 | --- | --- | --- |
-| `--font-primary` | `Verdana, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif`（站点层补） | 正文、标题 |
+| `--font-primary` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif`（站点层补，2026-11-05 改成系统字体栈） | 正文、标题 |
 | `--font-secondary` | `ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", "Sarasa Mono SC", "Noto Sans Mono CJK SC", monospace`（站点层补，2026-10-12） | `<time>`、`<code>`、代码块 |
 
-- ⚠️ yinji 的写法是 `"Verdana","PingFang SC", sans-serif` —— **本站前两项与它逐字相同**
-  （macOS 上解析结果完全一样：拉丁走 Verdana、汉字走苹方），只是**多挂了三个跨平台回退**，
-  在 Windows / Android 上才不会掉到宋体。所以「字体参考 yinji」也**无需改动**。
+- ⚠️ yinji 的写法是 `"Verdana","PingFang SC", sans-serif` —— 2026-11-05 之前本站前两项与它逐字相同；改成系统字体栈后已**不再相同**，是用户明确要求的偏离（Verdana 不含汉字，中英混排基线会飘）。
 - ⚠️ 上游**没有** `--font-serif`（衬线标题）也没有 `--font-meta`（等宽元信息）这两个概念 ——
-  那是上一版自建主题的。现在日期和代码共用 `--font-secondary`，标题和正文共用 Verdana。
+  那是上一版自建主题的。现在日期和代码共用 `--font-secondary`，标题和正文共用系统字体栈（`--font-primary`）。
 - ⚠️ **`--font-secondary` 2026-10-12 也补了跨平台回退**（原来只是一句裸 `monospace`）：
   `ui-monospace` 起头（macOS 走 SF Mono、Windows 走 Cascadia / Consolas、Android 走 Roboto Mono），
   再挂 `"Sarasa Mono SC"` / `"Noto Sans Mono CJK SC"` 两个**中文等宽**，最后才是 `monospace`。
@@ -1263,7 +1260,7 @@ Firefox / Safari 目前仍支持 XSLT，但**这套方案已经不需要任何�
 | 30 | `@view-transition { navigation: auto }` 跨页转场（包在 `prefers-reduced-motion: no-preference` 里） | **全站** |
 | 31 | ~~`.toc-mobile`（手机端折叠目录）~~ —— **2026-11-03 整段删除**（标记与 CSS 都没了） | — |
 | 32 | 浅色下 `--text-color-tertiary` 提亮到 `#6e6e6e`（包在 `@media (prefers-color-scheme: light)` 里，深色原值不动） | **全站** |
-| 33 | **页面级 h1 配套**（2026-10-25，四条）：<br>`33-a .sr-only` —— 视觉隐藏但**留在无障碍树里**（给 `/about/` `/now/` `/roll/` 的隐藏 h1；用 clip 方案，不是 `display:none`）<br>`33-b #hi{font-size:1.5em}` —— 首页「Hi!」由 h2 升 h1 后把字号钉回 1.5em<br>`33-c ul.blog-posts h2{font-size:1.17em;margin:1.9em 0 .6em}` —— 列表页年份分组 h3→h2，**字号和边距都要还原**（`content h2` 与 `content h3` 的边距本来就不是一个值）<br>`33-d .recent-posts-head{font-size:1.17em}` —— 首页「Recent Posts:」h3→h2 后补字号 | **全站**（33-b / 33-d 实际只在首页生效，但 CSS 全内联，每页都带这 243 B） |
+| 33 | **页面级 h1 配套**（2026-10-25，四条）：<br>`33-a .sr-only` —— 视觉隐藏但**留在无障碍树里**（给 `/about/` `/now/` `/roll/` 的隐藏 h1；用 clip 方案，不是 `display:none`）<br>`33-b #hai{font-size:1.5em}` —— 首页「嗨！」由 h2 升 h1 后把字号钉回 1.5em<br>`33-c ul.blog-posts h2{font-size:1.17em;margin:1.9em 0 .6em}` —— 列表页年份分组 h3→h2，**字号和边距都要还原**（`content h2` 与 `content h3` 的边距本来就不是一个值）<br>`33-d .recent-posts-head{font-size:1.17em}` —— 首页「最近更新：」h3→h2 后补字号 | **全站**（33-b / 33-d 实际只在首页生效，但 CSS 全内联，每页都带这 243 B） |
 | — | 文件末尾：**GoatCounter**（上游 `baseof.html` 没有统计挂载点，只能挂这个钩子） | 全站 |
 
 > 00 段之后还挂着两条**没有独立段号**的规则：`00b` 导航当前页标识（`aria-current="page"` 只改颜色）、

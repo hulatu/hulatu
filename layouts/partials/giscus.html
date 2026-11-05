@@ -41,7 +41,7 @@
     </div>
   </details>
   {{- /* 只有这一页真的带评论才加载这个脚本，不塞进全站 —— 不然 300 多个
-         页面都要为它付一次请求。它自己会等滚到评论区前 400px 才注入 giscus。 */ -}}
+         页面都要为它付一次请求。它自己会等滚到评论区前 300px 才注入 giscus。 */ -}}
   {{- $giscusJs := resources.Get "js/giscus.js" | minify | fingerprint -}}
   <script src="{{ $giscusJs.RelPermalink }}" integrity="{{ $giscusJs.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- end -}}

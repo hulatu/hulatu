@@ -2,7 +2,7 @@
   "use strict";
 
   /* 评论区默认是「已经预加载好、但整块收起来」的状态：
-       1) 滚到评论区前 400px 就开始在后台加载 giscus；
+       1) 滚到评论区前 300px 就开始在后台加载 giscus；
        2) 加载完成后不自动展开，标题行一直留着；
        3) 读者点标题行才展开——内容早就好了，展开是瞬间的，不会先白一下；
        4) 再点一次收起；iframe 留在 DOM 里（max-height: 0 + visibility: hidden），
@@ -197,7 +197,7 @@
         preload();
         return;
       }
-    }, { rootMargin: "400px 0px" });
+    }, { rootMargin: "300px 0px" });
     nearObserver.observe(slot);
   }
 

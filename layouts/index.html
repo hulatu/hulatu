@@ -2,13 +2,13 @@
        等于一张空页 —— 打开 hulatu.com 看不到任何文章入口。
 
        这里**逐条照 yinji.org**（同样基于 Hugo Bear Neo）的首页：
-       正文（h2「Hi!」+ 引用 + 简介 + 链接行）→ 虚线 <hr> → h3「Recent Posts:」
+       正文（h1「嗨！」+ 引用 + 简介 + 链接行）→ 虚线 <hr> → h2「最近更新：」
        → .recent-posts 列表。四件套的文案全在 content/_index.md 里，改文案不碰模板。
 
        ⚠️ 四处刻意与上游/yinji 对齐、别改回去：
         · 简介正文**不包 <content>**（见下面那一行的注释）—— 上游包、yinji 不包，
           本站照 yinji。
-        · 列表标题是**英文**「Recent Posts:」—— 导航标签也是英文，两边同一套语言。
+        · 列表标题是**中文**「最近更新：」—— 2026-11-05 用户要求从英文「Recent Posts:」改过来，与中文导航统一。
         · 分隔线用裸 <hr>：主题 CSS 里 `hr { border-top: 1px dashed }` 本来就是虚线，
           不用再加类名或内联样式。
         · 列表**后面什么都没有** —— 没有「查看全部文章 →」那类尾巴，
@@ -46,7 +46,7 @@
           边距规则，能变的只有字号 —— 所以由 `custom_head.html` 第 33 段
           用 `.recent-posts-head { font-size: 1.17em }` 把字号按 h3 的原值钉回去。
           删掉类名 = 这行标题立刻大一号（1.17em → 1.5em）。 */ -}}
-<h2 class="recent-posts-head">Recent Posts:</h2>
+<h2 class="recent-posts-head">最近更新：</h2>
 <ul class="recent-posts">
   {{- range $posts }}
   <li>

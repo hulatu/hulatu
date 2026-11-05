@@ -33,6 +33,11 @@
           （守卫用 `eq .Kind "404"`）。`kind` 比 `RelPermalink` 更稳 ——
           404 的 URL 由 Cloudflare Pages 决定，不一定是 `/404.html`。
        ============================================================ */ -}}
+{{- /* 2026-11-05：Hugo 给 404 页的默认 .Title 是英文 "404 Page not found"，
+       会进浏览器标签页的 <title>。这里盖掉它，与页内 h1「这一页不在账上」一致。
+       ⚠️ og:title / twitter:title 仍读 .Title（见 seo_tags.html），改那几个要动
+       三处模板，404 链接被分享的概率极低，先不动；标签页这个可见的先修。 */ -}}
+{{ define "title" }}这一页不在账上 | {{ .Site.Title }}{{ end }}
 {{ define "main" }}
 {{- $random := "" -}}
 {{- with (where site.RegularPages "Type" "in" (slice "posts" "weekly")) -}}

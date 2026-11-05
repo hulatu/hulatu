@@ -60,16 +60,17 @@ disableKinds = ["taxonomy"]
   # 页脚版权行。上游模板是 `{{ .Site.Params.copyright }}` 原样输出，
   # ⚠️ Go 的 html/template 会转义 `&` —— 所以必须写**字面量 ©**，
   #    写成 `&copy;` 会被转义成 `&amp;copy;`，页面上原样显示成 "&copy;" 这六个字符。
-  copyright = "Copyright © 2025-2026, hulatu."
+  copyright = "版权所有 © 2025-2026，hulatu。"
 
   # 页脚最后一行：授权声明 + 隐私 + 🗺️ Sitemap。
   # 2026-10-11 用户要求：这一行**全英文**，并且「CC BY-NC-SA 4.0」要带链接。
+  # 2026-11-05 用户要求全站英文元素改中文，这一行的英文也改回中文。
   # 上游把版权和 Sitemap 挤在同一行，为了拆成两行，站点层覆盖了 partials/footer.html，
   # 在版权行后补了一个 `<br />`；这段授权声明就从 copyright 里拆出来放到这里。
   # ⚠️ copyrightNote 走的是 `{{ . }}` **文本输出**，写 Markdown 链接不会生效 ——
   #    所以 CC 那一段拆成「链接前的文字 / 链接文字 / 链接地址」三个参数。
-  #    任意一段留空就少一段，最后一行只剩「Privacy · 🗺️ Sitemap.」。
-  copyrightNote = "This site is licensed under"
+  #    任意一段留空就少一段，最后一行只剩「隐私. 🗺️ 网站地图.」。
+  copyrightNote = "本站内容采用"
   licenseName = "CC BY-NC-SA 4.0"
   licenseURL = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
 
@@ -138,6 +139,10 @@ disableKinds = ["taxonomy"]
 #
 #  2026-10-10 晚按用户要求改成 BearNeo 样式的英文标签（页面正文仍是中文）：
 #      Home / About / Links / Weekly / Posts / RSS
+#  2026-11-05 用户要求改回中文标签（与中文内容、中文品牌「胡拉图说」统一）：
+#       首页 / 关于 / 友链 / 周刊 / 文章 / 订阅
+#       URL 与 weight 一律不动，只改 name —— 中文标签比英文短（Weekly → 周刊），
+#       窄屏下导航折行风险反而更小。
 #  2026-10-11 晚按用户要求新增 Hub（个人主页 https://profile.hulatu.com/），插在 Home 右侧；
 #  2026-10-12 又按用户要求**撤掉** —— 子站不再从导航进入，入口统一收到 `/about/`
 #      （见 content/about.md）。
@@ -163,37 +168,37 @@ disableKinds = ["taxonomy"]
 #        导航高亮由 nav.html 决定，目前没有做高亮逻辑，所以无需特殊处理。
 # ============================================================================
 [[menu.main]]
-  name = "Home"
+  name = "首页"
   url = "/"
   weight = 10
 
 # 2026-10-12 撤掉 Hub（个人主页子站入口）—— 理由见上面「导航」那段注释：
 #     子站入口现在只出现在 `/about/`。⚠️ 同日稍后四个子站整体下线，`sites/` 已删。
 [[menu.main]]
-  name = "About"
+  name = "关于"
   url = "/about/"
   weight = 20
 
 [[menu.main]]
-  name = "Links"
+  name = "友链"
   url = "/roll/"
   weight = 30
 
 # 2026-10-11 新增：周刊回到导航，位置在 Posts 左边。
 [[menu.main]]
-  name = "Weekly"
+  name = "周刊"
   url = "/weekly/"
   weight = 40
 
 [[menu.main]]
-  name = "Posts"
+  name = "文章"
   url = "/archive/"
   weight = 50
 
 # 2026-10-11 用户要求：**导航最右侧**一个 RSS 订阅入口，指向全站内容的 feed。
 # 见上面「导航」那段注释里的三条 ⚠️（地址与页脚同源、不新开窗口、不需要高亮）。
 [[menu.main]]
-  name = "RSS"
+  name = "订阅"
   url = "/index.xml"
   weight = 60
 

@@ -20,11 +20,19 @@
 
   只有链接文字首字母改了，其余一字未动。
 
+  2026-11-05：用户要求全站英文元素改中文，页脚四行全部改回中文
+  （上面 2026-10-11 的英文要求作废，历史留作记录）：
+      1. 用 Hugo Bear Neo 制作。
+      2. 版权所有 © 2025-2026，hulatu。
+      3. 通过 RSS 订阅，或直接打个招呼。 🚇 开往
+      4. 本站内容采用 CC BY-NC-SA 4.0 协议. 隐私. 🗺️ 网站地图。
+
   另有一处**新增**（2026-10-11 用户要求）：最后一行补了 `/privacy/` 的链接，
   也就是「Privacy」——它原本在旧自建主题的页脚里（`<a href=/privacy/>隐私</a>`），
   迁移到上游页脚后一度没了入口（导航只有 6 项，没有它）。
 
   同一天稍后用户又要求：这一行**整句改成英文**，并且「CC BY-NC-SA 4.0」要带链接。
+  2026-11-05：同一要求反向改回中文，见上面那条新增的注。
   于是最后一行在那天读作（⚠️ 分隔符后来在 2026-10-12 从 `·` 换成了 `.`，见下）：
 
       This site is licensed under CC BY-NC-SA 4.0 · Privacy · 🗺️ Sitemap.
@@ -69,8 +77,8 @@
      而构建 0 警告、页面上只是「看着像少了点什么」。
 */}}
 <!-- Made with line -->
-{{ if ne .Site.Params.Footer.hideMadeWithLine true }}Made with
-<a href="https://github.com/rokcso/hugo-bearneo/">Hugo Bear Neo</a>.
+{{ if ne .Site.Params.Footer.hideMadeWithLine true }}用
+<a href="https://github.com/rokcso/hugo-bearneo/">Hugo Bear Neo</a> 制作。
 <br />
 {{ end }}
 
@@ -126,17 +134,17 @@
 {{ $friendLinks := safeHTML ` 🚇 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>. 🌀 <a href="https://www.foreverblog.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机访问十年之约成员博客">虫洞</a>` }}
 <!-- Enable RSS and email exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS false ) .Site.Params.Author.email }}
-Subscribe via <a href="/index.xml">RSS</a> or just <a href="mailto:{{ .Site.Params.Author.email }}">Say hello</a>.{{ $friendLinks }}
+通过 <a href="/index.xml">RSS</a> 订阅，或直接<a href="mailto:{{ .Site.Params.Author.email }}">打个招呼</a>。{{ $friendLinks }}
 <br />
 {{ end }}
 <!-- Enable RSS and email does not exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS false ) (not .Site.Params.Author.email) }}
-Subscribe via <a href="/index.xml">RSS</a>.{{ $friendLinks }}
+通过 <a href="/index.xml">RSS</a> 订阅。{{ $friendLinks }}
 <br />
 {{ end }}
 <!-- Do not enable RSS and email exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS true ) .Site.Params.Author.email }}
-Say hello via <a href="mailto:{{ .Site.Params.Author.email }}">email</a>.{{ $friendLinks }}
+通过<a href="mailto:{{ .Site.Params.Author.email }}">邮件</a>打个招呼。{{ $friendLinks }}
 <br />
 {{ end }}
 {{ end }}
@@ -144,5 +152,5 @@ Say hello via <a href="mailto:{{ .Site.Params.Author.email }}">email</a>.{{ $fri
 <!-- 授权声明 + 隐私 + Sitemap（2026-10-11 起全英文，CC 那段带链接；
      2026-10-12 起分隔符从 `·` 改成 `.`，见文件顶部注释） -->
 {{ if ne .Site.Params.Footer.hideSitemap true }}
-{{ with .Site.Params.copyrightNote }}{{ . }} {{ end }}{{ with .Site.Params.licenseName }}<a href="{{ $.Site.Params.licenseURL }}">{{ . }}</a>. {{ end }}<a href="/privacy/">Privacy</a>. 🗺️ <a href="/sitemap.xml">Sitemap</a>.
+{{ with .Site.Params.copyrightNote }}{{ . }} {{ end }}{{ with .Site.Params.licenseName }}<a href="{{ $.Site.Params.licenseURL }}">{{ . }}</a> 协议. {{ end }}<a href="/privacy/">隐私</a>. 🗺️ <a href="/sitemap.xml">网站地图</a>.
 {{ end }}
