@@ -10,6 +10,6 @@ title: "胡拉图说"
 
 如果觉得我的网站不错，可以选择 [支持](/donate/) 一下。
 
-[公众号](https://img.hulatu.com/post/bk7UaF.webp "点开看二维码，扫码关注「胡拉图说」") / [少数派](https://sspai.com/u/hulatu/updates "少数派个人主页") / [知乎](https://www.zhihu.com/people/hulatu "知乎个人主页") / [即刻](https://web.okjike.com/u/25B20BAD-D356-4801-AC0E-093CD1334AF5 "即刻个人主页") / [X](https://x.com/flyhulatu)
+[公众号](https://img.hulatu.com/post/bk7UaF.webp "点开看二维码，扫码关注「胡拉图说」") / [少数派](https://sspai.com/u/hulatu/updates "少数派个人主页") / [知乎](https://www.zhihu.com/people/hulatu "知乎个人主页") / [即刻](https://web.okjike.com/u/25B20BAD-D356-4801-AC0E-093CD1334AF5 "即刻个人主页") / [X](https://x.com/flyhulatu "推特个人主页")
 
 点「公众号」会打开一张二维码图片，微信扫一扫即可关注「胡拉图说」。

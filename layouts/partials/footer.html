@@ -131,7 +131,7 @@
         `🌀` 是彩色螺旋，同尺寸下轮廓最清晰。而且官方徽章本身就是个橙色涡旋，
         形态一致 —— 别改成 `🕳️`、`🌌`（渲染成深色小方块）或 `⏳`（语义不对）。
      ⚠️ title 只写用途，不放 `·` 分隔符（同上，用户不喜欢那个字符）。 */}}
-{{ $friendLinks := safeHTML ` 🚇 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>. 🌀 <a href="https://www.foreverblog.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机访问十年之约成员博客">虫洞</a>` }}
+{{ $friendLinks := safeHTML ` 🚇 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机进入一个博客">开往</a>. 🌀 <a href="https://www.foreverblog.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机访问十年之约成员博客">虫洞</a>` }}
 <!-- Enable RSS and email exists -->
 {{ if and ( ne .Site.Params.RSS.enableRSS false ) .Site.Params.Author.email }}
 通过 <a href="/index.xml">RSS</a> 订阅，或直接<a href="mailto:{{ .Site.Params.Author.email }}">打个招呼</a>。{{ $friendLinks }}
