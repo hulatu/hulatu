@@ -197,6 +197,12 @@
 /sitemap.xml
   Cache-Control: public, max-age=0, must-revalidate
 
+# robots.txt（2026-11-05 补）：之前这一个文件没有任何规则，落到平台默认
+# `max-age=0, must-revalidate`，爬虫每次来都要回来问一次。内容几乎不变，
+# 给 1 天缓存；真要改 robots 内容，最多一天内生效，可以接受。
+/robots.txt
+  Cache-Control: public, max-age=86400
+
 # 订阅源的「浏览器视图」（/feed/ 与 /feed/weekly/，2026-10-15 新增）。
 # ⚠️ 线上访问这两页的**主路径**不是直接打开它们，而是浏览器打开 /index.xml 时
 #    被 functions/_middleware.js 内容协商改写过去 —— 那种响应的头写在函数里，
