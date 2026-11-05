@@ -49,16 +49,21 @@
        ⚠️ `og:image:alt` 用页面标题。这不是凑数 —— 图片 alt 是卡片图的
           替代文本，读屏软件和「图片没加载出来」时读的就是它。
        ============================================================ */ -}}
+{{- /* 2026-11-05：404 页的 .Title 是 Hugo 默认的英文 "404 Page not found"，
+       会进 og:title 和 og:image:alt；<title> 早已由 layouts/404.html 的
+       define "title" 盖成「这一页不在账上」，这里同步盖掉，保持分享卡片一致。 */ -}}
+{{- $pageTitle := .Title -}}
+{{- if eq .Kind "404" }}{{ $pageTitle = "这一页不在账上" }}{{ end -}}
 {{- $ogImage := partial "og-image.html" . -}}
 <meta property="og:url" content="{{ .Permalink }}">
 <meta property="og:site_name" content="{{ .Site.Title }}">
-<meta property="og:title" content="{{ .Title }}">
+<meta property="og:title" content="{{ $pageTitle }}">
 <meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ if .IsPage }}{{ .Summary }}{{ else }}{{ with .Site.Params.Description }}{{ . }}{{ end }}{{ end }}{{ end }}">
 <meta property="og:locale" content="{{ .Site.Language.Locale | replaceRE "-" "_" }}">
 <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
 {{- with $ogImage }}
 <meta property="og:image" content="{{ . }}">
-<meta property="og:image:alt" content="{{ $.Title }}">
+<meta property="og:image:alt" content="{{ $pageTitle }}">
 {{- end }}
 {{- if and .IsPage (in (slice "posts" "weekly") .Type) }}
 {{- with .Date }}

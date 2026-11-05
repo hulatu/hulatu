@@ -35,8 +35,10 @@
        ============================================================ */ -}}
 {{- /* 2026-11-05：Hugo 给 404 页的默认 .Title 是英文 "404 Page not found"，
        会进浏览器标签页的 <title>。这里盖掉它，与页内 h1「这一页不在账上」一致。
-       ⚠️ og:title / twitter:title 仍读 .Title（见 seo_tags.html），改那几个要动
-       三处模板，404 链接被分享的概率极低，先不动；标签页这个可见的先修。 */ -}}
+       同日：og:title / twitter:title 及两处图片 alt 也在
+       _partials/opengraph.html 与 _partials/twitter_cards.html 里同步盖成
+       同一个中文标题（.Kind == "404" 时改 $pageTitle）；JSON-LD 那段本来就
+       用 .Site.Title，不用动。 */ -}}
 {{ define "title" }}这一页不在账上 | {{ .Site.Title }}{{ end }}
 {{ define "main" }}
 {{- $random := "" -}}
