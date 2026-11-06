@@ -2789,12 +2789,12 @@
 
          ── 文中链接下划线 ──
          Medium 的正文链接是同色加细下划线；本站原来只有颜色、悬停才有
-         下划线，长文里链接不容易被眼睛扫到。只给正文里的链接加：
-         段落 / 列表项 / 引用块里的 a；列表页的文章标题（ul.blog-posts）
-         和标题锚（.heading-anchor）不在这几类里，保持干净。
-         下划线用 currentColor（跟随链接本身的颜色，访问过的紫色链接
-         不会顶一条蓝线），偏移 0.2em、粗细 1px。
-         ⚠️ 别写成裸 `content a` —— 那会连列表页标题一起划上线。
+         下划线，长文里链接不容易被眼睛扫到。2026-11-06 上午按 Medium 加过
+         一版（只给正文里的链接：段落 / 列表项 / 引用块里的 a，currentColor、
+         偏移 0.2em、粗细 1px），上线当天用户要求去掉 —— 正文链接回到
+         只有颜色、悬停才有下划线（主题的 `a:hover`）。
+         ⚠️ 想加回来：把下面删掉的那条规则原样写回即可，别写成裸 `content a` ——
+            那会连列表页标题一起划上线。
 
          ── 引用竖线收深 ──
          主题的引用是 4px 边框色竖线（#d0d7de）加次级文字色，太淡。
@@ -2820,16 +2820,6 @@
     color: var(--text-color-secondary);
     line-height: 1.45;
     margin: 0.8em 0 1.5em;
-  }
-
-  content p a,
-  content ul:not(.blog-posts) li a,
-  content ol li a,
-  content blockquote a {
-    text-decoration: underline;
-    text-decoration-color: currentColor;
-    text-underline-offset: 0.2em;
-    text-decoration-thickness: 1px;
   }
 
   content blockquote {
