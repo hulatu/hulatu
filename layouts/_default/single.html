@@ -39,14 +39,6 @@
           ⚠️ 别改成 `display:none` / `hidden` 属性 —— 那样会连读屏一起藏掉。 */ -}}
 {{ if not .Params.hideTitle }}
 <h1>{{ partial "orphan-safe.html" .Title }}</h1>
-{{- /* 副标题（2026-11-06 新增，参考 Medium 的 dek）：
-       front matter 的 description 本来只进 meta / og 标签、页面上不显示，
-       这里在长文页（$longForm：posts + weekly）把它渲染成标题下的灰色副标题。
-       139 篇文章都有 description（唯一缺的是 content/posts/_index.md，
-       那是列表页不是文章，不走这条分支），所以不用补写；哪天某篇没写，
-       `with` 会让整行直接消失，不留空行。样式在 custom_head.html 第 39 段。
-       只挂长文页：/about/ /now/ /roll/ 本来就 hideTitle，根本进不来。 */ -}}
-{{ if $longForm }}{{ with .Description }}<p class="dek">{{ . }}</p>{{ end }}{{ end }}
 {{ else }}
 <h1 class="sr-only">{{ partial "orphan-safe.html" .Title }}</h1>
 {{ end }}
@@ -55,7 +47,9 @@
        注意只影响页面上的显示：<meta property="article:published_time"> 等仍按 .Date 输出。
        ⚠️ 2026-10-14：去掉了 `pubdate`。该属性 2017 年就被 HTML 规范移除，
           现在 `datetime` 一个属性就是完整的语义（微数据那条路本站也不再走，
-          见 layouts/partials/seo_tags.html 的 JSON-LD）。 */ -}}
+          见 layouts/partials/seo_tags.html 的 JSON-LD）。
+       顺序（2026-11-06 调整）：标题 → 这一行 → 副标题 .dek → 正文。
+       之前副标题夹在标题与这一行之间；用户要求这一行紧贴标题下方。 */ -}}
 {{ if and .Date (not .Params.hideDate) }}
 {{- /* 「更新于」只在**真的改过**的时候出现（2026-10-26 新增）。
        ── 判据为什么是「日期不同」而不是「差 ≥ 24 小时」──────────────
@@ -71,11 +65,13 @@
        ⚠️ `lastmod` 没写的文章，Hugo 会把它设成等于 `date`（本站没开
           `enableGitInfo`），所以这一整块对那 51 篇**不会输出任何东西**，
           也就不会每篇都挂两个日期。
-       ⚠️ 视觉上不加任何 CSS：整段仍然在同一个 `<i>` 里，
-          继承的 `time{font-size:15px}` 与正文字色都跟原来一致。
-          加一条新规则会让每页 CSS 变大，而这里只需要一个分隔符。 */ -}}
+       ⚠️ 「更新于」本身不加任何 CSS：整段仍然在同一个 `<i>` 里，
+          只用一个分隔符。但这一行的字号在 2026-11-06 之前是**混着的**：
+          只有 `<time>` 是 15px，「约 X 分钟 · 全文约 Y 字」那段文本直接
+          继承正文 18px。这次把它整体收到 15px（`.byline`，
+          custom_head.html 第 39 段），与「日期行 15px，与正文拉开」的原意对齐。 */ -}}
 {{- $showUpdated := and .Lastmod (.Lastmod.After .Date) (ne (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02")) -}}
-<p>
+<p class="byline">
   <i>
     <time datetime='{{ .Date.Format "2006-01-02" }}'>
       {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
@@ -89,7 +85,8 @@
            .ReadingTime 跟着错，所以这里自己算：
              · 汉字：findRE "\p{Han}" 计数；英文：findRE "[A-Za-z]+" 按词计数；
              · 合计为「字」；中文 400 字/分钟、英文 200 词/分钟，加权后向上取整、最少 1 分钟。
-           显示沿用本行已有的分隔符与样式（同一个 <i>、time 15px），不加新 CSS。
+           显示沿用本行已有的分隔符；整行字号由 `.byline` 收到 15px
+           （2026-11-06 之前只有 <time> 是 15px，这段文本是 18px）。
            只给长文页（$longForm：posts + weekly），独立页不挂。 */ -}}
     {{- $hanChars := len (findRE "\\p{Han}" .Plain) -}}
     {{- $engWords := len (findRE "[A-Za-z]+" .Plain) -}}
@@ -102,6 +99,17 @@
 </p>
 {{ end }}
 {{ end }}
+{{- /* 副标题（2026-11-06 新增，参考 Medium 的 dek；2026-11-06 晚移位）：
+       front matter 的 description 本来只进 meta / og 标签、页面上不显示，
+       这里在长文页（$longForm：posts + weekly）把它渲染成灰色副标题。
+       位置：日期行之后、正文之前（标题 → 日期行 → 副标题 → 正文）。
+       之前它夹在标题与日期行之间；用户要求日期行紧贴标题下方，所以整块
+       从标题分支里挪到这里。只挂长文页（$longForm），/about/ /now/ /roll/
+       不是长文页，不走这条分支。
+       139 篇文章都有 description（唯一缺的是 content/posts/_index.md，
+       那是列表页不是文章），所以不用补写；哪天某篇没写，`with` 会让整行
+       直接消失，不留空行。样式在 custom_head.html 第 39 段。 */ -}}
+{{ if $longForm }}{{ with .Description }}<p class="dek">{{ . }}</p>{{ end }}{{ end }}
 
 {{- /* 表格横向滚动包裹（2026-10-11 从旧「印章」主题取回）
      宽表格在窄屏会**撑破容器**（内容区手机只有 352px），整页跟着横向滚动。
