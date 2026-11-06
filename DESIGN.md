@@ -378,7 +378,7 @@ hulatu.com（本站：上游主题 + 29 个站点层覆盖文件）
 
 | 顺序 | 标签 | 落点 |
 | --- | --- | --- |
-| 1 | 公众号 | `https://img.hulatu.com/post/bk7UaF.webp`（**二维码大图**） |
+| 1 | 公众号 | `/images/gzh.webp`（**二维码大图**，2026-11-06 从图床 `img.hulatu.com/post/bk7UaF.webp` 迁入仓库，换成带「识别二维码 关注公众号」文字的横版卡片） |
 | 2 | 少数派 | `https://sspai.com/u/hulatu/updates` |
 | 4 | 知乎 | `https://www.zhihu.com/people/hulatu` |
 | 5 | 即刻 | `https://web.okjike.com/u/25B20BAD-…` |
