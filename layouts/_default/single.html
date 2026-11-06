@@ -329,6 +329,61 @@
 {{- $tocHTML := partial "toc.html" . -}}
 {{- partial "toc-anchors.html" (dict "html" $tocHTML "page" .) | safeHTML -}}
 </div>
+{{- /* 目录显隐脚本（2026-11-06，配合 custom_head.html 第 40 段的 Medium 风格）。
+       主题 toc.html 里那 130 行 JS 只管「当前节高亮 + 点击平滑滚动」，不管显隐，
+       这里补一小段只管三件事 —— 都是 Medium 实测的行为：
+         ① 滚动时收起面板：Medium 里面板打开时再滚动会收起；这里滚动中给
+            div.toc 加 .toc-scrolling，第 40 段的 :hover / .toc-open 规则
+            都带 :not(.toc-scrolling)，滚动一停（150ms 后）就摘掉，鼠标
+            还在指示器上时面板会自己回来（和 Medium 一致）。
+         ② 点按开关（给触屏 / 没有悬停的设备）：第一下点按只打开面板、
+            不跳转，第二下点链接才跳转。拦跳转靠的是注册顺序：本脚本行内
+            执行，主题的监听挂在 DOMContentLoaded 之后，所以同一元素
+            （.toc-nav）上本脚本先注册，先跑到的这里能用 stopImmediatePropagation
+            拦住主题那个；面板打开后就直接放行。只拦触屏（pointerType 是
+            touch 时）：鼠标点链接时悬停已经打开了面板，不用拦。
+         ③ 没 H2 的文章：主题 partial 输出空，div.toc 是个空盒子，直接藏掉，
+            免得右缘多一个 36px 宽的空白悬停区。
+         键盘：Tab 进目录时 focusin 给 div.toc 加 .toc-open 打开面板，
+         Tab 出去 focusout 时摘掉。不用 `:focus-within` 写进 CSS，因为它
+         分不清「鼠标点链接」（点完焦点留在链接上，面板会粘住不收）和
+         「键盘 Tab」，脚本里用 keydown Tab / mousedown 区分。 */ -}}
+<script>
+(function () {
+  var toc = document.querySelector('div.toc');
+  if (!toc) return;
+  var nav = toc.querySelector('.toc-nav');
+  if (!nav || !nav.querySelector('a')) {
+    toc.style.display = 'none';
+    return;
+  }
+  var timer = null;
+  window.addEventListener('scroll', function () {
+    toc.classList.add('toc-scrolling');
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(function () { toc.classList.remove('toc-scrolling'); }, 150);
+  }, { passive: true });
+  var lastPointer = 'mouse';
+  nav.addEventListener('pointerdown', function (e) { lastPointer = e.pointerType || 'mouse'; });
+  nav.addEventListener('click', function (e) {
+    if (lastPointer !== 'touch') return;
+    if (toc.classList.contains('toc-open')) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    toc.classList.add('toc-open');
+  });
+  document.addEventListener('click', function (e) {
+    if (!toc.contains(e.target)) toc.classList.remove('toc-open');
+  });
+  var kb = false;
+  document.addEventListener('keydown', function (e) { if (e.key === 'Tab') kb = true; });
+  document.addEventListener('mousedown', function () { kb = false; });
+  nav.addEventListener('focusin', function () { if (kb) toc.classList.add('toc-open'); });
+  nav.addEventListener('focusout', function (e) {
+    if (!nav.contains(e.relatedTarget)) toc.classList.remove('toc-open');
+  });
+})();
+</script>
 {{ end }}
 
 {{/* Load Mermaid only when this page contains Mermaid diagrams. */}}
