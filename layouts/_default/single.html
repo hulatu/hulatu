@@ -39,6 +39,14 @@
           ⚠️ 别改成 `display:none` / `hidden` 属性 —— 那样会连读屏一起藏掉。 */ -}}
 {{ if not .Params.hideTitle }}
 <h1>{{ partial "orphan-safe.html" .Title }}</h1>
+{{- /* 副标题（2026-11-06 新增，参考 Medium 的 dek）：
+       front matter 的 description 本来只进 meta / og 标签、页面上不显示，
+       这里在长文页（$longForm：posts + weekly）把它渲染成标题下的灰色副标题。
+       139 篇文章都有 description（唯一缺的是 content/posts/_index.md，
+       那是列表页不是文章，不走这条分支），所以不用补写；哪天某篇没写，
+       `with` 会让整行直接消失，不留空行。样式在 custom_head.html 第 39 段。
+       只挂长文页：/about/ /now/ /roll/ 本来就 hideTitle，根本进不来。 */ -}}
+{{ if $longForm }}{{ with .Description }}<p class="dek">{{ . }}</p>{{ end }}{{ end }}
 {{ else }}
 <h1 class="sr-only">{{ partial "orphan-safe.html" .Title }}</h1>
 {{ end }}

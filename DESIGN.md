@@ -46,10 +46,10 @@ colors:
 typography:
   font-primary: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif'  # ⚠️ 2026-11-05 改成系统字体栈，之前是 Verdana 打头
   font-secondary: "monospace"
-  size-primary: "1em"
+  size-primary: "18px"   # ⚠️ 2026-11-06 由 1em（16px）改成 18px，见 custom_head.html 第 39 段
   size-secondary: "0.8em"
   body-line-height: 1.5
-  content-line-height: 1.8       # ⚠️ 2026-10-14 改过，上游是 1.6
+  content-line-height: 1.6       # ⚠️ 2026-11-06 由 1.8 收回 1.6；基准 18px × 1.6 = 28.8px，与 16px × 1.8 的行盒相同
   note: >
     上游只有 `Verdana, sans-serif`。Verdana 不含汉字，中文一直靠浏览器兜底。
     2026-11-05 起站点层改成系统字体栈（`custom_head.html` 第 01 段），这是**唯一**动过字体的地方。
@@ -63,7 +63,8 @@ typography:
     2026-10-14 做花墨（flowersink.com）借鉴审计时实测它的正文正是
     **16px / 28.8px = 1.8** —— 第二个数据点出现，用户据此拍板。
     `body` 仍是上游的 1.5：页头 / 导航 / 页脚是外壳，不是阅读面，不跟着放。
-    实测：`content p` = 16px / 28.8px = **1.80**；`header nav a` / `footer` / `body`
+    2026-11-06：`content p` 改成 18px / 28.8px = **1.60**（比值收回 1.6，行盒仍是
+    28.8px，2026-10-14 那条关于绝对行距的判据仍然成立）；`header nav a` / `footer` / `body`
     全部仍 **1.50**；首页的 `<content>` 被站点层去掉，整页仍 1.50（见第 4 节）。
     体积**零变化** —— 1.6→1.8 字节数相同，加的中文注释被 minify 剥掉：
     8675 / 12610 / 10404 / 9101 / 10509 / 10089 逐值不变。
@@ -225,12 +226,12 @@ hulatu.com（本站：上游主题 + 29 个站点层覆盖文件）
   唯一的阴影是图片放大遮罩上的 `0 8px 32px rgba(0,0,0,.3)`。
 - **`hr` 是虚线**：`hr { border: 0; border-top: 1px dashed }`。
   首页「Hi! 简介」和「Recent Posts:」之间那条分隔就是它，**不用加类名**。
-- **`content` 的 line-height 是 1.8**（⚠️ 2026-10-14 改过，上游是 1.6，见第 5 节），
-  `body` 是 1.5。正文比外壳松，外壳保持上游不动 —— 这个「松紧差」现在是 1.8 / 1.5。
-- **正文段间距 1.75em（28px），与行距齐平**（2026-10-27 新增，见第 18 节）。
+- **`content` 的 line-height 是 1.6**（⚠️ 2026-11-06 由 1.8 收回，上游是 1.6，见第 5 节），
+  `body` 是 1.5。正文比外壳松，外壳保持上游不动 —— 这个「松紧差」现在是 1.6 / 1.5。
+- **正文段间距 1.75em（31.5px），仍大于行距 28.8px**（2026-10-27 新增，见第 18 节）。
   上游是浏览器默认 `1em` = 16px，只有行距的 55.6% —— 中文方块字没有 x-height，
   「换段比换行还紧」会让人读不出段落边界。**只加 `margin-bottom`**，
-  这样「标题 → 正文」的 16.8px 不受影响。
+  这样「标题 → 正文」的 18px 不受影响。
   ⚠️ 主题里 `content` 是**唯一**带行高的容器规则，所以 `<content>` 里的
   `p` / `li` / `blockquote` / **标题** 全都继承这 1.8（标题单行时看不出差别）。
 
