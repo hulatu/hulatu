@@ -110,12 +110,23 @@
 #      /media/    → 书影音页随自建主题一起删除
 #      /stats/    → 结算页同上
 #    同一批还删掉了 `/css/*`：新主题把 CSS 全部内联进 HTML，产物里**不再有 /css/ 目录**。
+#    ⚠️ 2026-11-06：CSS 改回外部文件（产物里重新有了 /css/ 目录），
+#       `/css/*` 规则在下面 `/js/*` 之后重新加了一条（1 年 + immutable）。
 
 # /js/ 下现在有两个文件：giscus.min.<内容哈希>.js 与 code-copy.min.<内容哈希>.js
 # （assets/js/giscus.js、assets/js/code-copy.js 经 Hugo 管道指纹化）。
 # 文件名带哈希 → 内容一变文件名就变，所以可以放心长缓存。
-# ⚠️ 别再指望 /css/* —— 见上面那条。
 /js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# /css/ 下现在有一个文件：main.min.<内容哈希>.css
+# （assets/css/theme.css + assets/css/custom.css 经 Hugo 管道拼合、
+# 压缩、指纹化；2026-11-06 从内联改回外部文件，见 DESIGN.md「样式」一节）。
+# 同样文件名带哈希 → 内容一变文件名就变，放心长缓存。
+# ⚠️ 2026-10-10 删掉的那条 /css/* 是因为当时「产物里不再有 /css/ 目录」；
+#    现在目录回来了，这条就是新加的 —— 不是把旧规则原样恢复，
+#    是新文件、新规则（旧的只写了 max-age，没写 immutable）。
+/css/*
   Cache-Control: public, max-age=31536000, immutable
 
 # 2026-10-05 删掉了一条 `/img/*`（原本也写 30 天）。站内只有 `static/images/`，
@@ -182,7 +193,7 @@
 #
 #    浏览器侧保持 `max-age=0, must-revalidate`：只要索引没变，浏览器发条件请求、
 #    服务端回 304，不会重新下载正文。2026-11-02 起补 `s-maxage=300`，让这份
-#    1.03 MB（gzip 442 KB）的索引能被边缘缓存，避免每次搜索都跨洋回源。
+#    约 390 KB（gzip 约 170 KB）的索引能被边缘缓存，避免每次搜索都跨洋回源。
 #    代价与 HTML 相同：发布后最多 5 分钟内，部分访客搜不到刚发的文章。
 #    不给浏览器长 max-age：否则发完新文章最久一小时内搜索都缺内容。
 /index.xml
