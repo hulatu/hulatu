@@ -2682,7 +2682,7 @@ CSS 按页型分三档：**12,027 B × 115 页 / 16,522 B × 129 页 / 18,773 B 
 
 - 统计（GoatCounter）那段**早就**带 `document.prerendering` 守卫（`prerenderingchange` 事件才补发），
   预渲染期间不加载 → **不会多算一次访问**。
-- 评论区（giscus）是「滚到评论区前 400 px 才注入」，预渲染的页面不滚动，不会触发。
+- 评论区（giscus）是「滚到评论区前 300 px 才注入」，预渲染的页面不滚动，不会触发。
 - 全站**没有** Service Worker、没有写 `localStorage` / `sessionStorage` / `document.cookie` 的脚本
   （2026-10-28 全仓 grep 确认，唯一命中是我自己写的那句注释）。
 
