@@ -63,13 +63,21 @@
        覆盖主题（以前是两个 <style> 块的先后顺序，现在是拼合顺序）。
        指纹在文件名里（main.min.<hash>.css），内容一变文件名就变，
        所以 static/_headers 里 /css/* 可以放心写 1 年 + immutable。
-       preload 让首屏不等 HTML 解析完才开始拿 CSS（抵消多一次请求）。
        integrity 是 SRI 校验，与 giscus.js / code-copy.js 同一做法。
+
+       ⚠️ 2026-11-07：**删掉了原来那条 `<link rel=preload as=style>`**。
+          它非但没有「抵消多一次请求」，反而**让 CSS 被下了两次**：
+          下面那个 stylesheet 带 `integrity` + `crossorigin=anonymous`（CORS 模式），
+          而 preload 不带 crossorigin（no-CORS 模式），两者凭据模式不一致，
+          浏览器把它们当成两个缓存键 → CDP 的 requestWillBeSent 里同一个
+          URL 出现 2 次。而且 preload 对一个 render-blocking 的 stylesheet
+          本来就没有加速作用：两条 link 挨在一起，预加载扫描器同时发现它们。
+          **别再把它加回来**；真要为别的资源预加载，记得 crossorigin 与
+          消费方一致，否则照样双下。
        --------------------------------------------------------------- */ -}}
 {{- $themeCSS := resources.Get "css/theme.css" -}}
 {{- $customCSS := resources.Get "css/custom.css" -}}
 {{- $css := slice $themeCSS $customCSS | resources.Concat "css/main.css" | minify | fingerprint -}}
-<link rel="preload" href="{{ $css.RelPermalink }}" as="style">
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" crossorigin="anonymous">
 
 {{- /* ============================================================

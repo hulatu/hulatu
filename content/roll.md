@@ -63,7 +63,6 @@ draft: false
 
 <hr>
 
-- [博友圈](https://www.boyouquan.com)：博友圈是博客人的专属朋友圈！
 - [有个站](https://www.ygz.ink/)：每一本书都是一座思想的花园。
 - [笔墨迹](https://blogscn.fun/)：链接博客，也保留博客本来的样子。
 - [博客集](https://bloginc.cn/)：为优秀的博客提供一个展示的窗口，同时也为喜爱阅读的朋友们搭一座发现的桥梁。

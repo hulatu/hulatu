@@ -97,7 +97,14 @@
 
 {{- /* ② 边缘转换 + srcset。只有图床的图才拼前缀，外站图原样输出。 */ -}}
 {{- $src := $dest -}}
-{{- $srcsetAttr := "" -}}
+{{- /* ⚠️ 必须 `| safeHTMLAttr`，不能只写 `""`（2026-11-07 修）。
+       `$srcsetAttr` 最终是塞进属性名位置的：`<img src="…"{{ $srcsetAttr }} alt="…">`。
+       赋成普通字符串时，走「原图 ≤720px 只转格式」那条分支（$cands 不足 2 个、
+       下面那个 if 不成立）它就一直是空串，Go 的 html/template 在属性名上下文
+       遇到未标记安全的字符串会**整个消毒成 `zgotmplz`**，产物里就是
+       `<img src="…" zgotmplz alt="…">` —— 属性名成了垃圾，srcset 也没了。
+       全站 7 篇 9 张图踩到（都是 ≤720px 的小图）。 */ -}}
+{{- $srcsetAttr := "" | safeHTMLAttr -}}
 {{- if strings.HasPrefix $dest "https://img.hulatu.com/" -}}
   {{- $path := strings.TrimPrefix "https://img.hulatu.com/" $dest -}}
   {{- $fmtW := "https://img.hulatu.com/cdn-cgi/image/width=%d,format=auto,quality=82/%s" -}}

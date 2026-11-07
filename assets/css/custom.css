@@ -1694,7 +1694,7 @@
 
          ⚠️ 2026-11-06 晚第 40 段把宽度收到固定值之后，这张表只对主题层成立：
             折叠时盒宽 36px（只装 24px 的指示线），悬停展开最宽 280px
-            （装扁平列表；窄视口下按 `min(280px, (100vw − 720px) / 2 − 40px)`
+            （装扁平列表；窄视口下按 `min(280px, (100vw − 720px) / 2 − 12px)`
             自动收窄，见第 40 段）。
             「文字可用宽 = 盒宽 − 内部开销」这笔账不再成立 —— 折叠态内部
             开销是 0（指示线就是内容），展开态列表内边距 16px×2 由盒宽
@@ -2803,10 +2803,10 @@
          ── 这一段怎么做 ──────────────────────────────────────────────
          结构不动：还是 single.html 末尾那个 `div.toc` + 主题 toc.html
          的 130 行 JS（滚动高亮 + 点击平滑滚动原样留着）。
-           · 盒子钉在右缘：`right: 28px`、垂直居中（主题的 top 50% +
-             translateY(-50%) 不动）；折叠时宽 36px，只装指示线；
-             悬停 / 点按时最宽 280px，向左展开（right 锚定，所以宽度
-             变化只向左长、不向右顶）。
+           · 盒子钉在右缘：`right: 10px`（2026-11-07 由 28px 改小）、
+             垂直居中（主题的 top 50% + translateY(-50%) 不动）；
+             折叠时宽 36px，只装指示线；悬停 / 点按时最宽 280px，
+             向左展开（right 锚定，所以宽度变化只向左长、不向右顶）。
            · 折叠态：链接文字 `font-size: 0` + 透明（只占 0 宽），只剩
              `a::before` 那条 24×2px 的线（`display: block`、右对齐，
              上下各 4px，5 条线一共约 50px 高）；当前节的线是主文字色，
@@ -2814,10 +2814,14 @@
            · 展开态：没有卡片 —— 没有底色、没有阴影、没有圆角，列表
              就是一列直接落在页面底色上的文字（ChatGPT 那个大纲的样子）；
              文字 0.9rem / 行高 1.7（约 24px），非活动项次级灰，
-             当前节本站链接蓝（`--link-color`，不引新颜色），没有圆点，
-             只靠颜色区分（ChatGPT 也是只靠颜色）。
+             当前节本站链接蓝（`--link-color`，不引新颜色）。
+             ⚠️ 2026-11-07 修正：横线**不搬家**——展开时它仍然钉在
+             右侧同一列（和折叠态完全同一个 x），只让标签从左边长出来。
+             所以展开态是「右轨道 + 左标签」，不是「横线当项目符号」。
+             细节见下面展开态 `a::before` 那条注释。
            · 没有底色之后，列表不能压住正文 —— 展开宽度取
-             `min(280px, (100vw − 720px) / 2 − 40px)`：视口够宽时 280px，
+             `min(280px, (100vw − 720px) / 2 − 22px)`（常数 22 = right 10 +
+             与正文最小间距 12）：视口够宽时 280px，
              窄到 1200–1330px 时自动收窄，保证左缘始终离正文右缘 12px
              以上（1200px 的闸门不动，≤1200px 整块不显示）。
            · 滚动收起：Medium 里面板打开时再滚动会收起 —— 靠 single.html
@@ -2838,7 +2842,14 @@
       --------------------------------------------------------------- */
   div.toc {
     left: auto;
-    right: 28px;
+    /* 2026-11-07：28px → 0 → **10px**（用户最后定的是「横条距最右侧 10px」）。
+       ⚠️ 光改这里不够：折叠态的横条是 `.toc-nav a::before`，
+          而那个 a 的盒子比 div.toc 窄 8px（主题的 max-width/overflow 导致），
+          横条又是 `margin-left: auto` 右对齐在 a 里的 →
+          不补 `.toc-nav a { width: 100% }` 的话，横条会比 right 再多缩进 8px
+          （设 10 会变成 18）。两条必须成对存在，见下面那条注释。
+       ⚠️ 展开态跟着一起定位，宽度公式的常数 = right(10) + 正文间距(12) = 22。 */
+    right: 10px;
     width: 36px;
     overflow: hidden;
   }
@@ -2860,6 +2871,11 @@
     color: transparent;
     padding: 0;
     white-space: normal;
+    /* ⚠️ 配合上面 `div.toc { right: 10px }`，两条缺一不可。
+       不加这条时 a 的盒子只有 28px（容器是 36px），
+       横条右缘就比 div.toc 右缘再缩进 8px，用户要的「距边 10px」会变成 18px。
+       撑满之后 a=36，横条右缘才真的落在盒右缘（= 视口右 10px）。 */
+    width: 100%;
   }
 
   .toc-nav a::before {
@@ -2890,17 +2906,44 @@
   /* ── 展开态：悬停或点按打开；滚动中强制收起；没有卡片 ── */
   div.toc:hover:not(.toc-scrolling),
   div.toc.toc-open:not(.toc-scrolling) {
-    width: min(280px, calc((100vw - 720px) / 2 - 40px));
+    /* ⚠️ 2026-11-07：固定 280px → `max-content`。
+       背景：宽度钉死 280px 时，本站目录文字通常只有 70–120px 宽，
+       面板右缘虽然贴着右边，但**文字右缘离视口右还有 170 多 px 空白**。
+       面板没有底色和边框，盒子的边界是看不见的 —— 用户看到的就是
+       「目录右边空一大片」。
+       改成 max-content 后面板按内容收缩，右缘仍锚在 `right` 上，
+       文字自然跟到右边去。长标题仍受下面 max-width 约束（会换行）。
+
+       ⚠️ 常数 `− 22px` = right(10) + 与正文的最小间距(12px)。
+          2026-11-07 把 `right` 从 28 改到 0、再改到 10 时同步调过
+          （原来是 −40）。**改 `right` 就必须改这个常数**，
+          否则面板离正文的间距会漂。 */
+    width: max-content;
+    max-width: min(280px, calc((100vw - 720px) / 2 - 22px));
     overflow-y: auto;
   }
 
+  /* ⚠️ 右内边距必须归零（原来是 `padding: 12px 16px`）。
+     只有 `.toc-nav` 右内边距 = 0，`a` 的右缘才等于面板右缘，
+     展开态的横线才会落在**和折叠态完全相同的 x 上** ——
+     横线一根都不动，标签从它左边长出来，这才是「横线始终在右侧」。
+     设了 16px 右内边距的话，横线会整体左移 16px，
+     用户会说「展开以后横线跑掉了」。 */
   div.toc:hover:not(.toc-scrolling) .toc-nav,
   div.toc.toc-open:not(.toc-scrolling) .toc-nav {
-    padding: 12px 16px;
+    padding: 12px 0 12px 16px;
   }
 
   div.toc:hover:not(.toc-scrolling) .toc-nav a,
   div.toc.toc-open:not(.toc-scrolling) .toc-nav a {
+    /* ⚠️ 主题没有全局 border-box，下面那条 padding-right 会把 a 撑宽 32px，
+       横线就被挤出面板、被 overflow 裁掉。必须显式声明。 */
+    box-sizing: border-box;
+    /* 横线要绝对定位在 a 的右缘，所以 a 得是定位祖先 */
+    position: relative;
+    /* 给右侧的横线留出位置：24px 线 + 8px 间隙。
+       文字因此到 a 右缘前 32px 就停住，不会压到横线上。 */
+    padding-right: 32px;
     font-size: 0.9rem;
     line-height: 1.7;
     color: var(--text-color-secondary);
@@ -2908,7 +2951,26 @@
 
   div.toc:hover:not(.toc-scrolling) .toc-nav a::before,
   div.toc.toc-open:not(.toc-scrolling) .toc-nav a::before {
-    display: none;
+    /* 2026-11-07：这版是「横线不搬家」。
+       用户的原话是「目录显示的时候，横条也不隐藏」+「横条距离最右侧 10px」，
+       再补一句「弹出目录时，横线还是在右侧」——
+       他要的是一条**钉在右边的竖排轨道**：展开只让标签从左边长出来，
+       横线本身位置不变、也不消失。
+
+       ⚠️ 所以这里不能把横线做成文字左边的项目符号（试过，被否），
+          而是绝对定位钉在 `a` 的右缘：`right: 0`。
+          `a` 的右缘 = `.toc-nav` 右内边距 0 后的面板右缘 = 折叠态横条的右缘，
+          两态同一个 x，悬停时肉眼看不到横线有任何位移。
+       ⚠️ 绝对定位后横线不参与 max-content 计算 → 宽度必须靠 `a` 的
+          `padding-right: 32px` 撑出来，否则面板会缩到文字宽、横线压字。
+       ⚠️ `top: 50%` + `translateY(-50%)` 让它按整行垂直居中；
+          用 `vertical-align` 是不行的 —— 绝对定位元素没有行内基线。
+       尺寸沿用 24×2，与折叠态一致，展开时没有粗细/长短跳变。 */
+    position: absolute;
+    right: 0;
+    top: 50%;
+    margin: 0;
+    transform: translateY(-50%);
   }
 
   div.toc:hover:not(.toc-scrolling) .toc-nav ul ul,
@@ -2934,4 +2996,148 @@
      入口上方会多出 1.2rem 间距（a5b9c20 原本的意图）。 */
   .featured-entry {
     margin-top: 1.2rem;
+  }
+
+  /* ---------------------------------------------------------------
+       38 公众号页（/wechat/）—— 二维码 + 公众号信息条（2026-11-07 新增）
+
+          ── 为什么要这一段 ──────────────────────────────────────────────
+          首页那行平台链接里的「公众号」以前直接指向 /images/gzh.webp
+          （一张 1200×848 的绿色横版卡片），点开是裸图。改成一个真正的页面。
+          信息架构参考 zhheo/Wechat-Official-Account-Web，**视觉没有照搬** ——
+          原项目是 428px 卡片 / 16px 圆角 / 微信绿 #1ba059 / 系统字体，
+          与本文件其余部分（4px 圆角、无投影、三级灰、链接蓝）是两套语言。
+          这里全部走本站 token，类名统一 `oa-` 前缀（Official Account）。
+
+          ── 与 08 段（/donate/）的关系 ──────────────────────────────────
+          二维码那三条规则**逐字同源**：1px var(--border-color) 边框 +
+          4px 圆角 + background:#fff。两页的二维码长得一样是**故意的**，
+          改一处要回来对另一处。区别只在尺寸（这里 256px 固定，donate 是 220 上限）。
+
+          ── 为什么没有外层卡片 ──────────────────────────────────────────
+          原项目把二维码和信息条包在一张 428px 白卡片里（16px 圆角）。
+          本站的语言是「不加底色、不加阴影、不加圆角卡片」（见 09 段同一句），
+          所以这里**只有信息条那一块底色**，二维码直接坐在页面底色上。
+          层级靠「一块浅灰 + 一条发丝线」表达，与 08 / 09 / 13 一致。
+
+          ── 尺寸 ────────────────────────────────────────────────────────
+          二维码与信息条**都是 256px、严格同宽**（2026-11-07 用户要求）。
+          原项目是「428px 卡片减去左右 padding 各 36 = 356px 内容宽，
+          信息条比二维码宽」，第一版照抄了这个比例，用户当天就要求改成等宽。
+          所以 `.oa-wrap` 也收到 256 —— 它是这一整块的宽度约束，
+          留着 356 只会让后来的人以为里面还有东西占满那 100px。
+          窄屏（375px 视口的内容宽约 295px）下 256 仍然放得下。
+
+          ── 深色模式 ────────────────────────────────────────────────────
+          二维码**必须白底**：`.oa-qr` 的 background:#fff 是无条件的，
+          不跟随主题。深色下它是一块白方块 —— 这是对的，扫码要的是对比度。
+          信息条用 --bg-color-secondary（浅 #f2f4f7 / 深 #1c1f24），
+          头像也用白底（素材本身是白底图，透明 PNG 换进来也不会在深色下烂掉）。
+
+          ⚠️ `.oa-tip` / `.oa-name` / `.oa-desc` 都是 `<p>`，且都写在
+             `.oa-wrap` / `.oa-profile` 里 —— 不是 `content` 的**直接**子元素，
+             所以吃不到 01 段那条 `content > p { margin-bottom: 1.75em }`。
+             但 `content { line-height: 1.8 }` 是**继承**的，会一路传下来，
+             所以信息条里显式写 1.4 把它收回来，否则两行小字会散开。
+      --------------------------------------------------------------- */
+  .oa-wrap {
+    /* 与二维码、信息条同宽（见段首「尺寸」）。 */
+    max-width: 256px;
+    margin: 1.5rem auto 2.5rem;
+    text-align: center;
+  }
+
+  .oa-qr {
+    display: block;
+    /* box-sizing 必须有：主题没设全局 border-box，默认 content-box 下
+       width:256 + 1px 边框 = 实际占 258px。信息条锁的是 256，
+       不压成 border-box 的话两条边会各差 1px（截图量得出来）。
+       → 加上这条之后 .oa-qr 与 .oa-profile 的外沿严格同宽。 */
+    box-sizing: border-box;
+    width: 256px;
+    height: 256px;
+    margin: 0 auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    /* 与 08 段同源：二维码永远白底，不跟随主题。 */
+    background: #fff;
+    /* 主题给所有 img 设了 `content-visibility: auto`（正文长图的懒渲染）。
+       二维码是这一页唯一的内容，没有任何「滚到才渲染」的理由 ——
+       实测带这个属性时首屏会闪一下白框。显式关掉。 */
+    content-visibility: visible;
+  }
+
+  .oa-tip {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: var(--text-color-tertiary);
+    line-height: 1.4;
+  }
+
+  .oa-profile {
+    /* 2026-11-07 用户要求：**与二维码严格等宽**（256px）。
+       原来是撑满 .oa-wrap 的 356px（照原项目的比例），现在收窄到 256。
+       ⚠️ 收窄的代价是文字区变窄，所以 padding / gap 一并压小
+          （16/16 → 8/8），把省下的 16px 让给文字：
+             256 − 8×2 − 48(头像) − 8(gap) = **184px**
+          而「分享数字生活、学习与个人成长」14 个字在 0.8rem(12.8px) 下
+          实测 **179.20px** —— 余量 4.8px，一行放得下。
+          ⚠️⚠️ **别把 padding 加回去**。padding 10 时可用宽正好 180，
+              文字实测 179.2、余量只剩 0.8px（Range 量出来是 0.00），
+              等于「刚好顶满」—— 换个字体渲染或缩放比例就折行，
+              折出来还是「成长」两个字的孤行。8px 是留了余量的最小值。
+          ⚠️ 也因此 `.oa-desc` 里**没有** nowrap 保护：硬绑 nowrap 会直接溢出。
+          改任何一项（padding / gap / 头像尺寸 / 字号 / 文案）之后，
+          **必须重新量余量**，别只看「截图里是一行」。 */
+    width: 256px;
+    /* ⚠️ border-box 不能省：主题没设全局 border-box，
+       不写这条的话 256 + padding 16 = 实际占 272，会比二维码宽出去 16px
+       —— 正好破坏「等宽」这个需求，而且看起来只是「右边多一点点」。 */
+    box-sizing: border-box;
+    margin: 1.25rem auto 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: var(--bg-color-secondary);
+    border-radius: 4px;
+    /* .oa-wrap 是居中，这里收回来 —— 头像在左、文字左对齐。 */
+    text-align: left;
+  }
+
+  .oa-avatar {
+    /* flex:none 必须有：不然窄屏下头像会被两行文字挤扁。 */
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    /* ⚠️ 这两条是**踩过的坑**，别删。
+       主题有一条全局 `img { margin-left: auto; margin-right: auto;
+       border: 1px solid var(--border-color) }`（它靠 auto 把正文插图居中）。
+       在 flex 容器里，**auto 外边距会吸收全部剩余空间** —— 实测头像被推到
+       中间，左边凭空多出 39.4px，与紧贴左边缘的「公众号」标题完全错位。
+       同一个坑第 03 段（已撤的关于页头像）的注释里写过一遍，这里再压一次。
+       border 也一并去掉：头像是圆形图，外面再套一圈 4px 圆角描边会露出方角。 */
+    margin: 0;
+    border: 0;
+  }
+
+  .oa-meta {
+    /* min-width:0 让长简介能正常折行而不是撑破 flex 容器。 */
+    min-width: 0;
+  }
+
+  .oa-name {
+    margin: 0;
+    font-weight: bold;
+    color: var(--text-color-primary);
+    line-height: 1.4;
+  }
+
+  .oa-desc {
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
+    color: var(--text-color-tertiary);
+    line-height: 1.4;
   }
