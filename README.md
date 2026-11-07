@@ -17,7 +17,7 @@
 <br>
 
 ![关注](https://img.shields.io/github/followers/hulatu?style=flat-square&label=%E5%85%B3%E6%B3%A8&color=1b1917)
-![仓库](https://img.shields.io/static/v1?label=%E4%BB%93%E5%BA%93&message=7&color=1b1917&style=flat-square)
+![仓库](https://img.shields.io/static/v1?label=%E4%BB%93%E5%BA%93&message=8&color=1b1917&style=flat-square)
 ![更新于](https://img.shields.io/static/v1?label=%E6%9B%B4%E6%96%B0%E4%BA%8E&message=2026-11&color=1b1917&style=flat-square)
 
 </div>
@@ -60,14 +60,16 @@
 ![Node.js](https://img.shields.io/static/v1?label=&message=Node.js&color=5fa04e&style=flat-square&logo=nodedotjs&logoColor=white)
 ![Markdown](https://img.shields.io/static/v1?label=&message=Markdown&color=1b1917&style=flat-square&logo=markdown&logoColor=white)
 
-## 📦 这个仓库
+## 📦 这里是什么
 
-这个仓库（`hulatu/hulatu`）就是 **[hulatu.com](https://hulatu.com/)** 的源码：Hugo 站点、`layouts/` 下的站点层覆盖、
-发布脚本和跑步数据都在里面。
+这个仓库只放个人主页的这一页 README。
 
-- 🛠 想跑起来 / 想改哪一块 → **[SITE.md](SITE.md)**（本地预览、仓库地图、「想改什么 去哪改」28 行索引）
-- 🔧 维护手册与踩过的坑 → **[MAINTENANCE.md](MAINTENANCE.md)**
-- 🎨 视觉规范 → **[DESIGN.md](DESIGN.md)**
+博客的源码在 **[hulatu/hulatu_blog](https://github.com/hulatu/hulatu_blog)** —— Hugo 站点、`layouts/` 下的站点层覆盖、
+发布脚本和跑步数据都在那边。
+
+- 🛠 想跑起来 / 想改哪一块 → **[站点手册](https://github.com/hulatu/hulatu_blog/blob/main/README.md)**（本地预览、仓库地图、「想改什么 去哪改」28 行索引）
+- 🔧 维护手册与踩过的坑 → [MAINTENANCE.md](https://github.com/hulatu/hulatu_blog/blob/main/MAINTENANCE.md)
+- 🎨 视觉规范 → [DESIGN.md](https://github.com/hulatu/hulatu_blog/blob/main/DESIGN.md)
 
 ## 📄 许可
 
